@@ -5,7 +5,7 @@
         </v-col>
         <v-col class="py-2">
             <settings-row :title="title" :sub-title="subtitle" :dynamic-slot-width="true">
-                <v-icon :color="checkboxColor" @click="changeVisibility" v-html="checkboxIcon" />
+                <v-icon :color="checkboxColor" :icon="checkboxIcon" @click="changeVisibility" />
             </settings-row>
         </v-col>
     </v-row>
