@@ -113,6 +113,7 @@ export const allDashboardPanels = [
     'dro',
     'jog',
     'offsets',
+    'offset-preview',
     'spindle-coolant',
     'toolhead-control',
     'macros',

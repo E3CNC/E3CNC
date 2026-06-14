@@ -102,6 +102,7 @@ import MacrosPanel from '@/components/panels/MacrosPanel.vue'
 import MiniconsolePanel from '@/components/panels/MiniconsolePanel.vue'
 import MinSettingsPanel from '@/components/panels/MinSettingsPanel.vue'
 import MiscellaneousPanel from '@/components/panels/MiscellaneousPanel.vue'
+import OffsetPreview from '@/components/panels/Cnc/OffsetPreview.vue'
 import OffsetsPanel from '@/components/panels/Cnc/OffsetsPanel.vue'
 import SpindleCoolantPanel from '@/components/panels/Cnc/SpindleCoolantPanel.vue'
 import StatusPanel from '@/components/panels/StatusPanel.vue'
@@ -131,6 +132,7 @@ const registeredPanels: Record<string, unknown> = {
     dro: DroPanel,
     jog: JogPanel,
     offsets: OffsetsPanel,
+    'offset-preview': OffsetPreview,
     'spindle-coolant': SpindleCoolantPanel,
     mdi: MdiPanel,
     klippystate: KlippyStatePanel,

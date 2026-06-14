@@ -48,7 +48,7 @@ export const getters: GetterTree<GuiState, RootState> = {
         let allPanels = [...allDashboardPanels]
 
         if (!rootState.gui?.gcodeViewer?.cncMode) {
-            allPanels = allPanels.filter((name) => !['dro', 'cnc-status', 'jog', 'offsets', 'mdi', 'spindle-coolant'].includes(name))
+            allPanels = allPanels.filter((name) => !['dro', 'cnc-status', 'jog', 'offsets', 'offset-preview', 'mdi', 'spindle-coolant'].includes(name))
         }
 
         // remove macros panel and add macrogroups panels if macroMode === expert

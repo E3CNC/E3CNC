@@ -11,6 +11,7 @@ import {
     mdiDipSwitch,
     mdiEngine,
     mdiGamepad,
+    mdiGrid,
     mdiInformation,
     mdiLedStrip,
     mdiThermometerLines,
@@ -49,6 +50,8 @@ export function useDashboard() {
                 return 'Jog'
             case 'offsets':
                 return 'Offsets'
+            case 'offset-preview':
+                return 'Offset Preview'
             case 'spindle-coolant':
                 return 'Spindle & Coolant'
             case 'mdi':
@@ -97,6 +100,8 @@ export function useDashboard() {
                 return mdiHandBackRight
             case 'offsets':
                 return mdiTarget
+            case 'offset-preview':
+                return mdiGrid
             case 'spindle-coolant':
                 return mdiEngine
             case 'mdi':

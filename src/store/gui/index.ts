@@ -86,6 +86,7 @@ export const getDefaultState = (): GuiState => {
             tabletLayout2: [
                 { name: 'temperature', visible: true },
                 { name: 'offsets', visible: true },
+                { name: 'offset-preview', visible: true },
                 { name: 'spindle-coolant', visible: true },
                 { name: 'mdi', visible: true },
                 { name: 'miniconsole', visible: true },
@@ -103,6 +104,7 @@ export const getDefaultState = (): GuiState => {
             desktopLayout2: [
                 { name: 'temperature', visible: true },
                 { name: 'offsets', visible: true },
+                { name: 'offset-preview', visible: true },
                 { name: 'spindle-coolant', visible: true },
                 { name: 'mdi', visible: true },
                 { name: 'miniconsole', visible: true },
@@ -118,6 +120,7 @@ export const getDefaultState = (): GuiState => {
             widescreenLayout2: [
                 { name: 'temperature', visible: true },
                 { name: 'offsets', visible: true },
+                { name: 'offset-preview', visible: true },
                 { name: 'spindle-coolant', visible: true },
                 { name: 'machine-settings', visible: true },
             ],
