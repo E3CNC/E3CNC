@@ -29,15 +29,15 @@
                     <span class="text-caption font-weight-bold">Work Position:</span>
                 </v-col>
                 <v-col cols="4" class="text-center">
-                    <div class="text-caption text-secondary">X</div>
+                    <div class="text-caption text-medium-emphasis">X</div>
                     <div class="font-weight-bold">{{ currentWorkX.toFixed(3) }}</div>
                 </v-col>
                 <v-col cols="4" class="text-center">
-                    <div class="text-caption text-secondary">Y</div>
+                    <div class="text-caption text-medium-emphasis">Y</div>
                     <div class="font-weight-bold">{{ currentWorkY.toFixed(3) }}</div>
                 </v-col>
                 <v-col cols="4" class="text-center">
-                    <div class="text-caption text-secondary">Z</div>
+                    <div class="text-caption text-medium-emphasis">Z</div>
                     <div class="font-weight-bold">{{ currentWorkZ.toFixed(3) }}</div>
                 </v-col>
             </v-row>
@@ -47,15 +47,15 @@
                     <span class="text-caption font-weight-bold">Origin Offset (machine):</span>
                 </v-col>
                 <v-col cols="4" class="text-center">
-                    <div class="text-caption text-secondary">X</div>
+                    <div class="text-caption text-medium-emphasis">X</div>
                     <div class="font-weight-medium">{{ wcsOriginOffsetX.toFixed(3) }}</div>
                 </v-col>
                 <v-col cols="4" class="text-center">
-                    <div class="text-caption text-secondary">Y</div>
+                    <div class="text-caption text-medium-emphasis">Y</div>
                     <div class="font-weight-medium">{{ wcsOriginOffsetY.toFixed(3) }}</div>
                 </v-col>
                 <v-col cols="4" class="text-center">
-                    <div class="text-caption text-secondary">Z</div>
+                    <div class="text-caption text-medium-emphasis">Z</div>
                     <div class="font-weight-medium">{{ wcsOriginOffsetZ.toFixed(3) }}</div>
                 </v-col>
             </v-row>

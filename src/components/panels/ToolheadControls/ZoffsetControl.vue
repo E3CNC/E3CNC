@@ -7,7 +7,7 @@
         <template #default="{ el }">
             <v-container class="pa-0">
                 <v-row>
-                    <v-col class="text-subtitle-2 text-secondary pr-0 d-flex align-center">
+                    <v-col class="text-subtitle-2 text-medium-emphasis pr-0 d-flex align-center">
                         <v-icon size="small" class="mr-2">
                             {{ mdiLayersOutline }}
                         </v-icon>

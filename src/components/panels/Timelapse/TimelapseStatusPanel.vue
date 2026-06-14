@@ -23,7 +23,7 @@
                 </v-col>
             </v-row>
             <v-row>
-                <v-col class="text-secondary">
+                <v-col class="text-medium-emphasis">
                     <settings-row :title="$t('Timelapse.Frames')" :dynamic-slot-width="true">
                         {{ framesCount }}
                     </settings-row>
@@ -58,7 +58,7 @@
         <v-card-text v-else>
             <v-row>
                 <v-col class="text-center">
-                    <span class="text-secondary">{{ $t('Timelapse.NoTimelapseData') }}</span>
+                    <span class="text-medium-emphasis">{{ $t('Timelapse.NoTimelapseData') }}</span>
                 </v-col>
             </v-row>
         </v-card-text>

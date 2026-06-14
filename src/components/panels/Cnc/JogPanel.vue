@@ -178,13 +178,13 @@
             <v-divider class="my-3" />
             <v-row density="compact">
                 <v-col cols="6">
-                    <span class="text-caption jog-panel__muted-label">Status:</span>
+                    <span class="text-caption text-medium-emphasis">Status:</span>
                     <v-chip size="small" :color="['printing'].includes(printer_state) ? 'warning' : 'primary'" class="mx-2">
                         {{ printer_state }}
                     </v-chip>
                 </v-col>
                 <v-col cols="6" class="text-right">
-                    <span class="text-caption jog-panel__muted-label">Homed:</span>
+                    <span class="text-caption text-medium-emphasis">Homed:</span>
                     <v-chip size="small" :color="allAxesHomed ? 'primary' : 'warning'" class="mx-2">
                         {{ homedAxesDisplay }}
                     </v-chip>
@@ -425,10 +425,6 @@ onBeforeUnmount(() => {
 <style>
 .jog-panel {
     background-color: rgb(30, 30, 30) !important;
-}
-
-.jog-panel__muted-label {
-    color: rgba(255, 255, 255, 0.7);
 }
 
 .jog-panel .v-btn-toggle .v-btn,

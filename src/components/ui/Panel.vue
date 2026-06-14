@@ -5,7 +5,6 @@
         :style="cardStyle">
         <v-toolbar
             flat
-            density="compact"
             :color="toolbarColor"
             :class="getToolbarClass"
             :height="panelToolbarHeight"
