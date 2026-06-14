@@ -152,7 +152,32 @@ export default defineConfig({
     },
 
     test: {
-        environment: 'node',
+        environment: 'happy-dom',
         include: ['tests/**/*.spec.ts'],
+        globals: true,
+        setupFiles: ['tests/setup.ts'],
+        coverage: {
+            provider: 'v8',
+            reporter: ['text', 'text-summary'],
+            include: ['src/**/*.{ts,vue}'],
+            exclude: [
+                'node_modules/',
+                'tests/',
+                '**/*.d.ts',
+                '**/*.config.ts',
+                'src/main.ts',
+                'src/plugins/**',
+                'src/types/**',
+                'src/routes/**',
+                'src/store/runtime.ts',
+                'src/store/variables.ts',
+            ],
+            thresholds: {
+                lines: 80,
+                functions: 80,
+                branches: 80,
+                statements: 80,
+            },
+        },
     },
 })

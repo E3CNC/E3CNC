@@ -1,6 +1,6 @@
 <template>
     <div>
- <v-btn :icon="mdiCogs" rounded="0" @click="showSettings = true"/>
+        <v-btn :icon="mdiCogs" rounded="0" @click="openSettingsMenu" />
         <v-dialog
             v-model="showSettings"
             width="900"
@@ -8,7 +8,7 @@
             :fullscreen="isMobile"
             scrollable
             :aria-label="$t('Settings.InterfaceSettings')"
-            @keydown.esc="showSettings = false">
+            @keydown.esc="closeSettingsMenu">
             <panel
                 :title="$t('Settings.InterfaceSettings')"
                 :icon="mdiCogs"
@@ -17,7 +17,7 @@
                 style="overflow: hidden"
                 :height="isMobile ? 0 : 548">
                 <template #buttons>
- <v-btn :icon="mdiCloseThick" rounded="0" @click="showSettings = false"/>
+                    <v-btn :icon="mdiCloseThick" rounded="0" @click="closeSettingsMenu" />
                 </template>
                 <template v-if="isMobile">
                     <v-tabs v-model="activeTab" :center-active="true" :show-arrows="true">
@@ -63,8 +63,9 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue'
-import { useStore } from 'vuex'
+import type { Component } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
 import { useBase } from '@/composables/useBase'
 import SettingsGeneralTab from '@/components/settings/SettingsGeneralTab.vue'
 import SettingsWebcamsTab from '@/components/settings/SettingsWebcamsTab.vue'
@@ -97,16 +98,21 @@ import {
 import SettingsMiscellaneousTab from '@/components/settings/SettingsMiscellaneousTab.vue'
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-vue'
 
-const store = useStore()
 const { t } = useI18n()
 const { isMobile } = useBase()
+const route = useRoute()
+const router = useRouter()
 
-const settingsScroll = ref<any>(null)
-
+const settingsScroll = ref<{
+    osInstance?: () => {
+        elements: () => { viewport?: HTMLElement | null }
+    }
+} | null>(null)
 const showSettings = ref(false)
 const activeTab = ref('general')
+const settingsMenuQueryKey = 'settingsMenu'
 
-const tabComponents: Record<string, any> = {
+const tabComponents: Record<string, Component> = {
     general: SettingsGeneralTab,
     'ui-settings': SettingsUiSettingsTab,
     dashboard: SettingsDashboardTab,
@@ -149,6 +155,67 @@ const tabTitles = computed(() => {
 
         return 0
     })
+})
+
+function getSettingsMenuTabFromQuery(): string | null {
+    const queryValue = route.query[settingsMenuQueryKey]
+    const value = Array.isArray(queryValue) ? queryValue[0] : queryValue
+
+    if (typeof value !== 'string') return null
+    if (!(value in tabComponents)) return null
+
+    return value
+}
+
+async function updateSettingsMenuQuery(tab: string | null): Promise<void> {
+    const currentTab = getSettingsMenuTabFromQuery()
+    if (tab === currentTab) return
+
+    const query = { ...route.query }
+
+    if (tab) query[settingsMenuQueryKey] = tab
+    else delete query[settingsMenuQueryKey]
+
+    await router.replace({ path: route.path, query, hash: route.hash })
+}
+
+function openSettingsMenu(): void {
+    showSettings.value = true
+}
+
+function closeSettingsMenu(): void {
+    showSettings.value = false
+}
+
+watch(
+    () => route.query[settingsMenuQueryKey],
+    () => {
+        const tab = getSettingsMenuTabFromQuery()
+
+        if (tab) {
+            if (activeTab.value !== tab) activeTab.value = tab
+            if (!showSettings.value) showSettings.value = true
+            return
+        }
+
+        if (showSettings.value) showSettings.value = false
+    },
+    { immediate: true }
+)
+
+watch(activeTab, async () => {
+    if (!showSettings.value) return
+
+    await updateSettingsMenuQuery(activeTab.value)
+})
+
+watch(showSettings, async (isOpen) => {
+    if (isOpen) {
+        await updateSettingsMenuQuery(activeTab.value)
+        return
+    }
+
+    await updateSettingsMenuQuery(null)
 })
 
 watch(activeTab, async () => {
