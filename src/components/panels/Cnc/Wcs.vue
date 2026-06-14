@@ -110,8 +110,12 @@
                         v-if="stockSizes[entry.name]"
                         :x="toSvgX(entry.offsetX)"
                         :y="toSvgY(entry.offsetY + stockSizes[entry.name].height)"
-                        :width="Math.max(0, toSvgX(entry.offsetX + stockSizes[entry.name].width) - toSvgX(entry.offsetX))"
-                        :height="Math.max(0, toSvgY(entry.offsetY) - toSvgY(entry.offsetY + stockSizes[entry.name].height))"
+                        :width="
+                            Math.max(0, toSvgX(entry.offsetX + stockSizes[entry.name].width) - toSvgX(entry.offsetX))
+                        "
+                        :height="
+                            Math.max(0, toSvgY(entry.offsetY) - toSvgY(entry.offsetY + stockSizes[entry.name].height))
+                        "
                         fill="none"
                         :stroke="entry.color"
                         stroke-width="1.5"
@@ -173,7 +177,9 @@
                     text-anchor="middle"
                     fill="rgba(255,255,255,0.5)"
                     font-size="9"
-                    font-family="monospace">X ({{ machineMaxX.toFixed(0) }}mm)</text>
+                    font-family="monospace">
+                    X ({{ machineMaxX.toFixed(0) }}mm)
+                </text>
                 <text
                     :x="padding - 8"
                     :y="padding + plotHeight / 2"
@@ -181,7 +187,9 @@
                     fill="rgba(255,255,255,0.5)"
                     font-size="9"
                     font-family="monospace"
-                    :transform="`rotate(-90, ${padding - 8}, ${padding + plotHeight / 2})`">Y ({{ machineMaxY.toFixed(0) }}mm)</text>
+                    :transform="`rotate(-90, ${padding - 8}, ${padding + plotHeight / 2})`">
+                    Y ({{ machineMaxY.toFixed(0) }}mm)
+                </text>
             </svg>
 
             <!-- Legend -->
@@ -195,9 +203,7 @@
                     @click="onSelectWcs(entry.name)"
                     style="cursor: pointer">
                     <div class="offset-preview-legend__card-header">
-                        <span
-                            class="offset-preview-legend__swatch"
-                            :style="{ backgroundColor: entry.color }" />
+                        <span class="offset-preview-legend__swatch" :style="{ backgroundColor: entry.color }" />
                         <span class="offset-preview-legend__card-title">{{ entry.name }}</span>
                         <span class="offset-preview-legend__card-origin">
                             ({{ entry.offsetX.toFixed(1) }}, {{ entry.offsetY.toFixed(1) }})
@@ -205,7 +211,10 @@
                         <v-icon
                             size="x-small"
                             class="offset-preview-legend__card-eye"
-                            :style="{ color: isOffsetVisible(entry.name) ? 'rgb(var(--v-theme-primary))' : undefined, opacity: isOffsetVisible(entry.name) ? 1 : 0.5 }"
+                            :style="{
+                                color: isOffsetVisible(entry.name) ? 'rgb(var(--v-theme-primary))' : undefined,
+                                opacity: isOffsetVisible(entry.name) ? 1 : 0.5,
+                            }"
                             @click.stop="toggleOffsetVisibility(entry.name)">
                             {{ isOffsetVisible(entry.name) ? mdiEye : mdiEyeOff }}
                         </v-icon>
@@ -232,9 +241,7 @@
                 <div class="offset-preview-legend__item offset-preview-legend__item--tool">
                     <span class="offset-preview-legend__swatch offset-preview-legend__swatch--tool" />
                     <span class="offset-preview-legend__label">Tool</span>
-                    <span class="offset-preview-legend__coords">
-                        ({{ toolX.toFixed(1) }}, {{ toolY.toFixed(1) }})
-                    </span>
+                    <span class="offset-preview-legend__coords">({{ toolX.toFixed(1) }}, {{ toolY.toFixed(1) }})</span>
                 </div>
             </div>
 
@@ -245,43 +252,73 @@
                             <div class="offset-preview-summary-grid__section">
                                 <span class="text-caption font-weight-bold section-label">Work Position:</span>
                                 <div class="compact-axis-list">
-                                    <span class="compact-axis compact-axis--stacked">X <strong>{{ currentWorkX.toFixed(3) }}</strong></span>
-                                    <span class="compact-axis compact-axis--stacked">Y <strong>{{ currentWorkY.toFixed(3) }}</strong></span>
-                                    <span class="compact-axis compact-axis--stacked">Z <strong>{{ currentWorkZ.toFixed(3) }}</strong></span>
+                                    <span class="compact-axis compact-axis--stacked">
+                                        X
+                                        <strong>{{ currentWorkX.toFixed(3) }}</strong>
+                                    </span>
+                                    <span class="compact-axis compact-axis--stacked">
+                                        Y
+                                        <strong>{{ currentWorkY.toFixed(3) }}</strong>
+                                    </span>
+                                    <span class="compact-axis compact-axis--stacked">
+                                        Z
+                                        <strong>{{ currentWorkZ.toFixed(3) }}</strong>
+                                    </span>
                                 </div>
                             </div>
 
                             <div class="offset-preview-summary-grid__section">
-                                <span class="text-caption font-weight-bold section-label">Origin Offset (machine):</span>
+                                <span class="text-caption font-weight-bold section-label">
+                                    Origin Offset (machine):
+                                </span>
                                 <div class="compact-axis-list compact-axis-list--muted">
-                                    <span class="compact-axis compact-axis--stacked">X <strong>{{ wcsOriginOffsetX.toFixed(3) }}</strong></span>
-                                    <span class="compact-axis compact-axis--stacked">Y <strong>{{ wcsOriginOffsetY.toFixed(3) }}</strong></span>
-                                    <span class="compact-axis compact-axis--stacked">Z <strong>{{ wcsOriginOffsetZ.toFixed(3) }}</strong></span>
+                                    <span class="compact-axis compact-axis--stacked">
+                                        X
+                                        <strong>{{ wcsOriginOffsetX.toFixed(3) }}</strong>
+                                    </span>
+                                    <span class="compact-axis compact-axis--stacked">
+                                        Y
+                                        <strong>{{ wcsOriginOffsetY.toFixed(3) }}</strong>
+                                    </span>
+                                    <span class="compact-axis compact-axis--stacked">
+                                        Z
+                                        <strong>{{ wcsOriginOffsetZ.toFixed(3) }}</strong>
+                                    </span>
                                 </div>
                             </div>
                         </div>
                     </v-card-text>
                 </v-card>
 
-                <v-row density="compact" class="mb-1">
+                <v-row density="compact" class="offset-preview-controls__row offset-preview-controls__row--tight">
                     <v-col cols="12">
                         <span class="text-caption font-weight-bold">Set Work Zero:</span>
                     </v-col>
                     <v-col cols="6">
-                        <v-btn size="small" block variant="outlined" @click="onSetWorkZeroXYClick" :disabled="offsetActionsLocked">
+                        <v-btn
+                            size="small"
+                            block
+                            variant="outlined"
+                            @click="onSetWorkZeroXYClick"
+                            :disabled="offsetActionsLocked">
                             <v-icon size="small" start>{{ mdiTarget }}</v-icon>
                             Set XY Zero
                         </v-btn>
                     </v-col>
                     <v-col cols="6">
-                        <v-btn size="small" block variant="outlined" @click="onSetWorkZeroZClick" :disabled="offsetActionsLocked">
+                        <v-btn
+                            size="small"
+                            block
+                            variant="outlined"
+                            @click="onSetWorkZeroZClick"
+                            :disabled="offsetActionsLocked">
                             <v-icon size="small" start>{{ mdiAxisZArrow }}</v-icon>
                             Set Z Zero
                         </v-btn>
                     </v-col>
                 </v-row>
 
-                <v-row density="compact" class="mb-1">
+                <v-row density="compact" class="offset-preview-controls__row offset-preview-controls__row--tight">
                     <v-col cols="12">
                         <span class="text-caption font-weight-bold">Manual Offset:</span>
                     </v-col>
@@ -314,7 +351,7 @@
                     </v-col>
                 </v-row>
 
-                <v-row density="compact" class="mb-0">
+                <v-row density="compact" class="offset-preview-controls__row offset-preview-controls__row--actions">
                     <v-col cols="6">
                         <v-btn size="small" block color="primary" @click="applyOffsets" :disabled="offsetActionsLocked">
                             <v-icon size="small" start>{{ mdiCheck }}</v-icon>
@@ -322,7 +359,12 @@
                         </v-btn>
                     </v-col>
                     <v-col cols="6">
-                        <v-btn size="small" block variant="outlined" @click="resetOffsets" :disabled="offsetActionsLocked">
+                        <v-btn
+                            size="small"
+                            block
+                            variant="outlined"
+                            @click="resetOffsets"
+                            :disabled="offsetActionsLocked">
                             <v-icon size="small" start>{{ mdiRestart }}</v-icon>
                             Reset
                         </v-btn>
@@ -352,9 +394,7 @@
         <!-- Stock size dialog -->
         <v-dialog v-model="stockDialogOpen" max-width="320">
             <v-card>
-                <v-card-title class="text-subtitle-1">
-                    Stock — {{ stockDialogWcs }}
-                </v-card-title>
+                <v-card-title class="text-subtitle-1">Stock — {{ stockDialogWcs }}</v-card-title>
                 <v-card-text>
                     <v-row dense>
                         <v-col cols="12">
@@ -377,7 +417,11 @@
                                 :min="0"
                                 :max="machineMaxX - machineMinX"
                                 :error="stockDialogWidth > machineMaxX - machineMinX"
-                                :hint="stockDialogWidth > machineMaxX - machineMinX ? `Max: ${machineMaxX - machineMinX}mm` : undefined"
+                                :hint="
+                                    stockDialogWidth > machineMaxX - machineMinX
+                                        ? `Max: ${machineMaxX - machineMinX}mm`
+                                        : undefined
+                                "
                                 persistent-hint />
                         </v-col>
                         <v-col cols="12">
@@ -390,7 +434,11 @@
                                 :min="0"
                                 :max="machineMaxY - machineMinY"
                                 :error="stockDialogHeight > machineMaxY - machineMinY"
-                                :hint="stockDialogHeight > machineMaxY - machineMinY ? `Max: ${machineMaxY - machineMinY}mm` : undefined"
+                                :hint="
+                                    stockDialogHeight > machineMaxY - machineMinY
+                                        ? `Max: ${machineMaxY - machineMinY}mm`
+                                        : undefined
+                                "
                                 persistent-hint />
                         </v-col>
                         <v-col cols="12">
@@ -403,19 +451,21 @@
                                 :min="0" />
                         </v-col>
                     </v-row>
-                    <v-alert
-                        v-if="stockDialogError"
-                        type="error"
-                        density="compact"
-                        class="mt-2"
-                        variant="tonal">
+                    <v-alert v-if="stockDialogError" type="error" density="compact" class="mt-2" variant="tonal">
                         {{ stockDialogError }}
                     </v-alert>
                 </v-card-text>
                 <v-card-actions>
                     <v-spacer />
                     <v-btn variant="text" size="small" @click="stockDialogOpen = false">Cancel</v-btn>
-                    <v-btn variant="text" size="small" color="primary" :disabled="!!stockDialogError" @click="saveStockDialog">Save</v-btn>
+                    <v-btn
+                        variant="text"
+                        size="small"
+                        color="primary"
+                        :disabled="!!stockDialogError"
+                        @click="saveStockDialog">
+                        Save
+                    </v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
@@ -430,7 +480,17 @@ import { useControl } from '@/composables/useControl'
 import { useCncProfile } from '@/composables/useCncProfile'
 import { useToast } from 'vue-toast-notification'
 import Panel from '@/components/ui/Panel.vue'
-import { mdiGrid, mdiChevronDown, mdiMagnet, mdiEye, mdiEyeOff, mdiTarget, mdiAxisZArrow, mdiCheck, mdiRestart } from '@mdi/js'
+import {
+    mdiGrid,
+    mdiChevronDown,
+    mdiMagnet,
+    mdiEye,
+    mdiEyeOff,
+    mdiTarget,
+    mdiAxisZArrow,
+    mdiCheck,
+    mdiRestart,
+} from '@mdi/js'
 import ConfirmationDialog from '@/components/dialogs/ConfirmationDialog.vue'
 import { useCncOffsets, offsetNames } from '@/composables/useCncOffsets'
 import { setCncZero } from '@/store/files/cncApi'
@@ -466,15 +526,21 @@ const zeroConfirmTitle = ref('Confirm')
 const zeroConfirmAction = ref<'xy' | 'z' | null>(null)
 watch(gridStep, (v) => localStorage.setItem('cncPreviewGridStep', String(v)))
 watch(snapToGrid, (v) => localStorage.setItem('cncPreviewSnapToGrid', String(v)))
-watch(hiddenOffsets, (v) => {
-    localStorage.setItem('cncPreviewHiddenOffsets', JSON.stringify([...v]))
-}, { deep: true })
+watch(
+    hiddenOffsets,
+    (v) => {
+        localStorage.setItem('cncPreviewHiddenOffsets', JSON.stringify([...v]))
+    },
+    { deep: true }
+)
 
 function loadHiddenOffsets(): Set<string> {
     try {
         const raw = localStorage.getItem('cncPreviewHiddenOffsets')
         if (raw) return new Set(JSON.parse(raw))
-    } catch { /* ignore */ }
+    } catch {
+        /* ignore */
+    }
     return new Set()
 }
 
@@ -511,7 +577,9 @@ function loadStockSizes() {
     try {
         const raw = localStorage.getItem('cncPreviewStockSizes')
         if (raw) stockSizes.value = JSON.parse(raw)
-    } catch { /* ignore */ }
+    } catch {
+        /* ignore */
+    }
 }
 
 function saveStockSizes() {
@@ -558,7 +626,15 @@ const currentWorkX = computed(() => currentWorkPosition.value[0] ?? 0)
 const currentWorkY = computed(() => currentWorkPosition.value[1] ?? 0)
 const currentWorkZ = computed(() => currentWorkPosition.value[2] ?? 0)
 
-const offsetActionsLocked = computed(() => requireHomingBeforeOffsets.value && !(store.state.printer?.toolhead?.homed_axes?.includes('x') && store.state.printer?.toolhead?.homed_axes?.includes('y') && store.state.printer?.toolhead?.homed_axes?.includes('z')))
+const offsetActionsLocked = computed(
+    () =>
+        requireHomingBeforeOffsets.value &&
+        !(
+            store.state.printer?.toolhead?.homed_axes?.includes('x') &&
+            store.state.printer?.toolhead?.homed_axes?.includes('y') &&
+            store.state.printer?.toolhead?.homed_axes?.includes('z')
+        )
+)
 
 const activeWcsIndex = computed(() => {
     const index = offsetNames.indexOf(activeWcs.value)
@@ -573,28 +649,28 @@ const offsetColors = ['#42A5F5', '#66BB6A', '#FFA726', '#AB47BC', '#EF5350', '#2
 
 const machineMinX = computed(() => {
     const min = store.state.printer?.toolhead?.axis_minimum
-    return Array.isArray(min) ? min[0] ?? 0 : 0
+    return Array.isArray(min) ? (min[0] ?? 0) : 0
 })
 const machineMinY = computed(() => {
     const min = store.state.printer?.toolhead?.axis_minimum
-    return Array.isArray(min) ? min[1] ?? 0 : 0
+    return Array.isArray(min) ? (min[1] ?? 0) : 0
 })
 const machineMaxX = computed(() => {
     const max = store.state.printer?.toolhead?.axis_maximum
-    return Array.isArray(max) ? max[0] ?? 165 : 165
+    return Array.isArray(max) ? (max[0] ?? 165) : 165
 })
 const machineMaxY = computed(() => {
     const max = store.state.printer?.toolhead?.axis_maximum
-    return Array.isArray(max) ? max[1] ?? 300 : 300
+    return Array.isArray(max) ? (max[1] ?? 300) : 300
 })
 
 const toolX = computed(() => {
     const pos = store.state.printer?.toolhead?.position
-    return Array.isArray(pos) ? pos[0] ?? 0 : 0
+    return Array.isArray(pos) ? (pos[0] ?? 0) : 0
 })
 const toolY = computed(() => {
     const pos = store.state.printer?.toolhead?.position
-    return Array.isArray(pos) ? pos[1] ?? 0 : 0
+    return Array.isArray(pos) ? (pos[1] ?? 0) : 0
 })
 const toolVisible = computed(() => {
     const homed = store.state.printer?.toolhead?.homed_axes ?? ''
@@ -829,7 +905,7 @@ onMounted(() => {
 
 <style scoped>
 .offset-preview-container {
-    padding: 4px 8px 8px;
+    padding: 4px 18px 8px;
 }
 
 .offset-preview-svg {
@@ -915,11 +991,16 @@ onMounted(() => {
 .offset-preview-summary-card {
     background: rgba(255, 255, 255, 0.03);
     border-color: rgba(255, 255, 255, 0.08);
-    margin-bottom: 10px;
+    margin-bottom: 20px;
+    margin-top: 10px;
 }
 
 .offset-preview-summary-card__text {
-    padding: 8px 12px 10px;
+    padding: 10px;
+}
+
+.offset-preview-controls {
+    padding-bottom: 6px;
 }
 
 .offset-preview-summary-grid {
@@ -975,6 +1056,25 @@ onMounted(() => {
 .compact-axis--stacked {
     width: 100%;
     justify-content: flex-start;
+}
+
+.offset-preview-controls__row {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.offset-preview-controls__row--tight {
+    margin-bottom: 2px;
+}
+
+.offset-preview-controls__row--actions {
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+.offset-preview-controls__row :deep(.v-col) {
+    padding-top: 2px;
+    padding-bottom: 2px;
 }
 
 .compact-axis span {
