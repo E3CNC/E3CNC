@@ -6,6 +6,13 @@
         :collapsible="true"
         card-class="offset-preview-panel">
         <template #buttons>
+            <v-btn
+                variant="text"
+                size="small"
+                :color="snapToGrid ? 'primary' : undefined"
+                @click="snapToGrid = !snapToGrid">
+                <v-icon>{{ mdiMagnet }}</v-icon>
+            </v-btn>
             <v-menu offset-y>
                 <template #activator="{ props }">
                     <v-btn variant="text" size="small" v-bind="props">
@@ -101,6 +108,33 @@
                     </template>
                 </g>
 
+                <!-- Snap crosshair indicator -->
+                <template v-if="snapToGrid && snapInfo">
+                    <line
+                        :x1="toSvgX(snapInfo.x) - 8"
+                        :y1="toSvgY(snapInfo.y)"
+                        :x2="toSvgX(snapInfo.x) + 8"
+                        :y2="toSvgY(snapInfo.y)"
+                        stroke="rgba(255,255,255,0.7)"
+                        stroke-width="1"
+                        stroke-dasharray="3 2" />
+                    <line
+                        :x1="toSvgX(snapInfo.x)"
+                        :y1="toSvgY(snapInfo.y) - 8"
+                        :x2="toSvgX(snapInfo.x)"
+                        :y2="toSvgY(snapInfo.y) + 8"
+                        stroke="rgba(255,255,255,0.7)"
+                        stroke-width="1"
+                        stroke-dasharray="3 2" />
+                    <circle
+                        :cx="toSvgX(snapInfo.x)"
+                        :cy="toSvgY(snapInfo.y)"
+                        r="3"
+                        fill="none"
+                        stroke="rgba(255,255,255,0.5)"
+                        stroke-width="1" />
+                </template>
+
                 <!-- Tool position dot -->
                 <circle
                     v-if="toolVisible"
@@ -169,13 +203,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref, onMounted, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useBase } from '@/composables/useBase'
 import { useCncProfile } from '@/composables/useCncProfile'
 import { useToast } from 'vue-toast-notification'
 import Panel from '@/components/ui/Panel.vue'
-import { mdiGrid, mdiChevronDown } from '@mdi/js'
+import { mdiGrid, mdiChevronDown, mdiMagnet } from '@mdi/js'
 import { getCncWcs, selectCncWcs } from '@/store/files/cncApi'
 import { getSocket } from '@/store/runtime'
 
@@ -193,8 +227,11 @@ const machineAspectY = computed(() => {
 const plotWidth = svgWidth - padding - 10
 const svgHeight = computed(() => Math.round(padding + 16 + plotWidth * machineAspectY.value))
 const plotHeight = computed(() => svgHeight.value - padding - 16)
-const gridStep = ref(20)
 const gridStepOptions = [5, 10, 15, 20, 25, 30, 50, 100]
+const gridStep = ref(Number(localStorage.getItem('cncPreviewGridStep')) || 10)
+const snapToGrid = ref(localStorage.getItem('cncPreviewSnapToGrid') === 'true')
+watch(gridStep, (v) => localStorage.setItem('cncPreviewGridStep', String(v)))
+watch(snapToGrid, (v) => localStorage.setItem('cncPreviewSnapToGrid', String(v)))
 
 const offsetNames = ['G54', 'G55', 'G56', 'G57', 'G58', 'G59']
 const offsetColors = ['#42A5F5', '#66BB6A', '#FFA726', '#AB47BC', '#EF5350', '#26C6DA']
@@ -358,6 +395,13 @@ function svgPointToMachine(svgX: number, svgY: number): { x: number; y: number }
     return { x: machineX, y: machineY }
 }
 
+function snapToGridValue(val: number): number {
+    const step = gridStep.value
+    return Math.round(val / step) * step
+}
+
+const snapInfo = ref<{ x: number; y: number } | null>(null)
+
 function onSvgMouseMove(e: MouseEvent) {
     const svg = svgEl.value
     if (!svg) return
@@ -372,8 +416,16 @@ function onSvgMouseMove(e: MouseEvent) {
     const coords = svgPointToMachine(svgX, svgY)
     if (!coords) return
 
-    const clampedX = Math.max(machineMinX.value, Math.min(machineMaxX.value, coords.x))
-    const clampedY = Math.max(machineMinY.value, Math.min(machineMaxY.value, coords.y))
+    let clampedX = Math.max(machineMinX.value, Math.min(machineMaxX.value, coords.x))
+    let clampedY = Math.max(machineMinY.value, Math.min(machineMaxY.value, coords.y))
+
+    if (snapToGrid.value) {
+        clampedX = snapToGridValue(clampedX)
+        clampedY = snapToGridValue(clampedY)
+        snapInfo.value = { x: clampedX, y: clampedY }
+    } else {
+        snapInfo.value = null
+    }
 
     cursorInfo.value = { x: clampedX, y: clampedY }
 
@@ -383,6 +435,7 @@ function onSvgMouseMove(e: MouseEvent) {
 
 function onSvgMouseLeave() {
     cursorInfo.value = null
+    snapInfo.value = null
 }
 
 function onSvgClick(e: MouseEvent) {

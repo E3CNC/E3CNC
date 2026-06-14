@@ -104,6 +104,15 @@ app.component('e-chart', EChart)
 initLoad().then(() => {
     app.use(store)
     app.mount('#app')
+
+    // Restore body scroll position
+    const savedScroll = Number(localStorage.getItem('cncBodyScrollTop'))
+    if (savedScroll) document.documentElement.scrollTop = savedScroll
+
+    // Persist body scroll position on unload
+    window.addEventListener('beforeunload', () => {
+        localStorage.setItem('cncBodyScrollTop', String(document.documentElement.scrollTop))
+    })
 }).catch((e) => {
     window.console.error('Init failed:', e)
 })
