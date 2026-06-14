@@ -9,7 +9,9 @@
         app
         class="sidebar-shell"
         :style="sidebarCssVars">
-        <div class="sidebar-background" :style="sidebarBackgroundStyle" aria-hidden="true" />
+        <div class="v-navigation-drawer__image" aria-hidden="true">
+            <v-img :src="sidebarBackground" class="sidebar-background-image" style="height: 100%;" cover />
+        </div>
 
         <OverlayScrollbarsComponent class="nav-scrollbar">
             <v-list class="pr-0 pt-0 ml-0">
@@ -71,20 +73,19 @@ const sidebarBackground = computed((): string =>
     store.getters['files/getCustomSidebarBackground'] ?? sidebarBgImage.value
 )
 
-const sidebarBackgroundStyle = computed(() => ({
-    backgroundImage: `linear-gradient(rgba(22, 18, 16, 0.5), rgba(22, 18, 16, 0.66)), url(${sidebarBackground.value})`,
-}))
-
 const boolNaviTemp = computed((): boolean =>
     !isMobile.value && display.mdAndDown.value
 )
 
 const sidebarCssVars = computed((): Record<string, string> => {
-    if (!boolNaviTemp.value) return {}
-    return {
-        top: `${topbarHeight}px !important`,
-        'padding-bottom': `${topbarHeight}px`,
+    const output: Record<string, string> = {}
+    if (!isMobile.value) {
+        output.top = `${topbarHeight}px !important`
+        output.height = `calc(100% - ${topbarHeight}px)`
+        output.maxHeight = `calc(100% - ${topbarHeight}px)`
     }
+    if (boolNaviTemp.value) output['padding-bottom'] = `${topbarHeight}px`
+    return output
 })
 
 const printerName = computed((): string => {
@@ -109,18 +110,18 @@ const mobileLogoClass = computed(() => ({
 
 <style scoped>
 .sidebar-shell {
-    background-color: #1e1b1a;
+    background-color: rgb(54, 54, 54);
+    overflow: hidden;
 }
 
-.sidebar-background {
+.sidebar-shell :deep(.v-navigation-drawer__image) {
     position: absolute;
     inset: 0;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: cover;
-    filter: saturate(0.8) contrast(1.08) brightness(0.92);
-    opacity: 0.95;
     pointer-events: none;
+}
+
+.sidebar-background-image {
+    height: 100%;
 }
 
 .sidebar-shell :deep(.v-navigation-drawer__content) {
