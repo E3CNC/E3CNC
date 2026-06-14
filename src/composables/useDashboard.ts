@@ -19,7 +19,6 @@ import {
     mdiAxisArrow,
     mdiCrosshairsGps,
     mdiHandBackRight,
-    mdiTarget,
 } from '@mdi/js'
 
 export function useDashboard() {
@@ -48,10 +47,10 @@ export function useDashboard() {
                 return 'DRO'
             case 'jog':
                 return 'Jog'
+            case 'wcs':
             case 'offsets':
-                return 'Offsets'
             case 'offset-preview':
-                return 'Offset Preview'
+                return 'WCS'
             case 'spindle-coolant':
                 return 'Spindle & Coolant'
             case 'mdi':
@@ -98,8 +97,8 @@ export function useDashboard() {
                 return mdiCrosshairsGps
             case 'jog':
                 return mdiHandBackRight
+            case 'wcs':
             case 'offsets':
-                return mdiTarget
             case 'offset-preview':
                 return mdiGrid
             case 'spindle-coolant':

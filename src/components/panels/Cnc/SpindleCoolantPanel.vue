@@ -6,6 +6,14 @@
         :collapsible="true"
         card-class="spindle-coolant-panel">
         <v-container class="py-2">
+            <confirmation-dialog
+                v-model="spindleConfirmDialogOpen"
+                :title="spindleConfirmTitle"
+                :text="spindleConfirmText"
+                :action-button-text="$t('Buttons.Yes')"
+                :cancel-button-text="$t('Buttons.No')"
+                @action="runSpindleConfirmAction" />
+
             <template v-if="spindleEnabled">
                 <v-row density="compact" class="mb-3">
                     <v-col cols="12">
@@ -99,6 +107,7 @@ import { useControl } from '@/composables/useControl'
 import { useCncProfile } from '@/composables/useCncProfile'
 import Panel from '@/components/ui/Panel.vue'
 import { mdiFan, mdiPlay, mdiStop, mdiRotate3dVariant, mdiWater, mdiSpray } from '@mdi/js'
+import ConfirmationDialog from '@/components/dialogs/ConfirmationDialog.vue'
 import { useToast } from 'vue-toast-notification'
 import { setCncCoolant, setCncSpindle } from '@/store/files/cncApi'
 
@@ -110,6 +119,10 @@ const { spindleEnabled, coolantEnabled, requireConfirmForSpindleStart } = useCnc
 const store = useStore()
 
 const spindleSpeedInput = ref<number | null>(null)
+const spindleConfirmDialogOpen = ref(false)
+const spindleConfirmText = ref('')
+const spindleConfirmTitle = ref('Confirm')
+const pendingSpindleState = ref<'off' | 'cw' | 'ccw' | null>(null)
 
 async function setSpindleOn() {
     await sendSpindle('cw')
@@ -139,8 +152,18 @@ async function sendSpindle(state: 'off' | 'cw' | 'ccw') {
 
     if (isStarting && requireConfirmForSpindleStart.value) {
         const suffix = rpm > 0 ? ` at ${rpm} RPM` : ''
-        if (!window.confirm(`Send spindle command ${state.toUpperCase()}${suffix}?`)) return
+        spindleConfirmTitle.value = 'Confirm Spindle Command'
+        spindleConfirmText.value = `Send spindle command ${state.toUpperCase()}${suffix}?`
+        pendingSpindleState.value = state
+        spindleConfirmDialogOpen.value = true
+        return
     }
+
+    await executeSpindle(state)
+}
+
+async function executeSpindle(state: 'off' | 'cw' | 'ccw') {
+    const rpm = spindleSpeedInput.value ?? 0
 
     try {
         await setCncSpindle(store.getters['socket/getUrl'], {
@@ -155,6 +178,14 @@ async function sendSpindle(state: 'off' | 'cw' | 'ccw') {
         const message = error instanceof Error ? error.message : 'Failed to update spindle'
         toast.error(message)
     }
+}
+
+async function runSpindleConfirmAction() {
+    const state = pendingSpindleState.value
+    pendingSpindleState.value = null
+    spindleConfirmDialogOpen.value = false
+    if (!state) return
+    await executeSpindle(state)
 }
 
 async function setCoolantFloodOn() {
