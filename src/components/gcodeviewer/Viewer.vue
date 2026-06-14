@@ -91,7 +91,7 @@
                                     v-model="colorMode"
                                     :items="colorModes"
                                     :label="$t('GCodeViewer.ColorMode')"
-                                    item-text="text"
+                                    item-title="text"
                                     density="compact"
                                     hide-details
                                     variant="outlined"></v-select>
@@ -101,7 +101,7 @@
                                     v-model="renderQuality"
                                     :items="renderQualities"
                                     :label="$t('GCodeViewer.RenderQuality')"
-                                    item-text="label"
+                                    item-title="label"
                                     density="compact"
                                     hide-details
                                     variant="outlined"></v-select>
@@ -326,6 +326,13 @@ const loadedFile = ref<string | null>(null)
 
 const reloadRequired = ref(false)
 const fileSize = ref(0)
+const renderQualities = computed(() => [
+    { label: t('GCodeViewer.Low'), value: 2 },
+    { label: t('GCodeViewer.Medium'), value: 3 },
+    { label: t('GCodeViewer.High'), value: 4 },
+    { label: t('GCodeViewer.Ultra'), value: 5 },
+    { label: t('GCodeViewer.Max'), value: 6 },
+])
 const renderQuality = ref(renderQualities.value[2])
 
 const scrubPosition = ref(0)
@@ -351,14 +358,6 @@ const excludeObject = ref({
 const fileData = ref('')
 
 const resizeObserver = ref<ResizeObserver | null>(null)
-
-const renderQualities = computed(() => [
-    { label: t('GCodeViewer.Low'), value: 2 },
-    { label: t('GCodeViewer.Medium'), value: 3 },
-    { label: t('GCodeViewer.High'), value: 4 },
-    { label: t('GCodeViewer.Ultra'), value: 5 },
-    { label: t('GCodeViewer.Max'), value: 6 },
-])
 
 onMounted(async () => {
     loadedFile.value = store.state.gcodeviewer?.loadedFileBackup ?? null
