@@ -178,13 +178,13 @@
             <v-divider class="my-3" />
             <v-row density="compact">
                 <v-col cols="6">
-                    <span class="text-caption text-secondary">Status:</span>
+                    <span class="text-caption jog-panel__muted-label">Status:</span>
                     <v-chip size="small" :color="['printing'].includes(printer_state) ? 'warning' : 'primary'" class="mx-2">
                         {{ printer_state }}
                     </v-chip>
                 </v-col>
                 <v-col cols="6" class="text-right">
-                    <span class="text-caption text-secondary">Homed:</span>
+                    <span class="text-caption jog-panel__muted-label">Homed:</span>
                     <v-chip size="small" :color="allAxesHomed ? 'primary' : 'warning'" class="mx-2">
                         {{ homedAxesDisplay }}
                     </v-chip>
@@ -392,6 +392,34 @@ onBeforeUnmount(() => {
     grid-column: 2;
     grid-row: 3;
 }
+
+.jog-panel .v-container {
+    padding: 4px !important;
+}
+
+.jog-panel .v-row {
+    margin-left: -4px !important;
+    margin-right: -4px !important;
+}
+
+.jog-panel .v-col {
+    padding: 4px !important;
+}
+
+.jog-panel .v-row.mb-3 {
+    margin-top: 4px !important;
+    margin-bottom: 12px !important;
+}
+
+.jog-panel .v-row.mb-2 {
+    margin-top: 4px !important;
+    margin-bottom: 8px !important;
+}
+
+.jog-panel .v-row.my-2 {
+    margin-top: 8px !important;
+    margin-bottom: 8px !important;
+}
 </style>
 
 <style>
@@ -399,8 +427,26 @@ onBeforeUnmount(() => {
     background-color: rgb(30, 30, 30) !important;
 }
 
+.jog-panel__muted-label {
+    color: rgba(255, 255, 255, 0.7);
+}
+
 .jog-panel .v-btn-toggle .v-btn,
 .jog-panel .jog-panel__xy-btn {
     background-color: rgb(39, 39, 39) !important;
+}
+
+.jog-panel .v-btn-toggle .v-btn:not(.v-btn--active) {
+    opacity: 0.8 !important;
+}
+
+.jog-panel .v-btn-toggle {
+    background-color: transparent !important;
+    height: 20px !important;
+    min-height: 20px !important;
+}
+
+.jog-panel .panel-toolbar {
+    background-color: rgb(66, 66, 66) !important;
 }
 </style>
