@@ -24,6 +24,7 @@ import { setSocket } from '@/store/runtime'
 import vLongpress from '@/directives/longpress'
 import vResponsiveClass from '@/directives/responsive-class'
 
+import { nextTick } from 'vue'
 import { defaultMode } from '@/store/variables'
 import { setAndLoadLocale } from '@/plugins/i18n'
 import router from '@/plugins/router'
@@ -105,9 +106,17 @@ initLoad().then(() => {
     app.use(store)
     app.mount('#app')
 
-    // Restore body scroll position
+    // Restore body scroll position after DOM renders
     const savedScroll = Number(localStorage.getItem('cncBodyScrollTop'))
-    if (savedScroll) document.documentElement.scrollTop = savedScroll
+    if (savedScroll) {
+        nextTick(() => {
+            document.documentElement.scrollTop = savedScroll
+            // Fallback if content rendered after nextTick
+            setTimeout(() => {
+                document.documentElement.scrollTop = savedScroll
+            }, 500)
+        })
+    }
 
     // Persist body scroll position on unload
     window.addEventListener('beforeunload', () => {
