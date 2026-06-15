@@ -242,7 +242,11 @@ const entries = computed<HistoryListPanelRow[]>(() => {
         ]
     }
 
-    return entries
+    return entries.filter((entry) => {
+        if (entry.type !== 'job') return false
+        const ext = (entry as HistoryListRowJob).filename.split('.').pop()?.toLowerCase() ?? ''
+        return ext === 'gcode'
+    })
 })
 
 const headers = computed<HistoryListPanelCol[]>(() => {
