@@ -112,6 +112,31 @@
                 }"
                 mobile-breakpoint="0"
                     item-key="filename">
+                <template #header.filename>
+                    <span class="cursor-pointer text-no-wrap" @click="toggleSort('filename')">
+                        {{ $t('Machine.ConfigFilesPanel.Name') }}
+                        <v-icon size="x-small">{{ getSortIcon('filename') }}</v-icon>
+                    </span>
+                </template>
+                <template #header.size>
+                    <span class="cursor-pointer text-no-wrap" @click="toggleSort('size')">
+                        {{ $t('Machine.ConfigFilesPanel.Filesize') }}
+                        <v-icon size="x-small">{{ getSortIcon('size') }}</v-icon>
+                    </span>
+                </template>
+                <template #header.modified>
+                    <span class="cursor-pointer text-no-wrap" @click="toggleSort('modified')">
+                        {{ $t('Machine.ConfigFilesPanel.LastModified') }}
+                        <v-icon size="x-small">{{ getSortIcon('modified') }}</v-icon>
+                    </span>
+                </template>
+                <template #header.filetype>
+                    <span class="cursor-pointer text-no-wrap" @click="toggleSort('filetype')">
+                        {{ $t('Machine.ConfigFilesPanel.Type') }}
+                        <v-icon size="x-small">{{ getSortIcon('filetype') }}</v-icon>
+                    </span>
+                </template>
+
                 <template #no-data>
                     <div class="text-center">{{ $t('Machine.ConfigFilesPanel.Empty') }}</div>
                 </template>
@@ -126,7 +151,7 @@
                         <td class="px-0 text-center" style="width: 32px">
                             <v-icon>{{ mdiFolderUpload }}</v-icon>
                         </td>
-                        <td class=" " colspan="3">..</td>
+                        <td class=" " colspan="4">..</td>
                     </tr>
                 </template>
 
@@ -151,6 +176,9 @@
                         <td class=" ">{{ item.filename }}</td>
                         <td class="text-no-wrap text-right">
                             {{ item.isDirectory ? '--' : formatFilesize(item.size) }}
+                        </td>
+                        <td class="text-no-wrap text-center text-caption text-grey" style="width: 80px">
+                            {{ item.isDirectory ? 'folder' : getFileTypeLabel(item.filename) }}
                         </td>
                         <td class="text-right">{{ formatDateTime(item.modified) }}</td>
                     </tr>
@@ -446,6 +474,11 @@
 .machine-configfiles-panel__settings-icon {
     margin: 0;
 }
+
+:deep(.v-data-table th .v-icon) {
+    color: #fff;
+    opacity: 1;
+}
 </style>
 
 <script setup lang="ts">
@@ -456,7 +489,7 @@ import { useBase } from '@/composables/useBase'
 import { useTheme } from '@/composables/useTheme'
 import { useSocket } from '@/composables/useSocket'
 import { useToast } from 'vue-toast-notification'
-import { escapePath, formatFilesize, generateTimestamp, getFileColor, getFileIcon, sortFiles } from '@/plugins/helpers'
+import { escapePath, formatFilesize, generateTimestamp, getFileColor, getFileIcon, getFileType, getFileTypeLabel, sortFiles } from '@/plugins/helpers'
 import type { FileStateFile, FileStateGcodefile } from '@/store/files/types'
 import axios from 'axios'
 import type { CancelTokenSource } from 'axios'
@@ -728,7 +761,7 @@ const toolbarButtons = computed(() => [
         loadingName: null,
         onlyWriteable: false,
         condition: true,
-        click: toggleTypeSort,
+        click: () => toggleSort('filetype'),
     },
 ].filter((rule) => rule.condition))
 
@@ -778,19 +811,25 @@ const files = computed(() => {
 
 const sortedFiles = computed(() => sortFiles([...files.value], [sortBy.value], [sortDesc.value]))
 
-function toggleTypeSort() {
-    if (sortBy.value === 'filetype') {
+function toggleSort(key: string) {
+    if (sortBy.value === key) {
         sortDesc.value = !sortDesc.value
     } else {
-        sortBy.value = 'filetype'
+        sortBy.value = key
         sortDesc.value = false
     }
+}
+
+function getSortIcon(key: string): string {
+    if (sortBy.value !== key) return mdiSortVariant
+    return sortDesc.value ? mdiSortDescending : mdiSortAscending
 }
 
 const headers = computed(() => [
     { title: '', key: 'icon', sortable: false },
     { title: t('Machine.ConfigFilesPanel.Name'), key: 'filename', sortable: false },
     { title: t('Machine.ConfigFilesPanel.Filesize'), key: 'size', align: 'end', sortable: false },
+    { title: t('Machine.ConfigFilesPanel.Type'), key: 'filetype', sortable: false },
     { title: t('Machine.ConfigFilesPanel.LastModified'), key: 'modified', align: 'end', sortable: false },
 ])
 

@@ -507,7 +507,9 @@
             "Root": "Root",
             "SetupCurrentList": "Setup current list",
             "ShowFile": "Show file",
+            "SortByType": "Sort by type",
             "Total": "Total",
+            "Type": "Type",
             "UploadFile": "Upload File",
             "Uploading": "Uploading",
             "Used": "Used"

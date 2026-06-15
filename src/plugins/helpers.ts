@@ -620,6 +620,19 @@ const extensionIconMap: Record<string, string> = {
 }
 
 const imageExtensions = new Set(['png', 'jpg', 'jpeg', 'gif', 'svg', 'bmp', 'webp', 'tif', 'tiff'])
+
+const typeLabels: Record<string, string> = {
+    '01-config': 'config',
+    '02-python': 'python',
+    '03-json': 'json',
+    '04-yaml': 'yaml',
+    '05-script': 'script',
+    '06-markdown': 'markdown',
+    '07-text': 'text',
+    '08-backup': 'backup',
+    '09-image': 'image',
+    '99-other': 'other',
+}
 const backupDatePattern = /\d{8}[-_]\d{6}/
 
 function hasBackupDate(filename: string): boolean {
@@ -675,6 +688,10 @@ export function getFileType(filename: string): string {
     const ext = filename.split('.').pop()?.toLowerCase() ?? ''
     if (imageExtensions.has(ext)) return '09-image'
     return typePriority[ext] ?? '99-other'
+}
+
+export function getFileTypeLabel(filename: string): string {
+    return typeLabels[getFileType(filename)] ?? 'other'
 }
 
 export function typeSortValue(filename: string): string {
