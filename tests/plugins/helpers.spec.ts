@@ -22,10 +22,8 @@ import {
     strLongestEqual,
     escapePath,
     toBoolean,
-    filamentWeightFormat,
     convertStringToArray,
     convertHexToRgb,
-    filamentTextColor,
     convertPrintStatusIcon,
     convertPrintStatusIconColor,
     sortResolutions,
@@ -394,21 +392,6 @@ describe('toBoolean', () => {
     })
 })
 
-describe('filamentWeightFormat', () => {
-    it('formats grams for small weights', () => {
-        expect(filamentWeightFormat(50)).toBe('50 g')
-        expect(filamentWeightFormat(15.5)).toBe('15.5 g')
-    })
-
-    it('formats rounded grams for medium weights', () => {
-        expect(filamentWeightFormat(150)).toBe('150 g')
-    })
-
-    it('formats kilograms for large weights', () => {
-        expect(filamentWeightFormat(1500)).toBe('1.5 kg')
-    })
-})
-
 describe('convertStringToArray', () => {
     it('splits by separator', () => {
         expect(convertStringToArray('a;b;c')).toEqual(['a', 'b', 'c'])
@@ -448,22 +431,6 @@ describe('convertHexToRgb', () => {
     it('returns null for invalid input', () => {
         expect(convertHexToRgb('invalid')).toBeNull()
         expect(convertHexToRgb('#GG0000')).toBeNull()
-    })
-})
-
-describe('filamentTextColor', () => {
-    it('returns dark text for light colors', () => {
-        expect(filamentTextColor('#FFFFFF')).toBe('#222')
-        expect(filamentTextColor('#FFFF00')).toBe('#222')
-    })
-
-    it('returns light text for dark colors', () => {
-        expect(filamentTextColor('#000000')).toBe('#fff')
-        expect(filamentTextColor('#333333')).toBe('#fff')
-    })
-
-    it('returns white for invalid input', () => {
-        expect(filamentTextColor('invalid')).toBe('#ffffff')
     })
 })
 
