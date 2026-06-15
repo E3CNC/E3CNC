@@ -112,16 +112,8 @@ export interface GuiState {
         dashboardHistoryLimit: number
         hideOtherInstances: boolean
     }
-    view: {
-        afc: {
-            hiddenExtruders: string[]
-            hiddenUnits: string[]
-            showFilamentName: boolean
-            showLaneInfinite: boolean
-            showUnitIcons: boolean
-            showTd1Color: boolean
-        }
-        blockFileUpload: boolean
+	view: {
+		blockFileUpload: boolean
         configfiles: {
             countPerPage: number
             sortBy: string

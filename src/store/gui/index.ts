@@ -196,16 +196,8 @@ export const getDefaultState = (): GuiState => {
             dashboardHistoryLimit: 5,
             hideOtherInstances: false,
         },
-        view: {
-            afc: {
-                hiddenExtruders: [],
-                hiddenUnits: [],
-                showFilamentName: false,
-                showLaneInfinite: true,
-                showUnitIcons: true,
-                showTd1Color: true,
-            },
-            blockFileUpload: false,
+		view: {
+			blockFileUpload: false,
             configfiles: {
                 countPerPage: 10,
                 sortBy: 'filename',
