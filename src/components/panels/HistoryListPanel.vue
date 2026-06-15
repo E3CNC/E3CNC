@@ -118,9 +118,7 @@
             :items="entries"
             class="history-jobs-table"
             :headers="filteredHeaders"
-            :custom-sort="sortFiles"
-            v-model:sort-by="sortBy"
-            v-model:sort-desc="sortDesc"
+            disable-sort
             v-model:items-per-page="countPerPage"
             :footer-props="{
                 itemsPerPageText: $t('History.Jobs'),
@@ -134,6 +132,31 @@
             show-select>
             <template #no-data>
                 <div class="text-center">{{ $t('History.Empty') }}</div>
+            </template>
+
+            <template #header.filename>
+                <span class="cursor-pointer text-no-wrap" @click="toggleSort('filename')">
+                    {{ $t('History.Filename') }}
+                    <v-icon size="x-small">{{ getSortIcon('filename') }}</v-icon>
+                </span>
+            </template>
+            <template #header.size>
+                <span class="cursor-pointer text-no-wrap" @click="toggleSort('size')">
+                    {{ $t('History.Filesize') }}
+                    <v-icon size="x-small">{{ getSortIcon('size') }}</v-icon>
+                </span>
+            </template>
+            <template #header.print_duration>
+                <span class="cursor-pointer text-no-wrap" @click="toggleSort('print_duration')">
+                    {{ $t('History.PrintTime') }}
+                    <v-icon size="x-small">{{ getSortIcon('print_duration') }}</v-icon>
+                </span>
+            </template>
+            <template #header.slicer>
+                <span class="cursor-pointer text-no-wrap" @click="toggleSort('slicer')">
+                    CAM
+                    <v-icon size="x-small">{{ getSortIcon('slicer') }}</v-icon>
+                </span>
             </template>
 
             <template #item="{ item, isSelected, select }">
@@ -188,6 +211,9 @@ import {
     mdiFileDocumentMultipleOutline,
     mdiMagnify,
     mdiNotebookPlus,
+    mdiSortAscending,
+    mdiSortDescending,
+    mdiSortVariant,
 } from '@mdi/js'
 import HistoryListPanelDetailsDialog from '@/components/dialogs/HistoryListPanelDetailsDialog.vue'
 import HistoryListEntryJob from '@/components/panels/History/HistoryListEntryJob.vue'
@@ -231,9 +257,7 @@ const entries = computed<HistoryListPanelRow[]>(() => {
         })
     }
 
-    if (sortBy.value[0] !== 'start_time') return entries
-
-    if (showMaintenanceEntries.value) {
+    if (showMaintenanceEntries.value && sortBy.value[0] === 'start_time') {
         entries = [
             ...entries,
             ...maintenanceEntries.value.map((entry: GuiMaintenanceStateEntry) => {
@@ -242,11 +266,13 @@ const entries = computed<HistoryListPanelRow[]>(() => {
         ]
     }
 
-    return entries.filter((entry) => {
+    entries = entries.filter((entry) => {
         if (entry.type !== 'job') return false
         const ext = (entry as HistoryListRowJob).filename.split('.').pop()?.toLowerCase() ?? ''
         return ext === 'gcode'
     })
+
+    return sortFiles(entries, sortBy.value, sortDesc.value)
 })
 
 const headers = computed<HistoryListPanelCol[]>(() => {
@@ -342,6 +368,20 @@ const selectedJobsTable = computed<HistoryListPanelRow[]>({
 function refreshHistory() {
     store.dispatch('socket/addLoading', { name: 'historyLoadAll' })
     socket.emit('server.history.list', { start: 0, limit: 50 }, { action: 'server/history/getHistory' })
+}
+
+function toggleSort(key: string) {
+    if (sortBy.value[0] === key) {
+        sortDesc.value = [!sortDesc.value[0]]
+    } else {
+        sortBy.value = [key]
+        sortDesc.value = [false]
+    }
+}
+
+function getSortIcon(key: string): string {
+    if (sortBy.value[0] !== key) return mdiSortVariant
+    return sortDesc.value[0] ? mdiSortDescending : mdiSortAscending
 }
 
 function sortFiles(items: HistoryListPanelRow[], sortBy: string[], sortDesc: boolean[]) {
