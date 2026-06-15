@@ -14,7 +14,9 @@ export function useHistory() {
 
     const jobs = computed(() =>
         allJobs.value.filter((job: ServerHistoryStateJob) => {
-            return !hidePrintStatus.value.includes(job.status)
+            if (hidePrintStatus.value.includes(job.status)) return false
+            const ext = job.filename.split('.').pop()?.toLowerCase() ?? ''
+            return ext === 'gcode'
         })
     )
 
