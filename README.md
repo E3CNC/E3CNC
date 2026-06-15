@@ -100,6 +100,29 @@ Panels render through the standard responsive dashboard layout engine (mobile, t
 
 Any panel can be torn off the grid layout into a freely draggable, resizable floating window. Drag the toolbar to reposition, use the bottom-right resize handle to resize, and click the dock icon to animate it back into the grid with a smooth three-phase transition (slide → spacer collapse → state removal). Floating positions are persisted across reloads via Moonraker DB. The bring-to-front action keeps overlapping panels manageable.
 
+### Config Files panel — file-type icons & sortable columns
+
+The Config Files panel now shows file-type-specific icons and colors for every file:
+
+| Extension(s) | Icon | Color | Type label |
+|---|---|---|---|
+| `.cfg`, `.conf` | `mdiTune` | orange | config |
+| `.py` | `mdiLanguagePython` | blue | python |
+| `.json` | `mdiCodeJson` | amber | json |
+| `.yaml`, `.yml` | `mdiFileCodeOutline` | teal | yaml |
+| `.sh` | `mdiConsoleLine` | green | script |
+| `.md` | `mdiLanguageMarkdown` | blue-grey | markdown |
+| `.txt` | `mdiFileDocumentOutline` | grey | text |
+| `.log` | `mdiClipboardTextOutline` | blue-grey | log |
+| `.bak`, `.bkp`, `.backup` | `mdiBackupRestore` | brown | backup |
+| `*.png/jpg/gif/svg` etc. | `mdiFileImage` | purple | image |
+| Files containing `webcam` (.conf/.txt), `crowsnest.conf` | `mdiCamera` | cyan | webcam |
+| Files containing `printer` | `mdiTune` | orange | config |
+| Date pattern `\d{8}[-_]\d{6}` in name | `mdiBackupRestore` | brown | backup |
+| Fallback | `mdiFileOutline` | default | other |
+
+All columns (Name, Filesize, Type, Last Modified) are sortable by clicking their headers. Directories always appear first. The **Hide backup files** toggle filters `.bak`, `.bkp`, `.backup` extensions and any filename containing a `\d{8}[-_]\d{6}` date pattern.
+
 All navigation routes are gated behind `klipperIsConnected`.
 
 ### Gating & visibility
