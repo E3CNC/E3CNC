@@ -205,8 +205,8 @@ export const sortFiles = (items: FileStateFile[] | null, sortBy: string[], sortD
     if (items !== null) {
         // Sort by index
         items.sort((a: FileStateFile, b: FileStateFile) => {
-            const valueA = a[sortBySingle]
-            const valueB = b[sortBySingle]
+            const valueA = sortBySingle === 'filetype' ? typeSortValue(a.filename) : a[sortBySingle as keyof FileStateFile]
+            const valueB = sortBySingle === 'filetype' ? typeSortValue(b.filename) : b[sortBySingle as keyof FileStateFile]
 
             if (valueA === valueB) return 0
             if (valueA === null || valueA === undefined) return -1
@@ -616,6 +616,7 @@ const extensionIconMap: Record<string, string> = {
     txt: mdiFileDocumentOutline,
     bak: mdiBackupRestore,
     bkp: mdiBackupRestore,
+    backup: mdiBackupRestore,
 }
 
 const imageExtensions = new Set(['png', 'jpg', 'jpeg', 'gif', 'svg', 'bmp', 'webp', 'tif', 'tiff'])
@@ -638,10 +639,37 @@ const extensionColorMap: Record<string, string> = {
     txt: 'grey',
     bak: 'brown',
     bkp: 'brown',
+    backup: 'brown',
 }
 
 export function getFileColor(filename: string): string | undefined {
     const ext = filename.split('.').pop()?.toLowerCase() ?? ''
     if (imageExtensions.has(ext)) return 'purple'
     return extensionColorMap[ext]
+}
+
+const typePriority: Record<string, string> = {
+    cfg: '01-config',
+    conf: '01-config',
+    py: '02-python',
+    json: '03-json',
+    yaml: '04-yaml',
+    yml: '04-yaml',
+    sh: '05-script',
+    md: '06-markdown',
+    txt: '07-text',
+    bak: '08-backup',
+    bkp: '08-backup',
+    backup: '08-backup',
+}
+
+export function getFileType(filename: string): string {
+    if (imageExtensions.has(filename.split('.').pop()?.toLowerCase() ?? '')) return '09-image'
+    return typePriority[filename.split('.').pop()?.toLowerCase() ?? ''] ?? '99-other'
+}
+
+export function typeSortValue(filename: string): string {
+    const ext = filename.split('.').pop()?.toLowerCase() ?? ''
+    const priority = typePriority[ext] ?? '99-other'
+    return priority + '-' + filename.toLowerCase()
 }

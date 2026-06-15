@@ -112,6 +112,12 @@
                 }"
                 mobile-breakpoint="0"
                     item-key="filename">
+                <template #column.icon>
+                    <span class="cursor-pointer" @click="toggleTypeSort">
+                        <v-icon size="small">{{ sortBy === 'filetype' ? (sortDesc ? mdiSortDescending : mdiSortAscending) : mdiSortVariant }}</v-icon>
+                    </span>
+                </template>
+
                 <template #no-data>
                     <div class="text-center">{{ $t('Machine.ConfigFilesPanel.Empty') }}</div>
                 </template>
@@ -480,6 +486,9 @@ import {
     mdiCloseThick,
     mdiLockOutline,
     mdiContentCopy,
+    mdiSortAscending,
+    mdiSortDescending,
+    mdiSortVariant,
 } from '@mdi/js'
 import ConfirmationDialog from '@/components/dialogs/ConfirmationDialog.vue'
 import type { FocusableRef } from '@/types/vuetify'
@@ -761,6 +770,15 @@ const files = computed(() => {
 })
 
 const sortedFiles = computed(() => sortFiles([...files.value], [sortBy.value], [sortDesc.value]))
+
+function toggleTypeSort() {
+    if (sortBy.value === 'filetype') {
+        sortDesc.value = !sortDesc.value
+    } else {
+        sortBy.value = 'filetype'
+        sortDesc.value = false
+    }
+}
 
 const headers = computed(() => [
     { title: '', key: '', sortable: false },
