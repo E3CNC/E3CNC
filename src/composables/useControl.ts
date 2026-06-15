@@ -151,7 +151,6 @@ export function useControl() {
         feedrateXY,
         feedrateZ,
         existsQGL,
-        existsZtilt,
         existsDeltaCalibrate,
         existsFirmwareRetraction,
         colorQuadGantryLevel,

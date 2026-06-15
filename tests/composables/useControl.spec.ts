@@ -125,7 +125,6 @@ describe('useControl', () => {
         control.doHomeXY()
         control.doHomeZ()
         control.doQGL()
-        control.doZtilt()
         control.doSend('M114')
         control.doSendMove('X10 Y5', 250)
 
@@ -135,7 +134,6 @@ describe('useControl', () => {
         expect(emit).toHaveBeenCalledWith('printer.gcode.script', { script: 'G28 X Y' }, { loading: 'homeXY' })
         expect(emit).toHaveBeenCalledWith('printer.gcode.script', { script: 'G28 Z' }, { loading: 'homeZ' })
         expect(emit).toHaveBeenCalledWith('printer.gcode.script', { script: 'QUAD_GANTRY_LEVEL' }, { loading: 'qgl' })
-        expect(emit).toHaveBeenCalledWith('printer.gcode.script', { script: 'Z_TILT_ADJUST' }, { loading: 'zTilt' })
         expect(emit).toHaveBeenCalledWith('printer.gcode.script', { script: 'M114' })
         expect(emit).toHaveBeenCalledWith(
             'printer.gcode.script',

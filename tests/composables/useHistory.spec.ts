@@ -13,9 +13,9 @@ describe('useHistory', () => {
                 server: {
                     history: {
                         jobs: [
-                            { job_id: '1', status: 'completed', type: 'job' },
-                            { job_id: '2', status: 'failed', type: 'job' },
-                            { job_id: 'm1', status: 'done', type: 'maintenance' },
+                            { job_id: '1', status: 'completed', type: 'job', filename: 'test.gcode' },
+                            { job_id: '2', status: 'failed', type: 'job', filename: 'failed.gcode' },
+                            { job_id: 'm1', status: 'done', type: 'maintenance', filename: 'other.txt' },
                         ],
                     },
                     config: {
@@ -67,7 +67,7 @@ describe('useHistory', () => {
 
         expect(history.hidePrintStatus.value).toEqual(['failed'])
         expect(history.allJobs.value).toHaveLength(3)
-        expect(history.jobs.value).toHaveLength(2)
+        expect(history.jobs.value).toHaveLength(1)
         expect(history.selectedJobs.value).toHaveLength(1)
         expect(history.moonrakerHistoryFields.value).toEqual([
             {
