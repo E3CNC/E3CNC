@@ -126,6 +126,7 @@ export const getDefaultState = (): GuiState => {
                 { name: 'mdi', visible: true },
                 { name: 'miniconsole', visible: true },
             ],
+            floatingPanels: {},
         },
         editor: {
             escToClose: true,

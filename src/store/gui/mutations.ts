@@ -1,6 +1,6 @@
 import { getDefaultState } from './index'
 import { MutationTree } from 'vuex'
-import type { GuiState, GuiStateDashboard, GuiStateLayoutoption } from '@/store/gui/types'
+import type { GuiState, GuiStateDashboard, GuiStateLayoutoption, PanelFloatingState } from '@/store/gui/types'
 import { setDataDeep } from '@/plugins/helpers'
 
 export const mutations: MutationTree<GuiState> = {
@@ -80,6 +80,10 @@ export const mutations: MutationTree<GuiState> = {
         ]
         layoutArray.splice(payload.index, 1)
         state.dashboard[payload.layoutname as keyof GuiStateDashboard] = layoutArray as unknown as GuiStateLayoutoption[]
+    },
+
+    setFloatingPanels(state, payload: Record<string, PanelFloatingState>) {
+        state.dashboard.floatingPanels = payload
     },
 
     setChartDatasetStatus(state, payload: { objectName: string; dataset: string; value: boolean }) {

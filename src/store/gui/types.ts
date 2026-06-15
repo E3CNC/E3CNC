@@ -202,6 +202,14 @@ export interface GuiState {
     }
 }
 
+export interface PanelFloatingState {
+    x: number
+    y: number
+    width: number
+    height: number
+    zIndex: number
+}
+
 export interface GuiStateDashboard {
     nonExpandPanels: {
         [index: string]: string[]
@@ -214,9 +222,10 @@ export interface GuiStateDashboard {
     widescreenLayout1: GuiStateLayoutoption[]
     widescreenLayout2: GuiStateLayoutoption[]
     widescreenLayout3: GuiStateLayoutoption[]
+    floatingPanels: Record<string, PanelFloatingState>
 }
 
-export type GuiStateDashboardLayoutKey = Exclude<keyof GuiStateDashboard, 'nonExpandPanels'>
+export type GuiStateDashboardLayoutKey = Exclude<keyof GuiStateDashboard, 'nonExpandPanels' | 'floatingPanels'>
 
 export interface GuiStateLayoutoption {
     name: string

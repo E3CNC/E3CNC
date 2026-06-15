@@ -1,6 +1,6 @@
 import { ActionTree } from 'vuex'
 import { getSocket, $toast } from '@/store/runtime'
-import type { GuiState, GuiStateDashboard, GuiStateDashboardLayoutKey, GuiStateLayoutoption } from '@/store/gui/types'
+import type { GuiState, GuiStateDashboard, GuiStateDashboardLayoutKey, GuiStateLayoutoption, PanelFloatingState } from '@/store/gui/types'
 import { GuiPresetsStatePreset } from '@/store/gui/presets/types'
 import { RootState } from '@/store/types'
 import { getDefaultState } from './index'
@@ -483,6 +483,32 @@ export const actions: ActionTree<GuiState, RootState> = {
         dispatch('updateSettings', {
             keyName: 'view.tempchart.datasetSettings',
             newVal: state.view.tempchart.datasetSettings,
+        })
+    },
+
+    saveFloatingPanelPosition({ commit, dispatch, state }, { id, position, remove }: { id: string; position?: PanelFloatingState; remove?: boolean }) {
+        const floatingPanels = { ...state.dashboard.floatingPanels }
+
+        if (remove) {
+            delete floatingPanels[id]
+        } else if (position) {
+            floatingPanels[id] = position
+        }
+
+        commit('setFloatingPanels', floatingPanels)
+        dispatch('updateSettings', {
+            keyName: 'dashboard.floatingPanels',
+            newVal: floatingPanels,
+        })
+    },
+
+    bringFloatingPanelToFront({ dispatch, state }, id: string) {
+        const panels = state.dashboard.floatingPanels
+        const maxZ = Object.values(panels).reduce((max, p) => Math.max(max, p.zIndex), 0)
+
+        dispatch('saveFloatingPanelPosition', {
+            id,
+            position: { ...panels[id], zIndex: maxZ + 1 },
         })
     },
 

@@ -8,6 +8,7 @@
                         v-if="isPanelKnown(component.name)"
                         :is="getPanelComponent(component.name)"
                         :key="'dashboard-mobileLayout-' + component.name"
+                        floatable
                         :panel-id="extractPanelId(component.name)"></component>
                 </template>
             </v-col>
@@ -20,6 +21,7 @@
                         v-if="isPanelKnown(component.name)"
                         :is="getPanelComponent(component.name)"
                         :key="'dashboard-tabletLayout1-' + component.name"
+                        floatable
                         :panel-id="extractPanelId(component.name)"></component>
                 </template>
             </v-col>
@@ -29,6 +31,7 @@
                         v-if="isPanelKnown(component.name)"
                         :is="getPanelComponent(component.name)"
                         :key="'dashboard-tabletLayout2-' + component.name"
+                        floatable
                         :panel-id="extractPanelId(component.name)"></component>
                 </template>
             </v-col>
@@ -41,6 +44,7 @@
                         v-if="isPanelKnown(component.name)"
                         :is="getPanelComponent(component.name)"
                         :key="'dashboard-desktopLayout1-' + component.name"
+                        floatable
                         :panel-id="extractPanelId(component.name)"></component>
                 </template>
             </v-col>
@@ -50,6 +54,7 @@
                         v-if="isPanelKnown(component.name)"
                         :is="getPanelComponent(component.name)"
                         :key="'dashboard-desktopLayout2-' + component.name"
+                        floatable
                         :panel-id="extractPanelId(component.name)"></component>
                 </template>
             </v-col>
@@ -62,6 +67,7 @@
                         v-if="isPanelKnown(component.name)"
                         :is="getPanelComponent(component.name)"
                         :key="'dashboard-desktopLayout1-' + component.name"
+                        floatable
                         :panel-id="extractPanelId(component.name)"></component>
                 </template>
             </v-col>
@@ -71,6 +77,7 @@
                         v-if="isPanelKnown(component.name)"
                         :is="getPanelComponent(component.name)"
                         :key="'dashboard-desktopLayout2-' + component.name"
+                        floatable
                         :panel-id="extractPanelId(component.name)"></component>
                 </template>
             </v-col>
@@ -80,6 +87,7 @@
                         v-if="isPanelKnown(component.name)"
                         :is="getPanelComponent(component.name)"
                         :key="'dashboard-desktopLayout3-' + component.name"
+                        floatable
                         :panel-id="extractPanelId(component.name)"></component>
                 </template>
             </v-col>
