@@ -32,8 +32,8 @@ const routes: AppRoute[] = [
     },
     {
         name: 'farm',
-        title: 'Printers',
-        path: '/allPrinters',
+        title: 'CNC Machines',
+        path: '/allCncMachines',
         component: Farm,
         alwaysShow: false,
         showInNavi: false,

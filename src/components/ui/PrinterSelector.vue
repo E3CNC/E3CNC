@@ -53,6 +53,6 @@ function changePrinter(printer: FarmPrinterState) {
 }
 
 function switchToPrinters() {
-    router.push('/allPrinters')
+    router.push('/allCncMachines')
 }
 </script>

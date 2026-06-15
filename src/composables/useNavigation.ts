@@ -29,6 +29,8 @@ export function useNavigation() {
 
     const countPrinters = computed(() => store.getters['farm/countPrinters'])
 
+    const titlePrinters = computed(() => t('App.Printers'))
+
     const routesNaviPoints = computed<NaviPoint[]>(() => {
         const points: NaviPoint[] = []
 
@@ -36,7 +38,7 @@ export function useNavigation() {
             points.push({
                 title: t('App.Printers'),
                 icon: mdiViewDashboardOutline,
-                to: '/allPrinters',
+                to: '/allCncMachines',
                 position: 0,
                 visible: true,
             } as NaviPoint)

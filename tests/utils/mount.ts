@@ -48,7 +48,7 @@ const router = createRouter({
     history: createMemoryHistory(),
     routes: [
         { path: '/', component: { template: '<div>Home</div>' } },
-        { path: '/allPrinters', component: { template: '<div>Printers</div>' } },
+        { path: '/allCncMachines', component: { template: '<div>CNC Machines</div>' } },
     ],
 })
 

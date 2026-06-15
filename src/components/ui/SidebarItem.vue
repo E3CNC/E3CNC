@@ -42,7 +42,7 @@ const title = computed(() => (props.item as NaviPoint).title)
 const to = computed(() => (props.item as NaviPoint).to ?? undefined)
 const href = computed(() => (props.item as NaviPoint).href ?? undefined)
 const target = computed(() => (props.item as NaviPoint).target ?? undefined)
-const borderBottom = computed(() => (props.item as NaviPoint).to === '/allPrinters')
+const borderBottom = computed(() => (props.item as NaviPoint).to === '/allCncMachines')
 const isActive = computed(() => {
     const item = props.item as NaviPoint
     if (item.target === '_blank' || !item.to) return false

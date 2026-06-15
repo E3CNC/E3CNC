@@ -46,7 +46,7 @@
             "MustBeBetweenError": "Must be between {min} and {max}!",
             "NoEmptyAllowedError": "Input must not be empty!"
         },
-        "Printers": "Machines",
+        "Printers": "CNC Machines",
         "TextfieldWithCopy": {
             "Copied": "Copied"
         },
@@ -437,8 +437,8 @@
         "SelectedJobs": "Selected Jobs",
         "SelectedPrinttime": "Selected Job Time",
         "Settings": "Settings",
-        "Slicer": "Slicer",
-        "SlicerVersion": "Slicer Version",
+        "Slicer": "CAM",
+        "SlicerVersion": "CAM Version",
         "StartTime": "Start Time",
         "Statistics": "Statistics",
         "Status": "Status",
@@ -715,7 +715,7 @@
             "ReprintJob": "Restart job",
             "Requested": "Requested",
             "ResumePrint": "Resume job",
-            "Slicer": "Slicer",
+            "Slicer": "CAM",
             "Speed": "Speed",
             "Toolchange": "Toolchange",
             "Total": "Total",
@@ -802,7 +802,7 @@
         "History": "History",
         "Machine": "Machine",
         "MDI": "MDI",
-        "Printers": "Machines",
+        "Printers": "CNC Machines",
         "Timelapse": "Timelapse",
         "Webcam": "Webcam"
     },
@@ -935,7 +935,7 @@
                 "Filament": "Filament",
                 "FileAbsolute": "File position (absolute)",
                 "FileRelative": "File position (relative)",
-                "Slicer": "Slicer (M73)"
+                "Slicer": "CAM (M73)"
             },
             "CannotReadJson": "Cannot read/parse backup file.",
             "DateFormat": "Date Format",
@@ -949,7 +949,7 @@
             "EstimateValues": {
                 "Filament": "Filament",
                 "File": "File",
-                "Slicer": "Slicer"
+                "Slicer": "CAM"
             },
             "Everything": "Everything",
             "FactoryDialog": "Please select all the sections you want to reset:",
