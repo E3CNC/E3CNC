@@ -239,13 +239,6 @@
  <v-btn :icon="mdiClose" color="red" variant="text" v-bind="props" style="min-width: auto" @click="cancelDownload"/>
             </template>
         </v-snackbar>
-        <confirmation-dialog
-            v-model="excludeObject.bool"
-            :title="$t('Panels.StatusPanel.ExcludeObject.ExcludeObjectHeadline')"
-            :text="$t('Panels.StatusPanel.ExcludeObject.ExcludeObjectText', { name: excludeObject.name })"
-            :action-button-text="$t('Panels.StatusPanel.ExcludeObject.ExcludeObject')"
-            action-button-color="primary"
-            @action="cancelObject" />
     </div>
 </template>
 
@@ -348,11 +341,6 @@ const downloadSnackbar = ref<DownloadSnackbar>({
     speed: 0,
     total: 0,
     cancelTokenSource: null,
-})
-
-const excludeObject = ref({
-    bool: false,
-    name: '',
 })
 
 const fileData = ref('')
