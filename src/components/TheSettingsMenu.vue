@@ -14,7 +14,6 @@
                 :icon="mdiCogs"
                 card-class="settings-menu-dialog"
                 :margin-bottom="false"
-                style="overflow: hidden"
                 :height="isMobile ? 0 : 548">
                 <template #buttons>
                     <v-btn :icon="mdiCloseThick" rounded="0" @click="closeSettingsMenu" />
@@ -108,9 +107,19 @@ const settingsScroll = ref<{
         elements: () => { viewport?: HTMLElement | null }
     }
 } | null>(null)
+const settingsTabsScroll = ref<{
+    osInstance?: () => {
+        elements: () => { viewport?: HTMLElement | null }
+    }
+} | null>(null)
 const showSettings = ref(false)
 const activeTab = ref('general')
 const settingsMenuQueryKey = 'settingsMenu'
+const nestedSettingsQueryKeysByTab: Record<string, string[]> = {
+    dashboard: ['dashboardViewport'],
+    macros: ['macrosMode'],
+    miscellaneous: ['miscPage', 'miscType', 'miscName'],
+}
 
 const tabComponents: Record<string, Component> = {
     general: SettingsGeneralTab,
@@ -168,13 +177,31 @@ function getSettingsMenuTabFromQuery(): string | null {
 }
 
 async function updateSettingsMenuQuery(tab: string | null): Promise<void> {
-    const currentTab = getSettingsMenuTabFromQuery()
-    if (tab === currentTab) return
-
     const query = { ...route.query }
+    const allowedNestedKeys = new Set(tab ? nestedSettingsQueryKeysByTab[tab] ?? [] : [])
+
+    Object.values(nestedSettingsQueryKeysByTab)
+        .flat()
+        .forEach((key) => {
+            if (!allowedNestedKeys.has(key)) delete query[key]
+        })
+
+    const currentTab = getSettingsMenuTabFromQuery()
+    const currentQuery = { ...route.query }
+
+    if (tab) currentQuery[settingsMenuQueryKey] = tab
+    else delete currentQuery[settingsMenuQueryKey]
+
+    Object.values(nestedSettingsQueryKeysByTab)
+        .flat()
+        .forEach((key) => {
+            if (!allowedNestedKeys.has(key)) delete currentQuery[key]
+        })
 
     if (tab) query[settingsMenuQueryKey] = tab
     else delete query[settingsMenuQueryKey]
+
+    if (JSON.stringify(query) === JSON.stringify(currentQuery) && tab === currentTab) return
 
     await router.replace({ path: route.path, query, hash: route.hash })
 }
@@ -212,6 +239,8 @@ watch(activeTab, async () => {
 watch(showSettings, async (isOpen) => {
     if (isOpen) {
         await updateSettingsMenuQuery(activeTab.value)
+        await nextTick()
+        scrollActiveTabIntoView()
         return
     }
 
@@ -221,6 +250,7 @@ watch(showSettings, async (isOpen) => {
 watch(activeTab, async () => {
     await nextTick()
     scrollToTop()
+    scrollActiveTabIntoView()
 })
 
 function scrollToTop() {
@@ -228,13 +258,22 @@ function scrollToTop() {
 
     if (viewport) viewport.scrollTop = 0
 }
+
+function scrollActiveTabIntoView() {
+    const viewport = settingsTabsScroll.value?.osInstance()?.elements().viewport
+    const activeTabButton = viewport?.querySelector('.v-tab-item--selected') as HTMLElement | null
+
+    activeTabButton?.scrollIntoView({ block: 'nearest' })
+}
 </script>
 
 <style scoped>
 .settings-tabs {
     width: 100%;
-    min-height: 100%;
-    height: calc(var(--app-height) - 96px);
+}
+
+.settings-tabs :deep(.os-content) {
+    padding-bottom: 24px;
 }
 
 .settings-tabs-bar {
