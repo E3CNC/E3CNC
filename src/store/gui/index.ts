@@ -19,7 +19,6 @@ import { macros } from '@/store/gui/macros'
 import { miscellaneous } from '@/store/gui/miscellaneous'
 import { navigation as sidebarNavigation } from '@/store/gui/navigation'
 import { notifications } from '@/store/gui/notifications'
-import { presets } from '@/store/gui/presets'
 import { remoteprinters } from '@/store/gui/remoteprinters'
 import { maintenance } from '@/store/gui/maintenance'
 import { webcams } from '@/store/gui/webcams'
@@ -326,7 +325,6 @@ export const gui: Module<GuiState, RootState> = {
         miscellaneous,
         sidebarNavigation,
         notifications,
-        presets,
         remoteprinters,
         webcams,
     },

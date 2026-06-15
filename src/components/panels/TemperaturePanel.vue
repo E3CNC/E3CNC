@@ -6,7 +6,6 @@
         :collapsible="true"
         card-class="temperature-panel">
         <template #buttons>
-            <temperature-panel-presets />
             <temperature-panel-settings />
         </template>
         <v-card-text class="pa-0">
@@ -30,7 +29,6 @@ import TemperatureInput from '@/components/inputs/TemperatureInput.vue'
 import Panel from '@/components/ui/Panel.vue'
 import Responsive from '@/components/ui/Responsive.vue'
 import { mdiCloseThick, mdiThermometerLines } from '@mdi/js'
-import TemperaturePanelPresets from '@/components/panels/Temperature/TemperaturePanelPresets.vue'
 
 const { klipperReadyForGui } = useBase()
 useControl()
