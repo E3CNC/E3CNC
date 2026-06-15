@@ -24,17 +24,8 @@
             <v-divider v-if="index || miscellaneous.length" />
             <miscellaneous-light :type="light.type" :name="light.name" />
         </div>
-        <div v-for="(sensor, index) of filamentSensors" :key="'sensor_' + index">
-            <v-divider v-if="index || miscellaneous.length || lights.length" />
-            <filament-sensor
-                :type="sensor.type"
-                :name="sensor.name"
-                :enabled="sensor.enabled"
-                :filament_detected="sensor.filament_detected"
-                :filament_diameter="sensor.filament_diameter" />
-        </div>
         <div v-for="(sensor, index) of miscellaneousSensors" :key="'miscellaneous_sensor_' + index">
-            <v-divider v-if="index || miscellaneous.length || lights.length || filamentSensors.length" />
+            <v-divider v-if="index || miscellaneous.length || lights.length" />
             <miscellaneous-sensor :name="sensor.name" :value="sensor.value" :unit="sensor.unit" />
         </div>
         <div v-for="(sensor, index) of moonrakerSensors" :key="'moonraker_sensor_' + index">
@@ -43,7 +34,6 @@
                     index ||
                     miscellaneous.length ||
                     lights.length ||
-                    filamentSensors.length ||
                     miscellaneousSensors.length
                 " />
             <moonraker-sensor :name="sensor" />
@@ -57,7 +47,6 @@ import { useStore } from 'vuex'
 import { useBase } from '@/composables/useBase'
 import { useMiscellaneous } from '@/composables/useMiscellaneous'
 import MiscellaneousSlider from '@/components/inputs/MiscellaneousSlider.vue'
-import FilamentSensor from '@/components/inputs/FilamentSensor.vue'
 import MiscellaneousLight from '@/components/panels/Miscellaneous/MiscellaneousLight.vue'
 import MiscellaneousSensor from '@/components/panels/Miscellaneous/MiscellaneousSensor.vue'
 import MoonrakerSensor from '@/components/panels/Miscellaneous/MoonrakerSensor.vue'
@@ -68,10 +57,6 @@ const { klipperReadyForGui } = useBase()
 const { lights } = useMiscellaneous()
 
 const store = useStore()
-
-const filamentSensors = computed(() =>
-    store.getters['printer/getFilamentSensors'] ?? []
-)
 
 const miscellaneous = computed(() =>
     store.getters['printer/getMiscellaneous'] ?? []
@@ -88,7 +73,7 @@ const moonrakerSensors = computed(() =>
 const showMiscellaneousPanel = computed(() =>
     klipperReadyForGui.value && (
         miscellaneous.value.length ||
-        filamentSensors.value.length ||
+        false ||
         lights.value.length
     )
 )

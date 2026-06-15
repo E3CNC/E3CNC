@@ -50,11 +50,9 @@
                     </div>
                 </v-col>
                 <v-col class="v-col-12 v-col-sm-12 v-col-md-4">
-                    <history-filament-usage v-if="toggleChart === 'filament_usage'" />
-                    <history-printtime-avg v-else-if="toggleChart === 'printtime_avg'" />
+                    <history-printtime-avg v-if="toggleChart === 'printtime_avg'" />
                     <div class="text-center mt-3">
  <v-btn-toggle v-model="toggleChart" size="small" mandatory>
- <v-btn size="small" value="filament_usage">{{ $t('History.FilamentUsage') }}</v-btn>
  <v-btn size="small" value="printtime_avg">{{ $t('History.PrinttimeAvg') }}</v-btn>
                         </v-btn-toggle>
                     </div>
@@ -73,7 +71,6 @@ import { useSocket } from '@/composables/useSocket'
 import { useHistory } from '@/composables/useHistory'
 import { useHistoryStats } from '@/composables/useHistoryStats'
 import Panel from '@/components/ui/Panel.vue'
-import HistoryFilamentUsage from '@/components/charts/HistoryFilamentUsage.vue'
 import HistoryPrinttimeAvg from '@/components/charts/HistoryPrinttimeAvg.vue'
 import HistoryAllPrintStatusChart from '@/components/charts/HistoryAllPrintStatusChart.vue'
 import {
