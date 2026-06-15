@@ -510,12 +510,6 @@
                         </g>
                     </a>
                     <a
-                        v-else-if="existsZtilt && actionButton === 'ztilt'"
-                        id="tilt_adjust"
-                        :class="colorSpecialButton"
-                        @click="clickSpecialButton">
-                        <circle id="tilt_button" cx="70.92" cy="31" r="5" />
-                        <text x="66.776px" y="32.066px">Z-TILT</text>
                         <g id="tilt_icon">
                             <path :d="zTiltIcon1" />
                             <path :d="zTiltIcon2" />
@@ -541,10 +535,10 @@ import { useControl } from '@/composables/useControl'
 
 const { printer_state } = useBase()
 const {
-    homedAxes, existsQGL, existsZtilt,
+    homedAxes, existsQGL,
     colorQuadGantryLevel, colorZTilt,
     doHome, doHomeX, doHomeY, doHomeZ, doHomeXY,
-    doQGL, doZtilt, doSend, doSendMove,
+    doQGL, doSend, doSendMove,
 } = useControl()
 const store = useStore()
 
@@ -645,7 +639,6 @@ const colorSpecialButton = computed(() => {
     const classes: string[] = []
     if (isPrinting.value) classes.push('disabled')
     if (existsQGL.value) classes.push(colorQuadGantryLevel.value)
-    else if (existsZtilt.value) classes.push(colorZTilt.value)
     return classes
 })
 
@@ -658,7 +651,6 @@ const motorsOffClass = computed(() => {
 
 function clickSpecialButton() {
     if (existsQGL.value) doQGL()
-    else if (existsZtilt.value) doZtilt()
 }
 </script>
 </script>

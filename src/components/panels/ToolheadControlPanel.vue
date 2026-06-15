@@ -17,56 +17,11 @@
                             {{ $t('Settings.ControlTab.MotorsOff', { isDefault: '' }) }}
                         </v-btn>
                     </v-list-item>
-                    <v-list-item v-if="controlStyle !== 'bars' && existsZtilt && actionButton !== 'ztilt'">
- <v-btn size="small" style="width: 100%" @click="doZtilt">Z-Tilt Adjust</v-btn>
-                    </v-list-item>
                     <v-list-item v-if="controlStyle !== 'bars' && existsQGL && actionButton !== 'qgl'">
  <v-btn size="small" style="width: 100%" @click="doQGL">Quad Gantry Level</v-btn>
                     </v-list-item>
                     <v-list-item v-if="existsDeltaCalibrate">
  <v-btn size="small" style="width: 100%" @click="doSend('DELTA_CALIBRATE')">DELTA CALIBRATE</v-btn>
-                    </v-list-item>
-                    <v-list-item v-if="existsScrewsTilt">
-                        <div class="d-flex align-center" style="width: 100%">
- <v-btn
-                                size="small"
-                                style="border-top-right-radius: 0; border-bottom-right-radius: 0"
-                                @click="doSend('SCREWS_TILT_CALCULATE')">
-                                SCREWS TILT CALCULATE
-                            </v-btn>
-                            <v-menu offset-y left :close-on-content-click="false">
-                                <template #activator="{ props }">
- <v-btn
-                                        size="small"
-                                        v-bind="props"
-                                        class="px-0"
-                                        style="min-width: 32px; border-top-left-radius: 0; border-bottom-left-radius: 0"
-                                        >
-                                        <v-icon>{{ mdiMenuDown }}</v-icon>
-                                    </v-btn>
-                                </template>
-                                <v-list density="compact">
-                                    <v-list-item>
- <v-btn
-                                            size="small"
-                                            style="width: 100%"
-                                            @click="doSend('SCREWS_TILT_CALCULATE DIRECTION=CW')">
-                                            <v-icon start size="small" style="transform: scaleX(-1)">{{ mdiRestore }}</v-icon>
-                                            <span>CW</span>
-                                        </v-btn>
-                                    </v-list-item>
-                                    <v-list-item>
- <v-btn
-                                            size="small"
-                                            style="width: 100%"
-                                            @click="doSend('SCREWS_TILT_CALCULATE DIRECTION=CCW')">
-                                            <v-icon start size="small">{{ mdiRestore }}</v-icon>
-                                            <span>CCW</span>
-                                        </v-btn>
-                                    </v-list-item>
-                                </v-list>
-                            </v-menu>
-                        </div>
                     </v-list-item>
                 </v-list>
             </v-menu>
@@ -105,10 +60,10 @@ import CrossControl from '@/components/panels/ToolheadControls/CrossControl.vue'
 import MoveToControl from '@/components/panels/ToolheadControls/MoveToControl.vue'
 import Panel from '@/components/ui/Panel.vue'
 import ToolSlider from '@/components/inputs/ToolSlider.vue'
-import { mdiDotsVertical, mdiEngineOff, mdiGamepad, mdiSpeedometer, mdiMenuDown, mdiRestore } from '@mdi/js'
+import { mdiDotsVertical, mdiEngineOff, mdiGamepad, mdiSpeedometer } from '@mdi/js'
 
 const { klipperReadyForGui, printer_state } = useBase()
-const { doSend, doZtilt, doQGL, existsZtilt, existsQGL, existsDeltaCalibrate, existsScrewsTilt } = useControl()
+const { doSend, doQGL, existsQGL, existsDeltaCalibrate } = useControl()
 
 const store = useStore()
 
@@ -134,8 +89,8 @@ const axisControlVisible = computed(() => {
 })
 
 const showButtons = computed(() => {
-    if (controlStyle.value !== 'bars' && (existsZtilt.value || existsQGL.value)) return true
-    return existsDeltaCalibrate.value || existsScrewsTilt.value
+    if (controlStyle.value !== 'bars' && existsQGL.value) return true
+    return existsDeltaCalibrate.value
 })
 
 const showControl = computed(() =>

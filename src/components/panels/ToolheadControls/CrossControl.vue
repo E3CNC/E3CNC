@@ -134,17 +134,6 @@
                                         {{ $t('Panels.ToolheadControlPanel.QGL') }}
                                     </v-btn>
  <v-btn
-                                        v-else-if="actionButton === 'ztilt'"
-                                        :disabled="['printing'].includes(printer_state)"
-                                        :loading="loadings.includes('zTilt')"
-                                        :color="colorZTilt"
-                                        height="30"
-                                        density="compact"
-                                        rounded="0"
-                                        class="btnMinWidthAuto flex-grow-1 px-0"
-                                        @click="doZtilt">
-                                        {{ $t('Panels.ToolheadControlPanel.ZTilt') }}
-                                    </v-btn>
  <v-btn
                                         v-else
                                         :disabled="['printing'].includes(printer_state)"
@@ -257,16 +246,6 @@
                                         @click="doZtilt">
                                         {{ $t('Panels.ToolheadControlPanel.ZTilt') }}
                                     </v-btn>
- <v-btn
-                                        v-else
-                                        :disabled="['printing'].includes(printer_state)"
-                                        :color="homedAxes !== '' ? 'primary' : 'warning'"
-                                        height="30"
-                                        density="compact"
-                                        rounded="0"
-                                        class="flex-grow-1 px-0"
-                                        @click="doSend('M84')">
-                                        <v-icon>{{ mdiEngineOff }}</v-icon>
                                     </v-btn>
                                 </v-col>
                             </v-row>
@@ -371,10 +350,10 @@ const { printer_state, loadings } = useBase()
 const {
     homedAxes, xAxisHomed, yAxisHomed, zAxisHomed,
     feedrateXY, feedrateZ,
-    enableXYHoming, existsQGL, existsZtilt,
-    colorQuadGantryLevel, colorZTilt, actionButton,
+    enableXYHoming, existsQGL,
+    colorQuadGantryLevel, actionButton,
     doHome, doHomeX, doHomeY, doHomeZ, doHomeXY,
-    doQGL, doZtilt, doSend, doSendMove,
+    doQGL, doSend, doSendMove,
 } = useControl()
 const store = useStore()
 

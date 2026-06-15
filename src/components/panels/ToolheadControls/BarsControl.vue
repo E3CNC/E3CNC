@@ -34,16 +34,6 @@
                     {{ $t('Panels.ToolheadControlPanel.QGL') }}
                 </v-btn>
  <v-btn
-                    v-if="existsZtilt"
-                    :disabled="['printing'].includes(printer_state)"
-                    size="small"
-                    :loading="loadings.includes('zTilt')"
-                    :color="colorZTilt"
-                    class="ml-2"
-                    @click="doZtilt">
-                    {{ $t('Panels.ToolheadControlPanel.ZTilt') }}
-                </v-btn>
- <v-btn
                     size="small"
                     :disabled="['printing'].includes(printer_state)"
                     :color="homedAxes !== '' ? 'primary' : 'warning'"
@@ -159,10 +149,10 @@ import { mdiEngineOff, mdiHome } from '@mdi/js'
 const { printer_state, loadings } = useBase()
 const {
     homedAxes, feedrateXY, feedrateZ,
-    enableXYHoming, existsQGL, existsZtilt,
-    colorQuadGantryLevel, colorZTilt,
+    enableXYHoming, existsQGL,
+    colorQuadGantryLevel,
     doHome, doHomeX, doHomeY, doHomeZ, doHomeXY,
-    doQGL, doZtilt, doSend, doSendMove,
+    doQGL, doSend, doSendMove,
 } = useControl()
 const store = useStore()
 
