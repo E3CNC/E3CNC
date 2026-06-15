@@ -547,12 +547,6 @@ export const getters: GetterTree<PrinterState, RootState> = {
         return state[extruderName]?.can_extrude ?? false
     },
 
-    getBedMeshProfileName: (state) => {
-        if ('bed_mesh' in state && 'profile_name' in state.bed_mesh) return state.bed_mesh.profile_name
-
-        return ''
-    },
-
     getMaxTemp: (state) => {
         let maxtemp = 0
 
@@ -753,18 +747,6 @@ export const getters: GetterTree<PrinterState, RootState> = {
         }
 
         return false
-    },
-
-    existsBedTilt: (state) => {
-        if (!state.configfile?.settings) return false
-
-        return 'bed_tilt' in state.configfile.settings
-    },
-
-    existsBedScrews: (state) => {
-        if (!state.configfile?.settings) return false
-
-        return 'bed_screws' in state.configfile.settings
     },
 
     existsDeltaCalibrate: (state) => {

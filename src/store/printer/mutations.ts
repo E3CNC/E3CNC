@@ -34,12 +34,6 @@ export const mutations: MutationTree<PrinterState> = {
         })
     },
 
-    setBedMeshProfiles(state, payload) {
-        if ('bed_mesh' in state) {
-            state.bed_mesh.profiles = payload
-        }
-    },
-
     clearCurrentFile(state) {
         state.current_file = {}
     },
@@ -48,12 +42,6 @@ export const mutations: MutationTree<PrinterState> = {
         delete payload.requestParams
 
         state.endstops = payload
-    },
-
-    removeBedMeshProfile(state, payload) {
-        if ('bed_mesh ' + payload.name in state.configfile.config) {
-            Object.assign(state.configfile.config['bed_mesh ' + payload.name], { deleted: true })
-        }
     },
 
     clearScrewsTiltAdjust(state) {

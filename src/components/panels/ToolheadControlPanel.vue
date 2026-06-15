@@ -23,14 +23,6 @@
                     <v-list-item v-if="controlStyle !== 'bars' && existsQGL && actionButton !== 'qgl'">
  <v-btn size="small" style="width: 100%" @click="doQGL">Quad Gantry Level</v-btn>
                     </v-list-item>
-                    <v-list-item v-if="existsBedTilt">
- <v-btn size="small" style="width: 100%" @click="doSend('BED_TILT_CALIBRATE')">
-                            BED TILT CALIBRATE
-                        </v-btn>
-                    </v-list-item>
-                    <v-list-item v-if="existsBedScrews">
- <v-btn size="small" style="width: 100%" @click="doSend('BED_SCREWS_ADJUST')">BED SCREWS ADJUST</v-btn>
-                    </v-list-item>
                     <v-list-item v-if="existsDeltaCalibrate">
  <v-btn size="small" style="width: 100%" @click="doSend('DELTA_CALIBRATE')">DELTA CALIBRATE</v-btn>
                     </v-list-item>
@@ -121,7 +113,7 @@ import ZoffsetControl from '@/components/panels/ToolheadControls/ZoffsetControl.
 import { mdiDotsVertical, mdiEngineOff, mdiGamepad, mdiSpeedometer, mdiMenuDown, mdiRestore } from '@mdi/js'
 
 const { klipperReadyForGui, printer_state } = useBase()
-const { doSend, doZtilt, doQGL, existsZtilt, existsQGL, existsBedTilt, existsBedScrews, existsDeltaCalibrate, existsScrewsTilt } = useControl()
+const { doSend, doZtilt, doQGL, existsZtilt, existsQGL, existsDeltaCalibrate, existsScrewsTilt } = useControl()
 
 const store = useStore()
 
@@ -148,7 +140,7 @@ const axisControlVisible = computed(() => {
 
 const showButtons = computed(() => {
     if (controlStyle.value !== 'bars' && (existsZtilt.value || existsQGL.value)) return true
-    return existsBedScrews.value || existsBedTilt.value || existsDeltaCalibrate.value || existsScrewsTilt.value
+    return existsDeltaCalibrate.value || existsScrewsTilt.value
 })
 
 const showControl = computed(() =>

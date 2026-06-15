@@ -92,12 +92,6 @@ export const actions: ActionTree<PrinterState, RootState> = {
             delete payload.webhooks
         }
 
-        if ('bed_mesh' in state && 'bed_mesh' in payload && 'profiles' in payload.bed_mesh) {
-            commit('setBedMeshProfiles', payload.bed_mesh.profiles)
-
-            delete payload.bed_mesh['profiles']
-        }
-
         if (payload.configfile?.settings?.printer?.kinematics) {
             dispatch(
                 'gui/updateGcodeviewerCache',

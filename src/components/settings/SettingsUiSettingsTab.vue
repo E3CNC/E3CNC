@@ -235,13 +235,6 @@
                 </settings-row>
                 <v-divider class="my-2" />
                 <settings-row
-                    :title="$t('Settings.UiSettingsTab.HideSaveConfigButtonForBedMesh')"
-                    :sub-title="$t('Settings.UiSettingsTab.HideSaveConfigButtonForBedMeshDescription')"
-                    :dynamic-slot-width="true">
-                    <v-switch v-model="hideSaveConfigForBedMash" hide-details class="mt-0" />
-                </settings-row>
-                <v-divider class="my-2" />
-                <settings-row
                     :title="$t('Settings.UiSettingsTab.DisableFanAnimation')"
                     :sub-title="$t('Settings.UiSettingsTab.DisableFanAnimationDescription')"
                     :dynamic-slot-width="true">
@@ -253,13 +246,6 @@
                     :sub-title="$t('Settings.UiSettingsTab.ManualProbeDialogDescription')"
                     :dynamic-slot-width="true">
                     <v-switch v-model="boolManualProbeDialog" hide-details class="mt-0" />
-                </settings-row>
-                <v-divider class="my-2" />
-                <settings-row
-                    :title="$t('Settings.UiSettingsTab.BedScrewsDialog')"
-                    :sub-title="$t('Settings.UiSettingsTab.BedScrewsDialogDescription')"
-                    :dynamic-slot-width="true">
-                    <v-switch v-model="boolBedScrewsDialog" hide-details class="mt-0" />
                 </settings-row>
                 <v-divider class="my-2" />
                 <settings-row
@@ -570,13 +556,6 @@ const powerDeviceOptions = computed(() => {
     return items
 })
 
-const hideSaveConfigForBedMash = computed({
-    get: () => store.state.gui.uiSettings.hideSaveConfigForBedMash ?? false,
-    set: (newVal) => {
-        store.dispatch('gui/saveSetting', { name: 'uiSettings.hideSaveConfigForBedMash', value: newVal })
-    },
-})
-
 const disableFanAnimation = computed({
     get: () => store.state.gui.uiSettings.disableFanAnimation ?? false,
     set: (newVal) => {
@@ -588,13 +567,6 @@ const boolManualProbeDialog = computed({
     get: () => store.state.gui.uiSettings.boolManualProbeDialog ?? true,
     set: (newVal) => {
         store.dispatch('gui/saveSetting', { name: 'uiSettings.boolManualProbeDialog', value: newVal })
-    },
-})
-
-const boolBedScrewsDialog = computed({
-    get: () => store.state.gui.uiSettings.boolBedScrewsDialog ?? true,
-    set: (newVal) => {
-        store.dispatch('gui/saveSetting', { name: 'uiSettings.boolBedScrewsDialog', value: newVal })
     },
 })
 

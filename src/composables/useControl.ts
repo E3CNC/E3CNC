@@ -20,10 +20,6 @@ export function useControl() {
 
     const existsZtilt = computed(() => store.getters['printer/existsZtilt'])
 
-    const existsBedTilt = computed(() => store.getters['printer/existsBedTilt'])
-
-    const existsBedScrews = computed(() => store.getters['printer/existsBedScrews'])
-
     const existsDeltaCalibrate = computed(() => store.getters['printer/existsDeltaCalibrate'])
 
     const existsScrewsTilt = computed(() => store.getters['printer/existsScrewsTilt'])
@@ -165,8 +161,6 @@ export function useControl() {
         feedrateZ,
         existsQGL,
         existsZtilt,
-        existsBedTilt,
-        existsBedScrews,
         existsDeltaCalibrate,
         existsScrewsTilt,
         existsFirmwareRetraction,

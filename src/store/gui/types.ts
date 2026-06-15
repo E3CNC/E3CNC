@@ -102,10 +102,8 @@ export interface GuiState {
         defaultNavigationStateSetting: 'alwaysOpen' | 'alwaysClosed' | 'lastState'
         powerDeviceName: string | null
         progressAsFavicon: boolean
-        hideSaveConfigForBedMash: boolean
         disableFanAnimation: boolean
         boolManualProbeDialog: boolean
-        boolBedScrewsDialog: boolean
         boolScrewsTiltAdjustDialog: boolean
         tempchartHeight: number
         hideUpdateWarnings: boolean

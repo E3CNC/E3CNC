@@ -22,12 +22,6 @@
                         </span>
                         <span class="text-no-wrap">{{ displayPositionAbsolute }}</span>
                     </v-col>
-                    <v-col
-                        v-if="currentProfileName"
-                        class="text-subtitle-2 text-medium-emphasis pl-2 justify-end text-no-wrap text-truncate d-flex align-center">
-                        <v-icon size="small" class="mr-1">{{ mdiGrid }}</v-icon>
-                        <span class="text-no-wrap text-truncate">{{ currentProfileName }}</span>
-                    </v-col>
                 </v-row>
                 <v-row v-if="showCoordinates" density="compact">
                     <v-col :class="el.is.xsmall ? 'v-col-12' : 'v-col-4'">
@@ -161,10 +155,6 @@ const livePositions = computed(() => {
         z: pos[2]?.toFixed(3) ?? '--',
     }
 })
-
-const bed_mesh = computed(() => store.state.printer.bed_mesh ?? null)
-
-const currentProfileName = computed(() => bed_mesh.value?.profile_name ?? '')
 
 const showPosition = computed(() => store.state.gui.view.toolhead.showPosition ?? true)
 

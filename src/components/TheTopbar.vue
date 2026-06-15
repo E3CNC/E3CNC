@@ -159,16 +159,9 @@ const naviDrawer = computed({
 
 const currentPage = computed(() => router.currentRoute.value.fullPath)
 
-const saveConfigPending = computed(() => store.state.printer.configfile?.save_config_pending ?? false)
-const hideSaveConfigForBedMash = computed(() => store.state.gui.uiSettings.hideSaveConfigForBedMash ?? false)
-
 const showSaveConfigButton = computed(() => {
     if (!klipperReadyForGui.value) return false
-    if (!hideSaveConfigForBedMash.value) return saveConfigPending.value
-
-    let pendingKeys = Object.keys(store.state.printer.configfile?.save_config_pending_items ?? {})
-    pendingKeys = pendingKeys.filter((key: string) => !key.startsWith('bed_mesh '))
-    return pendingKeys.length > 0
+    return store.state.printer.configfile?.save_config_pending ?? false
 })
 
 const printerName = computed((): string => {

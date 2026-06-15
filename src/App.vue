@@ -15,7 +15,6 @@
             <the-fullscreen-upload />
             <the-upload-snackbar />
             <the-manual-probe-dialog />
-            <the-bed-screws-dialog />
             <the-screws-tilt-adjust-dialog />
             <the-macro-prompt />
         </template>
@@ -45,7 +44,6 @@ import TheTimelapseRenderingSnackbar from '@/components/TheTimelapseRenderingSna
 import TheFullscreenUpload from '@/components/TheFullscreenUpload.vue'
 import TheUploadSnackbar from '@/components/TheUploadSnackbar.vue'
 import TheManualProbeDialog from '@/components/dialogs/TheManualProbeDialog.vue'
-import TheBedScrewsDialog from '@/components/dialogs/TheBedScrewsDialog.vue'
 import TheScrewsTiltAdjustDialog from '@/components/dialogs/TheScrewsTiltAdjustDialog.vue'
 import { setAndLoadLocale } from './plugins/i18n'
 import TheMacroPrompt from '@/components/dialogs/TheMacroPrompt.vue'
