@@ -42,6 +42,7 @@
         "vue-echarts": "^7.0.3",
         "vue-i18n": "^11.0.0",
         "vue-inline-svg": "^4.0.1",
+        "vue-load-image": "^0.2.0",
         "vue-observe-visibility": "^2.0.0-alpha.1",
         "vue-router": "^4.5.0",
         "vue-toast-notification": "^3.1.3",
@@ -1786,6 +1787,8 @@
     "vue-i18n": ["vue-i18n@11.4.5", "https://registry.npmmirror.com/vue-i18n/-/vue-i18n-11.4.5.tgz", { "dependencies": { "@intlify/core-base": "11.4.5", "@intlify/devtools-types": "11.4.5", "@intlify/shared": "11.4.5", "@vue/devtools-api": "^6.5.0" }, "peerDependencies": { "vue": "^3.0.0" } }, "sha512-rm8YJ6RpjOrkcgS2GLrZwLvs/VbhxbTSuEspbyXDo233+fPK0OMFNLOj3fdQYVKdOgcpSfLW91JhbqgpkkcBWA=="],
 
     "vue-inline-svg": ["vue-inline-svg@4.0.1", "https://registry.npmmirror.com/vue-inline-svg/-/vue-inline-svg-4.0.1.tgz", { "peerDependencies": { "vue": "^3" } }, "sha512-yh92MOcTpL/yXj0MjI9JqQpI33nj5ewdddt6enunU8pBpy6JqrMXF+O4WI1DbckhLIoXzp6hSxkeqXDqpqtKXw=="],
+
+    "vue-load-image": ["vue-load-image@0.2.0", "https://registry.npmmirror.com/vue-load-image/-/vue-load-image-0.2.0.tgz", { "peerDependencies": { "vue": "^2.0.0" } }, "sha512-Y9xj4bNM3wCZFowFABEaC9pJVVhS0L8k9Ui4SbFEdYxnY/DqP4yi3vOsNENj698Zy6klOXHjJ9yEtP/z1JUOEw=="],
 
     "vue-observe-visibility": ["vue-observe-visibility@2.0.0-alpha.1", "https://registry.npmmirror.com/vue-observe-visibility/-/vue-observe-visibility-2.0.0-alpha.1.tgz", { "peerDependencies": { "vue": "^3.0.0" } }, "sha512-flFbp/gs9pZniXR6fans8smv1kDScJ8RS7rEpMjhVabiKeq7Qz3D9+eGsypncjfIyyU84saU88XZ0zjbD6Gq/g=="],
 
