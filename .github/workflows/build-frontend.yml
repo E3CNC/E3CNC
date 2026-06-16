@@ -36,7 +36,7 @@ jobs:
       - name: Create dist archive
         run: |
           cp ./remote/* ./dist/ 2>/dev/null || true
-          cd dist && zip -r ../mainsail.zip . && cd ..
+          cd dist && zip -r ../mainsail-cnc.zip . && cd ..
 
       - name: Upload dist artifact
         uses: actions/upload-artifact@v5
@@ -64,4 +64,4 @@ jobs:
             --title "Nightly build (${{ steps.commit.outputs.SHA_SHORT }})" \
             --notes "Auto-built from commit ${{ github.sha }}" \
             --target "${{ github.sha }}" \
-            mainsail.zip
+            mainsail-cnc.zip

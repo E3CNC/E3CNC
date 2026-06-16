@@ -18,8 +18,8 @@ echo "=== Downloading pre-built frontend ==="
 TMP_DIR=$(mktemp -d)
 trap 'rm -rf "$TMP_DIR"' EXIT
 
-ZIP_URL="https://github.com/${OWNER}/${REPO}/releases/download/nightly/mainsail.zip"
-ZIP_FILE="$TMP_DIR/mainsail.zip"
+ZIP_URL="https://github.com/${OWNER}/${REPO}/releases/download/nightly/mainsail-cnc.zip"
+ZIP_FILE="$TMP_DIR/mainsail-cnc.zip"
 
 if curl -sfL "$ZIP_URL" -o "$ZIP_FILE" && [[ -s "$ZIP_FILE" ]]; then
     echo "    downloaded nightly build ($(du -h "$ZIP_FILE" | cut -f1))"
