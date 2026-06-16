@@ -144,13 +144,13 @@ function closeDialog() {
     width: 18px;
     height: 2px;
     top: 7px;
-    background: rgba(255, 255, 255, 0.5);
+    background: rgba(var(--v-theme-on-surface), 0.5);
     z-index: 1;
 }
 
 :deep(.git-commit-list-day .v-timeline-item__inner-dot) {
-    background-color: #1e1e1e !important;
-    border: 2px solid rgba(255, 255, 255, 0.5) !important;
+    background-color: rgb(var(--v-theme-surface));
+    border: 2px solid rgba(var(--v-theme-on-surface), 0.5);
     width: 8px;
     height: 8px;
     position: relative;

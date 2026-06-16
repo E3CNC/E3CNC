@@ -84,7 +84,7 @@ const chartOptions = computed<ECBasicOption>(() => ({
             type: 'bar',
             data: printtimeAvgArray.value,
             itemStyle: {
-                color: '#BDBDBD',
+                color: 'rgba(var(--v-theme-on-surface), 0.6)',
             },
         },
     ],

@@ -88,7 +88,7 @@ const commitShortSha = computed(() => props.commit.sha.substring(0, 6))
 
 <style scoped>
 li.commit {
-    border-color: rgb(48, 54, 61);
+    border-color: rgba(var(--v-theme-on-surface), 0.12);
     border-style: solid;
     border-width: 1px;
     border-bottom-width: 0;

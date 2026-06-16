@@ -79,6 +79,6 @@ const WebrtcGo2rtcAsync = defineAsyncComponent(() => import('@/components/webcam
 }
 
 html.theme--light :deep(.webcamBackground) {
-    background: rgba(255, 255, 255, 0.7);
+    background: rgba(var(--v-theme-on-surface), 0.7);
 }
 </style>

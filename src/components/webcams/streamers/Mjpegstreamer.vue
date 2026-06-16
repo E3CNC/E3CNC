@@ -324,7 +324,7 @@ function onload() {
 }
 
 html.theme--light .webcamFpsOutput {
-    background: rgba(255, 255, 255, 0.7);
+    background: rgba(var(--v-theme-on-surface), 0.7);
 }
 
 ._webcam_mjpegstreamer_output {

@@ -22,7 +22,7 @@ let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
 const w = computed(() => props.webcam as GuiWebcamStateWebcam)
 
-const color = computed(() => w.value.extra_data?.nozzleCrosshairColor ?? '#ff0000')
+const color = computed(() => w.value.extra_data?.nozzleCrosshairColor ?? 'rgb(var(--v-theme-error))')
 
 const styleLines = computed(() => ({
     backgroundColor: color.value,
@@ -81,7 +81,7 @@ onBeforeUnmount(() => {
 
 .line {
     position: absolute;
-    background-color: #ff0000;
+    background-color: rgb(var(--v-theme-error));
 }
 
 .horizontal {
@@ -100,7 +100,7 @@ onBeforeUnmount(() => {
 
 .circle {
     position: absolute;
-    border: 1px solid #ff0000;
+    border: 1px solid rgb(var(--v-theme-error));
     border-radius: 50%;
     box-sizing: border-box;
     top: 50%;

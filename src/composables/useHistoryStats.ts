@@ -19,10 +19,10 @@ export function useHistoryStats(valueName: HistoryStatsValueNames): UseHistorySt
 
     function getStatusColor(status: string) {
         const colorMap: Record<string, string> = {
-            completed: '#BDBDBD',
-            in_progress: '#EEEEEE',
-            cancelled: '#616161',
-            default: '#424242',
+            completed: 'rgba(var(--v-theme-on-surface), 0.6)',
+            in_progress: 'rgba(var(--v-theme-on-surface), 0.9)',
+            cancelled: 'rgba(var(--v-theme-on-surface), 0.38)',
+            default: 'rgba(var(--v-theme-on-surface), 0.26)',
         }
 
         return colorMap[status] ?? colorMap.default
@@ -56,8 +56,8 @@ export function useHistoryStats(valueName: HistoryStatsValueNames): UseHistorySt
             valueTime: 0,
             itemStyle: {
                 opacity: 0.9,
-                color: '#616161',
-                borderColor: '#1E1E1E',
+                color: 'rgba(var(--v-theme-on-surface), 0.38)',
+                borderColor: 'rgba(var(--v-theme-on-surface), 0.12)',
                 borderWidth: 2,
                 borderRadius: 3,
             },
@@ -89,7 +89,7 @@ export function useHistoryStats(valueName: HistoryStatsValueNames): UseHistorySt
                 itemStyle: {
                     opacity: 0.9,
                     color: getStatusColor(status),
-                    borderColor: '#1E1E1E',
+                    borderColor: 'rgba(var(--v-theme-on-surface), 0.12)',
                     borderWidth: 2,
                     borderRadius: 3,
                 },

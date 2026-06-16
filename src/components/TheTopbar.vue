@@ -81,7 +81,7 @@
             <br />
             <v-progress-linear class="mt-2" :model-value="uploadSnackbar.percent"></v-progress-linear>
             <template #actions="{ props }">
- <v-btn :icon="mdiClose" color="red" variant="text" v-bind="props" style="min-width: auto" @click="cancelUpload"/>
+ <v-btn :icon="mdiClose" color="error" variant="text" v-bind="props" style="min-width: auto" @click="cancelUpload"/>
             </template>
         </v-snackbar>
         <emergency-stop-dialog v-model="showEmergencyStopDialog" />
@@ -325,8 +325,8 @@ function emergencyStop() {
 <style scoped>
 /*noinspection CssUnusedSymbol*/
 :deep(.topbar) .v-toolbar__content {
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
+    padding-top: 0;
+    padding-bottom: 0;
 }
 
 .topbar-dro {
@@ -359,16 +359,16 @@ function emergencyStop() {
 }
 
 .topbar-dro__sep {
-    color: rgba(255, 255, 255, 0.42);
+    color: rgba(var(--v-theme-on-surface), 0.42);
     margin: 0 0.1rem;
 }
 
 .topbar-dro__velocity {
-    color: rgba(255, 255, 255, 0.72);
+    color: rgba(var(--v-theme-on-surface), 0.72);
 }
 
 .topbar-dro__mode {
-    color: rgba(255, 255, 255, 0.72);
+    color: rgba(var(--v-theme-on-surface), 0.72);
     font-size: 0.72rem;
 }
 
@@ -377,7 +377,7 @@ function emergencyStop() {
 }
 /*noinspection CssUnusedSymbol*/
 .topbar .v-btn {
-    height: 100% !important;
+    height: 100%;
     max-height: none;
 }
 :deep(.topbar) .nav-logo {
@@ -387,7 +387,7 @@ function emergencyStop() {
 /*noinspection CssUnusedSymbol*/
 .topbar .v-btn.v-btn--icon {
     /*noinspection CssUnresolvedCustomProperty*/
-    width: var(--topbar-icon-btn-width) !important;
+    width: var(--topbar-icon-btn-width);
 }
 /*noinspection CssUnusedSymbol*/
 @media (min-width: 768px) {

@@ -16,7 +16,7 @@
                 :select="(v) => selectItem(item, v)" />
 
             <div v-if="!hasContent" class="gcode-list__empty">
-                <v-icon size="64" color="grey"> {{ mdiFolderOpen }} </v-icon>
+                <v-icon size="64" color="disabled"> {{ mdiFolderOpen }} </v-icon>
                 <div class="gcode-list__empty-title">{{ $t('Files.Empty') }}</div>
             </div>
         </div>
@@ -89,7 +89,7 @@ function selectItem(item: { filename: string }, value: boolean) {
     justify-content: center;
     padding: 64px 16px;
     gap: 12px;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(var(--v-theme-on-surface), 0.5);
 }
 
 .gcode-list__empty-title {

@@ -76,7 +76,7 @@ watch(() => props.currentline, (to: number) => {
 
 <style scoped>
 :deep(.cm-activeLine) {
-    background-color: #333 !important;
+    background-color: rgb(var(--v-theme-surface)) !important;
 }
 
 .codeview {

@@ -388,18 +388,18 @@ onBeforeUnmount(() => {
     background: rgb(var(--v-surface));
     transition: transform 200ms cubic-bezier(0.25, 1, 0.5, 1), box-shadow 200ms cubic-bezier(0.25, 1, 0.5, 1),
         border-color 200ms cubic-bezier(0.25, 1, 0.5, 1);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(var(--v-theme-on-surface), 0.08);
     overflow: hidden;
 }
 
 .gcode-card:hover {
     transform: translateY(-2px);
-    border-color: rgba(255, 107, 53, 0.4);
+    border-color: rgba(var(--v-theme-primary), 0.4);
 }
 
 .gcode-card--selected {
-    border-color: rgb(255, 107, 53);
-    background: rgba(255, 107, 53, 0.05);
+    border-color: rgb(var(--v-theme-primary));
+    background: rgba(var(--v-theme-primary), 0.05);
 }
 
 .gcode-card__topbar {
@@ -439,7 +439,7 @@ onBeforeUnmount(() => {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(var(--v-theme-on-surface), 0.04);
     border-radius: 4px;
     overflow: hidden;
 }
@@ -456,7 +456,7 @@ onBeforeUnmount(() => {
     font-size: 14px;
     font-weight: 600;
     line-height: 1.25;
-    color: rgba(255, 255, 255, 0.92);
+    color: rgba(var(--v-theme-on-surface), 0.92);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -464,7 +464,7 @@ onBeforeUnmount(() => {
 
 .gcode-card__sub {
     font-size: 12px;
-    color: rgba(255, 255, 255, 0.55);
+    color: rgba(var(--v-theme-on-surface), 0.55);
     display: flex;
     gap: 6px;
     align-items: center;
@@ -476,7 +476,7 @@ onBeforeUnmount(() => {
 }
 
 .gcode-card__sep {
-    color: rgba(255, 255, 255, 0.3);
+    color: rgba(var(--v-theme-on-surface), 0.3);
 }
 
 .gcode-card__chips {
@@ -492,20 +492,20 @@ onBeforeUnmount(() => {
 }
 
 .gcode-card__chip--runs {
-    background: rgba(46, 204, 113, 0.15) !important;
-    color: rgb(46, 204, 113) !important;
+    background: rgba(var(--v-theme-success), 0.15) !important;
+    color: rgb(var(--v-theme-success)) !important;
 }
 
 .gcode-card__divider {
     margin: 0;
-    border-color: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(var(--v-theme-on-surface), 0.06) !important;
 }
 
 .gcode-card__stats {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1px;
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(var(--v-theme-on-surface), 0.04);
     padding: 1px 0;
 }
 
@@ -518,18 +518,18 @@ onBeforeUnmount(() => {
     font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: rgba(255, 255, 255, 0.4);
+    color: rgba(var(--v-theme-on-surface), 0.4);
     margin-bottom: 2px;
 }
 
 .gcode-card__stat-value {
     font-family: '0xProto Nerd Font Mono', monospace;
     font-size: 13px;
-    color: rgba(255, 255, 255, 0.85);
+    color: rgba(var(--v-theme-on-surface), 0.85);
 }
 
 .gcode-card__stats--cnc {
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    border-top: 1px solid rgba(var(--v-theme-on-surface), 0.06);
 }
 
 .gcode-card__action {

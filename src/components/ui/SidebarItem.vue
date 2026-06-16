@@ -60,7 +60,7 @@ const itemClass = computed(() => ({
 }
 
 .active-nav-item {
-    background-color: rgba(255, 255, 255, 0.12);
+    background-color: rgba(var(--v-theme-on-surface), 0.12);
 }
 
 .menu-item-icon {

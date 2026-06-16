@@ -105,7 +105,7 @@ const mobileLogoClass = computed(() => ({
 
 <style scoped>
 .sidebar-shell {
-    background-color: rgb(54, 54, 54);
+    background-color: rgb(var(--v-theme-surface));
     overflow: hidden;
 }
 

@@ -195,9 +195,9 @@ async function drawFavicon(val: number): Promise<void> {
         context.moveTo(centerX, centerY)
         context.arc(centerX, centerY, radius, 0, 2 * Math.PI, false)
         context.closePath()
-        context.fillStyle = '#ddd'
+        context.fillStyle = vuetifyTheme.global.current.value.colors?.surface ?? '#ddd'
         context.fill()
-        context.strokeStyle = 'rgba(200, 208, 218, 0.66)'
+        context.strokeStyle = vuetifyTheme.global.current.value.colors?.onSurface ?? 'rgba(200, 208, 218, 0.66)'
         context.stroke()
 
         const startAngle = 1.5 * Math.PI
@@ -324,6 +324,7 @@ onMounted((): void => {
 
 :root {
     --app-height: 100%;
+    --border-radius: 12px;
 }
 
 #content {

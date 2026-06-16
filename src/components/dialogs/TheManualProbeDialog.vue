@@ -177,7 +177,7 @@ function sendAccept() {
 
     .v-btn {
         border-radius: 0;
-        border-color: rgba(255, 255, 255, 0.12) !important;
+        border-color: rgba(var(--v-theme-on-surface), 0.12) !important;
         border-style: solid;
         border-width: thin;
         box-shadow: none;

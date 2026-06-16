@@ -51,7 +51,7 @@
                             :y="padding"
                             :width="plotWidth"
                             :height="plotHeight"
-                            fill="rgb(30, 30, 30)"
+                            fill="rgb(var(--v-theme-surface))"
                             :stroke="previewStrokeColor"
                             stroke-width="1" />
 
@@ -63,7 +63,7 @@
                             :y1="padding"
                             :x2="toSvgX(gx)"
                             :y2="padding + plotHeight"
-                            stroke="rgba(255,255,255,0.06)"
+                            stroke="rgba(var(--v-theme-on-surface), 0.06)"
                             stroke-width="0.5" />
                         <line
                             v-for="gy in gridLinesY"
@@ -72,7 +72,7 @@
                             :y1="toSvgY(gy)"
                             :x2="padding + plotWidth"
                             :y2="toSvgY(gy)"
-                            stroke="rgba(255,255,255,0.06)"
+                            stroke="rgba(var(--v-theme-on-surface), 0.06)"
                             stroke-width="0.5" />
 
                         <!-- Offset origin markers (back to front, inactive first) -->
@@ -144,7 +144,7 @@
                                 :y1="toSvgY(cursorInfo.y)"
                                 :x2="Math.max(padding, toSvgX(cursorInfo.x - gridStep) )"
                                 :y2="toSvgY(cursorInfo.y)"
-                                stroke="rgba(255,255,255,0.45)"
+                                stroke="rgba(var(--v-theme-on-surface), 0.45)"
                                 stroke-width="1"
                                 stroke-dasharray="3 3" />
                             <line
@@ -152,7 +152,7 @@
                                 :y1="toSvgY(cursorInfo.y)"
                                 :x2="padding + plotWidth"
                                 :y2="toSvgY(cursorInfo.y)"
-                                stroke="rgba(255,255,255,0.45)"
+                                stroke="rgba(var(--v-theme-on-surface), 0.45)"
                                 stroke-width="1"
                                 stroke-dasharray="3 3" />
                             <line
@@ -160,7 +160,7 @@
                                 :y1="padding"
                                 :x2="toSvgX(cursorInfo.x)"
                                 :y2="Math.max(padding, toSvgY(cursorInfo.y + gridStep))"
-                                stroke="rgba(255,255,255,0.45)"
+                                stroke="rgba(var(--v-theme-on-surface), 0.45)"
                                 stroke-width="1"
                                 stroke-dasharray="3 3" />
                             <line
@@ -168,7 +168,7 @@
                                 :y1="Math.min(padding + plotHeight, toSvgY(cursorInfo.y - gridStep))"
                                 :x2="toSvgX(cursorInfo.x)"
                                 :y2="padding + plotHeight"
-                                stroke="rgba(255,255,255,0.45)"
+                                stroke="rgba(var(--v-theme-on-surface), 0.45)"
                                 stroke-width="1"
                                 stroke-dasharray="3 3" />
                         </template>
@@ -180,7 +180,7 @@
                                 :y1="toSvgY(snapInfo.y)"
                                 :x2="toSvgX(snapInfo.x) + 8"
                                 :y2="toSvgY(snapInfo.y)"
-                                stroke="rgba(255,255,255,0.7)"
+                                stroke="rgba(var(--v-theme-on-surface), 0.7)"
                                 stroke-width="1"
                                 stroke-dasharray="3 2" />
                             <line
@@ -188,7 +188,7 @@
                                 :y1="toSvgY(snapInfo.y) - 8"
                                 :x2="toSvgX(snapInfo.x)"
                                 :y2="toSvgY(snapInfo.y) + 8"
-                                stroke="rgba(255,255,255,0.7)"
+                                stroke="rgba(var(--v-theme-on-surface), 0.7)"
                                 stroke-width="1"
                                 stroke-dasharray="3 2" />
                             <circle
@@ -196,7 +196,7 @@
                                 :cy="toSvgY(snapInfo.y)"
                                 r="3"
                                 fill="none"
-                                stroke="rgba(255,255,255,0.5)"
+                                stroke="rgba(var(--v-theme-on-surface), 0.5)"
                                 stroke-width="1" />
                         </template>
 
@@ -206,8 +206,8 @@
                                 :cx="toSvgX(toolX)"
                                 :cy="toSvgY(toolY)"
                                 r="4"
-                                fill="#ff5000"
-                                stroke="white"
+                                fill="rgb(var(--v-theme-primary))"
+                                stroke="rgb(var(--v-theme-on-surface))"
                                 stroke-width="1.5" />
                         </g>
 
@@ -216,7 +216,7 @@
                             :x="padding + plotWidth / 2"
                             :y="svgHeight - 2"
                             text-anchor="middle"
-                            fill="rgba(255,255,255,0.5)"
+                            fill="rgba(var(--v-theme-on-surface), 0.5)"
                             font-size="9"
                             font-family="0xProto Nerd Font Mono">
                             X ({{ machineMaxX.toFixed(0) }}mm)
@@ -225,7 +225,7 @@
                             :x="padding - 8"
                             :y="padding + plotHeight / 2"
                             text-anchor="middle"
-                            fill="rgba(255,255,255,0.5)"
+                            fill="rgba(var(--v-theme-on-surface), 0.5)"
                             font-size="9"
                             font-family="0xProto Nerd Font Mono"
                             :transform="`rotate(-90, ${padding - 8}, ${padding + plotHeight / 2})`">
@@ -1066,22 +1066,22 @@ onMounted(() => {
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background-color: #ff5000;
-    border: 1px solid white;
+    background-color: rgb(var(--v-theme-primary));
+    border: 1px solid rgb(var(--v-theme-on-surface));
 }
 
 .offset-preview-legend__label {
-    color: rgba(255, 255, 255, 0.85);
+    color: rgba(var(--v-theme-on-surface), 0.85);
 }
 
 .offset-preview-legend__coords {
-    color: rgba(255, 255, 255, 0.45);
+    color: rgba(var(--v-theme-on-surface), 0.45);
     font-family: '0xProto Nerd Font Mono', monospace;
     font-size: 10px;
 }
 
 .offset-preview-legend__card {
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(var(--v-theme-on-surface), 0.04);
     border: 1px solid;
     border-radius: 4px;
     padding: 6px 8px;
@@ -1106,8 +1106,8 @@ onMounted(() => {
 }
 
 .offset-preview-summary-card {
-    background: rgba(255, 255, 255, 0.03);
-    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(var(--v-theme-on-surface), 0.03);
+    border-color: rgba(var(--v-theme-on-surface), 0.08);
     margin-bottom: 20px;
     margin-top: 10px;
 }
@@ -1218,13 +1218,13 @@ onMounted(() => {
 }
 
 .offset-preview-legend__card-title {
-    color: rgba(255, 255, 255, 0.9);
+    color: rgba(var(--v-theme-on-surface), 0.9);
     font-weight: 600;
     font-size: 11px;
 }
 
 .offset-preview-legend__card-origin {
-    color: rgba(255, 255, 255, 0.4);
+    color: rgba(var(--v-theme-on-surface), 0.4);
     font-family: '0xProto Nerd Font Mono', monospace;
     font-size: 10px;
 }
@@ -1234,7 +1234,7 @@ onMounted(() => {
 }
 
 .offset-preview-legend__card-number {
-    color: rgba(255, 255, 255, 0.92);
+    color: rgba(var(--v-theme-on-surface), 0.92);
 }
 
 .offset-preview-legend__card-stock {
@@ -1244,7 +1244,7 @@ onMounted(() => {
     gap: 8px;
     margin-top: 4px;
     padding-top: 4px;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-top: 1px solid rgba(var(--v-theme-on-surface), 0.08);
 }
 
 .offset-preview-legend__card-stock-content {
@@ -1252,7 +1252,7 @@ onMounted(() => {
 }
 
 .offset-preview-legend__card-stock-name {
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(var(--v-theme-on-surface), 0.6);
     font-size: 10px;
     margin-bottom: 2px;
 }
@@ -1261,7 +1261,7 @@ onMounted(() => {
     display: flex;
     align-items: center;
     gap: 2px;
-    color: rgba(255, 255, 255, 0.45);
+    color: rgba(var(--v-theme-on-surface), 0.45);
     font-family: '0xProto Nerd Font Mono', monospace;
     font-size: 10px;
     flex-wrap: wrap;
@@ -1275,7 +1275,7 @@ onMounted(() => {
     flex: 0 0 auto;
     margin-left: 4px;
     margin-top: -2px;
-    color: rgba(255, 255, 255, 0.75);
+    color: rgba(var(--v-theme-on-surface), 0.75);
     opacity: 1;
     pointer-events: auto;
 }
@@ -1286,8 +1286,8 @@ onMounted(() => {
 
 .offset-preview-tooltip {
     position: fixed;
-    background: rgba(0, 0, 0, 0.85);
-    color: rgba(255, 255, 255, 0.9);
+    background: rgba(var(--v-theme-on-surface), 0.85);
+    color: rgba(var(--v-theme-on-surface), 0.9);
     font-family: '0xProto Nerd Font Mono', monospace;
     font-size: 10px;
     padding: 2px 6px;

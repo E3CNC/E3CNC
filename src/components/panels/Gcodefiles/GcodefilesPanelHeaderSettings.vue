@@ -11,7 +11,7 @@
                     <v-col class="pr-0">{{ $t('Files.HiddenFiles') }}</v-col>
                     <v-col class="v-col-auto pl-0">
                         <v-icon
-                            :color="showHiddenFiles ? 'primary' : '#bdbdbd'"
+                            :color="showHiddenFiles ? 'primary' : 'disabled'"
                             @click.stop="toggleHiddenFiles">
                             {{ showHiddenFiles ? mdiCheckboxMarked : mdiCheckboxBlankOutline }}
                         </v-icon>
@@ -23,7 +23,7 @@
                     <v-col class="pr-0">{{ $t('Files.RunFiles') }}</v-col>
                     <v-col class="v-col-auto pl-0">
                         <v-icon
-                            :color="showCompletedFiles ? 'primary' : '#bdbdbd'"
+                            :color="showCompletedFiles ? 'primary' : 'disabled'"
                             @click.stop="toggleCompletedFiles">
                             {{ showCompletedFiles ? mdiCheckboxMarked : mdiCheckboxBlankOutline }}
                         </v-icon>

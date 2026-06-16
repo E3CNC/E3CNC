@@ -42,10 +42,10 @@ function startJobqueue() {
 
 <style scoped>
 .jobqueue-list .jobqueue-list-entry + .jobqueue-list-entry {
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    border-top: 1px solid rgba(var(--v-theme-on-surface), 0.12);
 }
 
 .theme--light .jobqueue-list > .jobqueue-list-entry + .jobqueue-list-entry {
-    border-top: 1px solid rgba(0, 0, 0, 0.12);
+    border-top: 1px solid rgba(var(--v-theme-on-surface), 0.12);
 }
 </style>

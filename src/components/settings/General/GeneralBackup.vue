@@ -26,7 +26,7 @@
                     </v-row>
                     <v-row>
                         <v-col class="text-center">
- <v-btn color="red" :loading="loadings.includes('backupMainsail')" @click="backupMainsail">
+ <v-btn color="error" :loading="loadings.includes('backupMainsail')" @click="backupMainsail">
                                 {{ $t('Settings.GeneralTab.Backup') }}
                             </v-btn>
                         </v-col>

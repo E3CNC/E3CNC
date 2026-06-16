@@ -51,7 +51,7 @@
                         </div>
                         <v-card-title
                             class="text-white py-2"
-                            style="background-color: rgba(0, 0, 0, 0.3); backdrop-filter: blur(3px)">
+                            style="background-color: rgba(var(--v-theme-on-surface), 0.3); backdrop-filter: blur(3px)">
                             <v-row>
                                 <v-col class="v-col-auto pr-0 d-flex align-center" style="width: 58px">
                                     <img

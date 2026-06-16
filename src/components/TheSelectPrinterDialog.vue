@@ -39,7 +39,7 @@
                         }}
                     </p>
                     <div class="text-center">
- <v-btn variant="text" color="white" class="mr-3" @click="switchToChangePrinter">
+ <v-btn variant="text" color="surface" class="mr-3" @click="switchToChangePrinter">
                             {{ $t('SelectPrinterDialog.ChangePrinter') }}
                         </v-btn>
  <v-btn variant="text" color="primary" @click="reconnect">{{ $t('SelectPrinterDialog.TryAgain') }}</v-btn>
@@ -160,7 +160,7 @@
                         </v-row>
                     </v-card-text>
                     <v-card-actions>
- <v-btn color="red" :icon="mdiDelete" rounded="0" class="minwidth-0 rounded" @click="delPrinter"/>
+ <v-btn color="error" :icon="mdiDelete" rounded="0" class="minwidth-0 rounded" @click="delPrinter"/>
                         <v-checkbox
                             v-model="showOptionalSettings"
                             class="ml-2"
@@ -194,7 +194,7 @@
                                                 width="2.5" />
                                             <v-icon
                                                 v-if="!printer.socket.isConnecting"
-                                                :color="printer.socket.isConnected ? 'green' : 'red'">
+                                                :color="printer.socket.isConnected ? 'success' : 'error'">
                                                 {{ printer.socket.isConnected ? mdiCheckboxMarkedCircle : mdiCancel }}
                                             </v-icon>
                                         </v-col>

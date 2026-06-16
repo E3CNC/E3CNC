@@ -395,11 +395,11 @@ function dockPanel() {
 .panel-content > .v-card-text {
     align-self: stretch;
     max-width: none;
-    width: 100% !important;
+    width: 100%;
 }
 
 :deep(.panel-toolbar) .v-btn {
-    height: 100% !important;
+    height: 100%;
     max-height: none;
 }
 
@@ -434,7 +434,7 @@ function dockPanel() {
 
 <style>
 .v-card.panel {
-    border-radius: 12px !important;
+    border-radius: var(--border-radius);
     transition: all 150ms ease-in-out;
 }
 .v-card.panel .v-toolbar__content {
@@ -444,13 +444,13 @@ function dockPanel() {
     user-select: none;
 }
 .panel-toolbar .v-btn.v-btn--icon {
-    width: var(--panel-toolbar-icon-btn-width) !important;
+    width: var(--panel-toolbar-icon-btn-width);
 }
 .v-card.panel.floating {
-    outline: 2px solid rgb(var(--v-theme-primary)) !important;
+    outline: 2px solid rgb(var(--v-theme-primary));
     box-shadow:
-        17px 20px 24px 20px rgb(0 0 0 / 43%),
-        0 2px 8px rgba(0, 0, 0, 0.25) !important;
+        17px 20px 24px 20px rgba(var(--v-theme-on-surface), 0.43),
+        0 2px 8px rgba(var(--v-theme-on-surface), 0.25);
 }
 .v-card.panel.floating .panel-content {
     overflow: auto;

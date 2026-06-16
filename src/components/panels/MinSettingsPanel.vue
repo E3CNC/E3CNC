@@ -5,7 +5,7 @@
         :title="$t('Panels.MinSettingsPanel.MissingConfiguration')"
         :collapsible="true"
         card-class="min-settings-panel"
-        toolbar-color="orange darken-2">
+        toolbar-color="warning">
         <v-card-text>
             <v-row>
                 <v-col>

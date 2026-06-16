@@ -39,14 +39,14 @@ function goBack() {
     padding: 16px 12px;
     border-radius: 4px;
     background: transparent;
-    border: 1px dashed rgba(255, 255, 255, 0.16);
+    border: 1px dashed rgba(var(--v-theme-on-surface), 0.16);
     cursor: pointer;
     min-height: 168px;
     transition: border-color 200ms cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .gcode-back-card:hover {
-    border-color: rgba(255, 107, 53, 0.4);
+    border-color: rgba(var(--v-theme-primary), 0.4);
 }
 
 .gcode-back-card__icon {
@@ -56,18 +56,18 @@ function goBack() {
     align-items: center;
     justify-content: center;
     border-radius: 4px;
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(var(--v-theme-on-surface), 0.04);
 }
 
 .gcode-back-card__label {
     font-size: 14px;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(var(--v-theme-on-surface), 0.7);
 }
 
 .gcode-back-card__meta {
     font-size: 12px;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(var(--v-theme-on-surface), 0.5);
     font-family: '0xProto Nerd Font Mono', monospace;
 }
 </style>

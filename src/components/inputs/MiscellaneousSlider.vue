@@ -54,7 +54,7 @@
                         icon
                         class="_lock-button"
                         @click="isLocked = !isLocked">
-                        <v-icon size="small" :color="isLocked ? 'red' : ''">
+                        <v-icon size="small" :color="isLocked ? 'error' : ''">
                             {{ isLocked ? mdiLockOutline : mdiLockOpenVariantOutline }}
                         </v-icon>
                     </v-btn>
@@ -65,7 +65,7 @@
                         :min="0.0"
                         :max="1.0"
                         :step="0.01"
-                        :color="sliderValue < off_below && sliderValue > 0 ? 'red' : undefined"
+                        :color="sliderValue < off_below && sliderValue > 0 ? 'error' : undefined"
                         hide-details
                         @change="changeSliderValue">
                         <template #prepend>
@@ -286,7 +286,7 @@ function submitInput(): void {
 }
 
 ._error-msg {
-    color: #ff5252;
+    color: rgb(var(--v-theme-error));
     font-size: 12px;
     padding: 4px 16px 2px 0;
 }

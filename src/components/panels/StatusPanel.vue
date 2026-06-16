@@ -157,7 +157,7 @@ const jobs = computed(() => store.getters['server/jobQueue/getJobs'])
 const jobsCount = computed(() => store.getters['server/jobQueue/getJobsCount'])
 
 const jobQueueBadgeColor = computed(() =>
-    jobsCount.value > 0 ? 'primary darken-2' : '#616161'
+    jobsCount.value > 0 ? 'primary darken-2' : 'rgba(var(--v-theme-on-surface), 0.4)'
 )
 
 const current_filename = computed(() =>
@@ -319,6 +319,6 @@ function btnReprintJob() {
 }
 
 .theme--dark.v-tabs > .v-tabs-bar .v-tab:not(.v-tab--active) > .v-badge > .v-icon {
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(var(--v-theme-on-surface), 0.6);
 }
 </style>

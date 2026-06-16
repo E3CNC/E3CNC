@@ -27,7 +27,7 @@
                     </v-row>
                     <v-row>
                         <v-col class="text-center">
- <v-btn color="red" :loading="loadings.includes('restoreMainsail')" @click="restoreDbAction">
+ <v-btn color="error" :loading="loadings.includes('restoreMainsail')" @click="restoreDbAction">
                                 {{ $t('Settings.GeneralTab.Restore') }}
                             </v-btn>
                         </v-col>

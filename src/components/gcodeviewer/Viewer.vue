@@ -1037,7 +1037,7 @@ function cancelObject() {
 .viewer {
     width: 100%;
     height: calc(var(--app-height) - 240px);
-    border: 1px solid #3f3f3f;
+    border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
 }
 
 .withScrubber .viewer {

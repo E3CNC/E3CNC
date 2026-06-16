@@ -65,7 +65,7 @@ const btnIcon = computed(() => {
 
 const btnColor = computed(() => {
     if (package_count.value) return 'primary'
-    return 'green'
+    return 'success'
 })
 
 const btnText = computed(() => {

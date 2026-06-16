@@ -5,7 +5,7 @@
                 <span v-if="item.type === 'endstop'" class="mr-2">{{ $t('Machine.EndstopPanel.Endstop') }}</span>
                 <b>{{ name }}</b>
             </label>
-            <v-chip size="small" label class="float-right" :color="chipColor" text-color="white">{{ value }}</v-chip>
+            <v-chip size="small" label class="float-right" :color="chipColor" text-color="surface">{{ value }}</v-chip>
         </v-col>
     </v-row>
 </template>
@@ -27,7 +27,7 @@ const name = computed(() => {
     return convertName(props.item.name)
 })
 
-const chipColor = computed(() => props.item.value === 'open' ? 'green' : 'red')
+const chipColor = computed(() => props.item.value === 'open' ? 'success' : 'error')
 
 const value = computed(() =>
     props.item.value === 'open'

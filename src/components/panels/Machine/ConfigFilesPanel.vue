@@ -453,7 +453,7 @@
             <br />
             <v-progress-linear class="mt-2" :model-value="uploadSnackbar.percent" />
             <template #actions="{ props }">
- <v-btn color="red" variant="text" v-bind="props" style="min-width: auto" @click="cancelUpload">
+ <v-btn color="error" variant="text" v-bind="props" style="min-width: auto" @click="cancelUpload">
                     <v-icon class="0">{{ mdiClose }}</v-icon>
                 </v-btn>
             </template>
@@ -472,7 +472,7 @@
 }
 
 .machine-configfiles-panel__tool-btn :deep(.v-icon) {
-    color: #fff;
+    color: rgb(var(--v-theme-on-surface));
     opacity: 1;
 }
 
@@ -481,7 +481,7 @@
 }
 
 :deep(.v-data-table th .v-icon) {
-    color: #fff;
+    color: rgb(var(--v-theme-on-surface));
     opacity: 1;
 }
 </style>
@@ -1243,7 +1243,7 @@ function dragOverFilelist(e: DragEvent, row: FileStateFile) {
     e.preventDefault()
 
     const parentElement = (e.target as HTMLElement | null)?.parentElement
-    if (row.isDirectory && parentElement) parentElement.style.backgroundColor = '#43A04720'
+    if (row.isDirectory && parentElement) parentElement.style.backgroundColor = 'rgba(var(--v-theme-success), 0.13)'
 }
 
 function dragLeaveFilelist(e: DragEvent) {

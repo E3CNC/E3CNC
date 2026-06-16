@@ -112,7 +112,7 @@ onBeforeUnmount(() => {
     padding: 16px 12px;
     border-radius: 4px;
     background: rgb(var(--v-surface));
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(var(--v-theme-on-surface), 0.08);
     transition: transform 200ms cubic-bezier(0.25, 1, 0.5, 1), border-color 200ms cubic-bezier(0.25, 1, 0.5, 1);
     cursor: pointer;
     min-height: 168px;
@@ -121,7 +121,7 @@ onBeforeUnmount(() => {
 
 .gcode-dir-card:hover {
     transform: translateY(-2px);
-    border-color: rgba(255, 107, 53, 0.4);
+    border-color: rgba(var(--v-theme-primary), 0.4);
 }
 
 .gcode-dir-card__icon {
@@ -130,14 +130,14 @@ onBeforeUnmount(() => {
     justify-content: center;
     width: 72px;
     height: 72px;
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(var(--v-theme-on-surface), 0.04);
     border-radius: 4px;
 }
 
 .gcode-dir-card__name {
     font-size: 14px;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.92);
+    color: rgba(var(--v-theme-on-surface), 0.92);
     text-align: center;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -148,7 +148,7 @@ onBeforeUnmount(() => {
 
 .gcode-dir-card__meta {
     font-size: 12px;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(var(--v-theme-on-surface), 0.5);
     font-family: '0xProto Nerd Font Mono', monospace;
 }
 </style>

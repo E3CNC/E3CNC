@@ -38,7 +38,7 @@ const moonrakerVersion = computed(() => store.state.server?.moonraker_version ??
 }
 .moonraker-logo {
     transform: rotate(45deg);
-    color: #ebc815;
+    color: rgb(var(--v-theme-warning));
 }
 .version-container {
     display: grid;

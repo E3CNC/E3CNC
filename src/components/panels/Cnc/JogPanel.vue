@@ -46,7 +46,7 @@
                         size="small"
                         class="d-block w-100"
                         :disabled="['printing'].includes(printer_state) || !allAxesHomed"
-                        color="grey"
+                        color="disabled"
                         variant="outlined"
                         @click="disableSteppers">
                         <v-icon start size="small">{{ mdiCloseCircleOutline }}</v-icon>
@@ -430,12 +430,12 @@ onBeforeUnmount(() => {
 
 <style>
 .jog-panel {
-    background-color: rgb(30, 30, 30) !important;
+    background-color: rgb(var(--v-theme-surface)) !important;
 }
 
 .jog-panel .v-btn-toggle .v-btn,
 .jog-panel .jog-panel__xy-btn {
-    background-color: rgb(39, 39, 39) !important;
+    background-color: rgb(var(--v-theme-surface)) !important;
 }
 
 .jog-panel .v-btn-toggle .v-btn:not(.v-btn--active) {
@@ -449,6 +449,6 @@ onBeforeUnmount(() => {
 }
 
 .jog-panel .panel-toolbar {
-    background-color: rgb(66, 66, 66) !important;
+    background-color: rgb(var(--v-theme-surface)) !important;
 }
 </style>

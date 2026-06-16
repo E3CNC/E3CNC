@@ -30,7 +30,7 @@
                     size="small"
                     label
                     :outlined="!toggleAnomalies"
-                    color="grey"
+                    color="disabled"
                     class="minwidth-0 px-1 mr-2"
                     @click="toggleAnomalies = !toggleAnomalies">
                     <v-icon size="small">{{ toggleAnomalies ? mdiInformationOutline : mdiInformation }}</v-icon>
@@ -88,7 +88,7 @@
                     :key="'warnings_' + index"
                     density="compact"
                     variant="text"
-                    color="orange"
+                    color="warning"
                     border="start"
                     :icon="mdiCloseCircle">
                     <p class="text-disabled mb-0">{{ message }}</p>
@@ -102,7 +102,7 @@
                     :key="'anomalies_' + index"
                     density="compact"
                     variant="text"
-                    color="grey"
+                    color="disabled"
                     border="start"
                     :icon="mdiInformation">
                     {{ message }}
@@ -244,10 +244,10 @@ const btnIcon = computed(() => {
 })
 
 const btnColor = computed(() => {
-    if (isCorrupt.value || isDetached.value || isDirty.value || !isValid.value) return 'orange'
+    if (isCorrupt.value || isDetached.value || isDirty.value || !isValid.value) return 'warning'
     if (['python', 'web'].includes(type.value) && semverUpdatable.value) return 'primary'
     if (type.value === 'git_repo' && commitsBehind.value.length) return 'primary'
-    return 'green'
+    return 'success'
 })
 
 const btnText = computed(() => {

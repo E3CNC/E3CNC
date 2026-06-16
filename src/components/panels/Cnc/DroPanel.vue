@@ -161,10 +161,10 @@ function formatSigned(value: number, digits: number) {
 }
 
 .dro-panel__axis-card {
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
     border-radius: 0.5rem;
     padding: 0.75rem 1rem;
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(var(--v-theme-on-surface), 0.02);
 }
 
 .dro-panel__axis-header {
@@ -213,7 +213,7 @@ function formatSigned(value: number, digits: number) {
     gap: 1rem;
     padding-top: 0.3rem;
     margin-top: 0.35rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-top: 1px solid rgba(var(--v-theme-on-surface), 0.08);
 }
 
 .dro-panel__limit {

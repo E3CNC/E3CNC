@@ -327,7 +327,7 @@
                         <div v-else class="font-weight-bold warning rounded pa-2">
                             {{ $t('Panels.ToolheadControlPanel.PleaseConfigureSteps') }}
                             <br />
-                            <router-link style="color: white" to="/settings/interface">
+                            <router-link :style="'color: rgb(var(--v-theme-on-surface))'" to="/settings/interface">
                                 {{ $t('Panels.ToolheadControlPanel.SettingsInterfaceControl') }}
                             </router-link>
                         </div>

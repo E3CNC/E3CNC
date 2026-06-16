@@ -448,13 +448,13 @@ describe('convertPrintStatusIcon', () => {
 
 describe('convertPrintStatusIconColor', () => {
     it('returns correct color for status', () => {
-        expect(convertPrintStatusIconColor('in_progress')).toBe('#2979ff')
-        expect(convertPrintStatusIconColor('completed')).toBe('green')
-        expect(convertPrintStatusIconColor('cancelled')).toBe('red')
+        expect(convertPrintStatusIconColor('in_progress')).toBe('info')
+        expect(convertPrintStatusIconColor('completed')).toBe('success')
+        expect(convertPrintStatusIconColor('cancelled')).toBe('error')
     })
 
     it('returns orange for unknown status', () => {
-        expect(convertPrintStatusIconColor('unknown')).toBe('orange')
+        expect(convertPrintStatusIconColor('unknown')).toBe('warning')
     })
 })
 

@@ -197,7 +197,7 @@ const stepsZsortedReverse = computed(() =>
 
     .v-btn {
         border-radius: 0;
-        border-color: rgba(255, 255, 255, 0.12);
+        border-color: rgba(var(--v-theme-on-surface), 0.12);
         border-style: solid;
         border-width: thin;
         box-shadow: none;
@@ -222,6 +222,6 @@ const stepsZsortedReverse = computed(() =>
 }
 
 html.theme--light ._btn-group .v-btn {
-    border-color: rgba(0, 0, 0, 0.12);
+    border-color: rgba(var(--v-theme-on-surface), 0.12);
 }
 </style>

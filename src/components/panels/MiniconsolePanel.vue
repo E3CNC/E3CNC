@@ -171,10 +171,10 @@ function scrollTo(position: number) {
 
 <style scoped>
 .consoleTable {
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    border-top: 1px solid rgba(var(--v-theme-on-surface), 0.12);
 }
 
 html.theme--light .consoleTable {
-    border-top: 1px solid rgba(0, 0, 0, 0.12);
+    border-top: 1px solid rgba(var(--v-theme-on-surface), 0.12);
 }
 </style>

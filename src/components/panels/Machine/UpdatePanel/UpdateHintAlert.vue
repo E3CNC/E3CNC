@@ -1,5 +1,5 @@
 <template>
-    <v-alert variant="text" density="compact" border="start" color="orange" :icon="mdiAlertCircle">
+    <v-alert variant="text" density="compact" border="start" color="warning" :icon="mdiAlertCircle">
         <template v-if="boolTitle">
             <strong>{{ $t('Machine.UpdatePanel.UpdateWarning', { name: formatName }) }}</strong>
             <br />

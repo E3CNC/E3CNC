@@ -67,7 +67,7 @@
                             size="small"
                             variant="outlined"
                             class="minwidth-0 px-2"
-                            :color="filter.bool ? 'white' : 'grey'"
+                            :color="filter.bool ? 'surface' : 'disabled'"
                             @click="toggleFilter(filter)">
                             <v-icon size="small">{{ filter.bool ? mdiFilter : mdiFilterOff }}</v-icon>
                         </v-btn>

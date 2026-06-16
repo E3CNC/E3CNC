@@ -444,10 +444,10 @@ function closeForm() {
     ._menu-button {
         height: 40px;
         width: 62px;
-        border: 1px solid rgba(255, 255, 255, 0.25) !important;
+        border: 1px solid rgba(var(--v-theme-on-surface), 0.25) !important;
     }
     ._menu-button:hover {
-        border-color: rgba(255, 255, 255, 1) !important;
+        border-color: rgba(var(--v-theme-on-surface), 1) !important;
     }
     ._menu-button:focus {
         border: 2px solid var(--color-primary) !important;

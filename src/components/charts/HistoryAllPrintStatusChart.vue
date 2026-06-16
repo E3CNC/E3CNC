@@ -75,7 +75,7 @@ const chartOptions = computed<ECBasicOption>(() => ({
                 itemStyle: {
                     shadowBlur: 10,
                     shadowOffsetX: 0,
-                    shadowColor: 'rgba(0, 0, 0, 0.5)',
+                    shadowColor: 'rgba(var(--v-theme-on-surface), 0.5)',
                 },
             },
             label: {

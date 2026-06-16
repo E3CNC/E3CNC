@@ -27,7 +27,7 @@
                     <v-row>
                         <v-col class="text-center">
  <v-btn
-                                color="red"
+                                color="error"
                                 :loading="loadings.includes('resetMainsail')"
                                 @click="resetMainsailAction">
                                 {{ $t('Settings.GeneralTab.Reset') }}

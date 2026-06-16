@@ -368,7 +368,7 @@
 .macrogroup-edit-header {
     align-items: center;
     background-color: rgb(var(--v-theme-surface));
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.12);
     display: flex;
     gap: 12px;
     justify-content: space-between;
@@ -387,7 +387,7 @@
 }
 
 html.theme--light .macrogroup-edit-header {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.12);
 }
 
 .macrogroup-edit-back {

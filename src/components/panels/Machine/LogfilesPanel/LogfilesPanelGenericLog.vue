@@ -53,7 +53,7 @@ function downloadLog(event: MouseEvent) {
 <style scoped>
 .machine-logfiles-panel__log-button {
     align-items: center;
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(var(--v-theme-on-surface), 0.04);
     border-radius: 4px;
     color: rgb(var(--v-theme-primary));
     display: flex;

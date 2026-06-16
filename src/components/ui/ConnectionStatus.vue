@@ -53,12 +53,12 @@
             <g v-if="moonraker" id="success1" serif:id="success" transform="matrix(1.1,0,0,1.1,105.541,9.8)">
                 <path
                     d="M20,12C20,16.389 16.389,20 12,20C7.611,20 4,16.389 4,12C4,7.611 7.611,4 12,4C12.76,4 13.5,4.11 14.2,4.31L15.77,2.74C14.61,2.26 13.34,2 12,2C6.514,2 2,6.514 2,12C2,17.486 6.514,22 12,22C17.486,22 22,17.486 22,12M7.91,10.08L6.5,11.5L11,16L21,6L19.59,4.58L11,13.17L7.91,10.08Z"
-                    style="fill: rgb(38, 203, 124); fill-rule: nonzero" />
+                    :style="'fill: rgb(var(--v-theme-success)); fill-rule: nonzero'" />
             </g>
             <g v-else id="alert1" serif:id="alert" transform="matrix(1.1,0,0,1.1,105.541,9.8)">
                 <path
                     d="M11,15L13,15L13,17L11,17L11,15M11,7L13,7L13,13L11,13L11,7M12,2C6.47,2 2,6.5 2,12C2,17.486 6.514,22 12,22C17.486,22 22,17.486 22,12C22,6.514 17.486,2 12,2M12,20C7.611,20 4,16.389 4,12C4,7.611 7.611,4 12,4C16.389,4 20,7.611 20,12C20,16.389 16.389,20 12,20Z"
-                    style="fill: rgb(245, 124, 5); fill-rule: nonzero" />
+                    :style="'fill: rgb(var(--v-theme-warning)); fill-rule: nonzero'" />
             </g>
         </g>
         <g id="Moonraker" transform="matrix(1,0,0,1,10,0)">
@@ -80,30 +80,30 @@
             <g id="arrow_left" transform="matrix(0.687874,0,0,0.721154,20.3568,-15.8811)">
                 <path
                     d="M93.918,56.626L93.918,60.724L73.299,52.528L93.918,44.333L93.918,48.431L118.741,48.431L118.741,56.626L93.918,56.626Z"
-                    style="fill: rgb(115, 115, 115)" />
+                    :style="'fill: rgb(' + colorMuted + ')'" />
             </g>
             <g id="arrow_right" transform="matrix(-0.687874,-8.42403e-17,8.83159e-17,-0.721154,217.125,59.8811)">
                 <path
                     d="M93.918,56.626L93.918,60.724L73.299,52.528L93.918,44.333L93.918,48.431L118.741,48.431L118.741,56.626L93.918,56.626Z"
-                    style="fill: rgb(115, 115, 115)" />
+                    :style="'fill: rgb(' + colorMuted + ')'" />
             </g>
             <template v-if="moonraker">
                 <g v-if="klipper" id="success" transform="matrix(1.1,0,0,1.1,105.541,9.8)">
                     <path
                         d="M20,12C20,16.389 16.389,20 12,20C7.611,20 4,16.389 4,12C4,7.611 7.611,4 12,4C12.76,4 13.5,4.11 14.2,4.31L15.77,2.74C14.61,2.26 13.34,2 12,2C6.514,2 2,6.514 2,12C2,17.486 6.514,22 12,22C17.486,22 22,17.486 22,12M7.91,10.08L6.5,11.5L11,16L21,6L19.59,4.58L11,13.17L7.91,10.08Z"
-                        style="fill: rgb(38, 203, 124); fill-rule: nonzero" />
+                        :style="'fill: rgb(var(--v-theme-success)); fill-rule: nonzero'" />
                 </g>
                 <g v-else id="alert" transform="matrix(1.1,0,0,1.1,105.541,9.8)">
                     <path
                         d="M11,15L13,15L13,17L11,17L11,15M11,7L13,7L13,13L11,13L11,7M12,2C6.47,2 2,6.5 2,12C2,17.486 6.514,22 12,22C17.486,22 22,17.486 22,12C22,6.514 17.486,2 12,2M12,20C7.611,20 4,16.389 4,12C4,7.611 7.611,4 12,4C16.389,4 20,7.611 20,12C20,16.389 16.389,20 12,20Z"
-                        style="fill: rgb(245, 124, 5); fill-rule: nonzero" />
+                        :style="'fill: rgb(var(--v-theme-warning)); fill-rule: nonzero'" />
                 </g>
             </template>
             <template v-else>
                 <g id="unknown" transform="matrix(1.1,0,0,1.1,105.541,9.8)">
                     <path
                         d="M11,18L13,18L13,16L11,16L11,18M12,2C6.514,2 2,6.514 2,12C2,17.486 6.514,22 12,22C17.486,22 22,17.486 22,12C22,6.514 17.486,2 12,2M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,6C9.806,6 8,7.806 8,10L10,10C10,8.903 10.903,8 12,8C13.097,8 14,8.903 14,10C14,12 11,11.75 11,15L13,15C13,12.75 16,12.5 16,10C16,7.806 14.194,6 12,6Z"
-                        style="fill: rgb(115, 115, 115); fill-rule: nonzero" />
+                        :style="'fill: rgb(' + colorMuted + '); fill-rule: nonzero'" />
                 </g>
             </template>
         </g>
@@ -133,7 +133,22 @@ const props = defineProps({
     klipper: { type: Boolean, default: false },
 })
 
-const colorMainsail = computed(() => '200,200,200')
-const colorMoonraker = computed(() => props.moonraker ? '200,200,200' : '115,115,115')
-const colorKlipper = computed(() => props.klipper ? '200,200,200' : '115,115,115')
+function getOnSurface(): string {
+    const el = document.documentElement
+    return getComputedStyle(el).getPropertyValue('--v-theme-on-surface').trim()
+}
+
+function muteColor(val: string): string {
+    const parts = val.split(' ').map(Number)
+    if (parts.length === 3 && parts.every((n) => !isNaN(n))) {
+        return `${Math.round(parts[0] * 0.45)},${Math.round(parts[1] * 0.45)},${Math.round(parts[2] * 0.45)}`
+    }
+    return '115,115,115'
+}
+
+const surface = computed(() => getOnSurface() || '200,200,200')
+const colorMuted = computed(() => muteColor(getOnSurface()))
+const colorMainsail = computed(() => surface.value)
+const colorMoonraker = computed(() => props.moonraker ? surface.value : colorMuted.value)
+const colorKlipper = computed(() => props.klipper ? surface.value : colorMuted.value)
 </script>

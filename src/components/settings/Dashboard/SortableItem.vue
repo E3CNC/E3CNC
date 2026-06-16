@@ -37,7 +37,7 @@ const { getPanelName, convertPanelnameToIcon } = useDashboard()
 const panelname = computed(() => getPanelName(props.name))
 const icon = computed(() => convertPanelnameToIcon(props.name))
 
-const checkboxColor = computed(() => props.visible ? 'primary' : '#bdbdbd')
+const checkboxColor = computed(() => props.visible ? 'primary' : 'disabled')
 const checkboxIcon = computed(() => props.visible ? mdiCheckboxMarked : mdiCheckboxBlankOutline)
 </script>
 

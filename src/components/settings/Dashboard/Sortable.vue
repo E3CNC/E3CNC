@@ -81,7 +81,7 @@ function changeVisible(name: string, newVal: boolean) {
 <style scoped>
 :deep(.ghost) {
     opacity: 0.5;
-    background: #c8ebfb;
+    background: rgba(var(--v-theme-primary), 0.2);
 }
 
 .dashboard-sortable-list > span {

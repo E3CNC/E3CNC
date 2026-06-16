@@ -660,11 +660,11 @@ svg {
     max-height: 350px;
     min-height: 275px;
     user-select: none;
-    filter: drop-shadow(0px 10px 10px rgba(0, 0, 0, 0.3));
+    filter: drop-shadow(0px 10px 10px rgba(var(--v-theme-on-surface), 0.3));
 }
 
 svg a {
-    stroke: hsl(0, 0%, 10%);
+    stroke: rgba(var(--v-theme-on-surface), 0.15);
     stroke-width: 0.3px;
 }
 
@@ -673,41 +673,41 @@ svg a.step {
 }
 
 svg a.step:hover {
-    fill: hsl(215, 0%, 50%) !important;
+    fill: rgba(var(--v-theme-on-surface), 0.5);
     transition: fill 100ms ease-in;
 }
 
 svg a.step:active {
-    fill: hsl(215, 0%, 70%) !important;
+    fill: rgba(var(--v-theme-on-surface), 0.7);
 }
 
 svg a.step.inner {
-    fill: #666;
+    fill: rgba(var(--v-theme-on-surface), 0.38);
 }
 svg a.step.inner-mid {
-    fill: #555;
+    fill: rgba(var(--v-theme-on-surface), 0.33);
 }
 svg a.step.outer-mid {
-    fill: #444;
+    fill: rgba(var(--v-theme-on-surface), 0.27);
 }
 svg a.step.outer {
-    fill: #333;
+    fill: rgba(var(--v-theme-on-surface), 0.20);
 }
 
 html.theme--light svg a.step.inner {
-    fill: #ccc;
+    fill: rgba(var(--v-theme-on-surface), 0.20);
 }
 
 html.theme--light svg a.step.inner-mid {
-    fill: #ddd;
+    fill: rgba(var(--v-theme-on-surface), 0.13);
 }
 
 html.theme--light svg a.step.outer-mid {
-    fill: #eee;
+    fill: rgba(var(--v-theme-on-surface), 0.07);
 }
 
 html.theme--light svg a.step.outer {
-    fill: #fff;
+    fill: rgb(var(--v-theme-surface));
 }
 
 svg .disabled a.step {
@@ -720,12 +720,12 @@ svg g#stepsXY {
     user-select: none;
     font-family: '0xProto Nerd Font Mono', sans-serif;
     font-size: 3px;
-    fill: white;
+    fill: rgb(var(--v-theme-on-surface));
 }
 
 html.theme--light svg g#stepsZ,
 html.theme--light svg g#stepsXY {
-    fill: black;
+    fill: rgb(var(--v-theme-on-surface));
 }
 
 svg a#tilt_adjust text {
@@ -737,7 +737,7 @@ svg a#tilt_adjust text {
 svg g#home_buttons text {
     font-family: '0xProto Nerd Font Mono', sans-serif;
     font-size: 5px;
-    fill: black;
+    fill: rgb(var(--v-theme-on-surface));
 }
 
 svg g.home_button,
@@ -752,17 +752,17 @@ svg a.disabled {
 
 svg a.disabled .home_button path,
 svg a.disabled circle {
-    fill: rgb(92, 92, 92);
+    fill: rgba(var(--v-theme-on-surface), 0.5);
 }
 
 svg g#stepsXY.disabled text,
 svg g#stepsZ.disabled text {
-    fill: rgba(255, 255, 255, 0.3);
+    fill: rgba(var(--v-theme-on-surface), 0.3);
 }
 
 html.theme--light svg g#stepsXY.disabled text,
 html.theme--light svg g#stepsZ.disabled text {
-    fill: rgba(0, 0, 0, 0.5);
+    fill: rgba(var(--v-theme-on-surface), 0.5);
 }
 
 svg a#tilt_adjust,
@@ -802,6 +802,6 @@ svg g#home_buttons .home_icon {
 
 svg a#tilt_adjust #tilt_icon,
 svg a#stepper_off #stepper_off_icon {
-    fill: #000;
+    fill: rgb(var(--v-theme-on-surface));
 }
 </style>

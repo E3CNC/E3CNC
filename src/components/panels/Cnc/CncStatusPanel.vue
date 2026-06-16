@@ -203,7 +203,7 @@ watch(activeGcodeFilename, () => {
 .cnc-status-panel__metadata {
     margin-top: 1rem;
     padding-top: 1rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    border-top: 1px solid rgba(var(--v-theme-on-surface), 0.12);
 }
 
 .cnc-status-panel__metadata-header {
@@ -237,7 +237,7 @@ watch(activeGcodeFilename, () => {
     display: grid;
     gap: 0.2rem;
     padding: 0.75rem 0.9rem;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
     border-radius: 0.5rem;
 }
 

@@ -51,7 +51,7 @@
                     icon
                     class="_lock-button"
                     @click="isLocked = !isLocked">
-                    <v-icon size="small" :color="isLocked ? 'red' : ''">
+                    <v-icon size="small" :color="isLocked ? 'error' : ''">
                         {{ isLocked ? mdiLockOutline : mdiLockOpenVariantOutline }}
                     </v-icon>
                 </v-btn>
@@ -235,7 +235,7 @@ function increment(): void {
 }
 
 ._error-msg {
-    color: #ff5252;
+    color: rgb(var(--v-theme-error));
     font-size: 12px;
     padding: 4px 16px 2px 0;
 }
