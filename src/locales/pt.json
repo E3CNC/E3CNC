@@ -613,18 +613,6 @@
             "TempTooHigh": "Temperatura muito alta para {name}! (máx: {max})",
             "TempTooLow": "Temperatura muito baixa para {name}! (mín: {min})"
         },
-        "ToolheadControlPanel": {
-            "Absolute": "absoluto",
-            "ALL": "Todos",
-            "Headline": "Ferramenta",
-            "PleaseConfigureSteps": "Por favor, configure os passos.",
-            "Position": "Posição",
-            "QGL": "QGL",
-            "Relative": "relativo",
-            "SettingsInterfaceControl": "Configurações > Interface > Controle",
-            "SpeedFactor": "Fator Velocidade",
-            "ZTilt": "Z-Tilt"
-        },
         "WebcamPanel": {
             "All": "Todos",
             "FPS": "FPS",

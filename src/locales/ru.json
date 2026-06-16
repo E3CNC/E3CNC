@@ -736,22 +736,6 @@
             "TempTooHigh": "Слишком высокая температура для {name}! (макс.: {max})",
             "TempTooLow": "Слишком низкая температура для {name}! (мин.: {min})"
         },
-        "ToolheadControlPanel": {
-            "Absolute": "Абсолютная",
-            "ALL": "ВСЕ",
-            "ControlButtons": "Кнопки управления",
-            "CoordinateFields": "Поля ввода координат",
-            "Headline": "Печатная голова",
-            "PleaseConfigureSteps": "Пожалуйста, настройте шаги",
-            "Position": "Позиция",
-            "PositionOutput": "Вывод типа адресации",
-            "QGL": "4-точечное ВП (QGL)",
-            "Relative": "Относительная",
-            "SettingsInterfaceControl": "Настройки > Интерфейс > Управление",
-            "SpeedFactor": "Скорость",
-            "ZOffset": "Смещение Z координат",
-            "ZTilt": "Наклон оси Z"
-        },
         "WebcamPanel": {
             "All": "Все",
             "ConnectingTo": "Подключение к {url}",

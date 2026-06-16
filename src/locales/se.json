@@ -654,22 +654,6 @@
             "TempTooHigh": "Temperaturen är för hög för {name}! (max: {max})",
             "TempTooLow": "Temperaturen är för låg för {name}! (min: {min})"
         },
-        "ToolheadControlPanel": {
-            "Absolute": "absolut",
-            "ALL": "ALLA",
-            "ControlButtons": "Kontrollknappar",
-            "CoordinateFields": "Koordinatfält",
-            "Headline": "Verktygshuvud",
-            "PleaseConfigureSteps": "Vänligen konfigurera steg",
-            "Position": "Position",
-            "PositionOutput": "Positionsutmatning",
-            "QGL": "QGL",
-            "Relative": "relativ",
-            "SettingsInterfaceControl": "Inställningar > Gränssnitt > Kontroll",
-            "SpeedFactor": "Hastighetsfaktor",
-            "ZOffset": "Z-offset",
-            "ZTilt": "Z-lutning"
-        },
         "WebcamPanel": {
             "All": "Alla",
             "FPS": "FPS",

@@ -62,10 +62,10 @@ export const getters: GetterTree<GuiState, RootState> = {
             allPanels = allPanels.filter((name) => name !== 'macros')
         }
 
-        // remove toolhead & machine-settings panel, if kinematics === none
+        // remove machine-settings panel, if kinematics === none
         const printerKinematics = rootGetters['printer/getKinematics']
         if (printerKinematics === 'none') {
-            allPanels = allPanels.filter((name) => !['toolhead-control', 'machine-settings'].includes(name))
+            allPanels = allPanels.filter((name) => name !== 'machine-settings')
         }
 
         // remove temperature panel, if sensors < 1

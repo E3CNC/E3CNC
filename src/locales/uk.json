@@ -718,22 +718,6 @@
             "TempTooHigh": "Температура занадто висока для{name}! (макс: {max})",
             "TempTooLow": "Температура занадто низька для {name}! (мін: {min})"
         },
-        "ToolheadControlPanel": {
-            "Absolute": "абсолютні",
-            "ALL": "ВСІ",
-            "ControlButtons": "Кнопки управління",
-            "CoordinateFields": "Поля координат",
-            "Headline": "Інструмент",
-            "PleaseConfigureSteps": "Будь ласка, налаштуйте кроки",
-            "Position": "Положення",
-            "PositionOutput": "Розташування",
-            "QGL": "QGL",
-            "Relative": "відносні",
-            "SettingsInterfaceControl": "Налаштування > Інтерфейс > Контроль",
-            "SpeedFactor": "Коефіцієнт ШВИДКОСТІ",
-            "ZOffset": "Z-Offset",
-            "ZTilt": "Z-Нахил"
-        },
         "WebcamPanel": {
             "All": "ВСІ",
             "FPS": "FPS",

@@ -744,22 +744,6 @@
             "TempTooLow": "Teplota pro {name} je příliš nízká! (min.: {min})",
             "TurnHeaterOff": "Vypnout ohřívač"
         },
-        "ToolheadControlPanel": {
-            "Absolute": "absolutní",
-            "ALL": "VŠE",
-            "ControlButtons": "Ovládací tlačítka",
-            "CoordinateFields": "Pole souřadnic",
-            "Headline": "Nástroj",
-            "PleaseConfigureSteps": "Prosím nakonfigurujte kroky",
-            "Position": "Pozice",
-            "PositionOutput": "Výstup pozice",
-            "QGL": "QGL",
-            "Relative": "relativní",
-            "SettingsInterfaceControl": "Nastavení > Rozhraní > Ovládání",
-            "SpeedFactor": "Rychlost",
-            "ZOffset": "Z-Offset",
-            "ZTilt": "Z-tilt"
-        },
         "WebcamPanel": {
             "All": "Vše",
             "ConnectingTo": "Připojování k {url}",

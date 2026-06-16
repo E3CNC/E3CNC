@@ -750,22 +750,6 @@
             "TempTooLow": "温度{name}过低！(最低：{min})",
             "TurnHeaterOff": "关闭加热"
         },
-        "ToolheadControlPanel": {
-            "Absolute": "绝对坐标",
-            "ALL": "全部",
-            "ControlButtons": "控制按钮",
-            "CoordinateFields": "坐标字段",
-            "Headline": "工具头",
-            "PleaseConfigureSteps": "请配置步骤",
-            "Position": "位置",
-            "PositionOutput": "位置输出",
-            "QGL": "QGL",
-            "Relative": "相对坐标",
-            "SettingsInterfaceControl": "设置 > 界面 > 控制",
-            "SpeedFactor": "速度倍数",
-            "ZOffset": "Z轴偏移",
-            "ZTilt": "Z倾斜调平"
-        },
         "WebcamPanel": {
             "All": "全部",
             "ConnectingTo": "正在连接到 {url}",

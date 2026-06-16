@@ -734,22 +734,6 @@
             "TempTooHigh": "Temperatura troppo alta per {name}! (max: {max})",
             "TempTooLow": "Temperatura troppo bassa per {name}! (min: {min})"
         },
-        "ToolheadControlPanel": {
-            "Absolute": "assoluto",
-            "ALL": "TUTTI",
-            "ControlButtons": "Pulsanti di controllo",
-            "CoordinateFields": "Campo Coordinate",
-            "Headline": "Toolhead",
-            "PleaseConfigureSteps": "Configura gli steps",
-            "Position": "Posizione",
-            "PositionOutput": "Posizione output",
-            "QGL": "QGL",
-            "Relative": "relativo",
-            "SettingsInterfaceControl": "Impostazioni> Interfaccia> Controllo",
-            "SpeedFactor": "Fattore di velocità",
-            "ZOffset": "Z-Offset",
-            "ZTilt": "Z-Tilt"
-        },
         "WebcamPanel": {
             "All": "Tutto",
             "ConnectingTo": "Connessione a {url}",

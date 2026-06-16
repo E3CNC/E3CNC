@@ -606,18 +606,6 @@
             "TempTooHigh": "{name}の温度が高すぎます! (最高: {max})",
             "TempTooLow": "{name}の温度が低すぎます! (最低: {min})"
         },
-        "ToolheadControlPanel": {
-            "Absolute": "絶対",
-            "ALL": "すべて",
-            "Headline": "ツールヘッド",
-            "PleaseConfigureSteps": "ステップを設定をしてください",
-            "Position": "位置",
-            "QGL": "QGL",
-            "Relative": "相対",
-            "SettingsInterfaceControl": "設定 > インターフェース > コントロール",
-            "SpeedFactor": "速度係数",
-            "ZTilt": "Z軸チルト"
-        },
         "WebcamPanel": {
             "All": "すべて",
             "FPS": "FPS",

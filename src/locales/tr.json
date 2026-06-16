@@ -646,18 +646,6 @@
             "TempTooHigh": "{name} için sıcaklık çok yüksek! (maks: {max})",
             "TempTooLow": "{name} için sıcaklık çok düşük! (min: {min})"
         },
-        "ToolheadControlPanel": {
-            "Absolute": "mutlak",
-            "ALL": "TÜMÜ",
-            "Headline": "Araç Başlığı",
-            "PleaseConfigureSteps": "Lütfen adımları yapılandırın",
-            "Position": "Konum",
-            "QGL": "QGL",
-            "Relative": "göreceli",
-            "SettingsInterfaceControl": "Ayarlar > Arayüz > Kontrol",
-            "SpeedFactor": "Hız faktörü",
-            "ZTilt": "Z-Eğimi"
-        },
         "WebcamPanel": {
             "All": "Tümü",
             "FPS": "FPS",

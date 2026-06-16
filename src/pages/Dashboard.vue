@@ -113,7 +113,6 @@ import MiscellaneousPanel from '@/components/panels/MiscellaneousPanel.vue'
 import Wcs from '@/components/panels/Cnc/Wcs.vue'
 import SpindleCoolantPanel from '@/components/panels/Cnc/SpindleCoolantPanel.vue'
 import StatusPanel from '@/components/panels/StatusPanel.vue'
-import ToolheadControlPanel from '@/components/panels/ToolheadControlPanel.vue'
 import TemperaturePanel from '@/components/panels/TemperaturePanel.vue'
 import MdiPanel from '@/components/panels/Cnc/MdiPanel.vue'
 import WebcamPanel from '@/components/panels/WebcamPanel.vue'
@@ -152,7 +151,6 @@ const registeredPanels: Record<string, unknown> = {
     macros: MacrosPanel,
     miniconsole: MiniconsolePanel,
     miscellaneous: MiscellaneousPanel,
-    'toolhead-control': ToolheadControlPanel,
     temperature: TemperaturePanel,
     webcam: WebcamPanel,
 }

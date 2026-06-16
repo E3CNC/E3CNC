@@ -651,18 +651,6 @@
             "TempTooHigh": "Temperatura zbyt wysoka dla {name}! (max: {max})",
             "TempTooLow": "Temperatura zbyt mała dla {name}! (min: {min})"
         },
-        "ToolheadControlPanel": {
-            "Absolute": "Absolutna",
-            "ALL": "WSZYSTKIE",
-            "Headline": "Sterowanie drukarką",
-            "PleaseConfigureSteps": "Proszę skonfigurować kroki",
-            "Position": "Pozycja",
-            "QGL": "QGL",
-            "Relative": "względna",
-            "SettingsInterfaceControl": "Ustawienia > Interfejs > Konfiguracja",
-            "SpeedFactor": "Wartość prędkości",
-            "ZTilt": "Z-Tilt"
-        },
         "WebcamPanel": {
             "All": "Wszystkie",
             "FPS": "kl./s",

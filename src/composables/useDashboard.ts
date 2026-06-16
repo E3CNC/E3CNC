@@ -77,8 +77,6 @@ export function useDashboard() {
                 return mdiWebcam
             case 'zoffset':
                 return mdiArrowCollapseVertical
-            case 'toolhead-control':
-                return mdiGamepad
             case 'macros':
                 return mdiCodeTags
             case 'miscellaneous':

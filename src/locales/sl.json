@@ -749,22 +749,6 @@
             "TempTooLow": "Prenizka temperatura za {name}! (Minimalno zahtevano: {min})",
             "TurnHeaterOff": "Izklopi grelec"
         },
-        "ToolheadControlPanel": {
-            "Absolute": "absolutno (G90)",
-            "ALL": "VSE (ALL)",
-            "ControlButtons": "Nadzorne tipke",
-            "CoordinateFields": "Polja koordinat",
-            "Headline": "Premik glave (Toolhead)",
-            "PleaseConfigureSteps": "Prosimo, konfigurirajte korake premika",
-            "Position": "Trenutni položaj",
-            "PositionOutput": "Položaj",
-            "QGL": "Quad Gantry Level",
-            "Relative": "relativno (G91)",
-            "SettingsInterfaceControl": "Nastavitve > Vmesnik > Nadzor",
-            "SpeedFactor": "Faktor hitrosti (Feedrate multiplier)",
-            "ZOffset": "Z-Offset (odmik šobe)",
-            "ZTilt": "Z-Tilt Adjust"
-        },
         "WebcamPanel": {
             "All": "Vse kamere",
             "ConnectingTo": "Povezovanje z {url}",

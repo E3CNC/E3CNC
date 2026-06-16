@@ -668,22 +668,6 @@
             "TempTooHigh": "Température trop élevée pour {name}! (max: {max})",
             "TempTooLow": "Température trop basse pour {name}! (min: {min})"
         },
-        "ToolheadControlPanel": {
-            "Absolute": "absolue",
-            "ALL": "Tous",
-            "ControlButtons": "Boutons de commande",
-            "CoordinateFields": "Champs de coordonnées",
-            "Headline": "Tête d'impression",
-            "PleaseConfigureSteps": "Veuillez configurer les Pas",
-            "Position": "Position",
-            "PositionOutput": "Position de sortie",
-            "QGL": "QGL",
-            "Relative": "relative",
-            "SettingsInterfaceControl": "Réglages > Interface > Contrôle",
-            "SpeedFactor": "Facteur de vitesse",
-            "ZOffset": "Offset Z",
-            "ZTilt": "Z-Tilt"
-        },
         "WebcamPanel": {
             "All": "Tous",
             "FPS": "IPS",

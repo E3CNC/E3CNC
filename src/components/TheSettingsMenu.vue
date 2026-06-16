@@ -71,7 +71,6 @@ import { useBase } from '@/composables/useBase'
 import SettingsGeneralTab from '@/components/settings/SettingsGeneralTab.vue'
 import SettingsWebcamsTab from '@/components/settings/SettingsWebcamsTab.vue'
 import SettingsMacrosTab from '@/components/settings/SettingsMacrosTab.vue'
-import SettingsControlTab from '@/components/settings/SettingsControlTab.vue'
 import SettingsConsoleTab from '@/components/settings/SettingsConsoleTab.vue'
 import SettingsRemotePrintersTab from '@/components/settings/SettingsRemotePrintersTab.vue'
 import SettingsUiSettingsTab from '@/components/settings/SettingsUiSettingsTab.vue'
@@ -92,7 +91,6 @@ import {
     mdiMonitorDashboard,
     mdiPalette,
     mdiPrinter3d,
-    mdiTune,
     mdiVideo3d,
     mdiWebcam,
     mdiMenu,
@@ -129,7 +127,6 @@ const tabComponents: Record<string, Component> = {
     dashboard: SettingsDashboardTab,
     webcams: SettingsWebcamsTab,
     macros: SettingsMacrosTab,
-    control: SettingsControlTab,
     console: SettingsConsoleTab,
     'remote-printers': SettingsRemotePrintersTab,
     'g-code-viewer': SettingsGCodeViewerTab,
@@ -145,7 +142,6 @@ const tabTitles = computed(() => {
         { icon: mdiMonitorDashboard, name: 'dashboard', title: t('Settings.DashboardTab.Dashboard') },
         { icon: mdiWebcam, name: 'webcams', title: t('Settings.WebcamsTab.Webcams') },
         { icon: mdiCodeTags, name: 'macros', title: t('Settings.MacrosTab.Macros') },
-        { icon: mdiTune, name: 'control', title: t('Settings.ControlTab.Control') },
         { icon: mdiConsoleLine, name: 'console', title: t('Settings.ConsoleTab.Console') },
         { icon: mdiPrinter3d, name: 'remote-printers', title: t('Settings.RemotePrintersTab.RemotePrinters') },
         { icon: mdiVideo3d, name: 'g-code-viewer', title: t('Settings.GCodeViewerTab.GCodeViewer') },

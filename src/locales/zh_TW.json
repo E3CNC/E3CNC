@@ -618,18 +618,6 @@
             "TempTooHigh": "溫度{name}過高！(最高：{max})",
             "TempTooLow": "溫度{name}過低！(最低：{min})"
         },
-        "ToolheadControlPanel": {
-            "Absolute": "絕對座標",
-            "ALL": "歸位所有",
-            "Headline": "工具頭",
-            "PleaseConfigureSteps": "請設定步進",
-            "Position": "位置",
-            "QGL": "四軸調平(QGL)",
-            "Relative": "相對座標",
-            "SettingsInterfaceControl": "設定 > 界面 > 控制",
-            "SpeedFactor": "速度係數",
-            "ZTilt": "Z軸傾斜"
-        },
         "WebcamPanel": {
             "All": "全部",
             "FPS": "FPS",

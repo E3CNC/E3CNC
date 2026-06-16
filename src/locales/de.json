@@ -748,22 +748,6 @@
             "TempTooLow": "Temperature von {name} zu niedrig! (min: {min})",
             "TurnHeaterOff": "Heizung ausschalten"
         },
-        "ToolheadControlPanel": {
-            "Absolute": "absolut",
-            "ALL": "ALLE",
-            "ControlButtons": "Kontrollknöpfe",
-            "CoordinateFields": "Koordinatenfelder",
-            "Headline": "Werkzeugkopf",
-            "PleaseConfigureSteps": "Bitte Schritte konfigurieren",
-            "Position": "Position",
-            "PositionOutput": "Positionsausgabe",
-            "QGL": "QGL",
-            "Relative": "relativ",
-            "SettingsInterfaceControl": "Einstellungen > Interface > Steuerung",
-            "SpeedFactor": "Geschwindigkeitsfaktor",
-            "ZOffset": "Z-Versatz",
-            "ZTilt": "Z Tilt"
-        },
         "WebcamPanel": {
             "All": "Alle",
             "ConnectingTo": "Verbinde zu {url}",

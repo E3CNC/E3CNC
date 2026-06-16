@@ -607,18 +607,6 @@
             "TempTooHigh": "{name}의 온도가 너무 높습니다! (최대: {max})",
             "TempTooLow": "{name}의 온도가 너무 낮습니다!! (최저: {min})"
         },
-        "ToolheadControlPanel": {
-            "Absolute": "절대 좌표",
-            "ALL": "전체",
-            "Headline": "툴 헤드 제어",
-            "PleaseConfigureSteps": "steps를 설정해 주세요",
-            "Position": "좌표 유형",
-            "QGL": "쿼드 갠트리 레벨",
-            "Relative": "상대 좌표",
-            "SettingsInterfaceControl": "설정 > 인터페이스 > 컨트롤",
-            "SpeedFactor": "속도 비율 설정",
-            "ZTilt": "Z틸트"
-        },
         "WebcamPanel": {
             "All": "전체",
             "FPS": "FPS",

@@ -660,18 +660,6 @@
             "TempTooHigh": "Temperatuur te hoog voor {name}! (max: {max})",
             "TempTooLow": "Temperatuur te laag voor {name}! (min: {min})"
         },
-        "ToolheadControlPanel": {
-            "Absolute": "absoluut",
-            "ALL": "ALLES",
-            "Headline": "Toolhead",
-            "PleaseConfigureSteps": "Configureer steps",
-            "Position": "Positie",
-            "QGL": "QGL",
-            "Relative": "relatief",
-            "SettingsInterfaceControl": "Instllingen > Interface > Bediening",
-            "SpeedFactor": "Snelheid factor",
-            "ZTilt": "Z Tilt"
-        },
         "WebcamPanel": {
             "All": "Alle",
             "FPS": "FPS",

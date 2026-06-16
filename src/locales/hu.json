@@ -738,22 +738,6 @@
             "TempTooLow": "A {name} hőmérséklete túl alacsony! (min: {min})",
             "TurnHeaterOff": "A fűtés kikapcsolása"
         },
-        "ToolheadControlPanel": {
-            "Absolute": "abszolút",
-            "ALL": "MIND",
-            "ControlButtons": "Vezérlőgombok",
-            "CoordinateFields": "Koordinátamezők",
-            "Headline": "Fúvókafej",
-            "PleaseConfigureSteps": "Kérlek állítsd be a step értékét",
-            "Position": "Pozíció",
-            "PositionOutput": "Pozíció kimenet",
-            "QGL": "QGL",
-            "Relative": "relatív",
-            "SettingsInterfaceControl": "Beállítások > Kezelőfelület > Vezérlés",
-            "SpeedFactor": "Sebességállítás",
-            "ZOffset": "Z-eltolás",
-            "ZTilt": "Z-dőlésszög"
-        },
         "WebcamPanel": {
             "All": "Mind",
             "ConnectingTo": "Csatlakozás a {url}",
