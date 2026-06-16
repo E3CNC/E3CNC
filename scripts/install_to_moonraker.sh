@@ -29,12 +29,13 @@
 #      clean "CncAgent component initialized." log line
 #
 # Usage:
-#   ./scripts/install_to_moonraker.sh                       # deploys to $CNC_HOST (default: cnc)
-#   CNC_HOST=myprinter ./scripts/install_to_moonraker.sh
+#   ./scripts/install_to_moonraker.sh                       # deploys to localhost
+#   CNC_HOST=myprinter ./scripts/install_to_moonraker.sh     # remote via SSH
 #   CNC_HOST=user@host:2222 ./scripts/install_to_moonraker.sh
 #
 # Environment overrides (all optional):
-#   CNC_HOST                  SSH target (default: cnc).
+#   CNC_HOST                  Target host (default: localhost). Set to an SSH
+#                             hostname for remote deployment.
 #   CNC_REPO_DIR              Path on the TARGET where the monorepo
 #                             is cloned (default: ~/mainsail-cnc).
 #   CNC_REPO_URL              Git origin to clone on the target
@@ -52,14 +53,28 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-CNC_HOST="${CNC_HOST:-cnc}"
+CNC_HOST="${CNC_HOST:-localhost}"
 
 if [[ ! -d "$REPO_ROOT/moonraker-cnc-agent/src/moonraker_cnc_agent" ]]; then
     echo "error: $REPO_ROOT/moonraker-cnc-agent/src/moonraker_cnc_agent not found" >&2
     exit 1
 fi
 
-REMOTE_HOME=$(ssh -o BatchMode=yes "$CNC_HOST" 'echo $HOME')
+# Run a command on the target (local or remote via SSH).
+run_on_target() {
+    if [[ "$CNC_HOST" = "localhost" ]]; then
+        eval "$@"
+    else
+        ssh "$CNC_HOST" "set -e; $@"
+    fi
+}
+
+# Fetch the home directory from the target.
+if [[ "$CNC_HOST" = "localhost" ]]; then
+    REMOTE_HOME=$HOME
+else
+    REMOTE_HOME=$(ssh -o BatchMode=yes "$CNC_HOST" 'echo $HOME')
+fi
 REMOTE_COMPONENTS_DIR="$REMOTE_HOME/moonraker/moonraker/components"
 REMOTE_CNC_PKG="$REMOTE_COMPONENTS_DIR/cnc_agent"
 REMOTE_CNC_METADATA_PKG="$REMOTE_COMPONENTS_DIR/cnc_metadata"
@@ -112,7 +127,7 @@ if [[ "${CNC_SKIP_CLONE:-0}" == "1" ]]; then
     echo "==> [1/11] SKIPPED (CNC_SKIP_CLONE=1) — using existing $REMOTE_REPO_DIR as-is"
 else
     echo "==> [1/11] clone (or pull) monorepo at $REMOTE_REPO_DIR"
-    ssh "$CNC_HOST" "
+    run_on_target "
         set -e
         if [[ ! -d '$REMOTE_REPO_DIR/.git' ]]; then
             mkdir -p '$(dirname "$REMOTE_REPO_DIR")'
@@ -139,7 +154,7 @@ REMOTE_AGENT_SRC="$REMOTE_REPO_DIR/moonraker-cnc-agent/src/moonraker_cnc_agent"
 # 2) vendor the cnc_agent component into moonraker/components/cnc_agent/
 # ---------------------------------------------------------------------------
 echo "==> [2/11] vendor cnc_agent into moonraker/components/cnc_agent/"
-ssh "$CNC_HOST" "
+run_on_target "
     set -e
     rm -rf '$REMOTE_CNC_PKG'
     mkdir -p '$REMOTE_CNC_PKG'
@@ -158,7 +173,7 @@ PY
 # 3) vendor the cnc_metadata component into moonraker/components/cnc_metadata/
 # ---------------------------------------------------------------------------
 echo "==> [3/11] vendor cnc_metadata into moonraker/components/cnc_metadata/"
-ssh "$CNC_HOST" "
+run_on_target "
     set -e
     rm -rf '$REMOTE_CNC_METADATA_PKG'
     mkdir -p '$REMOTE_CNC_METADATA_PKG'
@@ -180,7 +195,7 @@ if [[ ! -f "$REPO_ROOT/scripts/cnc_metadata_extractor.py" ]]; then
     echo "    FAILED — local extractor not found at $REPO_ROOT/scripts/cnc_metadata_extractor.py" >&2
     exit 1
 fi
-ssh "$CNC_HOST" "
+run_on_target "
     set -e
     if [[ ! -f '$REMOTE_EXTRACTOR_SRC' ]]; then
         echo '    FAILED — extractor not found in cloned monorepo at '\$REMOTE_EXTRACTOR_SRC >&2
@@ -195,8 +210,13 @@ ssh "$CNC_HOST" "
 # 5) ensure [cnc_agent] section
 # ---------------------------------------------------------------------------
 echo "==> [5/11] ensure [cnc_agent] section in $REMOTE_CONF"
-ssh "$CNC_HOST" "
+run_on_target "
     set -e
+    if [[ ! -f '$REMOTE_CONF' ]]; then
+        echo '    WARNING — moonraker.conf not found at $REMOTE_CONF; creating it' >&2
+        mkdir -p '$(dirname "$REMOTE_CONF")'
+        touch '$REMOTE_CONF'
+    fi
     if ! grep -qE '^\[cnc_agent\]' '$REMOTE_CONF'; then
         printf '\n# CNC agent (installed by mainsail-cnc install_to_moonraker.sh)\n[cnc_agent]\n' >> '$REMOTE_CONF'
         echo '    appended [cnc_agent] section'
@@ -209,8 +229,13 @@ ssh "$CNC_HOST" "
 # 6) ensure [cnc_metadata] section
 # ---------------------------------------------------------------------------
 echo "==> [6/11] ensure [cnc_metadata] section in $REMOTE_CONF"
-ssh "$CNC_HOST" "
+run_on_target "
     set -e
+    if [[ ! -f '$REMOTE_CONF' ]]; then
+        echo '    WARNING — moonraker.conf not found; creating it' >&2
+        mkdir -p '$(dirname "$REMOTE_CONF")'
+        touch '$REMOTE_CONF'
+    fi
     if ! grep -qE '^\[cnc_metadata\]' '$REMOTE_CONF'; then
         printf '\n# CNC metadata extractor (installed by mainsail-cnc install_to_moonraker.sh)\n[cnc_metadata]\nextractor_path: %s\ntimeout: 30.0\n' '$REMOTE_EXTRACTOR_PATH' >> '$REMOTE_CONF'
         echo '    appended [cnc_metadata] section'
@@ -224,7 +249,7 @@ ssh "$CNC_HOST" "
 # ---------------------------------------------------------------------------
 echo "==> [7/11] deploy work_coordinate_systems.py to klippy/extras/"
 REMOTE_WCS_EXTRAS_SRC="$REMOTE_REPO_DIR/klipper-extras/work_coordinate_systems.py"
-ssh "$CNC_HOST" "
+run_on_target "
     set -e
     if [[ ! -f '$REMOTE_WCS_EXTRAS_SRC' ]]; then
         echo '    skipping — klipper-extras/work_coordinate_systems.py not found in monorepo'
@@ -239,7 +264,7 @@ ssh "$CNC_HOST" "
 # ---------------------------------------------------------------------------
 echo "==> [8/11] deploy wcs_macros.cfg to printer_data/config/macros/"
 REMOTE_WCS_MACROS_SRC="$REMOTE_REPO_DIR/klipper-macros/wcs_macros.cfg"
-ssh "$CNC_HOST" "
+run_on_target "
     set -e
     if [[ ! -f '$REMOTE_WCS_MACROS_SRC' ]]; then
         echo '    skipping — klipper-macros/wcs_macros.cfg not found in monorepo'
@@ -262,7 +287,7 @@ else
     REMOTE_CONF_LOCAL="$(mktemp)"
     trap 'rm -f "$APPEND_BLOCK" "$REMOTE_CONF_LOCAL"' EXIT
 
-    ssh "$CNC_HOST" "cat '$REMOTE_CONF'" > "$REMOTE_CONF_LOCAL"
+    run_on_target "cat '$REMOTE_CONF'" > "$REMOTE_CONF_LOCAL"
 
     if grep -qE '^\[update_manager mainsail-cnc\]' "$REMOTE_CONF_LOCAL"; then
         echo "    [update_manager mainsail-cnc] already present in $REMOTE_CONF"
@@ -288,7 +313,7 @@ else
             printf 'refresh_interval: 24\n'
         } > "$APPEND_BLOCK"
 
-        cat "$APPEND_BLOCK" | ssh "$CNC_HOST" "cat >> '$REMOTE_CONF'"
+        cat "$APPEND_BLOCK" | run_on_target "cat >> '$REMOTE_CONF'"
         echo "    appended [update_manager mainsail-cnc] to $REMOTE_CONF"
     fi
 fi
@@ -297,32 +322,44 @@ fi
 # 10) restart moonraker
 # ---------------------------------------------------------------------------
 echo "==> [10/11] restart moonraker"
-ssh "$CNC_HOST" "sudo systemctl restart moonraker"
+run_on_target "sudo systemctl restart moonraker" || {
+    echo "    FAILED — could not restart moonraker (check sudo permissions)" >&2
+    exit 1
+}
 
 # ---------------------------------------------------------------------------
 # 11) wait for moonraker and verify CncAgent loaded cleanly
 # ---------------------------------------------------------------------------
 echo "==> [11/11] wait for moonraker and verify CncAgent loaded cleanly"
+
+# Determine how to reach the Moonraker API locally on the target.
+# MOONRAKER_API is kept for reference but unused in the current curl commands
+# since run_on_target always hits 127.0.0.1:7125 on the target machine.
+
 for i in {1..30}; do
-    if ssh -o ConnectTimeout=2 "$CNC_HOST" "curl -fsS http://127.0.0.1:7125/printer/info" >/dev/null 2>&1; then
+    if run_on_target "curl -fsS 'http://127.0.0.1:7125/printer/info'" >/dev/null 2>&1; then
         break
     fi
     sleep 1
 done
 
-if ! ssh -o ConnectTimeout=2 "$CNC_HOST" "curl -fsS http://127.0.0.1:7125/printer/info" >/dev/null 2>&1; then
+if ! run_on_target "curl -fsS 'http://127.0.0.1:7125/printer/info'" >/dev/null 2>&1; then
     echo "    FAILED — moonraker did not come back up in 30s" >&2
-    echo "    check: ssh $CNC_HOST 'sudo journalctl -u moonraker -n 80 --no-pager'" >&2
+    echo "    check: sudo journalctl -u moonraker -n 80 --no-pager" >&2
     exit 1
 fi
 
 # Give cnc_agent a moment to initialize and Klipper to report ready
 sleep 3
 
-# Pull a window of recent logs to check load status. The 'Klipper is ready,
-# CncAgent is active.' line is the strongest signal — it only fires if
-# __init__ completed and registered the klippy_ready handler.
-RECENT_LOGS=$(ssh "$CNC_HOST" "sudo journalctl -u moonraker --since '2 minutes ago' --no-pager 2>&1" || true)
+# Try to pull Moonraker logs to verify the agent loaded.
+# journalctl may not be available on non-systemd systems — fall back to log file.
+RECENT_LOGS=""
+if command -v journalctl &>/dev/null; then
+    RECENT_LOGS=$(run_on_target "sudo journalctl -u moonraker --since '2 minutes ago' --no-pager 2>&1" || true)
+elif [[ -f "$REMOTE_HOME/printer_data/logs/moonraker.log" ]]; then
+    RECENT_LOGS=$(run_on_target "tail -200 '$REMOTE_HOME/printer_data/logs/moonraker.log' 2>&1" || true)
+fi
 
 INIT_LINE=$(echo "$RECENT_LOGS" | grep -E 'CncAgent component initialized' | tail -1 || true)
 READY_LINE=$(echo "$RECENT_LOGS" | grep -E 'CncAgent is active' | tail -1 || true)

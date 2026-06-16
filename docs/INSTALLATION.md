@@ -52,8 +52,7 @@ In the KIAUH interactive menu:
 
 ### 3. Install Mainsail (temporary)
 
-Still in KIAUH, select **[Install]** → **[Install Mainsail]**. This gives you a working stock Mainsail installation
-at `~/mainsail/`. We will replace it with the CNC fork in the next step.
+Still in KIAUH, select **[Install]** → **[Install Mainsail]**. This creates the `~/mainsail/` web directory that Nginx expects and gives you a working baseline. We will replace it with the CNC fork in the next step.
 
 ### 4. Replace with Mainsail-CNC fork
 
@@ -122,9 +121,12 @@ Jog, Offsets, Spindle & Coolant, and CNC Status.
 This guide provides a detailed, step-by-step process for manually setting up Mainsail-CNC. It is intended for advanced
 users who prefer complete control over their installation and configuration.
 
-!!! warning "Username"
-    This guide uses the default username `pi`. If your system uses a different username (e.g., `biqu` on a BTT-CB1),
-    replace `pi` with your actual username in all commands and paths.
+!!! warning "Paths on your machine will differ"
+    This guide uses:
+    - **Username:** `pi` — if yours differs (e.g., `biqu` on a BTT-CB1, `ubuntu` on x86), replace `pi` everywhere it appears.
+    - **Printer data directory:** `~/printer_data/` — the standard layout. If your Klipper uses a different path (e.g. KIAUH ≥6 uses `~/klipper_data/`), adjust accordingly.
+    - **Systemd files:** the unit file examples below use explicit `/home/pi/` paths because systemd does not expand `~` or `$HOME`. You **must** replace `pi` with your actual username before using them.
+    - **Nginx root:** shown as `/home/pi/mainsail` — verify this matches your web server's document root.
 
 ### System Requirements and Preparation
 
@@ -162,6 +164,9 @@ touch ~/printer_data/config/printer.cfg
 ```
 
 Create the systemd service (`/etc/systemd/system/klipper.service`):
+
+!!! warning "Replace `pi` with your username"
+    The paths below use `/home/pi/`. If your username is different, change every occurrence of `pi` before creating this file.
 
 ```ini
 [Unit]
@@ -231,14 +236,17 @@ subscriptions:
 refresh_interval: 168
 enable_auto_refresh: True
 
-[update_manager mainsail]
+[update_manager mainsail-cnc]
 type: web
 channel: stable
-repo: mainsail-crew/mainsail
-path: ~/mainsail
+repo: isaaceliape/mainsail-cnc
+path: ~/mainsail-cnc
 ```
 
 Create the systemd service (`/etc/systemd/system/moonraker.service`):
+
+!!! warning "Replace `pi` with your username"
+    Same as above — change `/home/pi/` to your home directory path.
 
 ```ini
 [Unit]
@@ -260,6 +268,9 @@ WantedBy=multi-user.target
 
 Create `~/printer_data/systemd/moonraker.env`:
 
+!!! warning "Replace `pi` with your username"
+    This file uses the same `/home/pi/` paths as the service file above.
+
 ```bash
 MOONRAKER_ARGS="/home/pi/moonraker/moonraker/moonraker.py -c /home/pi/printer_data/config/moonraker.conf -l /home/pi/printer_data/logs/moonraker.log"
 ```
@@ -276,6 +287,9 @@ sudo apt install nginx -y
 ```
 
 Create `/etc/nginx/sites-available/mainsail`:
+
+!!! warning "Check the root path"
+    The `root` directive below uses `/home/pi/mainsail`. If your username is different or your web root is elsewhere, adjust this path.
 
 ```nginx
 server {
@@ -349,21 +363,25 @@ This produces a `dist/` directory with the compiled frontend.
 #### 4.3 Deploy to the web directory
 
 ```bash
-# Remove any existing Mainsail files (preserving config.json if present)
-cd ~/mainsail
-find . -type f -not -name 'config.json' -delete
-find . -mindepth 1 -type d -empty -delete
-
-# Copy built files
-cp -a ~/mainsail-cnc/dist/* .
-cp ~/mainsail-cnc/dist/.* . 2>/dev/null || true
-```
-
-Or use the deploy script:
-
-```bash
 cd ~/mainsail-cnc
 ./deploy.sh --live
+```
+
+The `deploy.sh` script copies the built `dist/` contents to `~/mainsail/` (or another target if configured).
+
+If you prefer to do it manually:
+
+```bash
+# Ensure web directory exists
+mkdir -p ~/mainsail
+
+# Remove existing files (preserving config.json if present)
+rm -rf ~/mainsail/*
+rm -rf ~/mainsail/.* 2>/dev/null || true
+
+# Copy built files
+cp -a ~/mainsail-cnc/dist/* ~/mainsail/
+cp ~/mainsail-cnc/dist/.* ~/mainsail/ 2>/dev/null || true
 ```
 
 ### Step 5: Install the Moonraker CNC Agent
@@ -375,7 +393,9 @@ cd ~/mainsail-cnc
 ./scripts/install_to_moonraker.sh
 ```
 
-The script performs the following:
+This script vendors the agent, adds config sections, and restarts Moonraker.
+It works locally by default (`CNC_HOST=localhost`). For remote deployment
+over SSH, set `CNC_HOST` to the target hostname.
 
 1. Clones (or pulls) the monorepo to `~/mainsail-cnc`
 2. Vendors `cnc_agent` into `moonraker/moonraker/components/cnc_agent/`

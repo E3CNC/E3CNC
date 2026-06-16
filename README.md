@@ -29,9 +29,12 @@ export PATH="$HOME/.bun/bin:$PATH"
 # 3. Build and deploy
 bun install --frozen-lockfile
 bun run build
+# Deploys built files to ~/mainsail/ (the web root)
 ./deploy.sh --live
 
 # 4. Install the Moonraker CNC agent
+# Vendors the agent into Moonraker, adds [cnc_agent] to moonraker.conf,
+# registers update_manager entry, and restarts Moonraker
 ./scripts/install_to_moonraker.sh
 
 # 5. Restart Moonraker
