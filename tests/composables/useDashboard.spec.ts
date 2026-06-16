@@ -93,6 +93,35 @@ describe('useDashboard', () => {
         expect(c.webcams.value).toEqual([])
     })
 
+    it('returns empty array for macrogroups when getter returns null', () => {
+        const c = mountComposable({
+            getters: {
+                'gui/macros/getAllMacrogroups': () => null,
+            },
+        })
+        expect(c.macrogroups.value).toEqual([])
+    })
+
+    it('returns empty array for webcams when getter returns null', () => {
+        const c = mountComposable({
+            getters: {
+                'gui/webcams/getWebcams': () => null,
+            },
+        })
+        expect(c.webcams.value).toEqual([])
+    })
+
+    it('returns macrogroup name for macrogroup_ prefix with empty id', () => {
+        const c = mountComposable({
+            getters: {
+                'gui/macros/getAllMacrogroups': () => [
+                    { id: '', name: 'Empty Group', color: 'primary', showInStandby: true, showInPrinting: true, showInPause: true },
+                ],
+            },
+        })
+        expect(c.getPanelName('macrogroup_')).toBe('Empty Group')
+    })
+
     describe('getPanelName', () => {
         it('returns macrogroup name for macrogroup_ prefix', () => {
             const c = mountComposable({

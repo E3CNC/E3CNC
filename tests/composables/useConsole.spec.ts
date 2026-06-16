@@ -60,8 +60,18 @@ describe('useConsole', () => {
         expect(c.helplist.value).toEqual([])
     })
 
+    it('returns empty helplist when gcode is missing', () => {
+        const { composable: c } = mountComposable({ printer: {} })
+        expect(c.helplist.value).toEqual([])
+    })
+
     it('computes consoleDirection from store', () => {
         const { composable: c } = mountComposable()
+        expect(c.consoleDirection.value).toBe('table')
+    })
+
+    it('consoleDirection defaults to table when missing', () => {
+        const { composable: c } = mountComposable({ gui: { console: {} } })
         expect(c.consoleDirection.value).toBe('table')
     })
 
@@ -110,6 +120,11 @@ describe('useConsole', () => {
         expect(c.autoscroll.value).toBe(true)
     })
 
+    it('autoscroll defaults to true when missing', () => {
+        const { composable: c } = mountComposable({ gui: { console: {} } })
+        expect(c.autoscroll.value).toBe(true)
+    })
+
     it('setAutoscroll dispatches saveSetting', () => {
         const { composable: c, store } = mountComposable()
         c.setAutoscroll(false)
@@ -121,6 +136,11 @@ describe('useConsole', () => {
 
     it('computes rawOutput', () => {
         const { composable: c } = mountComposable()
+        expect(c.rawOutput.value).toBe(false)
+    })
+
+    it('rawOutput defaults to false when missing', () => {
+        const { composable: c } = mountComposable({ gui: { console: {} } })
         expect(c.rawOutput.value).toBe(false)
     })
 

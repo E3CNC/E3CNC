@@ -161,11 +161,62 @@ describe('useTimelapse', () => {
         expect(c.estimatedVideoLength.value).toBe('10s')
     })
 
+    it('estimatedVideoLength accounts for duplicatelastframe when not variable_fps', () => {
+        const { composable: c } = mountComposable({
+            settings: { variable_fps: false, output_framerate: 5, duplicatelastframe: 5 },
+            lastFrame: { count: 45 },
+        })
+        // (45 + 5) / 5 = 10s
+        expect(c.estimatedVideoLength.value).toBe('10s')
+    })
+
     it('estimatedVideoLength uses targetlength floor when variable_fps result is shorter', () => {
         const { composable: c } = mountComposable({
             settings: { variable_fps: true, variable_fps_min: 5, variable_fps_max: 60, targetlength: 20, output_framerate: 30, duplicatelastframe: 0 },
             lastFrame: { count: 10 },
         })
         expect(c.estimatedVideoLength.value).toBe('20s')
+    })
+
+    it('returns variable_fps default false when timelapse is undefined', () => {
+        const store = createStore({
+            state: {
+                server: {
+                    timelapse: undefined,
+                },
+            },
+        })
+        let result: any
+        const TestComponent = {
+            template: '<div></div>',
+            setup() {
+                result = useTimelapse()
+                return {}
+            },
+        }
+        mount(TestComponent, { global: { plugins: [store] } })
+        expect(result.variable_fps.value).toBe(false)
+    })
+
+    it('returns variable_fps default false when settings is undefined', () => {
+        const store = createStore({
+            state: {
+                server: {
+                    timelapse: {
+                        settings: undefined,
+                    },
+                },
+            },
+        })
+        let result: any
+        const TestComponent = {
+            template: '<div></div>',
+            setup() {
+                result = useTimelapse()
+                return {}
+            },
+        }
+        mount(TestComponent, { global: { plugins: [store] } })
+        expect(result.variable_fps.value).toBe(false)
     })
 })
