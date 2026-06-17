@@ -89,6 +89,11 @@
                 </template>
             </v-card-text>
             <v-card-actions class="d-flex justify-end">
+                <v-btn variant="text" :loading="testing" :disabled="!form.hostname" @click="testConnection">
+                    <v-icon start size="small">{{ mdiConnection }}</v-icon>
+                    {{ $t('Settings.RemotePrintersTab.TestConnection') }}
+                </v-btn>
+                <v-spacer />
                 <v-btn variant="text" @click="form.bool = false">{{ $t('Buttons.Cancel') }}</v-btn>
                 <v-btn v-if="form.id === null" variant="text" color="primary" @click="storePrinter">
                     {{ $t('Settings.RemotePrintersTab.AddPrinter') }}
@@ -102,12 +107,14 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, computed } from 'vue'
+import { reactive, computed, ref } from 'vue'
 import { useStore } from 'vuex'
 import { useBase } from '@/composables/useBase'
+import { useI18n } from 'vue-i18n'
+import { useToast } from 'vue-toast-notification'
 import SettingsRow from '@/components/settings/SettingsRow.vue'
 import type { GuiRemoteprintersStatePrinter } from '@/store/gui/remoteprinters/types'
-import { mdiCancel, mdiCheckboxMarkedCircle, mdiDelete, mdiPencil, mdiAlertOutline } from '@mdi/js'
+import { mdiCancel, mdiCheckboxMarkedCircle, mdiDelete, mdiPencil, mdiAlertOutline, mdiConnection } from '@mdi/js'
 
 interface printerForm {
     bool: boolean
@@ -121,6 +128,10 @@ interface printerForm {
 
 const store = useStore()
 const { instancesDB } = useBase()
+const { t } = useI18n()
+const $toast = useToast()
+
+const testing = ref(false)
 
 const form = reactive<printerForm>({
     bool: false,
@@ -152,6 +163,28 @@ function createPrinter() {
     form.bool = true
 }
 
+async function testConnection() {
+    if (!form.hostname) {
+        $toast.error(t('Settings.RemotePrintersTab.HostnameRequired'))
+        return
+    }
+    testing.value = true
+    const protocol = window.location.protocol === 'https:' ? 'https' : 'http'
+    const url = `${protocol}://${form.hostname}:${form.port}${form.path ?? '/'}server/info`
+    try {
+        const response = await fetch(url, { method: 'GET', signal: AbortSignal.timeout(5000) })
+        if (response.ok) {
+            $toast.success(t('Settings.RemotePrintersTab.ConnectionSuccess', { hostname: form.hostname }))
+        } else {
+            $toast.error(t('Settings.RemotePrintersTab.ConnectionFailed', { hostname: form.hostname, status: response.status }))
+        }
+    } catch (e: any) {
+        $toast.error(t('Settings.RemotePrintersTab.ConnectionError', { hostname: form.hostname, error: e?.message ?? 'unknown' }))
+    } finally {
+        testing.value = false
+    }
+}
+
 function storePrinter() {
     const printer = {
         hostname: form.hostname,
@@ -167,6 +200,8 @@ function storePrinter() {
     form.name = ''
     form.id = null
     form.bool = false
+
+    $toast.success(t('Settings.RemotePrintersTab.PrinterSaved', { hostname: printer.hostname }))
 }
 
 function editPrinter(printer: GuiRemoteprintersStatePrinter) {
@@ -194,6 +229,8 @@ function updatePrinter() {
     form.path = '/'
     form.name = ''
     form.bool = false
+
+    $toast.success(t('Settings.RemotePrintersTab.PrinterUpdated', { hostname: values.hostname }))
 }
 
 function delPrinter(id: string) {

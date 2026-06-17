@@ -1064,7 +1064,14 @@
             "Port": "Port",
             "RemotePrinters": "Machines",
             "UpdatePrinter": "Update Machine",
-            "UseConfigJson": "InstanceDB = JSON detected. Please use the config.json to modify the machines list."
+            "UseConfigJson": "InstanceDB = JSON detected. Please use the config.json to modify the machines list.",
+            "TestConnection": "Test Connection",
+            "ConnectionSuccess": "Connection to {hostname} successful",
+            "ConnectionFailed": "Connection to {hostname} failed with status {status}",
+            "ConnectionError": "Connection to {hostname} failed: {error}",
+            "HostnameRequired": "Hostname is required",
+            "PrinterSaved": "Machine {hostname} saved -- reconnecting...",
+            "PrinterUpdated": "Machine {hostname} updated -- reconnecting..."
         },
         "Store": "store",
         "TimelapseTab": {
