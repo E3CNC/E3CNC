@@ -30,6 +30,7 @@ mainsail-cnc-nightly.zip
 mainsail-cnc.zip
 node_modules/
 # package-lock.json IS tracked — needed for npm builds on 32-bit ARM (CB1)
+coverage/
 packages/test/
 page-snapshot*.txt
 temp/
