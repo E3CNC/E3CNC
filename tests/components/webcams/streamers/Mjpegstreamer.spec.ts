@@ -63,10 +63,12 @@ function createCamSettings(overrides: Record<string, any> = {}) {
     }
 }
 
-function createWrapper(overrides: {
-    props?: Record<string, any>
-    stubs?: Record<string, any>
-} = {}) {
+function createWrapper(
+    overrides: {
+        props?: Record<string, any>
+        stubs?: Record<string, any>
+    } = {}
+) {
     const { props = {}, stubs = {} } = overrides
     return mount(Mjpegstreamer, {
         props: {
@@ -78,7 +80,10 @@ function createWrapper(overrides: {
                 'v-row': { name: 'VRow', template: '<div class="v-row"><slot /></div>' },
                 'v-col': { name: 'VCol', template: '<div class="v-col"><slot /></div>' },
                 'v-progress-circular': { name: 'VProgressCircular', template: '<span class="v-progress-circular" />' },
-                'webcam-nozzle-crosshair': { name: 'WebcamNozzleCrosshair', template: '<div class="webcam-nozzle-crosshair-stub" />' },
+                'webcam-nozzle-crosshair': {
+                    name: 'WebcamNozzleCrosshair',
+                    template: '<div class="webcam-nozzle-crosshair-stub" />',
+                },
                 ...stubs,
             },
         },
@@ -148,8 +153,14 @@ describe('Mjpegstreamer.vue', () => {
                 stubs: {
                     'v-row': { name: 'VRow', template: '<div class="v-row"><slot /></div>' },
                     'v-col': { name: 'VCol', template: '<div class="v-col"><slot /></div>' },
-                    'v-progress-circular': { name: 'VProgressCircular', template: '<span class="v-progress-circular" />' },
-                    'webcam-nozzle-crosshair': { name: 'WebcamNozzleCrosshair', template: '<div class="webcam-nozzle-crosshair-stub" />' },
+                    'v-progress-circular': {
+                        name: 'VProgressCircular',
+                        template: '<span class="v-progress-circular" />',
+                    },
+                    'webcam-nozzle-crosshair': {
+                        name: 'WebcamNozzleCrosshair',
+                        template: '<div class="webcam-nozzle-crosshair-stub" />',
+                    },
                 },
             },
         })

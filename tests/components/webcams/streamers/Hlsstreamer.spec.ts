@@ -163,10 +163,7 @@ describe('Hlsstreamer.vue', () => {
             },
         })
 
-        expect(mockHlsInstance.on).toHaveBeenCalledWith(
-            'hlsManifestParsed',
-            expect.any(Function)
-        )
+        expect(mockHlsInstance.on).toHaveBeenCalledWith('hlsManifestParsed', expect.any(Function))
     })
 
     it('destroys HLS instance on unmount', () => {

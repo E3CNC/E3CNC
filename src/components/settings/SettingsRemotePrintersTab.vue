@@ -176,10 +176,14 @@ async function testConnection() {
         if (response.ok) {
             $toast.success(t('Settings.RemotePrintersTab.ConnectionSuccess', { hostname: form.hostname }))
         } else {
-            $toast.error(t('Settings.RemotePrintersTab.ConnectionFailed', { hostname: form.hostname, status: response.status }))
+            $toast.error(
+                t('Settings.RemotePrintersTab.ConnectionFailed', { hostname: form.hostname, status: response.status })
+            )
         }
     } catch (e: any) {
-        $toast.error(t('Settings.RemotePrintersTab.ConnectionError', { hostname: form.hostname, error: e?.message ?? 'unknown' }))
+        $toast.error(
+            t('Settings.RemotePrintersTab.ConnectionError', { hostname: form.hostname, error: e?.message ?? 'unknown' })
+        )
     } finally {
         testing.value = false
     }

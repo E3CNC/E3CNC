@@ -71,7 +71,10 @@ describe('JMuxerStream.vue', () => {
                 stubs: {
                     'v-row': { name: 'VRow', template: '<div class="v-row"><slot /></div>' },
                     'v-col': { name: 'VCol', template: '<div class="v-col"><slot /></div>' },
-                    'v-progress-circular': { name: 'VProgressCircular', template: '<span class="v-progress-circular" />' },
+                    'v-progress-circular': {
+                        name: 'VProgressCircular',
+                        template: '<span class="v-progress-circular" />',
+                    },
                 },
             },
         })
@@ -88,7 +91,10 @@ describe('JMuxerStream.vue', () => {
                 stubs: {
                     'v-row': { name: 'VRow', template: '<div class="v-row"><slot /></div>' },
                     'v-col': { name: 'VCol', template: '<div class="v-col"><slot /></div>' },
-                    'v-progress-circular': { name: 'VProgressCircular', template: '<span class="v-progress-circular" />' },
+                    'v-progress-circular': {
+                        name: 'VProgressCircular',
+                        template: '<span class="v-progress-circular" />',
+                    },
                 },
             },
         })
@@ -106,7 +112,10 @@ describe('JMuxerStream.vue', () => {
                 stubs: {
                     'v-row': { name: 'VRow', template: '<div class="v-row"><slot /></div>' },
                     'v-col': { name: 'VCol', template: '<div class="v-col"><slot /></div>' },
-                    'v-progress-circular': { name: 'VProgressCircular', template: '<span class="v-progress-circular" />' },
+                    'v-progress-circular': {
+                        name: 'VProgressCircular',
+                        template: '<span class="v-progress-circular" />',
+                    },
                 },
             },
         })

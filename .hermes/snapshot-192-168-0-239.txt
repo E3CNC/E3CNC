@@ -1,0 +1,14 @@
+uid=1_0 RootWebArea "Mainsail" url="http://192.168.0.239/"
+  uid=1_1 dialog modal
+    uid=1_2 generic "Hello and welcome to the remote mode of Mainsail! Please remember to add 'http://192.168.0.239' in moonraker.conf within 'cors_domains'. You can find more details at https://docs.mainsail.xyz/remotemode . ADD MACHINE" focusable focused
+      uid=1_3 banner
+        uid=1_4 StaticText "Select Machine"
+      uid=1_5 StaticText "Hello and welcome to the remote mode of Mainsail!"
+      uid=1_6 StaticText "Please remember to add 'http://192.168.0.239' in moonraker.conf within 'cors_domains'."
+      uid=1_7 StaticText "You can find more details at"
+      uid=1_8 LineBreak "
+"
+      uid=1_9 link "https://docs.mainsail.xyz/remotemode " url="https://docs.mainsail.xyz/remotemode"
+        uid=1_10 StaticText "https://docs.mainsail.xyz/remotemode "
+      uid=1_11 StaticText "."
+      uid=1_12 button "ADD MACHINE"

@@ -77,7 +77,10 @@ describe('WebrtcCameraStreamer.vue', () => {
                 stubs: {
                     'v-row': { name: 'VRow', template: '<div class="v-row"><slot /></div>' },
                     'v-col': { name: 'VCol', template: '<div class="v-col"><slot /></div>' },
-                    'v-progress-circular': { name: 'VProgressCircular', template: '<span class="v-progress-circular" />' },
+                    'v-progress-circular': {
+                        name: 'VProgressCircular',
+                        template: '<span class="v-progress-circular" />',
+                    },
                     'webcam-nozzle-crosshair': {
                         name: 'WebcamNozzleCrosshair',
                         template: '<div class="webcam-nozzle-crosshair-stub" />',
@@ -98,7 +101,10 @@ describe('WebrtcCameraStreamer.vue', () => {
                 stubs: {
                     'v-row': { name: 'VRow', template: '<div class="v-row"><slot /></div>' },
                     'v-col': { name: 'VCol', template: '<div class="v-col"><slot /></div>' },
-                    'v-progress-circular': { name: 'VProgressCircular', template: '<span class="v-progress-circular" />' },
+                    'v-progress-circular': {
+                        name: 'VProgressCircular',
+                        template: '<span class="v-progress-circular" />',
+                    },
                     'webcam-nozzle-crosshair': {
                         name: 'WebcamNozzleCrosshair',
                         template: '<div class="webcam-nozzle-crosshair-stub" />',
@@ -120,7 +126,10 @@ describe('WebrtcCameraStreamer.vue', () => {
                 stubs: {
                     'v-row': { name: 'VRow', template: '<div class="v-row"><slot /></div>' },
                     'v-col': { name: 'VCol', template: '<div class="v-col"><slot /></div>' },
-                    'v-progress-circular': { name: 'VProgressCircular', template: '<span class="v-progress-circular" />' },
+                    'v-progress-circular': {
+                        name: 'VProgressCircular',
+                        template: '<span class="v-progress-circular" />',
+                    },
                     'webcam-nozzle-crosshair': {
                         name: 'WebcamNozzleCrosshair',
                         template: '<div class="webcam-nozzle-crosshair-stub" />',

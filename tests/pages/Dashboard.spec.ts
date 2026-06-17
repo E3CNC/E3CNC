@@ -79,9 +79,7 @@ import DashboardPage from '@/pages/Dashboard.vue'
  *
  * @param layouts - map of layout identifiers to panel arrays
  */
-function createStoreWithLayouts(
-    layouts: Record<string, { name: string; visible: boolean }[]> = {}
-) {
+function createStoreWithLayouts(layouts: Record<string, { name: string; visible: boolean }[]> = {}) {
     const defaultLayouts: Record<string, { name: string; visible: boolean }[]> = {
         'desktop|1': [],
         'desktop|2': [],
@@ -144,9 +142,7 @@ describe('Dashboard.vue', () => {
                 { name: 'temperature', visible: true },
                 { name: 'webcam', visible: true },
             ],
-            'desktop|2': [
-                { name: 'jog', visible: true },
-            ],
+            'desktop|2': [{ name: 'jog', visible: true }],
         })
         const wrapper = mount(DashboardPage, {
             global: {
