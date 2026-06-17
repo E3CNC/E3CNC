@@ -445,8 +445,43 @@ function checkPrinters() {
     })
 }
 
+async function autoDetectMoonraker(): Promise<{ hostname: string; port: number } | null> {
+    const hostname = window.location.hostname
+    const ports = [7125, 7130]
+    for (const port of ports) {
+        try {
+            const url = `${window.location.protocol}//${hostname}:${port}/server/info`
+            const response = await fetch(url, { method: 'GET', signal: AbortSignal.timeout(3000) })
+            if (response.ok) {
+                window.console.log(`[auto-detect] Moonraker found at ${hostname}:${port}`)
+                return { hostname, port }
+            }
+        } catch {
+            // port not responding, try next
+        }
+    }
+    window.console.log('[auto-detect] No Moonraker instance found on this host')
+    return null
+}
+
 onMounted(() => {
-    store.dispatch('gui/remoteprinters/initFromLocalstorage').then(() => {
+    store.dispatch('gui/remoteprinters/initFromLocalstorage').then(async () => {
+        // Auto-discover Moonraker on the same host if no printers configured
+        if (printers.value.length === 0 && instancesDB.value !== 'moonraker' && instancesDB.value !== 'json') {
+            const detected = await autoDetectMoonraker()
+            if (detected) {
+                store.dispatch('gui/remoteprinters/store', {
+                    values: {
+                        hostname: detected.hostname,
+                        port: detected.port,
+                        path: '/',
+                        name: '',
+                    },
+                })
+                return
+            }
+        }
+
         if (!('printer' in route.query)) return
 
         const printerQuery = route.query.printer
