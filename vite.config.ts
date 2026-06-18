@@ -163,6 +163,10 @@ export default defineConfig({
                 maxThreads: 2,
             },
         },
+        css: true,
+        deps: {
+            inline: ['vuetify'],
+        },
         coverage: {
             provider: 'v8',
             reporter: ['text', 'text-summary'],
