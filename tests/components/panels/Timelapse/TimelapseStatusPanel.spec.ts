@@ -132,6 +132,16 @@ const vueLoadImageStub = {
     template: '<div class="vue-load-image"><slot name="image" /><slot name="preloader" /><slot name="error" /></div>',
 }
 
+function mountTimelapseStatusPanel(store: ReturnType<typeof createStoreWithState>) {
+    return mount(TimelapseStatusPanel, {
+        global: {
+            plugins: [store],
+            mocks: { $t: (key: string) => key },
+            stubs: { 'vue-load-image': vueLoadImageStub },
+        },
+    })
+}
+
 function createStoreWithState(overrides: Record<string, any> = {}) {
     return createStore({
         state: {
@@ -192,25 +202,14 @@ describe('TimelapseStatusPanel.vue', () => {
 
     it('renders panel with timelapse-status-panel class', () => {
         const store = createStoreWithState()
-        const wrapper = mount(TimelapseStatusPanel, {
-            global: {
-                plugins: [store],
-                mocks: { $t: (key: string) => key },
-                stubs: { 'vue-load-image': vueLoadImageStub },
-            },
-        })
+        const wrapper = mountTimelapseStatusPanel(store)
 
         expect(wrapper.find('.timelapse-status-panel').exists()).toBe(true)
     })
 
     it('shows no-data text when framesCount is 0', () => {
         const store = createStoreWithState()
-        const wrapper = mount(TimelapseStatusPanel, {
-            global: {
-                plugins: [store],
-                mocks: { $t: (key: string) => key },
-            },
-        })
+        const wrapper = mountTimelapseStatusPanel(store)
 
         expect(wrapper.text()).toContain('Timelapse.NoTimelapseData')
     })
@@ -226,12 +225,7 @@ describe('TimelapseStatusPanel.vue', () => {
                 },
             },
         })
-        const wrapper = mount(TimelapseStatusPanel, {
-            global: {
-                plugins: [store],
-                mocks: { $t: (key: string) => key },
-            },
-        })
+        const wrapper = mountTimelapseStatusPanel(store)
 
         expect(wrapper.text()).not.toContain('Timelapse.NoTimelapseData')
         expect(wrapper.find('.vue-load-image').exists()).toBe(true)
@@ -248,24 +242,14 @@ describe('TimelapseStatusPanel.vue', () => {
                 },
             },
         })
-        const wrapper = mount(TimelapseStatusPanel, {
-            global: {
-                plugins: [store],
-                mocks: { $t: (key: string) => key },
-            },
-        })
+        const wrapper = mountTimelapseStatusPanel(store)
 
         expect(wrapper.find('button').exists()).toBe(true)
     })
 
     it('renders settings rows with correct translations', () => {
         const store = createStoreWithState()
-        const wrapper = mount(TimelapseStatusPanel, {
-            global: {
-                plugins: [store],
-                mocks: { $t: (key: string) => key },
-            },
-        })
+        const wrapper = mountTimelapseStatusPanel(store)
 
         // These should appear even when no frames - but the v-else shows NoTimelapseData
         // When framesCount is 0, nothing else shows

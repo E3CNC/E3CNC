@@ -32,10 +32,10 @@ const mockStatusData = vi.hoisted(() => [
 
 vi.mock('@/composables/useHistoryStats', () => ({
     useHistoryStats: () => ({
-        allPrintStati: { value: ['completed', 'cancelled'] },
-        printStatusArray: { value: mockStatusData },
-        printStatusArrayChart: { value: mockStatusData },
-        groupedPrintStatusArray: { value: mockStatusData },
+        allPrintStati: ['completed', 'cancelled'],
+        printStatusArray: mockStatusData,
+        printStatusArrayChart: mockStatusData,
+        groupedPrintStatusArray: mockStatusData,
     }),
 }))
 
@@ -72,6 +72,13 @@ vi.mock('vuetify', () => ({
     createVuetify: () => ({}),
 }))
 
+vi.mock('vuetify/components', () => ({
+    VTable: {
+        name: 'VTable',
+        template: '<table class="v-table"><slot /></table>',
+    },
+}))
+
 import { shallowMount } from '@vue/test-utils'
 import HistoryAllPrintStatusTable from '@/components/charts/HistoryAllPrintStatusTable.vue'
 
@@ -86,11 +93,11 @@ describe('HistoryAllPrintStatusTable.vue', () => {
             global: {
                 stubs: {
                     'v-table': {
-                        template: '<div class="v-table-stub"><tbody><slot /></tbody></div>',
+                        template: '<div class="v-table-stub"><slot /></div>',
                     },
                     'history-all-print-status-table-item': {
                         props: ['item', 'valueName'],
-                        template: '<tr class="item-stub"><td>{{ item.displayName }}</td><td>{{ item.value }}</td></tr>',
+                        template: '<div class="item-stub">{{ item.displayName }} {{ item.value }}</div>',
                     },
                 },
             },
@@ -127,7 +134,7 @@ describe('HistoryAllPrintStatusTable.vue', () => {
             global: {
                 stubs: {
                     'v-table': {
-                        template: '<div class="v-table-stub"><tbody><slot /></tbody></div>',
+                        template: '<div class="v-table-stub"><slot /></div>',
                     },
                     'history-all-print-status-table-item': true,
                 },

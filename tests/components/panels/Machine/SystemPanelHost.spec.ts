@@ -304,7 +304,7 @@ describe('SystemPanelHost.vue', () => {
                     },
                     distribution: { name: 'Debian', release_info: { name: '#1', version_id: '12', id: 'debian' } },
                     python: { version: ['3', '11', '2'], version_string: '3.11.2' },
-                    system_uptime: 123456,
+                    system_uptime: { uptime: 123456 },
                     available_services: ['klipper', 'moonraker'],
                     sd_info: {
                         manufacturer_id: '123',

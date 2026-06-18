@@ -104,8 +104,24 @@ vi.mock('vue-observe-visibility', () => ({
     },
 }))
 
-import { shallowMount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import HistoryPrinttimeAvg from '@/components/charts/HistoryPrinttimeAvg.vue'
+
+const EChartStub = {
+    name: 'EChart',
+    props: ['option', 'initOptions', 'autoresize', 'style'],
+    template: '<div class="e-chart" :style="style"><slot /></div>',
+}
+
+function createWrapper() {
+    return mount(HistoryPrinttimeAvg, {
+        global: {
+            components: {
+                'e-chart': EChartStub,
+            },
+        },
+    })
+}
 
 describe('HistoryPrinttimeAvg.vue', () => {
     beforeEach(() => {
@@ -115,29 +131,28 @@ describe('HistoryPrinttimeAvg.vue', () => {
     })
 
     it('renders the e-chart component', () => {
-        const wrapper = shallowMount(HistoryPrinttimeAvg)
+        const wrapper = createWrapper()
         expect(wrapper.find('.e-chart').exists()).toBe(true)
     })
 
     it('applies fixed height and width styles', () => {
-        const wrapper = shallowMount(HistoryPrinttimeAvg)
+        const wrapper = createWrapper()
         const chart = wrapper.find('.e-chart')
         expect(chart.attributes('style')).toContain('height: 175px')
         expect(chart.attributes('style')).toContain('width: 100%')
     })
 
     it('passes init-options with svg renderer', () => {
-        const wrapper = shallowMount(HistoryPrinttimeAvg)
-        const chart = wrapper.find('.e-chart')
-        expect(chart.attributes('init-options')).toContain('svg')
+        const wrapper = createWrapper()
+        const chart = wrapper.findComponent({ name: 'EChart' })
+        expect(chart.props('initOptions')).toEqual({ renderer: 'svg' })
     })
 
     it('renders with zero array data when no jobs', () => {
         mockAllJobs.value = []
-        const wrapper = shallowMount(HistoryPrinttimeAvg)
-        const chart = wrapper.find('.e-chart')
-        const optionAttr = chart.attributes('option')
-        expect(optionAttr).toBeTruthy()
+        const wrapper = createWrapper()
+        const chart = wrapper.findComponent({ name: 'EChart' })
+        expect(chart.props('option')).toBeTruthy()
     })
 
     it('computes [1,0,0,0,0] for a single 30-min job (0-2h bucket)', () => {
@@ -149,9 +164,11 @@ describe('HistoryPrinttimeAvg.vue', () => {
                 start_time: now - 5000,
             }),
         ]
-        const wrapper = shallowMount(HistoryPrinttimeAvg)
-        const chart = wrapper.find('.e-chart')
-        expect(chart.attributes('option')).toBeTruthy()
+        const wrapper = createWrapper()
+        const chart = wrapper.findComponent({ name: 'EChart' })
+        const option = chart.props('option') as any
+        expect(option).toBeTruthy()
+        expect(option.series[0].data).toEqual([1, 0, 0, 0, 0])
     })
 
     it('computes correct buckets with one job per range', () => {
@@ -163,9 +180,11 @@ describe('HistoryPrinttimeAvg.vue', () => {
             createMockJob({ job_id: '4', print_duration: 64800, start_time: now - 40000 }),
             createMockJob({ job_id: '5', print_duration: 90000, start_time: now - 50000 }),
         ]
-        const wrapper = shallowMount(HistoryPrinttimeAvg)
-        const chart = wrapper.find('.e-chart')
-        expect(chart.attributes('option')).toBeTruthy()
+        const wrapper = createWrapper()
+        const chart = wrapper.findComponent({ name: 'EChart' })
+        const option = chart.props('option') as any
+        expect(option).toBeTruthy()
+        expect(option.series[0].data).toEqual([1, 1, 1, 1, 1])
     })
 
     it('ignores jobs older than 14 days', () => {
@@ -178,9 +197,11 @@ describe('HistoryPrinttimeAvg.vue', () => {
                 start_time: now - fourteenDaysSecs - 100,
             }),
         ]
-        const wrapper = shallowMount(HistoryPrinttimeAvg)
-        const chart = wrapper.find('.e-chart')
-        expect(chart.attributes('option')).toBeTruthy()
+        const wrapper = createWrapper()
+        const chart = wrapper.findComponent({ name: 'EChart' })
+        const option = chart.props('option') as any
+        expect(option).toBeTruthy()
+        expect(option.series[0].data).toEqual([0, 0, 0, 0, 0])
     })
 
     it('ignores non-completed jobs', () => {
@@ -193,9 +214,11 @@ describe('HistoryPrinttimeAvg.vue', () => {
                 start_time: now - 5000,
             }),
         ]
-        const wrapper = shallowMount(HistoryPrinttimeAvg)
-        const chart = wrapper.find('.e-chart')
-        expect(chart.attributes('option')).toBeTruthy()
+        const wrapper = createWrapper()
+        const chart = wrapper.findComponent({ name: 'EChart' })
+        const option = chart.props('option') as any
+        expect(option).toBeTruthy()
+        expect(option.series[0].data).toEqual([0, 0, 0, 0, 0])
     })
 
     it('uses selectedJobs when available', () => {
@@ -205,20 +228,22 @@ describe('HistoryPrinttimeAvg.vue', () => {
             createMockJob({ job_id: '2', print_duration: 14400, start_time: now - 20000 }),
         ]
         mockSelectedJobs.value = [createMockJob({ job_id: 's1', print_duration: 7200, start_time: now - 15000 })]
-        const wrapper = shallowMount(HistoryPrinttimeAvg)
-        const chart = wrapper.find('.e-chart')
-        expect(chart.attributes('option')).toBeTruthy()
+        const wrapper = createWrapper()
+        const chart = wrapper.findComponent({ name: 'EChart' })
+        const option = chart.props('option') as any
+        expect(option).toBeTruthy()
+        expect(option.series[0].data).toEqual([1, 0, 0, 0, 0])
     })
 
     it('renders with default xAxis categories (0-2h, 2-6h, etc.)', () => {
         mockAllJobs.value = []
-        const wrapper = shallowMount(HistoryPrinttimeAvg)
-        const chart = wrapper.find('.e-chart')
-        const optionAttr = chart.attributes('option')
-        expect(optionAttr).toContain('0-2h')
-        expect(optionAttr).toContain('2-6h')
-        expect(optionAttr).toContain('6-12h')
-        expect(optionAttr).toContain('12-24h')
-        expect(optionAttr).toContain('>24h')
+        const wrapper = createWrapper()
+        const chart = wrapper.findComponent({ name: 'EChart' })
+        const option = chart.props('option') as any
+        expect(option.xAxis.data).toContain('0-2h')
+        expect(option.xAxis.data).toContain('2-6h')
+        expect(option.xAxis.data).toContain('6-12h')
+        expect(option.xAxis.data).toContain('12-24h')
+        expect(option.xAxis.data).toContain('>24h')
     })
 })

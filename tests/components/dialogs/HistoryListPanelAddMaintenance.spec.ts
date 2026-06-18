@@ -55,7 +55,7 @@ const vuetifyComponentsMock = vi.hoisted(() => ({
     VTextField: {
         name: 'VTextField',
         props: ['modelValue', 'rules', 'label', 'hideDetails', 'variant', 'dense'],
-        template: '<input :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
+        template: '<div><label v-if="label">{{ label }}</label><input :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" /></div>',
     },
     VTextarea: {
         name: 'VTextarea',
@@ -98,7 +98,7 @@ vi.mock('@/components/settings/SettingsRow.vue', () => ({
     default: {
         name: 'SettingsRow',
         props: ['icon', 'title', 'subTitle'],
-        template: '<div class="settings-row"><slot /></div>',
+        template: '<div class="settings-row"><div v-if="title">{{ title }}</div><div v-if="subTitle">{{ subTitle }}</div><slot /></div>',
     },
 }))
 
@@ -220,7 +220,7 @@ describe('HistoryListPanelAddMaintenance.vue', () => {
         expect(saveBtn?.attributes('disabled')).toBeDefined()
     })
 
-    it('save button is enabled when name is filled and no reminder set', () => {
+    it('save button is enabled when name is filled and no reminder set', async () => {
         const store = createStoreWithState()
         const wrapper = mount(HistoryListPanelAddMaintenance, {
             props: {
@@ -235,8 +235,7 @@ describe('HistoryListPanelAddMaintenance.vue', () => {
         })
 
         const nameInput = wrapper.find('input')
-        nameInput.element.value = 'My Maintenance'
-        nameInput.trigger('input')
+        await nameInput.setValue('My Maintenance')
 
         const saveBtn = wrapper.findAll('button').find((btn) => btn.text().includes('Buttons.Save'))
         // With name set and no reminder selected, isValid should be true
@@ -247,7 +246,7 @@ describe('HistoryListPanelAddMaintenance.vue', () => {
         const store = createStoreWithState()
         const wrapper = mount(HistoryListPanelAddMaintenance, {
             props: {
-                modelValue: false,
+                modelValue: true,
             },
             global: {
                 plugins: [store],
@@ -257,12 +256,12 @@ describe('HistoryListPanelAddMaintenance.vue', () => {
             },
         })
 
-        // Set some values
+        // Set some values while dialog is open
         const nameInput = wrapper.find('input')
-        nameInput.element.value = 'Test'
-        nameInput.trigger('input')
+        await nameInput.setValue('Test')
 
-        // Open dialog - should reset
+        // Close and reopen dialog - should reset values
+        await wrapper.setProps({ modelValue: false })
         await wrapper.setProps({ modelValue: true })
 
         // After reset, name should be empty and save disabled
@@ -286,8 +285,7 @@ describe('HistoryListPanelAddMaintenance.vue', () => {
         })
 
         const nameInput = wrapper.find('input')
-        nameInput.element.value = 'My Maintenance'
-        nameInput.trigger('input')
+        await nameInput.setValue('My Maintenance')
 
         const saveBtn = wrapper.findAll('button').find((btn) => btn.text().includes('Buttons.Save'))
         if (saveBtn) {

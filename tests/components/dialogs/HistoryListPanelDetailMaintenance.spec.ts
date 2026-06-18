@@ -356,14 +356,11 @@ describe('HistoryListPanelDetailMaintenance.vue', () => {
             },
         })
 
-        const editBtn = wrapper.find('v-btn-stub')
-        // The first button is the edit button (mdiPencil)
-        // Then the close button (mdiCloseThick)
-        // We need to find the close button with label text
         const allButtons = wrapper.findAll('button')
-        // The last button (Cancel) triggers closeDialog
-        const cancelBtn = allButtons[allButtons.length - 1]
-        await cancelBtn.trigger('click')
+        // Find the Cancel button by its text label
+        const cancelBtn = allButtons.find((btn) => btn.text().includes('Buttons.Cancel'))
+        expect(cancelBtn).toBeTruthy()
+        await cancelBtn!.trigger('click')
 
         expect(wrapper.emitted('update:modelValue')).toBeTruthy()
         if (wrapper.emitted('update:modelValue')) {
@@ -421,7 +418,7 @@ describe('HistoryListPanelDetailMaintenance.vue', () => {
             getters: {
                 'socket/getUrl': () => '//localhost:8080',
                 'gui/getPanelExpand': () => () => true,
-                'gui/maintenance/getEntries': () => entries,
+                'gui/maintenance/getEntries': () => Object.values(entries),
             },
         })
 

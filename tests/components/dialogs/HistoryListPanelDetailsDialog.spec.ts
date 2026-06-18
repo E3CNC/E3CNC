@@ -394,7 +394,8 @@ describe('HistoryListPanelDetailsDialog.vue', () => {
             },
         })
 
-        const closeButton = wrapper.find('v-btn-stub')
+        const closeButton = wrapper.find('button')
+        expect(closeButton.exists()).toBe(true)
         await closeButton.trigger('click')
 
         expect(wrapper.emitted('update:modelValue')).toBeTruthy()

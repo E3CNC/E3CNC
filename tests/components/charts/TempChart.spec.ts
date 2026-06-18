@@ -82,6 +82,22 @@ vi.mock('vue-observe-visibility', () => ({
     },
 }))
 
+const EChartStub = {
+    name: 'EChart',
+    props: ['option', 'initOptions', 'autoresize', 'style'],
+    template: '<div class="e-chart" :style="style"><slot /></div>',
+}
+
+function mountTempChart(store: ReturnType<typeof createStoreWithState>) {
+    return mount(TempChart, {
+        global: {
+            plugins: [store],
+            mocks: { $t: (key: string) => key },
+            components: { 'e-chart': EChartStub },
+        },
+    })
+}
+
 function createStoreWithState(overrides: Record<string, any> = {}) {
     return createStore({
         state: {
@@ -137,24 +153,14 @@ describe('TempChart.vue', () => {
 
     it('renders the e-chart component', () => {
         const store = createStoreWithState()
-        const wrapper = mount(TempChart, {
-            global: {
-                plugins: [store],
-                mocks: { $t: (key: string) => key },
-            },
-        })
+        const wrapper = mountTempChart(store)
 
         expect(wrapper.find('.e-chart').exists()).toBe(true)
     })
 
     it('applies height from uiSettings', () => {
         const store = createStoreWithState()
-        const wrapper = mount(TempChart, {
-            global: {
-                plugins: [store],
-                mocks: { $t: (key: string) => key },
-            },
-        })
+        const wrapper = mountTempChart(store)
 
         const chart = wrapper.find('.e-chart')
         expect(chart.attributes('style')).toContain('height: 250px')
@@ -162,12 +168,7 @@ describe('TempChart.vue', () => {
 
     it('renders without data series', () => {
         const store = createStoreWithState()
-        const wrapper = mount(TempChart, {
-            global: {
-                plugins: [store],
-                mocks: { $t: (key: string) => key },
-            },
-        })
+        const wrapper = mountTempChart(store)
 
         // Should still render even with empty series/source
         expect(wrapper.find('.e-chart').exists()).toBe(true)
@@ -193,12 +194,7 @@ describe('TempChart.vue', () => {
                 navigationSettings: { entries: [] },
             },
         })
-        const wrapper = mount(TempChart, {
-            global: {
-                plugins: [store],
-                mocks: { $t: (key: string) => key },
-            },
-        })
+        const wrapper = mountTempChart(store)
 
         const chart = wrapper.find('.e-chart')
         expect(chart.attributes('style')).toContain('height: 400px')
@@ -206,12 +202,7 @@ describe('TempChart.vue', () => {
 
     it('has w-100 class', () => {
         const store = createStoreWithState()
-        const wrapper = mount(TempChart, {
-            global: {
-                plugins: [store],
-                mocks: { $t: (key: string) => key },
-            },
-        })
+        const wrapper = mountTempChart(store)
 
         expect(wrapper.classes()).toContain('w-100')
     })

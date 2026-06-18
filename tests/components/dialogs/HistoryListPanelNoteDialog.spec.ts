@@ -42,7 +42,7 @@ vi.mock('@/components/ui/Panel.vue', () => ({
     default: {
         name: 'Panel',
         props: ['icon', 'title', 'cardClass', 'marginBottom'],
-        template: '<div :class="cardClass"><slot name="buttons" /><slot /></div>',
+        template: '<div :class="cardClass"><div v-if="title">{{ title }}</div><slot name="buttons" /><slot /></div>',
     },
 }))
 

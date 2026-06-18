@@ -71,10 +71,10 @@ vi.mock('@/composables/useTheme', () => ({
 
 vi.mock('@/composables/useHistoryStats', () => ({
     useHistoryStats: () => ({
-        allPrintStati: { value: ['completed', 'in_progress'] },
-        printStatusArray: { value: mockGroupedData },
-        printStatusArrayChart: { value: mockGroupedData },
-        groupedPrintStatusArray: { value: mockGroupedData },
+        allPrintStati: new mockRefFactory(['completed', 'in_progress']),
+        printStatusArray: new mockRefFactory(mockGroupedData),
+        printStatusArrayChart: new mockRefFactory(mockGroupedData),
+        groupedPrintStatusArray: new mockRefFactory(mockGroupedData),
     }),
 }))
 
@@ -178,31 +178,33 @@ describe('HistoryAllPrintStatusChart.vue', () => {
 
     it('passes autoresize prop as true', () => {
         const wrapper = createWrapper({ valueName: 'jobs' })
-        const chart = wrapper.find('.e-chart')
-        expect(chart.attributes('autoresize')).toBe('true')
+        const chart = wrapper.findComponent(EChartStub)
+        expect(chart.props('autoresize')).toBe(true)
     })
 
     it('passes init-options with svg renderer', () => {
         const wrapper = createWrapper({ valueName: 'jobs' })
-        const chart = wrapper.find('.e-chart')
-        expect(chart.attributes('init-options')).toContain('svg')
+        const chart = wrapper.findComponent(EChartStub)
+        expect(chart.props('initOptions')).toEqual({ renderer: 'svg' })
     })
 
-    it('sets option attribute with chart options containing pie series and data', () => {
+    it('sets option prop with chart options containing pie series and data', () => {
         const wrapper = createWrapper({ valueName: 'jobs' })
-        const chart = wrapper.find('.e-chart')
-        const optionAttr = chart.attributes('option')
-        expect(optionAttr).toBeTruthy()
-        expect(optionAttr).toContain('pie')
-        expect(optionAttr).toContain('completed')
-        expect(optionAttr).toContain('in_progress')
+        const chart = wrapper.findComponent(EChartStub)
+        const option = chart.props('option') as any
+        expect(option).toBeTruthy()
+        expect(option.series[0].type).toBe('pie')
+        expect(option.series[0].data).toEqual(expect.arrayContaining([
+            expect.objectContaining({ name: 'completed' }),
+            expect.objectContaining({ name: 'in_progress' }),
+        ]))
     })
 
     it('chart options disable animation', () => {
         const wrapper = createWrapper({ valueName: 'jobs' })
-        const chart = wrapper.find('.e-chart')
-        const optionAttr = chart.attributes('option')
-        expect(optionAttr).toContain('false')
+        const chart = wrapper.findComponent(EChartStub)
+        const option = chart.props('option') as any
+        expect(option.animation).toBe(false)
     })
 
     it('renders without a valueName prop (defaults to jobs)', () => {
