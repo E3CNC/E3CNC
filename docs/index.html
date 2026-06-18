@@ -4,10 +4,29 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mainsail CNC</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
     <style>
+        @font-face {
+            font-family: '0xProto Nerd Font Mono';
+            font-style: normal;
+            font-display: swap;
+            font-weight: 400;
+            src: url(fonts/0xproto/0xProtoNerdFontMono-Regular.ttf) format('truetype');
+        }
+        @font-face {
+            font-family: '0xProto Nerd Font Mono';
+            font-style: normal;
+            font-display: swap;
+            font-weight: 700;
+            src: url(fonts/0xproto/0xProtoNerdFontMono-Bold.ttf) format('truetype');
+        }
+        @font-face {
+            font-family: '0xProto Nerd Font Mono';
+            font-style: italic;
+            font-display: swap;
+            font-weight: 400;
+            src: url(fonts/0xproto/0xProtoNerdFontMono-Italic.ttf) format('truetype');
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
@@ -22,7 +41,7 @@
         }
 
         body {
-            font-family: 'Inter', -apple-system, sans-serif;
+            font-family: '0xProto Nerd Font Mono', monospace;
             background: var(--bg);
             color: var(--text);
             line-height: 1.6;
@@ -35,7 +54,7 @@
 
         header { text-align: center; margin-bottom: 56px; }
         header h1 {
-            font-family: 'JetBrains Mono', monospace;
+            font-family: '0xProto Nerd Font Mono', monospace;
             font-size: 2.5rem;
             font-weight: 700;
             letter-spacing: -0.02em;
@@ -50,7 +69,7 @@
 
         section { margin-bottom: 48px; }
         section h2 {
-            font-family: 'JetBrains Mono', monospace;
+            font-family: '0xProto Nerd Font Mono', monospace;
             font-size: 1.15rem;
             font-weight: 600;
             color: var(--accent);
@@ -77,7 +96,7 @@
         }
         .feature .icon { font-size: 1.3rem; margin-bottom: 6px; color: var(--accent); }
         .feature h3 {
-            font-family: 'JetBrains Mono', monospace;
+            font-family: '0xProto Nerd Font Mono', monospace;
             font-size: 0.85rem;
             font-weight: 600;
             margin-bottom: 4px;
@@ -144,57 +163,47 @@
         </section>
 
         <section>
-            <h2>Key Features</h2>
+            <h2>Features</h2>
             <div class="features">
                 <div class="feature">
-                    <div class="icon"><i class="fa-solid fa-gear"></i></div>
-                    <h3>CNC Dashboard</h3>
-                    <p>Machine status, DRO, jog controls, WCS offsets, spindle & coolant control at a glance.</p>
+                    <div class="icon"><i class="fa-solid fa-window-maximize"></i></div>
+                    <h3>Floating Panels</h3>
+                    <p>Any dashboard panel can be torn off into a freely draggable, resizable window. Dock it back with a smooth animation.</p>
                 </div>
                 <div class="feature">
-                    <div class="icon"><i class="fa-solid fa-temperature-high"></i></div>
-                    <h3>Temperature Management</h3>
-                    <p>Monitor and control spindles, enclosures, and additional sensors with real-time charts.</p>
+                    <div class="icon"><i class="fa-solid fa-crosshairs"></i></div>
+                    <h3>Interactive Offsets</h3>
+                    <p>SVG coordinate map with click-to-move, hover crosshairs, snap-to-grid, and stock size visualization for all six WCS zones.</p>
                 </div>
                 <div class="feature">
-                    <div class="icon"><i class="fa-solid fa-file-code"></i></div>
-                    <h3>G-Code File Management</h3>
-                    <p>Upload, organize, and send G-code files directly to your machine. Thumbnail previews included.</p>
+                    <div class="icon"><i class="fa-solid fa-icons"></i></div>
+                    <h3>Smart File Browsing</h3>
+                    <p>File-type icons with distinct colors, sortable columns, and automatic backup file detection with hide toggle.</p>
                 </div>
                 <div class="feature">
-                    <div class="icon"><i class="fa-solid fa-keyboard"></i></div>
-                    <h3>MDI Console</h3>
-                    <p>Send raw G-code commands interactively with autocomplete and command history.</p>
+                    <div class="icon"><i class="fa-solid fa-images"></i></div>
+                    <h3>CNC Card Grid</h3>
+                    <p>G-code files displayed as rich cards with large toolpath thumbnails, stock dimensions, and CAM metadata at a glance.</p>
                 </div>
                 <div class="feature">
-                    <div class="icon"><i class="fa-solid fa-camera"></i></div>
-                    <h3>Webcam Support</h3>
-                    <p>Multiple webcam streams with support for MJEG-Streamer, camera-streamer, and more.</p>
+                    <div class="icon"><i class="fa-solid fa-wifi"></i></div>
+                    <h3>Auto-Connect</h3>
+                    <p>Auto-discovers Moonraker on page load by probing ports 7125 and 7130. No manual IP entry needed.</p>
                 </div>
                 <div class="feature">
-                    <div class="icon"><i class="fa-solid fa-chart-simple"></i></div>
-                    <h3>History & Analytics</h3>
-                    <p>Track job history, print time averages, and machine usage statistics.</p>
+                    <div class="icon"><i class="fa-solid fa-gauge-high"></i></div>
+                    <h3>Compact DRO</h3>
+                    <p>Live machine position, work offset, and velocity displayed in the top toolbar — always visible, never in the way.</p>
                 </div>
                 <div class="feature">
-                    <div class="icon"><i class="fa-solid fa-wrench"></i></div>
-                    <h3>Machine Config</h3>
-                    <p>Edit Klipper config files, manage Moonraker settings, and update firmware from the browser.</p>
+                    <div class="icon"><i class="fa-solid fa-arrow-up"></i></div>
+                    <h3>Keyboard Jog</h3>
+                    <p>Arrow key jogging with toggle — move your machine axes directly from the keyboard, no mouse required.</p>
                 </div>
                 <div class="feature">
-                    <div class="icon"><i class="fa-solid fa-server"></i></div>
-                    <h3>Farm Mode</h3>
-                    <p>Monitor and control multiple machines from a single dashboard.</p>
-                </div>
-                <div class="feature">
-                    <div class="icon"><i class="fa-solid fa-bolt"></i></div>
-                    <h3>Ansible Deployment</h3>
-                    <p>Idempotent install & upgrade via Ansible playbooks. Pre-built releases for low-RAM devices.</p>
-                </div>
-                <div class="feature">
-                    <div class="icon"><i class="fa-solid fa-palette"></i></div>
-                    <h3>Theming</h3>
-                    <p>Customizable UI with built-in themes and full branding support.</p>
+                    <div class="icon"><i class="fa-solid fa-floppy-disk"></i></div>
+                    <h3>State Persistence</h3>
+                    <p>Floating panel positions, editor files, dashboard scroll, and grid settings all survive page reloads.</p>
                 </div>
             </div>
         </section>
