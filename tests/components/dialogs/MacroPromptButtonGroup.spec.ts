@@ -10,7 +10,7 @@ vi.mock('@/components/dialogs/MacroPromptButton.vue', () => ({
     default: {
         name: 'MacroPromptButton',
         props: ['event'],
-        template: '<button class="macro-prompt-btn">{{ event?.name }}</button>',
+        template: '<button class="macro-prompt-btn">{{ event?.message }}</button>',
     },
 }))
 

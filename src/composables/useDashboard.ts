@@ -12,6 +12,7 @@ import {
     mdiEngine,
     mdiGrid,
     mdiInformation,
+    mdiLedStrip,
     mdiThermometerLines,
     mdiWebcam,
     mdiAxisArrow,
@@ -82,21 +83,26 @@ export function useDashboard() {
             case 'console':
                 return mdiConsoleLine
             case 'gcodefiles':
-                return mdiGrid
-            case 'spindle-coolant':
-                return mdiEngine
-            case 'cnc-status':
-                return mdiInformation
-            case 'dro':
-                return mdiAxisArrow
-            case 'jog':
-                return mdiHandBackRight
             case 'wcs':
             case 'offsets':
             case 'offset-preview':
+                return mdiGrid
+            case 'spindle-coolant':
+            case 'machine-settings':
+                return mdiEngine
+            case 'cnc-status':
+                return mdiAxisArrow
+            case 'dro':
                 return mdiCrosshairsGps
+            case 'jog':
+                return mdiHandBackRight
+            case 'miniconsole':
+            case 'mdi':
+                return mdiConsoleLine
+            case 'led-effects':
+                return mdiLedStrip
             default:
-                return ''
+                return mdiInformation
         }
     }
 

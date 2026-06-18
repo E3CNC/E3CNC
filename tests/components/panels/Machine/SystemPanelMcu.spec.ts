@@ -255,8 +255,22 @@ describe('SystemPanelMcu.vue', () => {
     })
 
     it('shows mcu_constants and last_stats in details dialog', async () => {
+        const mcu = {
+            ...mcuBase,
+            mcu_constants: { ADC_MAX: 4095, CLOCK_FREQ: 250000000, STATS_SUMSQ_BASE: 256 },
+            last_stats: {
+                mcu_awake: 1234.567,
+                mcu_task_avg: 0.000001,
+                mcu_task_stddev: 0.000001,
+                bytes_write: 1000,
+                bytes_read: 5000,
+                bytes_invalid: 0,
+                bytes_retransmit: 0,
+                freq: 250000000,
+            },
+        }
         const wrapper = mount(SystemPanelMcu, {
-            props: { mcu: { ...mcuWithConstants, ...mcuWithLastStats } },
+            props: { mcu },
             global: {
                 mocks: { $t: (key: string) => key },
             },
@@ -275,7 +289,7 @@ describe('SystemPanelMcu.vue', () => {
 
     it('shows no constants block when mcu_constants is absent', async () => {
         const wrapper = mount(SystemPanelMcu, {
-            props: { mcu: mcuBase },
+            props: { mcu: { ...mcuBase, mcu_constants: null } } as any,
             global: {
                 mocks: { $t: (key: string) => key },
             },

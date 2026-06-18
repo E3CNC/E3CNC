@@ -218,10 +218,10 @@ describe('SystemPanelHost.vue', () => {
             },
         })
 
-        const small = wrapper.find('small')
-        expect(small.exists()).toBe(true)
-        expect(small.text()).toContain('BCM2711')
-        expect(small.text()).toContain('64bit')
+        const chip = wrapper.find('.system-host-chip')
+        expect(chip.exists()).toBe(true)
+        expect(chip.text()).toContain('BCM2711')
+        expect(chip.text()).toContain('64bit')
     })
 
     it('renders CPU usage gauge when getCpuUsage returns a value', () => {
