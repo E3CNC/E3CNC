@@ -3,7 +3,7 @@ import { RootState } from '@/store/types'
 import type { GuiStateDashboardLayoutKey, GuiStateLayoutoption } from '@/store/gui/types'
 import { v4 as uuidv4 } from 'uuid'
 import { GuiMacrosState } from '@/store/gui/macros/types'
-import { getSocket, $toast } from '@/store/runtime'
+import { getSocket } from '@/store/runtime'
 
 export const actions: ActionTree<GuiMacrosState, RootState> = {
     reset({ commit }) {

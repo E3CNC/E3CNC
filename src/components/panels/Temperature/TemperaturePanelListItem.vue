@@ -10,16 +10,16 @@
         </td>
         <td v-if="!isResponsiveMobile" class="state">
             <v-tooltip v-if="state !== null" top>
-                <template #activator="{ props }">
-                    <div v-bind="props">{{ formatState }}</div>
+                <template #activator="{ props: tooltipProps }">
+                    <div v-bind="tooltipProps">{{ formatState }}</div>
                 </template>
                 <span>{{ $t('Panels.TemperaturePanel.Avg') }}: {{ avgState }} %</span>
             </v-tooltip>
         </td>
         <td class="current">
             <v-tooltip top :disabled="!(measured_min_temp !== null || measured_max_temp !== null)">
-                <template #activator="{ props }">
-                    <span style="cursor: default" v-bind="props">
+                <template #activator="{ props: tempTooltipProps }">
+                    <span style="cursor: default" v-bind="tempTooltipProps">
                         {{ formatTemperature }}
                     </span>
                 </template>
@@ -57,7 +57,12 @@
             :additional-sensor-name="additionalSensorName"
             :icon="icon"
             :color="color" />
-        <v-menu v-model="showContextMenu" :target="[contextMenuX, contextMenuY]" location="bottom start" origin="top left" :offset="4">
+        <v-menu
+            v-model="showContextMenu"
+            :target="[contextMenuX, contextMenuY]"
+            location="bottom start"
+            origin="top left"
+            :offset="4">
             <v-list>
                 <v-list-item v-if="isHeater" :disabled="!isHeaterActive" @click="turnOffHeater">
                     <v-icon start>{{ mdiSnowflake }}</v-icon>

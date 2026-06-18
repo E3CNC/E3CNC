@@ -136,10 +136,6 @@ async function setSpindleOff() {
     await sendSpindle('off')
 }
 
-async function setSpindleCwl() {
-    await sendSpindle('cw')
-}
-
 async function setSpindleCcwl() {
     await sendSpindle('ccw')
 }

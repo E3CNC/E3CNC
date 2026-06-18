@@ -1,7 +1,7 @@
 import { ActionTree } from 'vuex'
 import { RootState } from '@/store/types'
 import type { GuiWebcamState, GuiWebcamStateWebcam } from '@/store/gui/webcams/types'
-import { getSocket, $toast } from '@/store/runtime'
+import { getSocket } from '@/store/runtime'
 
 export const actions: ActionTree<GuiWebcamState, RootState> = {
     reset({ commit }) {

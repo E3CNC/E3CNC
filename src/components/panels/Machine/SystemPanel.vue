@@ -31,7 +31,7 @@ import { useStore } from 'vuex'
 import { useBase } from '@/composables/useBase'
 import Panel from '@/components/ui/Panel.vue'
 import { caseInsensitiveSort } from '@/plugins/helpers'
-import { mdiCloseThick, mdiMemory, mdiUsb } from '@mdi/js'
+import { mdiMemory, mdiUsb } from '@mdi/js'
 import SystemPanelHost from '@/components/panels/Machine/SystemPanelHost.vue'
 import SystemPanelMcu from '@/components/panels/Machine/SystemPanelMcu.vue'
 

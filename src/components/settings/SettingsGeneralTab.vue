@@ -90,8 +90,6 @@ import { useI18n } from 'vue-i18n'
 import { useBase } from '@/composables/useBase'
 import { useSettingsDatabase } from '@/composables/useSettingsDatabase'
 import SettingsRow from '@/components/settings/SettingsRow.vue'
-import Panel from '@/components/ui/Panel.vue'
-import CheckboxList from '@/components/inputs/CheckboxList.vue'
 import SettingsGeneralTabBackupDatabase from '@/components/settings/General/GeneralBackup.vue'
 import SettingsGeneralTabRestoreDatabase from '@/components/settings/General/GeneralRestore.vue'
 import SettingsGeneralTabResetDatabase from '@/components/settings/General/GeneralReset.vue'
@@ -207,7 +205,6 @@ const timeFormatItems = computed(() => {
 })
 
 const allowedCalcPrintProgressValues = ['file-relative', 'file-absolute', 'slicer'] as const
-const allowedCalcEstimateValues = ['file'] as const
 const allowedCalcEtaValues = ['file', 'slicer'] as const
 
 const calcPrintProgressItems = computed(() => [

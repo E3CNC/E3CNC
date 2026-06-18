@@ -20,7 +20,6 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useBase } from '@/composables/useBase'
 
 const props = defineProps<{
     position: string

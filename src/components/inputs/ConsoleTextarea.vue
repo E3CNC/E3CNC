@@ -23,17 +23,15 @@
         @click:append="doSend" />
 </template>
 <script setup lang="ts">
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed } from 'vue'
 import { useStore } from 'vuex'
 import { useBase } from '@/composables/useBase'
 import { useConsole } from '@/composables/useConsole'
-import { useSocket } from '@/composables/useSocket'
 import { mdiSend, mdiChevronDoubleRight } from '@mdi/js'
 import type { VTextareaType } from '@/store/printer/types'
 import { strLongestEqual } from '@/plugins/helpers'
 
 const store = useStore()
-const socket = useSocket()
 const { isTouchDevice } = useBase()
 const { helplist, lastCommands } = useConsole()
 
@@ -50,14 +48,6 @@ function getCurrentLine(): number {
     if (!textarea) return 1
     const textBeforeCursor = textarea.value.substring(0, textarea.selectionStart)
     return textBeforeCursor.split('\n').length
-}
-
-function setGcode(gcodeVal: string): void {
-    gcode.value = gcodeVal
-
-    nextTick(() => {
-        gcodeCommandField.value?.focus()
-    })
 }
 
 function onKeyUp(event: KeyboardEvent): void {

@@ -34,10 +34,6 @@ const maxLength = computed(() => (jobs.value.length > 5 ? 4 : 5))
 const jobsTable = computed(() => jobs.value.slice(0, maxLength.value))
 
 const jobsRest = computed(() => jobs.value.slice(maxLength.value))
-
-function startJobqueue() {
-    store.dispatch('server/jobQueue/start')
-}
 </script>
 
 <style scoped>

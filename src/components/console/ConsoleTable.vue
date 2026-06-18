@@ -15,11 +15,10 @@
 </template>
 
 <script setup lang="ts">
-import { useStore } from 'vuex'
 import type { ServerStateEvent } from '@/store/server/types'
 import ConsoleTableEntry from '@/components/console/ConsoleTableEntry.vue'
 
-const props = defineProps<{
+defineProps<{
     events: ServerStateEvent[]
     isMini?: boolean
 }>()

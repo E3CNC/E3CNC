@@ -1,5 +1,5 @@
 import { getDefaultState } from './index'
-import { getSocket, $toast } from '@/store/runtime'
+import { getSocket } from '@/store/runtime'
 import { findDirectory } from '@/plugins/helpers'
 import { MutationTree } from 'vuex'
 import type { FileState, FileStateFile } from '@/store/files/types'

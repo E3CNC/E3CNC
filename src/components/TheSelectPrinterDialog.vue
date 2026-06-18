@@ -322,7 +322,6 @@ const defaultMoonrakerPort = computed(() => (protocol.value === 'wss' ? 7130 : 7
 const hostname = computed(() => store.state.socket.hostname)
 const port = computed(() => store.state.socket.port)
 const path = computed(() => store.state.socket.path)
-const name = computed(() => store.state.printer)
 const formatHostname = computed(
     () => hostname.value + (port.value !== '' ? ':' + port.value : '') + (path.value !== '' ? path.value : '')
 )

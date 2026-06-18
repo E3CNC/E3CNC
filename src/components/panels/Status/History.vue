@@ -51,10 +51,6 @@ const jobsCombined = computed(() => {
 
     return result
 })
-
-function startJobqueue() {
-    store.dispatch('server/jobQueue/start')
-}
 </script>
 
 <style scoped>

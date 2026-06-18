@@ -55,7 +55,7 @@ import UpdateHintAlert from '@/components/panels/Machine/UpdatePanel/UpdateHintA
 import semver from 'semver'
 
 const props = defineProps<{
-    'model-value': boolean
+    modelValue: boolean
 }>()
 
 const emit = defineEmits<{
@@ -69,7 +69,7 @@ const checkboxUpdateQuestion = ref(false)
 const boolShowCommitHistory = ref(false)
 const showCommitsRepo = ref<ServerUpdateManagerStateGitRepo | null>(null)
 
-const showDialog = computed(() => props['model-value'])
+const showDialog = computed(() => props.modelValue)
 
 function emitValue(val: boolean) {
     emit('update:model-value', val)

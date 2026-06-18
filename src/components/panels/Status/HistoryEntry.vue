@@ -10,10 +10,15 @@
                 :disabled="!bigThumbnail"
                 content-class="tooltip__content-opacity1"
                 :color="bigThumbnailTooltipColor">
-                <template #activator="{ props }">
+                <template #activator="{ props: tooltipProps }">
                     <vue-load-image class="text-center width-32">
                         <template #image>
-                            <img :src="smallThumbnail" :width="32" :height="32" :alt="job.filename" v-bind="props" />
+                            <img
+                                :src="smallThumbnail"
+                                :width="32"
+                                :height="32"
+                                :alt="job.filename"
+                                v-bind="tooltipProps" />
                         </template>
                         <template #preloader>
                             <v-progress-circular indeterminate color="primary" />
@@ -36,8 +41,8 @@
         </v-col>
         <v-col class="v-col-auto d-flex flex-column justify-center pa-0 pr-3">
             <v-tooltip location="top">
-                <template #activator="{ props }">
-                    <span v-bind="props">
+                <template #activator="{ props: statusTooltipProps }">
+                    <span v-bind="statusTooltipProps">
                         <v-icon size="small" :color="statusColor" :disabled="!job.exists">
                             {{ statusIcon }}
                         </v-icon>
@@ -46,7 +51,12 @@
                 <span>{{ statusName }}</span>
             </v-tooltip>
         </v-col>
-        <v-menu v-model="showContextMenu" :target="[contextMenuX, contextMenuY]" location="bottom start" origin="top left" :offset="4">
+        <v-menu
+            v-model="showContextMenu"
+            :target="[contextMenuX, contextMenuY]"
+            location="bottom start"
+            origin="top left"
+            :offset="4">
             <v-list>
                 <v-list-item
                     v-if="job.exists && file"
@@ -88,7 +98,7 @@ import { useBase } from '@/composables/useBase'
 import { useSocket } from '@/composables/useSocket'
 import type { FileStateGcodefile, FileStateFileThumbnail } from '@/store/files/types'
 import StartPrintDialog from '@/components/dialogs/StartPrintDialog.vue'
-import { mdiCloseThick, mdiDelete, mdiFile, mdiPlaylistPlus, mdiPrinter } from '@mdi/js'
+import { mdiDelete, mdiFile, mdiPlaylistPlus, mdiPrinter } from '@mdi/js'
 import { defaultBigThumbnailBackground, thumbnailBigMin, thumbnailSmallMax, thumbnailSmallMin } from '@/store/variables'
 import type { ServerHistoryStateJobWithCount } from '@/store/server/history/types'
 import { convertPrintStatusIcon, escapePath, formatPrintTime } from '@/plugins/helpers'

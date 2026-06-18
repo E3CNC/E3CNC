@@ -17,7 +17,7 @@ const props = defineProps({
     breakpoints: { type: Object, default: undefined },
 })
 
-const { el, targetRef } = useResponsive(props.breakpoints)
+const { el } = useResponsive(props.breakpoints)
 
 const init = ref(false)
 

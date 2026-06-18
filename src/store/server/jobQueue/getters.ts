@@ -1,7 +1,7 @@
 import { GetterTree } from 'vuex'
 import type { ServerJobQueueState, ServerJobQueueStateJob } from '@/store/server/jobQueue/types'
 import { RootState } from '@/store/types'
-import { getSocket, $toast } from '@/store/runtime'
+import { getSocket } from '@/store/runtime'
 
 export const getters: GetterTree<ServerJobQueueState, RootState> = {
     getJobs: (state, getters, rootState, rootGetters) => {

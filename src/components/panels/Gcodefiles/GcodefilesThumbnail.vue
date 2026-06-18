@@ -98,16 +98,14 @@ const bigThumbnailUrl = computed(() => {
 })
 
 const displayThumbnailUrl = computed(() =>
-    props.variant === 'card' ? bigThumbnailUrl.value ?? smallThumbnailUrl.value : smallThumbnailUrl.value
+    props.variant === 'card' ? (bigThumbnailUrl.value ?? smallThumbnailUrl.value) : smallThumbnailUrl.value
 )
 
 const displayThumbnailFailed = computed(() =>
     props.variant === 'card' ? bigThumbnailFailed.value && smallThumbnailFailed.value : smallThumbnailFailed.value
 )
 
-const showTooltip = computed(
-    () => props.variant === 'icon' && !!smallThumbnailUrl.value && !smallThumbnailFailed.value
-)
+const showTooltip = computed(() => props.variant === 'icon' && !!smallThumbnailUrl.value && !smallThumbnailFailed.value)
 
 const thumbnailClass = computed(() => [
     'gcode-thumbnail',

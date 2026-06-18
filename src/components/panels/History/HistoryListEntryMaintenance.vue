@@ -45,7 +45,12 @@
             {{ formatDateTime(item.start_time * 1000, false) }}
         </td>
         <td :colspan="tableFields.length - 1" />
-        <v-menu v-model="contextMenuBool" :target="[contextMenuX, contextMenuY]" location="bottom start" origin="top left" :offset="4">
+        <v-menu
+            v-model="contextMenuBool"
+            :target="[contextMenuX, contextMenuY]"
+            location="bottom start"
+            origin="top left"
+            :offset="4">
             <v-list>
                 <v-list-item @click="detailsDialogBool = true">
                     <v-icon class="mr-1">{{ mdiTextBoxSearch }}</v-icon>
@@ -65,7 +70,6 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useStore } from 'vuex'
 import { useBase } from '@/composables/useBase'
 import type { LongpressEvent } from '@/directives/longpress'
-import Panel from '@/components/ui/Panel.vue'
 import {
     mdiAdjust,
     mdiAlarm,

@@ -26,7 +26,7 @@ const value = computed(() =>
     })
 )
 
-function setValue(newVal: any) {
+function setValue(newVal: unknown) {
     store.dispatch('gui/setDatasetAdditionalSensorStatus', {
         objectName: props.objectName,
         dataset: props.additionalSensor,

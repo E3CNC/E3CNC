@@ -54,7 +54,7 @@ import type { TranslateResult } from 'vue-i18n'
 
 const store = useStore()
 const { t } = useI18n()
-const { loadings, loadBackupableNamespaces, availableKeys, sortNamespaces } = useSettingsDatabase()
+const { loadings, availableKeys, sortNamespaces } = useSettingsDatabase()
 const { proxy } = getCurrentInstance()!
 
 const uploadBackupFile = ref<HTMLInputElement | null>(null)

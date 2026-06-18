@@ -25,7 +25,7 @@ import { useStore } from 'vuex'
 import type { GuiWebcamStateWebcam } from '@/store/gui/webcams/types'
 import WebcamWrapperItem from '@/components/webcams/WebcamWrapperItem.vue'
 
-const props = defineProps({
+defineProps({
     webcam: { type: Object, required: true },
     showFps: { type: Boolean, default: true },
     printerUrl: { type: String, default: null },

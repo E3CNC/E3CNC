@@ -6,7 +6,6 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { useBase } from '@/composables/useBase'
 import iro from '@jaames/iro'
 import type { IroColor } from '@irojs/iro-core'

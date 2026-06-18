@@ -90,7 +90,6 @@ import { useI18n } from 'vue-i18n'
 import { useBase } from '@/composables/useBase'
 import { useSocket } from '@/composables/useSocket'
 import ConnectionStatus from '../ui/ConnectionStatus.vue'
-import Panel from '@/components/ui/Panel.vue'
 import {
     mdiRestart,
     mdiDownload,
@@ -98,7 +97,6 @@ import {
     mdiAlertOutline,
     mdiRocketLaunch,
     mdiConnection,
-    mdiPrinter3d,
     mdiPower,
 } from '@mdi/js'
 

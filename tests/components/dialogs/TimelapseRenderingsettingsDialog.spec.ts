@@ -15,13 +15,29 @@ vi.mock('@/composables/useTimelapse', () => ({
 }))
 
 vi.mock('vuetify/components', () => ({
-    VDialog: { name: 'VDialog', props: ['modelValue', 'maxWidth', 'maxHeight'], template: '<div v-if="modelValue"><slot /></div>' },
+    VDialog: {
+        name: 'VDialog',
+        props: ['modelValue', 'maxWidth', 'maxHeight'],
+        template: '<div v-if="modelValue"><slot /></div>',
+    },
     VCardText: { name: 'VCardText', template: '<div><slot /></div>' },
     VRow: { name: 'VRow', template: '<div><slot /></div>' },
     VCol: { name: 'VCol', template: '<div><slot /></div>' },
-    VSelect: { name: 'VSelect', props: ['modelValue', 'label', 'items'], template: '<select class="v-select" :value="modelValue" />' },
-    VTextField: { name: 'VTextField', props: ['modelValue', 'label', 'type'], template: '<input class="v-text-field" :value="modelValue" />' },
-    VBtn: { name: 'VBtn', props: ['color', 'disabled'], template: '<button @click="$emit(\'click\', $event)"><slot /></button>' },
+    VSelect: {
+        name: 'VSelect',
+        props: ['modelValue', 'label', 'items'],
+        template: '<select class="v-select" :value="modelValue" />',
+    },
+    VTextField: {
+        name: 'VTextField',
+        props: ['modelValue', 'label', 'type'],
+        template: '<input class="v-text-field" :value="modelValue" />',
+    },
+    VBtn: {
+        name: 'VBtn',
+        props: ['color', 'disabled'],
+        template: '<button @click="$emit(\'click\', $event)"><slot /></button>',
+    },
     VIcon: { name: 'VIcon', template: '<i><slot /></i>' },
     VSpacer: { name: 'VSpacer', template: '<span />' },
     VDivider: { name: 'VDivider', template: '<hr />' },
@@ -32,12 +48,14 @@ vi.mock('@/components/ui/Panel.vue', () => ({
     default: {
         name: 'Panel',
         props: ['title', 'icon', 'cardClass', 'marginBottom'],
-        template: '<div class="panel-stub"><span>{{ title }}</span><slot name="buttons" /><slot name="default" /></div>',
+        template:
+            '<div class="panel-stub"><span>{{ title }}</span><slot name="buttons" /><slot name="default" /></div>',
     },
 }))
 
 const i18n = createI18n({
-    legacy: false, locale: 'en',
+    legacy: false,
+    locale: 'en',
     messages: {
         en: {
             Timelapse: {
@@ -59,7 +77,9 @@ const store = createStore({
 import TimelapseRenderingsettingsDialog from '@/components/dialogs/TimelapseRenderingsettingsDialog.vue'
 
 describe('TimelapseRenderingsettingsDialog.vue', () => {
-    beforeEach(() => { vi.clearAllMocks() })
+    beforeEach(() => {
+        vi.clearAllMocks()
+    })
 
     it('renders without crashing', () => {
         const wrapper = mount(TimelapseRenderingsettingsDialog, {

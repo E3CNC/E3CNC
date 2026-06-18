@@ -16,7 +16,9 @@ vi.mock('vuetify/components', () => ({
 import SettingsDashboardSortableItem from '@/components/settings/Dashboard/SortableItem.vue'
 
 describe('SettingsDashboardSortableItem.vue', () => {
-    beforeEach(() => { vi.clearAllMocks() })
+    beforeEach(() => {
+        vi.clearAllMocks()
+    })
 
     it('renders without crashing', () => {
         const wrapper = mount(SettingsDashboardSortableItem, {

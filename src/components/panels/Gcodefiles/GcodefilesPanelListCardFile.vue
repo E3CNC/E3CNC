@@ -14,8 +14,8 @@
                 :ripple="false"
                 @click.stop="select(!isSelected)" />
             <v-tooltip v-if="item.last_status" top>
-                <template #activator="{ props }">
-                    <v-icon v-bind="props" size="small" class="gcode-card__status" :color="statusIconColor">
+                <template #activator="{ props: tooltipProps }">
+                    <v-icon v-bind="tooltipProps" size="small" class="gcode-card__status" :color="statusIconColor">
                         {{ statusIcon }}
                     </v-icon>
                 </template>
@@ -74,7 +74,9 @@
                 </div>
                 <div class="gcode-card__stat">
                     <div class="gcode-card__stat-label">Stock</div>
-                    <div class="gcode-card__stat-value gcode-card__stat-value--stock">{{ cncMetadataViewModel.stock }}</div>
+                    <div class="gcode-card__stat-value gcode-card__stat-value--stock">
+                        {{ cncMetadataViewModel.stock }}
+                    </div>
                 </div>
             </div>
         </template>
@@ -194,12 +196,7 @@ import {
     mdiRenameBox,
     mdiVideo3d,
 } from '@mdi/js'
-import {
-    convertPrintStatusIcon,
-    convertPrintStatusIconColor,
-    escapePath,
-    formatFilesize,
-} from '@/plugins/helpers'
+import { convertPrintStatusIcon, convertPrintStatusIconColor, escapePath, formatFilesize } from '@/plugins/helpers'
 import { buildCncMetadataViewModel, loadCncMetadata, type CncMetadataViewModel } from '@/store/files/cncMetadata'
 import GcodefilesRenameFileDialog from '@/components/dialogs/GcodefilesRenameFileDialog.vue'
 import GcodefilesDuplicateFileDialog from '@/components/dialogs/GcodefilesDuplicateFileDialog.vue'
@@ -216,7 +213,7 @@ const props = defineProps<{
 
 const { apiUrl, klipperReadyForGui, printer_state, moonrakerComponents, formatDateTime } = useBase()
 const { doSend } = useControl()
-const { currentPath, setCurrentPath, selectedFiles, setSelectedFiles } = useGcodeFiles()
+const { currentPath } = useGcodeFiles()
 const socket = useSocket()
 const store = useStore()
 const router = useRouter()
@@ -254,16 +251,6 @@ const formattedSize = computed(() => (props.item.size !== undefined ? formatFile
 const statusIcon = computed(() => convertPrintStatusIcon(props.item.last_status ?? ''))
 
 const statusIconColor = computed(() => convertPrintStatusIconColor(props.item.last_status ?? ''))
-
-function dateOrDash(value: Date | null | undefined): string {
-    if (value === null || value === undefined) return '--'
-    return formatDateTime(value)
-}
-
-function secondsOrDash(value: number | null | undefined): string {
-    if (value === null || value === undefined) return '--'
-    return formatPrintTime(value)
-}
 
 async function refreshCncMetadata() {
     if (!isGcodeFile.value) return
@@ -312,7 +299,9 @@ function scanMeta() {
     store.dispatch('files/scanMetadata', {
         filename: 'gcodes' + currentPath.value + '/' + props.item.filename,
     })
-    setTimeout(() => { void refreshCncMetadata() }, 500)
+    setTimeout(() => {
+        void refreshCncMetadata()
+    }, 500)
 }
 
 function downloadFile() {

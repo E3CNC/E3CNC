@@ -68,7 +68,9 @@ function createStoreWithState() {
 import SettingsWebcamsTab from '@/components/settings/SettingsWebcamsTab.vue'
 
 describe('SettingsWebcamsTab.vue', () => {
-    beforeEach(() => { vi.clearAllMocks() })
+    beforeEach(() => {
+        vi.clearAllMocks()
+    })
 
     it('renders without crashing', () => {
         const store = createStoreWithState()
@@ -91,7 +93,7 @@ describe('SettingsWebcamsTab.vue', () => {
     it('shows webcam form when add webcam is clicked', async () => {
         const store = createStoreWithState()
         const wrapper = mount(SettingsWebcamsTab, { global: { plugins: [store, i18n] } })
-        const addBtn = wrapper.findAll('button').filter(b => b.text() === 'Add Webcam')
+        const addBtn = wrapper.findAll('button').filter((b) => b.text() === 'Add Webcam')
         await addBtn[0].trigger('click')
         expect(wrapper.find('.webcam-form').exists()).toBe(true)
     })

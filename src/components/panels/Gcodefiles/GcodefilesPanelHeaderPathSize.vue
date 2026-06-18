@@ -30,7 +30,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useStore } from 'vuex'
-import { useBase } from '@/composables/useBase'
 import { useGcodeFiles } from '@/composables/useGcodeFiles'
 import { formatFilesize } from '@/plugins/helpers'
 

@@ -61,7 +61,7 @@ import Panel from '@/components/ui/Panel.vue'
 import GitCommitsListDay from '@/components/panels/Machine/UpdatePanel/GitCommitsListDay.vue'
 
 const props = defineProps<{
-    'model-value': boolean
+    modelValue: boolean
     repo: ServerUpdateManagerStateGitRepo | null
 }>()
 
@@ -75,7 +75,7 @@ function emitValue(val: boolean) {
     emit('update:model-value', val)
 }
 
-const showDialog = computed(() => props['model-value'])
+const showDialog = computed(() => props.modelValue)
 
 const commitsBehind = computed<ServerUpdateManagerStateGitRepoCommit[]>(() => props.repo?.commits_behind ?? [])
 

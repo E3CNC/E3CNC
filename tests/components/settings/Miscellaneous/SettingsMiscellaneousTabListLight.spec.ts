@@ -4,7 +4,11 @@ import { createStore } from 'vuex'
 import { createI18n } from 'vue-i18n'
 
 vi.mock('vuetify/components', () => ({
-    VBtn: { name: 'VBtn', props: ['size', 'variant'], template: '<button @click="$emit(\'click\', $event)"><slot /></button>' },
+    VBtn: {
+        name: 'VBtn',
+        props: ['size', 'variant'],
+        template: '<button @click="$emit(\'click\', $event)"><slot /></button>',
+    },
     VIcon: { name: 'VIcon', props: ['size', 'start'], template: '<i class="v-icon" />' },
 }))
 
@@ -17,7 +21,8 @@ vi.mock('@/components/settings/SettingsRow.vue', () => ({
 }))
 
 const i18n = createI18n({
-    legacy: false, locale: 'en',
+    legacy: false,
+    locale: 'en',
     messages: {
         en: {
             Settings: {
@@ -38,7 +43,9 @@ function createStoreWithState() {
 import SettingsMiscellaneousTabListLight from '@/components/settings/Miscellaneous/SettingsMiscellaneousTabListLight.vue'
 
 describe('SettingsMiscellaneousTabListLight.vue', () => {
-    beforeEach(() => { vi.clearAllMocks() })
+    beforeEach(() => {
+        vi.clearAllMocks()
+    })
 
     it('renders without crashing', () => {
         const store = createStoreWithState()
@@ -65,7 +72,7 @@ describe('SettingsMiscellaneousTabListLight.vue', () => {
             props: { type: 'neopixel', name: 'case_led' },
             global: { plugins: [store, i18n] },
         })
-        const groupsBtn = wrapper.findAll('button').filter(b => b.text().includes('Groups'))
+        const groupsBtn = wrapper.findAll('button').filter((b) => b.text().includes('Groups'))
         await groupsBtn[0].trigger('click')
         expect(wrapper.emitted('open-page')![0]).toEqual([{ page: 'groups', type: 'neopixel', name: 'case_led' }])
     })
@@ -76,7 +83,7 @@ describe('SettingsMiscellaneousTabListLight.vue', () => {
             props: { type: 'neopixel', name: 'case_led' },
             global: { plugins: [store, i18n] },
         })
-        const presetsBtn = wrapper.findAll('button').filter(b => b.text().includes('Presets'))
+        const presetsBtn = wrapper.findAll('button').filter((b) => b.text().includes('Presets'))
         await presetsBtn[0].trigger('click')
         expect(wrapper.emitted('open-page')![0]).toEqual([{ page: 'presets', type: 'neopixel', name: 'case_led' }])
     })

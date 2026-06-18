@@ -23,7 +23,12 @@
                 <v-icon>{{ mdiPlay }}</v-icon>
             </v-btn>
         </v-col>
-        <v-menu v-model="showContextMenu" :target="[contextMenuX, contextMenuY]" location="bottom start" origin="top left" :offset="4">
+        <v-menu
+            v-model="showContextMenu"
+            :target="[contextMenuX, contextMenuY]"
+            location="bottom start"
+            origin="top left"
+            :offset="4">
             <v-list>
                 <v-list-item @click="printJob">
                     <v-icon class="mr-1">{{ mdiPlay }}</v-icon>
@@ -49,8 +54,7 @@ import { useStore } from 'vuex'
 import { useBase } from '@/composables/useBase'
 import type { LongpressEvent } from '@/directives/longpress'
 import type { ServerJobQueueStateJob } from '@/store/server/jobQueue/types'
-import { mdiCloseThick, mdiCounter, mdiDragVertical, mdiFile, mdiPlay, mdiPlaylistRemove } from '@mdi/js'
-import { defaultBigThumbnailBackground } from '@/store/variables'
+import { mdiCounter, mdiDragVertical, mdiPlay, mdiPlaylistRemove } from '@mdi/js'
 import GcodefilesThumbnail from '@/components/panels/Gcodefiles/GcodefilesThumbnail.vue'
 import { CLOSE_CONTEXT_MENU, EventBus } from '@/plugins/eventBus'
 import JobqueueEntryChangeCountDialog from '@/components/dialogs/JobqueueEntryChangeCountDialog.vue'
@@ -68,9 +72,6 @@ const showContextMenu = ref(false)
 const contextMenuX = ref(0)
 const contextMenuY = ref(0)
 const showChangeCountDialog = ref(false)
-
-const smallThumbnail = computed(() => store.getters['server/jobQueue/getSmallThumbnail'](props.job))
-const bigThumbnail = computed(() => store.getters['server/jobQueue/getBigThumbnail'](props.job))
 
 const description = computed(() => {
     if (!props.job?.metadata?.metadataPulled) return false
@@ -126,17 +127,6 @@ const estimatedTime = computed(() => {
     if (seconds) output.push(seconds.toFixed(0) + 's')
 
     return output.join(' ')
-})
-
-const bigThumbnailBackground = computed(
-    () => store.state.gui.uiSettings.bigThumbnailBackground ?? defaultBigThumbnailBackground
-)
-
-const bigThumbnailTooltipColor = computed(() => {
-    if (defaultBigThumbnailBackground.toLowerCase() === bigThumbnailBackground.value.toLowerCase()) {
-        return undefined
-    }
-    return bigThumbnailBackground.value
 })
 
 function openContextMenu(e: MouseEvent | LongpressEvent) {

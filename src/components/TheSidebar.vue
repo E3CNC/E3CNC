@@ -50,7 +50,6 @@ import { useDisplay } from 'vuetify'
 import { useNavigation } from '@/composables/useNavigation'
 import { useTheme } from '@/composables/useTheme'
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-vue'
-import TheSelectPrinterDialog from '@/components/TheSelectPrinterDialog.vue'
 import AboutDialog from '@/components/dialogs/AboutDialog.vue'
 import { navigationWidth, topbarHeight } from '@/store/variables'
 import MainsailLogo from '@/components/ui/MainsailLogo.vue'
@@ -59,7 +58,7 @@ import SidebarItem from '@/components/ui/SidebarItem.vue'
 const store = useStore()
 const display = useDisplay()
 const { isMobile, visibleNaviPoints } = useNavigation()
-const { sidebarLogo, sidebarBgImage, themeObj } = useTheme()
+const { sidebarLogo, sidebarBgImage } = useTheme()
 const logoColor = computed(() => store.state.gui.uiSettings.logo)
 
 const navigationStyle = computed(() => store.state.gui.uiSettings.navigationStyle)

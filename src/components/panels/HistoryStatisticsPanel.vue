@@ -72,7 +72,6 @@ import { useI18n } from 'vue-i18n'
 import { useBase } from '@/composables/useBase'
 import { useSocket } from '@/composables/useSocket'
 import { useHistory } from '@/composables/useHistory'
-import { useHistoryStats } from '@/composables/useHistoryStats'
 import Panel from '@/components/ui/Panel.vue'
 import HistoryPrinttimeAvg from '@/components/charts/HistoryPrinttimeAvg.vue'
 import HistoryAllPrintStatusChart from '@/components/charts/HistoryAllPrintStatusChart.vue'
@@ -87,7 +86,6 @@ import type { TranslateResult } from 'vue-i18n'
 
 const { loadings } = useBase()
 const history = useHistory()
-const { printStatusArray } = useHistoryStats('jobs')
 const { t } = useI18n()
 const store = useStore()
 

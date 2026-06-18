@@ -72,10 +72,6 @@ const existsHighAnnouncements = computed(
     () => notifications.value.filter((entry: GuiNotificationStateEntry) => entry.priority === 'high').length > 0
 )
 
-const countNormalAnnouncements = computed(
-    () => notifications.value.filter((entry: GuiNotificationStateEntry) => entry.priority === 'normal').length
-)
-
 const colorBadge = computed(() => {
     if (existsCriticalAnnouncements.value) return 'error'
     if (existsHighAnnouncements.value) return 'warning'

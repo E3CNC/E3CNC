@@ -14,7 +14,6 @@ import { computed } from 'vue'
 import { useBase } from '@/composables/useBase'
 import { useHistory } from '@/composables/useHistory'
 import type { ServerHistoryStateJob } from '@/store/server/history/types'
-import { formatFilesize } from '@/plugins/helpers'
 import { mdiDatabaseExportOutline } from '@mdi/js'
 import { HistoryListPanelCol } from '@/store/server/history/types'
 

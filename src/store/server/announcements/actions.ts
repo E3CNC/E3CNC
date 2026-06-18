@@ -1,5 +1,5 @@
 import { ActionTree } from 'vuex'
-import { getSocket, $toast } from '@/store/runtime'
+import { getSocket } from '@/store/runtime'
 import { RootState } from '@/store/types'
 import { ServerAnnouncementsState } from './types'
 

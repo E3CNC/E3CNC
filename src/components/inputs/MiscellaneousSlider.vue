@@ -70,7 +70,7 @@
                         :min="0.0"
                         :max="1.0"
                         :step="0.01"
-                        :color="sliderValue < off_below && sliderValue > 0 ? 'error' : undefined"
+                        :color="sliderValue < offBelow && sliderValue > 0 ? 'error' : undefined"
                         hide-details
                         @change="changeSliderValue">
                         <template #prepend>
@@ -123,7 +123,7 @@ const props = defineProps<{
     pwm?: boolean
     rpm?: number | boolean
     multi?: number
-    off_below?: number
+    offBelow?: number
     colorOrder?: string
 }>()
 
@@ -160,10 +160,10 @@ function resetLockTimer(): void {
 const changeSliderValue = debounce(() => {
     if (value.value === sliderValue.value) return
 
-    if (sliderValue.value < value.value && sliderValue.value < (props.off_below ?? 0)) {
+    if (sliderValue.value < value.value && sliderValue.value < (props.offBelow ?? 0)) {
         sliderValue.value = 0
-    } else if (sliderValue.value > value.value && sliderValue.value < (props.off_below ?? 0)) {
-        sliderValue.value = props.off_below ?? 0
+    } else if (sliderValue.value > value.value && sliderValue.value < (props.offBelow ?? 0)) {
+        sliderValue.value = props.offBelow ?? 0
     }
 
     sendCmd(sliderValue.value)
@@ -206,13 +206,13 @@ function switchOutputPin(): void {
 
 function decrement(): void {
     let newVal = value.value > 0 ? Math.round((value.value - 0.01) * 100) / 100 : 0
-    if (value.value < (props.off_below ?? 0)) newVal = 0
+    if (value.value < (props.offBelow ?? 0)) newVal = 0
     sendCmd(newVal)
 }
 
 function increment(): void {
     let newVal = value.value < 1.0 ? Math.round((value.value + 0.01) * 100) / 100 : 1.0
-    if (value.value < (props.off_below ?? 0)) newVal = props.off_below
+    if (value.value < (props.offBelow ?? 0)) newVal = props.offBelow
     sendCmd(newVal)
 }
 
@@ -253,7 +253,7 @@ const disableFanAnimation = computed(() => store.state.gui.uiSettings.disableFan
 
 const fanClasses = computed(() => {
     const output = ['mr-2']
-    if (!disableFanAnimation.value && value.value >= (props.off_below ?? 0) && value.value > 0)
+    if (!disableFanAnimation.value && value.value >= (props.offBelow ?? 0) && value.value > 0)
         output.push('icon-rotate')
 
     return output
@@ -280,9 +280,9 @@ function submitInput(): void {
     if (errors.value.length > 0) return
 
     let newVal = inputValue.value / 100
-    if (value.value === 0 && newVal < (props.off_below ?? 0)) {
-        newVal = props.off_below ?? 0
-    } else if (value.value >= (props.off_below ?? 0) && newVal < (props.off_below ?? 0)) {
+    if (value.value === 0 && newVal < (props.offBelow ?? 0)) {
+        newVal = props.offBelow ?? 0
+    } else if (value.value >= (props.offBelow ?? 0) && newVal < (props.offBelow ?? 0)) {
         newVal = 0
     }
 

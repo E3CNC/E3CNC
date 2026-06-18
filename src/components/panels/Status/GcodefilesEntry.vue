@@ -21,7 +21,12 @@
                 <span>{{ item.last_status.replace(/_/g, ' ') }}</span>
             </v-tooltip>
         </td>
-        <v-menu v-model="contextMenuShow" :target="[contextMenuX, contextMenuY]" location="bottom start" origin="top left" :offset="4">
+        <v-menu
+            v-model="contextMenuShow"
+            :target="[contextMenuX, contextMenuY]"
+            location="bottom start"
+            origin="top left"
+            :offset="4">
             <v-list>
                 <v-list-item :disabled="printerIsPrinting || !klipperReadyForGui" @click="showPrintDialog = true">
                     <v-icon class="mr-1">{{ mdiPlay }}</v-icon>
@@ -96,7 +101,6 @@ import {
     mdiRenameBox,
     mdiDelete,
 } from '@mdi/js'
-import Panel from '@/components/ui/Panel.vue'
 import AddBatchToQueueDialog from '@/components/dialogs/AddBatchToQueueDialog.vue'
 import ConfirmationDialog from '@/components/dialogs/ConfirmationDialog.vue'
 import GcodefilesRenameFileDialog from '@/components/dialogs/GcodefilesRenameFileDialog.vue'

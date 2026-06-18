@@ -1,6 +1,6 @@
 import { getDefaultState } from './index'
 import { MutationTree } from 'vuex'
-import { getSocket, $toast } from '@/store/runtime'
+import { getSocket } from '@/store/runtime'
 import { ServerUpdateManagerState } from '@/store/server/updateManager/types'
 
 export const mutations: MutationTree<ServerUpdateManagerState> = {

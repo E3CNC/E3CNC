@@ -9,8 +9,8 @@
         :toolbar-color="isCurrentPrinter ? 'primary' : ''">
         <template #buttons>
             <v-menu v-if="showWebcamSwitch" :offset-y="true" title="Webcam">
-                <template #activator="{ props }">
-                    <v-btn variant="text" v-bind="props">
+                <template #activator="{ props: menuProps }">
+                    <v-btn variant="text" v-bind="menuProps">
                         <v-icon size="small">{{ mdiWebcam }}</v-icon>
                         <v-icon size="small">{{ mdiMenuDown }}</v-icon>
                     </v-btn>
@@ -112,10 +112,8 @@
 import { computed, ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useStore } from 'vuex'
 import { useWebcam } from '@/composables/useWebcam'
-import { useTheme } from '@/composables/useTheme'
 import type { FarmPrinterState } from '@/store/farm/printer/types'
 import MainsailLogo from '@/components/ui/MainsailLogo.vue'
-import Panel from '@/components/ui/Panel.vue'
 import { mdiPrinter3d, mdiWebcam, mdiMenuDown, mdiWebcamOff, mdiFileOutline } from '@mdi/js'
 import WebcamWrapper from '@/components/webcams/WebcamWrapper.vue'
 import type { GuiWebcamStateWebcam } from '@/store/gui/webcams/types'
@@ -169,8 +167,6 @@ const printer_image = computed(() => {
 const printer_logo = computed(() => store.getters['farm/' + props.printer._namespace + '/getLogo'])
 
 const printerLogoColor = computed(() => store.getters['farm/' + props.printer._namespace + '/getLogoColor'])
-
-const printer_position = computed(() => store.getters['farm/' + props.printer._namespace + '/getPosition'])
 
 const printer_preview = computed(() => store.getters['farm/' + props.printer._namespace + '/getPrinterPreview'])
 
