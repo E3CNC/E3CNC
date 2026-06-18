@@ -22,7 +22,7 @@ const mockBaseValues = vi.hoisted(() => {
     return {
         apiUrl: new MockRef('//localhost:8080'),
         isIOS: new MockRef(false),
-        loadings: new MockRef([]),
+        loadings: new MockRef([] as any[]),
         klippyIsConnected: new MockRef(true),
     }
 })
@@ -47,7 +47,7 @@ const mockGcodeFilesValues = vi.hoisted(() => {
         setSearch: vi.fn(),
         currentPath: new MockRef(''),
         setCurrentPath: vi.fn(),
-        selectedFiles: new MockRef([]),
+        selectedFiles: new MockRef([] as any[]),
         setSelectedFiles: vi.fn(),
     }
 })
@@ -412,7 +412,7 @@ describe('GcodefilesPanelHeader.vue', () => {
         // Our VBtn mock passes loading as attribute
         const buttons = wrapper.findAllComponents({ name: 'VBtn' })
         // First button is download (v-if selectedFiles.length)
-        expect(buttons.length).toBeGreaterThan(0)
+        expect((buttons as any[]).length).toBeGreaterThan(0)
     })
 
     it('shows loading state on upload button when gcodeUpload is loading', () => {
@@ -426,7 +426,7 @@ describe('GcodefilesPanelHeader.vue', () => {
         })
 
         // The upload button should still render
-        const buttons = wrapper.findAllComponents({ name: 'VBtn' })
+        const buttons = wrapper.findAllComponents({ name: 'VBtn' }) as any[]
         expect(buttons.length).toBeGreaterThanOrEqual(3)
     })
 
@@ -477,7 +477,7 @@ describe('GcodefilesPanelHeader.vue', () => {
         })
 
         const fileInput = wrapper.find('input[type="file"]')
-        const clickSpy = vi.spyOn(fileInput.element, 'click')
+        const clickSpy = vi.spyOn(fileInput.element as HTMLElement, 'click')
 
         // Find upload button and click it
         // Our VBtn mock emits click, which triggers clickUploadButton

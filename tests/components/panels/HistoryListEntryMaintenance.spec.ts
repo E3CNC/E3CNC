@@ -231,9 +231,10 @@ describe('HistoryListEntryMaintenance.vue', () => {
         const checkbox = wrapper.find('input[type="checkbox"]')
         await checkbox.trigger('click')
 
-        expect(wrapper.emitted('select')).toBeTruthy()
-        if (wrapper.emitted('select')) {
-            expect(wrapper.emitted('select')[0]).toEqual([true])
+        const emitted = wrapper.emitted('select')
+        expect(emitted).toBeTruthy()
+        if (emitted) {
+            expect(emitted[0]).toEqual([true])
         }
     })
 

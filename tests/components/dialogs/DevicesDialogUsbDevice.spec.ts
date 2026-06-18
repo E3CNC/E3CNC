@@ -27,8 +27,8 @@ describe('DevicesDialogUsbDevice.vue', () => {
                 device: {
                     manufacturer: 'Test Corp',
                     product: 'Test Device',
-                    serial_number: 'SN123',
-                },
+                    serial: 'SN123',
+                } as any,
             },
         })
         expect(wrapper.exists()).toBe(true)
@@ -40,8 +40,8 @@ describe('DevicesDialogUsbDevice.vue', () => {
                 device: {
                     manufacturer: 'Arduino',
                     product: 'Uno',
-                    serial_number: 'ABC123',
-                },
+                    serial: 'ABC123',
+                } as any,
             },
         })
         expect(wrapper.text()).toContain('Arduino')

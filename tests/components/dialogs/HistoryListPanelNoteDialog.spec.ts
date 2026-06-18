@@ -273,9 +273,10 @@ describe('HistoryListPanelNoteDialog.vue', () => {
             await saveBtn.trigger('click')
         }
 
-        expect(wrapper.emitted('update:modelValue')).toBeTruthy()
-        if (wrapper.emitted('update:modelValue')) {
-            expect(wrapper.emitted('update:modelValue')[0]).toEqual([false])
+        const emitted = wrapper.emitted('update:modelValue')
+        expect(emitted).toBeTruthy()
+        if (emitted) {
+            expect(emitted[0]).toEqual([false])
         }
     })
 
@@ -301,9 +302,10 @@ describe('HistoryListPanelNoteDialog.vue', () => {
             await cancelBtn.trigger('click')
         }
 
-        expect(wrapper.emitted('update:modelValue')).toBeTruthy()
-        if (wrapper.emitted('update:modelValue')) {
-            expect(wrapper.emitted('update:modelValue')[0]).toEqual([false])
+        const emitted = wrapper.emitted('update:modelValue')
+        expect(emitted).toBeTruthy()
+        if (emitted) {
+            expect(emitted[0]).toEqual([false])
         }
     })
 })
