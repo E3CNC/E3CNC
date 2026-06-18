@@ -57,7 +57,7 @@
             :additional-sensor-name="additionalSensorName"
             :icon="icon"
             :color="color" />
-        <v-menu v-model="showContextMenu" :position-x="contextMenuX" :position-y="contextMenuY">
+        <v-menu v-model="showContextMenu" :target="[contextMenuX, contextMenuY]" location="bottom start" origin="top left" :offset="4">
             <v-list>
                 <v-list-item v-if="isHeater" :disabled="!isHeaterActive" @click="turnOffHeater">
                     <v-icon start>{{ mdiSnowflake }}</v-icon>
@@ -242,9 +242,9 @@ onBeforeUnmount(() => {
 
 function openContextMenu(event: MouseEvent | LongpressEvent) {
     EventBus.$emit(CLOSE_CONTEXT_MENU)
-    showContextMenu.value = true
     contextMenuX.value = event?.clientX || event?.pageX || window.screenX / 2
     contextMenuY.value = event?.clientY || event?.pageY || window.screenY / 2
+    showContextMenu.value = true
 }
 
 function closeContextMenu() {

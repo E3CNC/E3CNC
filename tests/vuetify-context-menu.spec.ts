@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { readdirSync, readFileSync, statSync } from 'fs'
+import { readdirSync, readFileSync } from 'fs'
 import { resolve } from 'path'
 
 function findVueFiles(dir: string): string[] {
@@ -16,41 +16,41 @@ function findVueFiles(dir: string): string[] {
 }
 
 describe('Vuetify 3 context menu positioning', () => {
-  // In Vuetify 3, v-menu with position-x/position-y (viewport-relative)
-  // must NOT have `absolute` — absolute forces parent-relative positioning,
-  // causing the menu to appear at the wrong coordinates when the values
-  // come from mouse event clientX/clientY.
-  // See: commit fbdbd17b (fix) and 22dd93a5 (original fix)
+  // Vuetify 3 removed position-x/position-y props from VMenu.
+  // Context menus that follow mouse cursor must use :target="[x, y]"
+  // with location="bottom start" origin="top left".
+  //
+  // The old Vuetify 2 pattern :position-x / :position-y is silently
+  // ignored in Vuetify 3 — the menu always appears at (0,0).
+  //
+  // See: commit 3dc64038 (correct :target pattern)
 
   const srcDir = resolve(__dirname, '../src')
   const vueFiles = findVueFiles(srcDir)
 
-  it('should never combine absolute with position-x/position-y on a v-menu', () => {
+  it('should never use deprecated position-x/position-y on v-menu', () => {
     const violations: string[] = []
 
     for (const file of vueFiles) {
       const content = readFileSync(file, 'utf-8')
 
-      // Match <v-menu ... absolute ... :position-x=...>
-      // or <v-menu ... :position-x=... ... absolute ...>
-      const absolutePos = /<v-menu(?=[^>]*\babsolute\b)(?=[^>]*\b:?position-x\s*=)/gi
-      const absolutePosY = /<v-menu(?=[^>]*\babsolute\b)(?=[^>]*\b:?position-y\s*=)/gi
+      // Match v-menu with :position-x or :position-y — these are dead
+      // props in Vuetify 3 and do nothing.
+      const posX = /<v-menu[^>]*\b:position-x\s*=/gi
+      const posY = /<v-menu[^>]*\b:position-y\s*=/gi
 
-      // Check both patterns (position-x and position-y alone are enough to flag)
       let match: RegExpExecArray | null
-      while ((match = absolutePos.exec(content)) !== null) {
+      while ((match = posX.exec(content)) !== null) {
         const line = content.slice(0, match.index).split('\n').length
         violations.push(`${file}:${line}`)
       }
-      while ((match = absolutePosY.exec(content)) !== null) {
+      while ((match = posY.exec(content)) !== null) {
         const line = content.slice(0, match.index).split('\n').length
         violations.push(`${file}:${line}`)
       }
     }
 
-    // Deduplicate (a single element may match both patterns)
     const unique = Array.from(new Set(violations))
-
     expect(unique).toEqual([])
   })
 })

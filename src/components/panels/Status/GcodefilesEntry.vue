@@ -21,7 +21,7 @@
                 <span>{{ item.last_status.replace(/_/g, ' ') }}</span>
             </v-tooltip>
         </td>
-        <v-menu v-model="contextMenuShow" :position-x="contextMenuX" :position-y="contextMenuY">
+        <v-menu v-model="contextMenuShow" :target="[contextMenuX, contextMenuY]" location="bottom start" origin="top left" :offset="4">
             <v-list>
                 <v-list-item :disabled="printerIsPrinting || !klipperReadyForGui" @click="showPrintDialog = true">
                     <v-icon class="mr-1">{{ mdiPlay }}</v-icon>

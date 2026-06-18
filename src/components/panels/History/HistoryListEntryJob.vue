@@ -83,7 +83,7 @@
         </td>
         <td v-for="vCol in tableFields" :key="vCol.value" class="text-no-wrap" v-html="outputValue(vCol, item)" />
         <!-- Context menu -->
-        <v-menu v-model="contextMenuBool" :position-x="contextMenuX" :position-y="contextMenuY">
+        <v-menu v-model="contextMenuBool" :target="[contextMenuX, contextMenuY]" location="bottom start" origin="top left" :offset="4">
             <v-list>
                 <v-list-item @click="detailsDialogBool = true">
                     <v-icon class="mr-1">{{ mdiTextBoxSearch }}</v-icon>
