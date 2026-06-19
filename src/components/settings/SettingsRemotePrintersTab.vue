@@ -147,8 +147,6 @@ const printers = computed(() => store.getters['gui/remoteprinters/getRemoteprint
 
 const canAddPrinters = computed(() => store.state.instancesDB !== 'json')
 
-const protocol = computed(() => store.state.socket.protocol ?? 'ws')
-
 function formatPrinterName(printer: GuiRemoteprintersStatePrinter) {
     return printer.hostname + (printer.port !== 80 ? ':' + printer.port : '') + (printer.path ?? '')
 }
@@ -180,10 +178,9 @@ async function testConnection() {
                 t('Settings.RemotePrintersTab.ConnectionFailed', { hostname: form.hostname, status: response.status })
             )
         }
-    } catch (e: any) {
-        $toast.error(
-            t('Settings.RemotePrintersTab.ConnectionError', { hostname: form.hostname, error: e?.message ?? 'unknown' })
-        )
+    } catch (e: unknown) {
+        const error = e instanceof Error ? e.message : 'unknown'
+        $toast.error(t('Settings.RemotePrintersTab.ConnectionError', { hostname: form.hostname, error }))
     } finally {
         testing.value = false
     }

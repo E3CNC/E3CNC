@@ -11,7 +11,6 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onBeforeUnmount } from 'vue'
-import { useBase } from '@/composables/useBase'
 import { useTheme } from '@/composables/useTheme'
 import { useHistoryStats } from '@/composables/useHistoryStats'
 import type { ECBasicOption } from 'echarts/types/dist/shared.d'

@@ -187,7 +187,12 @@
                 </template>
             </v-data-table>
         </panel>
-        <v-menu v-model="contextMenu.shown" :position-x="contextMenu.x" :position-y="contextMenu.y" absolute offset-y>
+        <v-menu
+            v-model="contextMenu.shown"
+            :target="[contextMenu.x, contextMenu.y]"
+            location="bottom start"
+            origin="top left"
+            :offset="4">
             <v-list>
                 <v-list-item v-if="!contextMenu.item.isDirectory" @click="downloadFile(contextMenu.item.filename)">
                     <v-icon class="mr-1">{{ mdiCloudDownload }}</v-icon>
@@ -367,7 +372,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, reactive, nextTick } from 'vue'
+import { computed, ref, reactive } from 'vue'
 import { useStore } from 'vuex'
 import { useSocket } from '@/composables/useSocket'
 import { useBase } from '@/composables/useBase'
@@ -621,20 +626,11 @@ function clickPathNavGoToDirectory(segment: { location: string }) {
 function showContextMenu(e: MouseEvent | LongpressEvent, item: FileStateFile) {
     if (!contextMenu.shown) {
         e?.preventDefault()
-        contextMenu.shown = true
         contextMenu.x = e?.clientX || e?.pageX || window.screenX / 2
         contextMenu.y = e?.clientY || e?.pageY || window.screenY / 2
         contextMenu.item = item
-        nextTick(() => {
-            contextMenu.shown = true
-        })
+        contextMenu.shown = true
     }
-}
-
-function existsFramesZip(item: FileStateFile) {
-    const posLastPoint = item.filename.lastIndexOf('.')
-    const zipFilename = item.filename.slice(0, posLastPoint) + '.zip'
-    return files.value.findIndex((file) => file.filename === zipFilename) !== -1
 }
 
 function downloadFile(filename: string) {

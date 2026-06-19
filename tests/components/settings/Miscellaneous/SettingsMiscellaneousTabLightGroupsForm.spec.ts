@@ -8,8 +8,16 @@ vi.mock('vuetify/components', () => ({
     VCardText: { name: 'VCardText', template: '<div><slot /></div>' },
     VCardActions: { name: 'VCardActions', template: '<div><slot /></div>' },
     VDivider: { name: 'VDivider', template: '<hr />' },
-    VTextField: { name: 'VTextField', props: ['modelValue'], template: '<input class="v-text-field" :value="modelValue" />' },
-    VBtn: { name: 'VBtn', props: ['disabled', 'variant', 'color'], template: '<button :disabled="disabled" @click="$emit(\'click\', $event)"><slot /></button>' },
+    VTextField: {
+        name: 'VTextField',
+        props: ['modelValue'],
+        template: '<input class="v-text-field" :value="modelValue" />',
+    },
+    VBtn: {
+        name: 'VBtn',
+        props: ['disabled', 'variant', 'color'],
+        template: '<button :disabled="disabled" @click="$emit(\'click\', $event)"><slot /></button>',
+    },
     VSpacer: { name: 'VSpacer', template: '<span />' },
 }))
 
@@ -22,12 +30,16 @@ vi.mock('@/components/settings/SettingsRow.vue', () => ({
 }))
 
 const i18n = createI18n({
-    legacy: false, locale: 'en',
+    legacy: false,
+    locale: 'en',
     messages: {
         en: {
-            Settings: { MiscellaneousTab: { Name: 'Name', Start: 'Start', End: 'End' } },
+            Settings: {
+                MiscellaneousTab: { Name: 'Name', Start: 'Start', End: 'End' },
+                Store: 'Save',
+                Update: 'Update',
+            },
             Buttons: { Cancel: 'Cancel' },
-            Settings: { Store: 'Save', Update: 'Update' },
         },
     },
 })
@@ -37,7 +49,9 @@ const store = createStore({ state: { instancesDB: 'moonraker', gui: { miscellane
 import SettingsMiscellaneousTabLightGroupsForm from '@/components/settings/Miscellaneous/SettingsMiscellaneousTabLightGroupsForm.vue'
 
 describe('SettingsMiscellaneousTabLightGroupsForm.vue', () => {
-    beforeEach(() => { vi.clearAllMocks() })
+    beforeEach(() => {
+        vi.clearAllMocks()
+    })
 
     it('renders without crashing', () => {
         const wrapper = mount(SettingsMiscellaneousTabLightGroupsForm, {

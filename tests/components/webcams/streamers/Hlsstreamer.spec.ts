@@ -17,7 +17,7 @@ const mockHlsInstance = vi.hoisted(() => ({
 }))
 
 const mockHls = vi.hoisted(() => {
-    const HlsMock = vi.fn(() => mockHlsInstance)
+    const HlsMock: any = vi.fn(() => mockHlsInstance)
     HlsMock.isSupported = vi.fn(() => true)
     HlsMock.Events = {
         MANIFEST_PARSED: 'hlsManifestParsed',

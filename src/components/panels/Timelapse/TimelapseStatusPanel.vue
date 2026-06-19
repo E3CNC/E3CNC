@@ -66,15 +66,15 @@
 import { computed, ref } from 'vue'
 import { useStore } from 'vuex'
 import { useSocket } from '@/composables/useSocket'
-import { useWebcam } from '@/composables/useWebcam'
+import { useBase } from '@/composables/useBase'
 import { useTimelapse } from '@/composables/useTimelapse'
 import SettingsRow from '@/components/settings/SettingsRow.vue'
 import Panel from '@/components/ui/Panel.vue'
-import { mdiFile, mdiInformation, mdiCloseThick } from '@mdi/js'
+import { mdiInformation, mdiCloseThick } from '@mdi/js'
 import TimelapseRenderingsettingsDialog from '@/components/dialogs/TimelapseRenderingsettingsDialog.vue'
 
-const { apiUrl, generateTransform } = useWebcam()
 const { framesCount, estimatedVideoLength } = useTimelapse()
+const { apiUrl } = useBase()
 const store = useStore()
 const socket = useSocket()
 
@@ -103,34 +103,6 @@ function toggleAutorender(newVal: boolean) {
 }
 
 const disableRenderButton = computed(() => (store.state.server.timelapse?.rendering.status ?? '') === 'running')
-
-const existsSnapshoturlInMoonrakerConfig = computed(() => 'snapshoturl' in store.state.server.config.orig.timelapse)
-
-const moonrakerTimelapseConfig = computed(() => store.state.server.config.config.timelapse ?? {})
-
-const camId = computed(() => store.state.server.timelapse.settings.camera ?? '')
-
-const camSettings = computed(() => store.getters['gui/webcams/getWebcam'](camId.value))
-
-const webcamStyle = computed(() => {
-    if (existsSnapshoturlInMoonrakerConfig.value) {
-        return {
-            transform: generateTransform(
-                moonrakerTimelapseConfig.value.flip_x ?? false,
-                moonrakerTimelapseConfig.value.flip_y ?? false,
-                0
-            ),
-        }
-    }
-    if (!camSettings.value) return {}
-    return {
-        transform: generateTransform(
-            camSettings.value.flip_horizontal ?? false,
-            camSettings.value.flip_vertical ?? false,
-            camSettings.value.rotation ?? 0
-        ),
-    }
-})
 
 function saveFrames() {
     socket.emit('machine.timelapse.saveframes', {}, { loading: 'timelapse_saveframes' })

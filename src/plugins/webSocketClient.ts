@@ -1,4 +1,3 @@
-import type { RootState } from '@/store/types'
 import { initableServerComponents } from '@/store/variables'
 import type { RPCMethods, RPCParams, RPCResult } from '@/types/moonraker'
 

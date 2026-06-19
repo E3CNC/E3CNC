@@ -124,6 +124,7 @@ import { useStore } from 'vuex'
 import { useSocket } from '@/composables/useSocket'
 import { useBase } from '@/composables/useBase'
 import { useI18n } from 'vue-i18n'
+import { useToast } from 'vue-toast-notification'
 import type { ServerUpdateManagerStateGitRepo } from '@/store/server/updateManager/types'
 import {
     mdiCloseCircle,
@@ -298,12 +299,18 @@ function clickUpdate() {
     boolShowUpdateHint.value = true
 }
 
-function doUpdate() {
-    if (['klipper', 'moonraker'].includes(props.repo.name)) {
-        socket.emit('machine.update.' + props.repo.name, {})
-        return
+async function doUpdate() {
+    try {
+        if (['klipper', 'moonraker'].includes(props.repo.name)) {
+            await socket.emitAndWait('machine.update.' + props.repo.name, {})
+            return
+        }
+        await socket.emitAndWait('machine.update.client', { name: props.repo.name })
+    } catch (e) {
+        const $toast = useToast()
+        const message = (e as any)?.message || 'Unknown error'
+        $toast.error(t('Machine.UpdatePanel.UpdateFailed', { message }))
     }
-    socket.emit('machine.update.client', { name: props.repo.name })
 }
 
 function doRecovery(hard: boolean) {

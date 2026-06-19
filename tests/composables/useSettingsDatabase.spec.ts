@@ -70,7 +70,6 @@ describe('useSettingsDatabase', () => {
                 json: async () => ({ result: { value: { general: {}, timelapse: {}, initVersion: {} } } }),
             })
 
-        // @ts-expect-error test override
         global.fetch = fetchMock
 
         const db = mountComposable()

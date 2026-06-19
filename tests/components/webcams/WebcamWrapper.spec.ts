@@ -40,7 +40,7 @@ function createWrapper(overrides: Record<string, any> = {}) {
         props: {
             webcam: { name: 'TestCam', service: 'mjpegstreamer', icon: 'mdiWebcam' },
             showFps: true,
-            page: null,
+            page: undefined,
             ...overrides,
         },
         global: {

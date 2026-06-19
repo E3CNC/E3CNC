@@ -22,12 +22,15 @@ import { ref } from 'vue'
 import { useStore } from 'vuex'
 import { useSocket } from '@/composables/useSocket'
 import { useBase } from '@/composables/useBase'
+import { useI18n } from 'vue-i18n'
+import { useToast } from 'vue-toast-notification'
 import { mdiProgressUpload } from '@mdi/js'
 import UpdateHintAll from '@/components/panels/Machine/UpdatePanel/UpdateHintAll.vue'
 
 const { printer_state } = useBase()
 const store = useStore()
 const socket = useSocket()
+const { t } = useI18n()
 
 const boolShowDialog = ref(false)
 
@@ -41,8 +44,14 @@ function clickUpdate() {
     boolShowDialog.value = true
 }
 
-function updateAll() {
-    socket.emit('machine.update.full', {})
+async function updateAll() {
+    try {
+        await socket.emitAndWait('machine.update.full', {})
+    } catch (e) {
+        const $toast = useToast()
+        const message = (e as any)?.message || 'Unknown error'
+        $toast.error(t('Machine.UpdatePanel.UpdateFailed', { message }))
+    }
 }
 </script>
 

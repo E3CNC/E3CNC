@@ -8,10 +8,18 @@ vi.mock('vuetify/components', () => ({
     VCardText: { name: 'VCardText', template: '<div><slot /></div>' },
     VDivider: { name: 'VDivider', template: '<hr />' },
     VSwitch: { name: 'VSwitch', props: ['modelValue', 'hideDetails'], template: '<div class="v-switch" />' },
-    VBtn: { name: 'VBtn', props: ['size', 'variant', 'color', 'class'], template: '<button @click="$emit(\'click\', $event)"><slot /></button>' },
+    VBtn: {
+        name: 'VBtn',
+        props: ['size', 'variant', 'color', 'class'],
+        template: '<button @click="$emit(\'click\', $event)"><slot /></button>',
+    },
     VMenu: { name: 'VMenu', template: '<div><slot name="activator" /><slot /></div>' },
     VColorPicker: { name: 'VColorPicker', props: ['value', 'hideModeSwitch', 'mode'], template: '<div />' },
-    VTextField: { name: 'VTextField', props: ['modelValue'], template: '<input :value="modelValue" class="v-text-field" />' },
+    VTextField: {
+        name: 'VTextField',
+        props: ['modelValue'],
+        template: '<input :value="modelValue" class="v-text-field" />',
+    },
 }))
 
 vi.mock('@/components/settings/SettingsRow.vue', () => ({
@@ -64,7 +72,9 @@ function createStoreWithState() {
 import SettingsGCodeViewerTab from '@/components/settings/SettingsGCodeViewerTab.vue'
 
 describe('SettingsGCodeViewerTab.vue', () => {
-    beforeEach(() => { vi.clearAllMocks() })
+    beforeEach(() => {
+        vi.clearAllMocks()
+    })
 
     it('renders without crashing', () => {
         const store = createStoreWithState()

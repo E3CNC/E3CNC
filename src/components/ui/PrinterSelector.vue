@@ -23,19 +23,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useStore } from 'vuex'
-import { useRoute } from 'vue-router'
 import { useBase } from '@/composables/useBase'
-import router from '@/plugins/router'
 import type { FarmPrinterState } from '@/store/farm/printer/types'
 import { mdiChevronDown } from '@mdi/js'
 
 const store = useStore()
-const route = useRoute()
-const { instancesDB } = useBase()
+useBase()
 
-const countPrinters = computed(() => store.getters['farm/countPrinters'])
 const printers = computed(() => store.getters['farm/getPrinters'])
-const currentPage = computed(() => route.fullPath)
 
 function getPrinterName(namespace: string) {
     return store.getters['farm/' + namespace + '/getPrinterName']
@@ -49,9 +44,5 @@ function changePrinter(printer: FarmPrinterState) {
     if (printer.socket.isConnected) {
         store.dispatch('changePrinter', { printer: printer._namespace })
     }
-}
-
-function switchToPrinters() {
-    router.push('/allCncMachines')
 }
 </script>

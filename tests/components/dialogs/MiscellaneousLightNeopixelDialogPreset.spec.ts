@@ -2,7 +2,11 @@ import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 
 vi.mock('vuetify/components', () => ({
-    VTooltip: { name: 'VTooltip', props: ['top'], template: '<div><slot name="activator" :props="{}" /><slot /></div>' },
+    VTooltip: {
+        name: 'VTooltip',
+        props: ['top'],
+        template: '<div><slot name="activator" :props="{}" /><slot /></div>',
+    },
 }))
 
 import MiscellaneousLightNeopixelDialogPreset from '@/components/dialogs/MiscellaneousLightNeopixelDialogPreset.vue'

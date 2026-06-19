@@ -22,7 +22,7 @@ const { t } = useI18n()
 
 const value = computed(() => store.getters['gui/getDatasetValue']({ name: props.objectName, type: props.serieName }))
 
-function setValue(newVal: any) {
+function setValue(newVal: unknown) {
     store.dispatch('gui/setChartDatasetStatus', {
         objectName: props.objectName,
         dataset: props.serieName,

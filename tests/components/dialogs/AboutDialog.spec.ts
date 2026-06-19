@@ -42,8 +42,7 @@ describe('AboutDialog.vue', () => {
                 stubs: {
                     'v-tooltip': {
                         name: 'VTooltip',
-                        template:
-                            '<div class="v-tooltip"><slot name="activator" :props="{}" /><slot /></div>',
+                        template: '<div class="v-tooltip"><slot name="activator" :props="{}" /><slot /></div>',
                     },
                     'v-icon': {
                         name: 'VIcon',
@@ -66,8 +65,7 @@ describe('AboutDialog.vue', () => {
                 stubs: {
                     'v-tooltip': {
                         name: 'VTooltip',
-                        template:
-                            '<div class="v-tooltip"><slot name="activator" :props="{}" /><slot /></div>',
+                        template: '<div class="v-tooltip"><slot name="activator" :props="{}" /><slot /></div>',
                     },
                     'v-icon': {
                         name: 'VIcon',
@@ -90,8 +88,7 @@ describe('AboutDialog.vue', () => {
                 stubs: {
                     'v-tooltip': {
                         name: 'VTooltip',
-                        template:
-                            '<div class="v-tooltip"><slot name="activator" :props="{}" /><slot /></div>',
+                        template: '<div class="v-tooltip"><slot name="activator" :props="{}" /><slot /></div>',
                     },
                     'v-icon': {
                         name: 'VIcon',
@@ -114,8 +111,7 @@ describe('AboutDialog.vue', () => {
                 stubs: {
                     'v-tooltip': {
                         name: 'VTooltip',
-                        template:
-                            '<div class="v-tooltip"><slot name="activator" :props="{}" /><slot /></div>',
+                        template: '<div class="v-tooltip"><slot name="activator" :props="{}" /><slot /></div>',
                     },
                     'v-icon': {
                         name: 'VIcon',
@@ -138,8 +134,7 @@ describe('AboutDialog.vue', () => {
                 stubs: {
                     'v-tooltip': {
                         name: 'VTooltip',
-                        template:
-                            '<div class="v-tooltip"><slot name="activator" :props="{}" /><slot /></div>',
+                        template: '<div class="v-tooltip"><slot name="activator" :props="{}" /><slot /></div>',
                     },
                     'v-icon': {
                         name: 'VIcon',

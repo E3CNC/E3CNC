@@ -7,13 +7,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useWebcam } from '@/composables/useWebcam'
-import type { GuiWebcamStateWebcam } from '@/store/gui/webcams/types'
 
 const DEFAULT_ASPECT_RATIO = 16 / 9
 
 const props = defineProps({
     camSettings: { type: Object, required: true },
-    printerUrl: { default: null },
+    printerUrl: { type: String, default: null },
 })
 
 const { convertUrl, getWrapperStyle, generateTransform } = useWebcam()

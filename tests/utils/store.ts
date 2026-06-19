@@ -114,7 +114,6 @@ export function createMockStore(options: MockStoreOptions = {}): Store<any> {
         'gui/getDefaultControlActionButton': () => 'homeAll',
         'printer/existsQGL': () => false,
         'printer/existsZtilt': () => false,
-        'printer/existsZtilt': () => false,
         'printer/existsDeltaCalibrate': () => false,
         'printer/existsScrewsTilt': () => false,
         'printer/existsFirmwareRetraction': () => false,

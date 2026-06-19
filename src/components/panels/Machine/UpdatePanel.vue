@@ -62,7 +62,7 @@ import Panel from '@/components/ui/Panel.vue'
 import UpdatePanelEntry from '@/components/panels/Machine/UpdatePanel/Entry.vue'
 import UpdatePanelEntryAll from '@/components/panels/Machine/UpdatePanel/EntryAll.vue'
 import UpdatePanelEntrySystem from '@/components/panels/Machine/UpdatePanel/EntrySystem.vue'
-import { mdiRefresh, mdiInformation, mdiCloseThick, mdiUpdate } from '@mdi/js'
+import { mdiRefresh, mdiUpdate } from '@mdi/js'
 import type { ServerUpdateManagerStateGuiList } from '@/store/server/updateManager/types'
 import semver from 'semver'
 

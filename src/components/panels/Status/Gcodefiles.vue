@@ -19,15 +19,13 @@
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useStore } from 'vuex'
 import { useBase } from '@/composables/useBase'
-import { useControl } from '@/composables/useControl'
 import type { FileStateGcodefile } from '@/store/files/types'
-import Panel from '@/components/ui/Panel.vue'
 import StatusPanelGcodefilesEntry from '@/components/panels/Status/GcodefilesEntry.vue'
 
-const { loadings } = useBase()
+useBase()
 const store = useStore()
 
-const filesGcodeCard = ref<any>(null)
+const filesGcodeCard = ref<unknown>(null)
 const contentTdWidth = ref(100)
 let resizeObserver: ResizeObserver | null = null
 let debounceTimer: ReturnType<typeof setTimeout> | null = null

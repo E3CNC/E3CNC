@@ -68,7 +68,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, type Component } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useBase } from '@/composables/useBase'
 import SettingsDashboardTabMobile from '@/components/settings/Dashboard/Mobile.vue'
@@ -77,18 +77,16 @@ import SettingsDashboardTabDesktop from '@/components/settings/Dashboard/Desktop
 import SettingsDashboardTabWidescreen from '@/components/settings/Dashboard/Widescreen.vue'
 import { mdiCellphone, mdiMonitorScreenshot, mdiMonitorDashboard, mdiTablet } from '@mdi/js'
 
+defineEmits(['resetLayout'])
+
 const { isMobile, isTablet, isDesktop, isWidescreen } = useBase()
 const route = useRoute()
 const router = useRouter()
 
-const emit = defineEmits<{
-    (e: 'resetLayout'): void
-}>()
-
 const currentViewport = ref('desktop')
 const dashboardViewportQueryKey = 'dashboardViewport'
 
-const viewportComponents: Record<string, any> = {
+const viewportComponents: Record<string, Component> = {
     mobile: SettingsDashboardTabMobile,
     tablet: SettingsDashboardTabTablet,
     desktop: SettingsDashboardTabDesktop,

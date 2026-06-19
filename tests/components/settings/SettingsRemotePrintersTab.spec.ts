@@ -24,7 +24,8 @@ vi.mock('vuetify/components', () => ({
     VTextField: {
         name: 'VTextField',
         props: ['modelValue', 'hideDetails', 'density', 'variant', 'label', 'required', 'rules'],
-        template: '<input :value="modelValue" class="v-text-field" @input="$emit(\'update:modelValue\', $event.target.value)" />',
+        template:
+            '<input :value="modelValue" class="v-text-field" @input="$emit(\'update:modelValue\', $event.target.value)" />',
     },
     VBtn: {
         name: 'VBtn',
@@ -90,7 +91,9 @@ function createStoreWithState(overrides: Record<string, any> = {}) {
 import SettingsRemotePrintersTab from '@/components/settings/SettingsRemotePrintersTab.vue'
 
 describe('SettingsRemotePrintersTab.vue', () => {
-    beforeEach(() => { vi.clearAllMocks() })
+    beforeEach(() => {
+        vi.clearAllMocks()
+    })
 
     it('renders without crashing', () => {
         const store = createStoreWithState()
@@ -113,7 +116,7 @@ describe('SettingsRemotePrintersTab.vue', () => {
     it('shows form when Add Printer is clicked', async () => {
         const store = createStoreWithState()
         const wrapper = mount(SettingsRemotePrintersTab, { global: { plugins: [store, i18n] } })
-        const addBtn = wrapper.findAll('button').filter(b => b.text() === 'Add Printer')
+        const addBtn = wrapper.findAll('button').filter((b) => b.text() === 'Add Printer')
         await addBtn[0].trigger('click')
         expect(wrapper.text()).toContain('Hostname')
         expect(wrapper.text()).toContain('Port')
@@ -122,7 +125,7 @@ describe('SettingsRemotePrintersTab.vue', () => {
     it('renders cancel button in form', async () => {
         const store = createStoreWithState()
         const wrapper = mount(SettingsRemotePrintersTab, { global: { plugins: [store, i18n] } })
-        const addBtn = wrapper.findAll('button').filter(b => b.text() === 'Add Printer')
+        const addBtn = wrapper.findAll('button').filter((b) => b.text() === 'Add Printer')
         await addBtn[0].trigger('click')
         expect(wrapper.text()).toContain('Cancel')
     })
@@ -136,7 +139,7 @@ describe('SettingsRemotePrintersTab.vue', () => {
     it('renders settings rows when in add form', async () => {
         const store = createStoreWithState()
         const wrapper = mount(SettingsRemotePrintersTab, { global: { plugins: [store, i18n] } })
-        const addBtn = wrapper.findAll('button').filter(b => b.text() === 'Add Printer')
+        const addBtn = wrapper.findAll('button').filter((b) => b.text() === 'Add Printer')
         await addBtn[0].trigger('click')
         expect(wrapper.findAll('.settings-row').length).toBeGreaterThanOrEqual(2)
     })

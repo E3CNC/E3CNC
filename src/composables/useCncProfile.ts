@@ -2,12 +2,12 @@ import { computed, onMounted, ref } from 'vue'
 import { useStore } from 'vuex'
 import { getCncState } from '@/store/files/cncApi'
 
-const cncState = ref<Record<string, any> | null>(null)
+const cncState = ref<Record<string, unknown> | null>(null)
 const cncStateLoading = ref(false)
 let cncStateRequestId = 0
 
-function asObject(value: unknown): Record<string, any> {
-    return value && typeof value === 'object' ? (value as Record<string, any>) : {}
+function asObject(value: unknown): Record<string, unknown> {
+    return value && typeof value === 'object' ? (value as Record<string, unknown>) : {}
 }
 
 async function refreshCncState(apiUrl: string) {

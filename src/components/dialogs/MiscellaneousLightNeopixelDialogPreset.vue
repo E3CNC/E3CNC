@@ -1,7 +1,7 @@
 <template>
     <v-tooltip top>
-        <template #activator="{ props }">
-            <div :style="presetStyle" v-bind="props" @click="usePreset" />
+        <template #activator="{ props: slotProps }">
+            <div :style="presetStyle" v-bind="slotProps" @click="usePreset" />
         </template>
         <span>{{ name }}</span>
     </v-tooltip>

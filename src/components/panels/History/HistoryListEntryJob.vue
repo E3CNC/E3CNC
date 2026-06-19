@@ -83,7 +83,12 @@
         </td>
         <td v-for="vCol in tableFields" :key="vCol.value" class="text-no-wrap" v-html="outputValue(vCol, item)" />
         <!-- Context menu -->
-        <v-menu v-model="contextMenuBool" :position-x="contextMenuX" :position-y="contextMenuY" absolute offset-y>
+        <v-menu
+            v-model="contextMenuBool"
+            :target="[contextMenuX, contextMenuY]"
+            location="bottom start"
+            origin="top left"
+            :offset="4">
             <v-list>
                 <v-list-item @click="detailsDialogBool = true">
                     <v-icon class="mr-1">{{ mdiTextBoxSearch }}</v-icon>
@@ -135,7 +140,6 @@ import { useI18n } from 'vue-i18n'
 import { useToast } from 'vue-toast-notification'
 import type { LongpressEvent } from '@/directives/longpress'
 import HistoryListPanelDetailsDialog from '@/components/dialogs/HistoryListPanelDetailsDialog.vue'
-import Panel from '@/components/ui/Panel.vue'
 import { useBase } from '@/composables/useBase'
 import { useSocket } from '@/composables/useSocket'
 import StartPrintDialog from '@/components/dialogs/StartPrintDialog.vue'
@@ -143,7 +147,6 @@ import type { FileStateFileThumbnail, FileStateGcodefile } from '@/store/files/t
 import type { ServerHistoryStateJob } from '@/store/server/history/types'
 import { thumbnailBigMin, thumbnailSmallMax, thumbnailSmallMin } from '@/store/variables'
 import {
-    mdiCloseThick,
     mdiDelete,
     mdiFile,
     mdiFileCancel,

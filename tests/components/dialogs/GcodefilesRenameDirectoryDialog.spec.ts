@@ -25,9 +25,7 @@ const mockStoreState = {
         },
     },
     files: {
-        gcodefiles: [
-            { filename: 'old-dir-name', type: 'directory' },
-        ],
+        gcodefiles: [{ filename: 'old-dir-name', type: 'directory' }],
     },
 }
 
@@ -108,12 +106,12 @@ describe('GcodefilesRenameDirectoryDialog.vue', () => {
     })
 
     it('renders without crashing', () => {
-        const wrapper = mount(GcodefilesRenameDirectoryDialog, mountOptions)
+        const wrapper = mount(GcodefilesRenameDirectoryDialog, mountOptions as any)
         expect(wrapper.exists()).toBe(true)
     })
 
     it('shows dialog with correct title and fields', () => {
-        const wrapper = mount(GcodefilesRenameDirectoryDialog, mountOptions)
+        const wrapper = mount(GcodefilesRenameDirectoryDialog, mountOptions as any)
         expect(wrapper.text()).toContain('Rename Directory')
         expect(wrapper.text()).toContain('Name')
         expect(wrapper.text()).toContain('Cancel')
@@ -122,9 +120,12 @@ describe('GcodefilesRenameDirectoryDialog.vue', () => {
 
     it('pre-fills input with current directory name after opening', async () => {
         const wrapper = mount(GcodefilesRenameDirectoryDialog, {
-            props: { modelValue: false, item: { filename: 'old-dir-name', isDirectory: true, modified: 1000, size: 0 } },
+            props: {
+                modelValue: false,
+                item: { filename: 'old-dir-name', isDirectory: true, modified: 1000, size: 0 },
+            },
             global: mountOptions.global,
-        })
+        } as any)
         await wrapper.setProps({ modelValue: true })
         await nextTick()
         const textField = wrapper.findComponent({ name: 'VTextField' })
@@ -133,9 +134,12 @@ describe('GcodefilesRenameDirectoryDialog.vue', () => {
 
     it('dispatches server.files.move on rename', async () => {
         const wrapper = mount(GcodefilesRenameDirectoryDialog, {
-            props: { modelValue: false, item: { filename: 'old-dir-name', isDirectory: true, modified: 1000, size: 0 } },
+            props: {
+                modelValue: false,
+                item: { filename: 'old-dir-name', isDirectory: true, modified: 1000, size: 0 },
+            },
             global: mountOptions.global,
-        })
+        } as any)
         await wrapper.setProps({ modelValue: true })
         await nextTick()
         const inputEl = wrapper.find('input')
@@ -157,7 +161,7 @@ describe('GcodefilesRenameDirectoryDialog.vue', () => {
     })
 
     it('closes dialog on cancel', async () => {
-        const wrapper = mount(GcodefilesRenameDirectoryDialog, mountOptions)
+        const wrapper = mount(GcodefilesRenameDirectoryDialog, mountOptions as any)
         const closeButton = wrapper.findAllComponents({ name: 'VBtn' })[0]
         await closeButton.trigger('click')
         expect(wrapper.emitted('update:modelValue')![0]).toEqual([false])

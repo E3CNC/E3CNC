@@ -17,10 +17,18 @@
                             hide-details
                             density="compact"
                             attach=".machine-configfiles-panel__root-select"
+                            aria-label="Root directory selector"
                             @change="changeRoot" />
                     </v-col>
                     <v-col class="v-col v-col-lg-auto pl-lg-0 text-right">
-                        <input ref="fileUpload" type="file" style="display: none" multiple @change="uploadFile" />
+                        <input
+                            id="config-files-upload"
+                            ref="fileUpload"
+                            name="config-files-upload"
+                            type="file"
+                            style="display: none"
+                            multiple
+                            @change="uploadFile" />
                         <v-btn
                             v-for="button in filteredToolbarButtons"
                             :key="button.loadingName"
@@ -189,6 +197,72 @@
                         <td class="text-right">{{ formatDateTime(item.modified) }}</td>
                     </tr>
                 </template>
+                <template
+                    #footer="{ itemsPerPageOptions, itemsPerPage, updateItemsPerPage, page, pageCount, updateOptions }">
+                    <div class="v-data-table-footer">
+                        <div class="v-data-table-footer__items-per-page">
+                            <span class="v-data-table-footer__items-per-page--label">
+                                {{ $t('Machine.ConfigFilesPanel.Files') }}
+                            </span>
+                            <v-select
+                                :model-value="itemsPerPage"
+                                :items="
+                                    itemsPerPageOptions.map((o: any) =>
+                                        o === -1
+                                            ? { title: $t('Machine.ConfigFilesPanel.AllFiles'), value: -1 }
+                                            : { title: String(o), value: o }
+                                    )
+                                "
+                                variant="plain"
+                                density="compact"
+                                hide-details
+                                class="v-data-table-footer__items-per-page--select"
+                                aria-label="Items per page"
+                                @update:model-value="(v: any) => updateItemsPerPage(v)" />
+                        </div>
+                        <div class="v-data-table-footer__info">
+                            <span>{{ getPageText(page, itemsPerPage, itemsLength) }}</span>
+                        </div>
+                        <div class="v-data-table-footer__pagination">
+                            <v-btn
+                                icon
+                                variant="plain"
+                                density="comfortable"
+                                :disabled="page <= 1"
+                                aria-label="First page"
+                                @click="updateOptions({ page: 1 })">
+                                <v-icon>$first</v-icon>
+                            </v-btn>
+                            <v-btn
+                                icon
+                                variant="plain"
+                                density="comfortable"
+                                :disabled="page <= 1"
+                                aria-label="Previous page"
+                                @click="updateOptions({ page: page - 1 })">
+                                <v-icon>$prev</v-icon>
+                            </v-btn>
+                            <v-btn
+                                icon
+                                variant="plain"
+                                density="comfortable"
+                                :disabled="page >= pageCount"
+                                aria-label="Next page"
+                                @click="updateOptions({ page: page + 1 })">
+                                <v-icon>$next</v-icon>
+                            </v-btn>
+                            <v-btn
+                                icon
+                                variant="plain"
+                                density="comfortable"
+                                :disabled="page >= pageCount"
+                                aria-label="Last page"
+                                @click="updateOptions({ page: pageCount })">
+                                <v-icon>$last</v-icon>
+                            </v-btn>
+                        </div>
+                    </div>
+                </template>
             </v-data-table>
             <v-card-text v-else>
                 <v-row>
@@ -207,7 +281,12 @@
                 </v-row>
             </v-card-text>
         </panel>
-        <v-menu v-model="contextMenu.shown" :position-x="contextMenu.x" :position-y="contextMenu.y" absolute offset-y>
+        <v-menu
+            v-model="contextMenu.shown"
+            :target="[contextMenu.x, contextMenu.y]"
+            location="bottom start"
+            origin="top left"
+            :offset="4">
             <v-list>
                 <v-list-item v-if="!contextMenu.item.isDirectory" @click="clickRow(contextMenu.item, true)">
                     <v-icon class="mr-1">{{ mdiFileDocumentEditOutline }}</v-icon>
@@ -487,10 +566,15 @@
     color: rgb(var(--v-theme-on-surface));
     opacity: 1;
 }
+
+:deep(.files-table .v-table__wrapper > table > thead > tr > th:first-child),
+:deep(.files-table .v-table__wrapper > table > tbody > tr > td:first-child) {
+    padding-left: 16px !important;
+}
 </style>
 
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, onMounted } from 'vue'
 import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 import { useBase } from '@/composables/useBase'
@@ -503,7 +587,6 @@ import {
     generateTimestamp,
     getFileColor,
     getFileIcon,
-    getFileType,
     getFileTypeLabel,
     sortFiles,
 } from '@/plugins/helpers'
@@ -585,7 +668,7 @@ interface draggingFile {
 const store = useStore()
 const { t } = useI18n()
 const socket = useSocket()
-const { apiUrl, isMobile, formatDateTime } = useBase()
+const { apiUrl, formatDateTime } = useBase()
 const { machineButtonCol } = useTheme()
 const toast = useToast()
 
@@ -1292,4 +1375,45 @@ async function dragDropFilelist(e: DragEvent, row: FileStateFile) {
         { action: 'files/getMove' }
     )
 }
+
+function getPageText(page: number, itemsPerPage: number, itemsLength: number): string {
+    if (itemsPerPage === -1 || itemsLength === 0) {
+        return `${itemsLength} items`
+    }
+    const start = (page - 1) * itemsPerPage + 1
+    const end = Math.min(page * itemsPerPage, itemsLength)
+    return `${start}-${end} of ${itemsLength}`
+}
+
+onMounted(() => {
+    const fixA11y = () => {
+        document
+            .querySelectorAll('.v-data-table-footer input, .v-field__input input, .v-select input')
+            .forEach((input) => {
+                if (!input.hasAttribute('aria-label') && !input.hasAttribute('aria-labelledby')) {
+                    const parentText = input
+                        .closest('.v-data-table-footer__items-per-page')
+                        ?.querySelector('span')?.textContent
+                    input.setAttribute('aria-label', parentText?.trim() || input.placeholder || 'Form field')
+                }
+                if (!input.id && !input.name) {
+                    input.setAttribute('name', 'field-' + Math.random().toString(36).slice(2, 8))
+                }
+            })
+        document.querySelectorAll('[aria-labelledby]').forEach((el) => {
+            const ref = el.getAttribute('aria-labelledby')
+            if (ref && !document.getElementById(ref)) {
+                const label = el.closest('.v-field')?.querySelector('.v-label')
+                if (label) {
+                    el.setAttribute('aria-label', label.textContent?.trim() || 'Form field')
+                    el.removeAttribute('aria-labelledby')
+                }
+            }
+        })
+    }
+    fixA11y()
+    const observer = new MutationObserver(fixA11y)
+    observer.observe(document.body, { childList: true, subtree: true })
+    setTimeout(() => observer.disconnect(), 5000)
+})
 </script>

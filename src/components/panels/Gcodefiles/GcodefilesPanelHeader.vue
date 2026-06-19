@@ -79,7 +79,7 @@ import GcodefilesPanelHeaderSettings from '@/components/panels/Gcodefiles/Gcodef
 import { validGcodeExtensions } from '@/store/variables'
 
 const { apiUrl, isIOS, loadings } = useBase()
-const { search, setSearch, currentPath, setCurrentPath, selectedFiles, setSelectedFiles } = useGcodeFiles()
+const { search, currentPath, selectedFiles, setSelectedFiles } = useGcodeFiles()
 const socket = useSocket()
 const store = useStore()
 const { t } = useI18n()

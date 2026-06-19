@@ -22,16 +22,15 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { TranslateResult } from 'vue-i18n'
 
 const props = defineProps({
-    loading: { required: false, default: false },
-    icon: { required: false, default: '' },
-    title: { required: true },
-    subTitle: { required: false, default: null },
-    dynamicSlotWidth: { required: false, default: false },
-    mobileSecondRow: { required: false, default: false },
-    dense: { default: false },
+    loading: { type: Boolean, required: false, default: false },
+    icon: { type: String, required: false, default: '' },
+    title: { type: String, required: true },
+    subTitle: { type: String, required: false, default: null },
+    dynamicSlotWidth: { type: Boolean, required: false, default: false },
+    mobileSecondRow: { type: Boolean, required: false, default: false },
+    dense: { type: Boolean, default: false },
 })
 
 const firstColClasses = computed(() => {

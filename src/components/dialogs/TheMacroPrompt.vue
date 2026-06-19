@@ -1,5 +1,5 @@
 <template>
-    <v-dialog :value="showDialog" width="400" persistent :fullscreen="isMobile">
+    <v-dialog v-model="showDialog" width="400" persistent :fullscreen="isMobile">
         <panel
             :title="headline"
             :icon="mdiInformation"

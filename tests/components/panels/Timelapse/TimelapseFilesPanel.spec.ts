@@ -24,7 +24,7 @@ const mockBaseValues = vi.hoisted(() => {
     }
 
     return {
-        loadings: new MockRef<string[]>([]),
+        loadings: new MockRef([]),
         apiUrl: new MockRef('http://localhost:8080'),
         formatDateTime: vi.fn((_date: number) => '2025-01-01 12:00'),
     }

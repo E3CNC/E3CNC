@@ -11,7 +11,8 @@ vi.mock('vuetify/components', () => ({
     VTextField: {
         name: 'VTextField',
         props: ['modelValue', 'appendIcon', 'label', 'hideDetails', 'density', 'variant', 'clearable'],
-        template: '<div class="v-text-field"><label>{{ label }}</label><input :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" /></div>',
+        template:
+            '<div class="v-text-field"><label>{{ label }}</label><input :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" /></div>',
     },
     VSwitch: { name: 'VSwitch', props: ['modelValue', 'hideDetails'], template: '<div class="v-switch" />' },
 }))
@@ -55,12 +56,10 @@ function createStoreWithState() {
             },
         },
         getters: {
-            'printer/getMacros': () => (
-                [
-                    { name: 'START_PRINT', description: 'Start print', macros: [] },
-                    { name: 'END_PRINT', description: 'End print', macros: [] },
-                ]
-            ),
+            'printer/getMacros': () => [
+                { name: 'START_PRINT', description: 'Start print', macros: [] },
+                { name: 'END_PRINT', description: 'End print', macros: [] },
+            ],
         },
     })
 }
@@ -68,7 +67,9 @@ function createStoreWithState() {
 import SettingsMacrosTabSimple from '@/components/settings/SettingsMacrosTabSimple.vue'
 
 describe('SettingsMacrosTabSimple.vue', () => {
-    beforeEach(() => { vi.clearAllMocks() })
+    beforeEach(() => {
+        vi.clearAllMocks()
+    })
 
     it('renders without crashing', () => {
         const store = createStoreWithState()

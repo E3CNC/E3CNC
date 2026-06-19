@@ -23,11 +23,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 import { useWebcam } from '@/composables/useWebcam'
-import type { GuiWebcamStateWebcam } from '@/store/gui/webcams/types'
 import WebcamNozzleCrosshair from '@/components/webcams/WebcamNozzleCrosshair.vue'
 
 const CONTENT_LENGTH = 'content-length'
@@ -38,7 +37,7 @@ SOI[1] = 0xd8
 
 const props = defineProps({
     camSettings: { type: Object, required: true },
-    printerUrl: { default: null },
+    printerUrl: { type: String, default: null },
     showFps: { type: Boolean, default: true },
     page: { type: String, default: null },
 })

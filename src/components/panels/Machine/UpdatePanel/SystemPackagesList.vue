@@ -30,7 +30,7 @@ import { mdiCloseThick, mdiPackageVariantClosed } from '@mdi/js'
 import Panel from '@/components/ui/Panel.vue'
 
 const props = defineProps<{
-    'model-value': boolean
+    modelValue: boolean
     packagesList: string[]
 }>()
 
@@ -38,7 +38,7 @@ const emit = defineEmits<{
     'update:model-value': [value: boolean]
 }>()
 
-const showDialog = computed(() => props['model-value'])
+const showDialog = computed(() => props.modelValue)
 
 function emitValue(val: boolean) {
     emit('update:model-value', val)

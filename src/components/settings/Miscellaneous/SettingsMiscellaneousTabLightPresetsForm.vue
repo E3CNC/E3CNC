@@ -104,7 +104,7 @@ import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 import SettingsRow from '@/components/settings/SettingsRow.vue'
 import { caseInsensitiveSort } from '@/plugins/helpers'
-import type { GuiMiscellaneousStateEntry, GuiMiscellaneousStateEntryPreset } from '@/store/gui/miscellaneous/types'
+import type { GuiMiscellaneousStateEntryPreset } from '@/store/gui/miscellaneous/types'
 import type { ColorPickerProps } from '@jaames/iro/dist/ColorPicker.d'
 import iro from '@jaames/iro'
 import type { IroColor } from '@irojs/iro-core'
@@ -177,12 +177,6 @@ const existWhite = computed(() => colorOrder.value.includes('W'))
 const colorRGB = computed(() => `rgb(${redInt.value}, ${greenInt.value}, ${blueInt.value})`)
 const colorRGBW = computed(() => `rgba(255, 255, 255, ${whiteInt.value / 255})`)
 
-const light = computed(() => {
-    if (!props.type || !props.name) return null
-    const key = `${props.type} ${props.name}`
-    return store.state.printer[key] ?? {}
-})
-
 const entry = computed(() => {
     const entries = store.state.gui.miscellaneous.entries ?? {}
     const key = Object.keys(entries).find((k) => {
@@ -246,8 +240,8 @@ const colorPickerWhiteOptions = computed(() => {
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
-function debounce(fn: (...args: any[]) => void, time: number) {
-    return (...args: any[]) => {
+function debounce(fn: (...args: unknown[]) => void, time: number) {
+    return (...args: unknown[]) => {
         if (debounceTimer) clearTimeout(debounceTimer)
         debounceTimer = setTimeout(() => fn(...args), time)
     }

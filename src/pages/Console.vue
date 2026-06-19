@@ -105,8 +105,8 @@ const {
     clearConsole,
 } = useConsole()
 
-const consoleScroll = ref<any>(null)
-const gcodeCommandField = ref<any>(null)
+const consoleScroll = ref<unknown>(null)
+const gcodeCommandField = ref<unknown>(null)
 
 const events = computed(() => store.getters['server/getConsoleEvents'](consoleDirection.value === 'table'))
 

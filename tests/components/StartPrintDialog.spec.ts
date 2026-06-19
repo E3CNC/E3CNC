@@ -102,7 +102,7 @@ function createStoreWithState(overrides: Record<string, any> = {}) {
     })
 }
 
-const sampleFile = { filename: 'test.gcode', display: 'test.gcode', modified: 1000, size: 1024 }
+const sampleFile = { filename: 'test.gcode', display: 'test.gcode', modified: 1000, size: 1024 } as any
 
 describe('StartPrintDialog.vue', () => {
     beforeEach(() => {

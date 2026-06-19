@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createStore } from 'vuex'
+import type { GuiMaintenanceStateEntry } from '@/store/gui/maintenance/types'
 import HistoryListPanelDetailMaintenance from '@/components/dialogs/HistoryListPanelDetailMaintenance.vue'
 
 const mockBaseValues = vi.hoisted(() => {
@@ -175,7 +176,7 @@ function createMockItem(overrides: Record<string, any> = {}) {
             date: { bool: false, value: null },
         },
         ...overrides,
-    }
+    } as GuiMaintenanceStateEntry
 }
 
 describe('HistoryListPanelDetailMaintenance.vue', () => {
@@ -362,9 +363,10 @@ describe('HistoryListPanelDetailMaintenance.vue', () => {
         expect(cancelBtn).toBeTruthy()
         await cancelBtn!.trigger('click')
 
-        expect(wrapper.emitted('update:modelValue')).toBeTruthy()
-        if (wrapper.emitted('update:modelValue')) {
-            expect(wrapper.emitted('update:modelValue')[0]).toEqual([false])
+        const emitted = wrapper.emitted('update:modelValue')
+        expect(emitted).toBeTruthy()
+        if (emitted) {
+            expect(emitted[0]).toEqual([false])
         }
     })
 
@@ -422,12 +424,13 @@ describe('HistoryListPanelDetailMaintenance.vue', () => {
             },
         })
 
-        const item = {
+        const item: any = {
             ...entries.entry_1,
             start_filament: 0,
             end_filament: null,
             start_printtime: 0,
             end_printtime: null,
+            perform_note: null,
         }
 
         const wrapper = mount(HistoryListPanelDetailMaintenance, {

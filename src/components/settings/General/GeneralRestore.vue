@@ -4,7 +4,7 @@
         <v-btn size="small" :loading="loadings.includes('restoreUploadButton')" class="ml-3" @click="restoreDb">
             {{ $t('Settings.GeneralTab.Restore') }}
         </v-btn>
-        <v-dialog :value="showDialog" persistent :width="360">
+        <v-dialog v-model="showDialog" persistent :width="360">
             <panel
                 :title="$t('Settings.GeneralTab.Restore')"
                 card-class="mainsail-restore-dialog"
@@ -54,7 +54,7 @@ import type { TranslateResult } from 'vue-i18n'
 
 const store = useStore()
 const { t } = useI18n()
-const { loadings, loadBackupableNamespaces, availableKeys, sortNamespaces } = useSettingsDatabase()
+const { loadings, availableKeys, sortNamespaces } = useSettingsDatabase()
 const { proxy } = getCurrentInstance()!
 
 const uploadBackupFile = ref<HTMLInputElement | null>(null)

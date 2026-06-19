@@ -48,7 +48,7 @@ const props = defineProps({
 })
 
 const store = useStore()
-const { getPanelName, convertPanelnameToIcon } = useDashboard()
+useDashboard()
 
 const layoutname = computed(() => {
     if (props.column) return `${props.viewportName}Layout${props.column}`

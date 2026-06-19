@@ -19,7 +19,7 @@
                             :value="backgroundColor"
                             hide-mode-switch
                             mode="rgba"
-                            @update:color="updateColorValue('backgroundColor', $event)"></v-color-picker>
+                            @update:model-value="updateColorValue('backgroundColor', $event)"></v-color-picker>
                     </v-menu>
                 </settings-row>
                 <v-divider class="my-2"></v-divider>
@@ -36,7 +36,7 @@
                             :value="gridColor"
                             hide-mode-switch
                             mode="rgba"
-                            @update:color="updateColorValue('gridColor', $event)"></v-color-picker>
+                            @update:model-value="updateColorValue('gridColor', $event)"></v-color-picker>
                     </v-menu>
                 </settings-row>
                 <v-divider class="my-2"></v-divider>
@@ -53,7 +53,7 @@
                             :value="progressColor"
                             hide-mode-switch
                             mode="rgba"
-                            @update:color="updateColorValue('progressColor', $event)"></v-color-picker>
+                            @update:model-value="updateColorValue('progressColor', $event)"></v-color-picker>
                     </v-menu>
                 </settings-row>
                 <v-divider class="my-2"></v-divider>
@@ -71,7 +71,7 @@
                             :value="minFeedColor"
                             hide-mode-switch
                             mode="rgba"
-                            @update:color="updateColorValue('minFeedColor', $event)"></v-color-picker>
+                            @update:model-value="updateColorValue('minFeedColor', $event)"></v-color-picker>
                     </v-menu>
                     <v-text-field
                         v-model="minFeed"
@@ -98,7 +98,7 @@
                             :value="maxFeedColor"
                             hide-mode-switch
                             mode="rgba"
-                            @update:color="updateColorValue('maxFeedColor', $event)"></v-color-picker>
+                            @update:model-value="updateColorValue('maxFeedColor', $event)"></v-color-picker>
                     </v-menu>
                     <v-text-field
                         v-model="maxFeed"

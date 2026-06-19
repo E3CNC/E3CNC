@@ -26,7 +26,7 @@
                             mode="hexa"
                             :model-value="color"
                             class="mx-auto"
-                            @update:color="setChartColor" />
+                            @update:model-value="setChartColor" />
                     </v-col>
                 </v-row>
             </v-card-text>

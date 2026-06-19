@@ -1,7 +1,7 @@
 import { ActionTree } from 'vuex'
 import { GuiNotificationState, GuiNotificationStateDismissEntry } from './types'
 import { RootState } from '../../types'
-import { getSocket, $toast } from '@/store/runtime'
+import { getSocket } from '@/store/runtime'
 
 export const actions: ActionTree<GuiNotificationState, RootState> = {
     reset({ commit }) {

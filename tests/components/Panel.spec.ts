@@ -430,7 +430,7 @@ describe('Panel.vue - icon rendering', () => {
     it('does not render v-icon when icon prop is null', () => {
         const store = createStoreWithState()
         const wrapper = mount(Panel, {
-            props: { title: 'Test', cardClass: 'test-panel', icon: null },
+            props: { title: 'Test', cardClass: 'test-panel', icon: undefined },
             global: { plugins: [store] },
         })
 
@@ -488,7 +488,7 @@ describe('Panel.vue - height prop', () => {
     it('does not apply height style when height prop is null', () => {
         const store = createStoreWithState()
         const wrapper = mount(Panel, {
-            props: { title: 'Test', cardClass: 'test-panel', height: null },
+            props: { title: 'Test', cardClass: 'test-panel', height: undefined },
             global: { plugins: [store] },
         })
 

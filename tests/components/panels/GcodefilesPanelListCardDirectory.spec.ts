@@ -137,7 +137,7 @@ describe('GcodefilesPanelListCardDirectory.vue', () => {
         }
 
         const wrapper = mount(GcodefilesPanelListCardDirectory, {
-            props: { item },
+            props: { item: item as any },
             global: {
                 plugins: [store],
                 mocks: { $t: (key: string) => key },
@@ -158,7 +158,7 @@ describe('GcodefilesPanelListCardDirectory.vue', () => {
         }
 
         const wrapper = mount(GcodefilesPanelListCardDirectory, {
-            props: { item },
+            props: { item: item as any },
             global: {
                 plugins: [store],
                 mocks: { $t: (key: string) => key },
@@ -177,7 +177,7 @@ describe('GcodefilesPanelListCardDirectory.vue', () => {
         }
 
         const wrapper = mount(GcodefilesPanelListCardDirectory, {
-            props: { item },
+            props: { item: item as any },
             global: {
                 plugins: [store],
                 mocks: { $t: (key: string) => key },
@@ -196,7 +196,7 @@ describe('GcodefilesPanelListCardDirectory.vue', () => {
         }
 
         const wrapper = mount(GcodefilesPanelListCardDirectory, {
-            props: { item },
+            props: { item: item as any },
             global: {
                 plugins: [store],
                 mocks: { $t: (key: string) => key },

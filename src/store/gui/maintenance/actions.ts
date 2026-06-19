@@ -1,5 +1,5 @@
 import { ActionTree } from 'vuex'
-import { getSocket, $toast } from '@/store/runtime'
+import { getSocket } from '@/store/runtime'
 import { GuiMaintenanceState, MaintenanceJson } from '@/store/gui/maintenance/types'
 import { RootState } from '@/store/types'
 import { v4 as uuidv4 } from 'uuid'

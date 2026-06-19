@@ -41,7 +41,7 @@ import Panel from '@/components/ui/Panel.vue'
 import UpdateHintAlert from '@/components/panels/Machine/UpdatePanel/UpdateHintAlert.vue'
 
 const props = defineProps<{
-    'model-value': boolean
+    modelValue: boolean
     repo: ServerUpdateManagerStateGitRepo
 }>()
 
@@ -53,7 +53,7 @@ const emit = defineEmits<{
 
 const checkboxUpdateQuestion = ref(false)
 
-const showDialog = computed(() => props['model-value'])
+const showDialog = computed(() => props.modelValue)
 
 function emitValue(val: boolean) {
     emit('update:model-value', val)

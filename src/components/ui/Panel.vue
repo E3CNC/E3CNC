@@ -61,7 +61,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onUnmounted, reactive, ref, useSlots, watch } from 'vue'
+import { computed, reactive, ref, useSlots, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useBase } from '@/composables/useBase'
 import { panelToolbarHeight } from '@/store/variables'
@@ -70,7 +70,7 @@ import type { PanelFloatingState } from '@/store/gui/types'
 
 const props = defineProps({
     icon: { type: String, default: null },
-    title: { type: [String, Object], required: true, default: '' },
+    title: { type: [String, Object], required: false, default: '' },
     collapsible: { type: Boolean, default: false },
     cardClass: { type: String, required: true },
     toolbarColor: { type: String, default: '' },
@@ -88,7 +88,7 @@ const slots = useSlots()
 
 let panelEl: HTMLElement | null = null
 
-function setPanelRef(el: any) {
+function setPanelRef(el: unknown) {
     panelEl = el?.$el ?? el ?? null
 }
 
@@ -410,6 +410,35 @@ function dockPanel() {
 :deep(.panel-toolbar) .v-btn {
     height: 100%;
     max-height: none;
+}
+
+.panel-toolbar {
+    gap: 4px;
+}
+
+.panel-toolbar .v-toolbar-title {
+    gap: 8px;
+}
+
+.panel-toolbar .v-toolbar-title .v-icon + span {
+    margin-inline-start: 2px;
+}
+
+:deep(.panel-toolbar) .v-toolbar-items {
+    gap: 4px;
+}
+
+:deep(.panel-toolbar) .v-toolbar-items > .d-flex.align-center {
+    padding-inline-end: 8px;
+}
+
+:deep(.panel-toolbar) .v-toolbar__content {
+    padding-left: 8px;
+    padding-right: 4px;
+}
+
+:deep(.panel-toolbar) .v-toolbar__content > .v-btn + .v-btn {
+    margin-inline-start: 4px;
 }
 
 .resize-handle {

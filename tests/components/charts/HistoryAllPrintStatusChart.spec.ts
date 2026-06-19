@@ -194,10 +194,12 @@ describe('HistoryAllPrintStatusChart.vue', () => {
         const option = chart.props('option') as any
         expect(option).toBeTruthy()
         expect(option.series[0].type).toBe('pie')
-        expect(option.series[0].data).toEqual(expect.arrayContaining([
-            expect.objectContaining({ name: 'completed' }),
-            expect.objectContaining({ name: 'in_progress' }),
-        ]))
+        expect(option.series[0].data).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({ name: 'completed' }),
+                expect.objectContaining({ name: 'in_progress' }),
+            ])
+        )
     })
 
     it('chart options disable animation', () => {

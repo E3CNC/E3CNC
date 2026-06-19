@@ -31,13 +31,29 @@ vi.mock('vuetify/components', () => ({
         template: '<select class="v-select" :value="modelValue"></select>',
     },
     VSwitch: { name: 'VSwitch', props: ['modelValue', 'hideDetails'], template: '<div class="v-switch" />' },
-    VSlider: { name: 'VSlider', props: ['modelValue', 'hideDetails', 'min', 'max', 'step', 'label'], template: '<div class="v-slider" />' },
-    VBtn: { name: 'VBtn', props: ['size', 'variant', 'color', 'class'], template: '<button @click="$emit(\'click\', $event)"><slot /></button>' },
+    VSlider: {
+        name: 'VSlider',
+        props: ['modelValue', 'hideDetails', 'min', 'max', 'step', 'label'],
+        template: '<div class="v-slider" />',
+    },
+    VBtn: {
+        name: 'VBtn',
+        props: ['size', 'variant', 'color', 'class'],
+        template: '<button @click="$emit(\'click\', $event)"><slot /></button>',
+    },
     VIcon: { name: 'VIcon', props: ['size', 'start'], template: '<i><slot /></i>' },
-    VMenu: { name: 'VMenu', props: ['location', 'closeOnContentClick'], template: '<div class="v-menu"><slot name="activator" /><slot /></div>' },
+    VMenu: {
+        name: 'VMenu',
+        props: ['location', 'closeOnContentClick'],
+        template: '<div class="v-menu"><slot name="activator" /><slot /></div>',
+    },
     VColorPicker: { name: 'VColorPicker', props: ['value', 'hideModeSwitch', 'mode'], template: '<div />' },
     VExpandTransition: { name: 'VExpandTransition', template: '<div><slot /></div>' },
-    VTextField: { name: 'VTextField', props: ['modelValue'], template: '<input class="v-text-field" :value="modelValue" />' },
+    VTextField: {
+        name: 'VTextField',
+        props: ['modelValue'],
+        template: '<input class="v-text-field" :value="modelValue" />',
+    },
 }))
 
 vi.mock('@/components/settings/SettingsRow.vue', () => ({
@@ -75,12 +91,25 @@ function createStoreWithState() {
         state: {
             gui: {
                 uiSettings: {
-                    mode: 'dark', theme: 'mainsail', logo: '#fff', primary: '#1976d2',
-                    progressAsFavicon: false, lockSlidersOnTouchDevices: false, lockSlidersDelay: 3,
-                    confirmOnEmergencyStop: true, confirmOnCoolDown: true, confirmOnPowerDeviceChange: true, confirmOnCancelJob: true,
-                    navigationStyle: 'iconsAndText', defaultNavigationStateSetting: 'lastState',
-                    powerDeviceName: null, hideUpdateWarnings: false,
-                    dashboardFilesLimit: 5, dashboardFilesFilter: [], dashboardHistoryLimit: 5, hideOtherInstances: false,
+                    mode: 'dark',
+                    theme: 'mainsail',
+                    logo: '#fff',
+                    primary: '#1976d2',
+                    progressAsFavicon: false,
+                    lockSlidersOnTouchDevices: false,
+                    lockSlidersDelay: 3,
+                    confirmOnEmergencyStop: true,
+                    confirmOnCoolDown: true,
+                    confirmOnPowerDeviceChange: true,
+                    confirmOnCancelJob: true,
+                    navigationStyle: 'iconsAndText',
+                    defaultNavigationStateSetting: 'lastState',
+                    powerDeviceName: null,
+                    hideUpdateWarnings: false,
+                    dashboardFilesLimit: 5,
+                    dashboardFilesFilter: [],
+                    dashboardHistoryLimit: 5,
+                    hideOtherInstances: false,
                 },
             },
             instancesDB: 'moonraker',
@@ -92,7 +121,9 @@ function createStoreWithState() {
 import SettingsUiSettingsTab from '@/components/settings/SettingsUiSettingsTab.vue'
 
 describe('SettingsUiSettingsTab.vue', () => {
-    beforeEach(() => { vi.clearAllMocks() })
+    beforeEach(() => {
+        vi.clearAllMocks()
+    })
 
     it('renders without crashing', () => {
         const store = createStoreWithState()

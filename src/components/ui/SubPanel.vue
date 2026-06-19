@@ -37,7 +37,7 @@ import { mdiChevronDown } from '@mdi/js'
 const props = defineProps({
     iconExpanded: { type: String, required: false, default: mdiChevronDown },
     iconCollapsed: { type: String, required: false, default: mdiChevronDown },
-    title: { type: String, required: true, default: '' },
+    title: { type: String, required: false, default: '' },
     subPanelClass: { type: String, required: true },
 })
 

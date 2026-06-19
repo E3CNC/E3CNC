@@ -276,8 +276,8 @@ describe('UpdatePanel Entry.vue', () => {
         const repo = {
             ...sampleGitRepo,
             commits_behind: [],
-            version: null,
-            remote_version: null,
+            version: null as any,
+            remote_version: null as any,
         }
         const wrapper = mount(Entry, {
             props: { repo },

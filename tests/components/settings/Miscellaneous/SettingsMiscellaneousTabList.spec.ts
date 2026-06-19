@@ -24,7 +24,8 @@ vi.mock('@/components/settings/Miscellaneous/SettingsMiscellaneousTabListLight.v
 }))
 
 const i18n = createI18n({
-    legacy: false, locale: 'en',
+    legacy: false,
+    locale: 'en',
     messages: {
         en: {
             Settings: { MiscellaneousTab: { Miscellaneous: 'Miscellaneous', NoDevicesFound: 'No devices found' } },
@@ -43,7 +44,9 @@ function createStoreWithState() {
 import SettingsMiscellaneousTabList from '@/components/settings/Miscellaneous/SettingsMiscellaneousTabList.vue'
 
 describe('SettingsMiscellaneousTabList.vue', () => {
-    beforeEach(() => { vi.clearAllMocks() })
+    beforeEach(() => {
+        vi.clearAllMocks()
+    })
 
     it('renders without crashing', () => {
         const store = createStoreWithState()
@@ -64,6 +67,4 @@ describe('SettingsMiscellaneousTabList.vue', () => {
         expect(wrapper.text()).toContain('neopixel')
         expect(wrapper.text()).toContain('case')
     })
-
-
 })

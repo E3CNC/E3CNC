@@ -14,12 +14,11 @@ import type { ECharts } from 'echarts/core'
 import type { ECBasicOption } from 'echarts/types/dist/shared.d'
 import type { EChartRef } from '@/types/echarts'
 import { useTheme } from '@/composables/useTheme'
-import { useBase } from '@/composables/useBase'
 import { useHistory } from '@/composables/useHistory'
 import type { ServerHistoryStateJob } from '@/store/server/history/types'
 
 const { t } = useI18n()
-const { fgColorHi, fgColorMid, fgColorLow, fgColorFaint } = useTheme()
+const { fgColorLow, fgColorFaint } = useTheme()
 const { allJobs, selectedJobs } = useHistory()
 
 const historyPrinttimeAvg = ref<EChartRef | undefined>()

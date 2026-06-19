@@ -568,7 +568,6 @@
 import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useBase } from '@/composables/useBase'
-import { useControl } from '@/composables/useControl'
 import { useCncProfile } from '@/composables/useCncProfile'
 import { useToast } from 'vue-toast-notification'
 import Panel from '@/components/ui/Panel.vue'
@@ -591,7 +590,6 @@ import { getCursorTooltipPosition, previewCursorStyle } from '@/components/panel
 
 const toast = useToast()
 const { klipperReadyForGui } = useBase()
-const { doSend } = useControl()
 const { showWorkCoords, requireConfirmForZeroReset, requireHomingBeforeOffsets } = useCncProfile()
 const store = useStore()
 
@@ -989,11 +987,11 @@ function onSvgMouseLeave() {
     snapInfo.value = null
 }
 
-function onSvgClick(e: MouseEvent) {
+function onSvgClick() {
     const info = cursorInfo.value
     if (!info) return
 
-    const gcode = `G53\nG1 X${info.x.toFixed(4)} Y${info.y.toFixed(4)} F3000`
+    const gcode = `G53\\nG1 X${info.x.toFixed(4)} Y${info.y.toFixed(4)} F3000`
     getSocket().emit('printer.gcode.script', { script: gcode })
 }
 

@@ -176,6 +176,7 @@ function createMockJob(overrides: Record<string, any> = {}) {
         start_time: 1000000,
         end_time: 1005000,
         print_duration: 4500,
+        total_duration: 4500,
         filament_used: 500,
         exists: true,
         metadata: {

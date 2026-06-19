@@ -34,14 +34,6 @@ const sums = computed(() => {
     return result
 })
 
-const count = computed(() => {
-    let total = 0
-    props.jobs.forEach((item) => {
-        total += (item.combinedIds?.length ?? 0) + 1
-    })
-    return total
-})
-
 const filamentLength = computed(() => {
     const length = sums.value.filamentLength
     if (length === 0) return null

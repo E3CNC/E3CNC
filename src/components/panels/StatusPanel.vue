@@ -154,8 +154,6 @@ const showCancelJobDialog = ref(false)
 const activeTab = ref('files')
 const lastFilename = ref('')
 
-const jobs = computed(() => store.getters['server/jobQueue/getJobs'])
-
 const jobsCount = computed(() => store.getters['server/jobQueue/getJobsCount'])
 
 const jobQueueBadgeColor = computed(() =>
@@ -163,8 +161,6 @@ const jobQueueBadgeColor = computed(() =>
 )
 
 const current_filename = computed(() => store.state.printer.print_stats?.filename ?? '')
-
-const current_file = computed(() => store.state.printer.current_file ?? {})
 
 const printPercent = computed(() => Math.floor(store.getters['printer/getPrintPercent'] * 100))
 
@@ -239,8 +235,6 @@ const filteredToolbarButtons = computed(() => toolbarButtons.value.filter((butto
 const display_message = computed(() => store.state.printer.display_status?.message ?? null)
 
 const print_stats_message = computed(() => store.state.printer.print_stats?.message ?? null)
-
-const macros = computed(() => store.getters['printer/getMacros'] ?? [])
 
 const displayFilesTab = computed(() => {
     const count = store.state.gui.uiSettings.dashboardFilesLimit ?? 5

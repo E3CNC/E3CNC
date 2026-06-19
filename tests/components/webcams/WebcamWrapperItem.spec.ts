@@ -11,7 +11,7 @@ function mountWrapper(service: string) {
         props: {
             webcam: { name: 'TestCam', service, icon: 'mdiWebcam' },
             showFps: true,
-            page: null,
+            page: undefined,
         },
         global: {
             stubs: {

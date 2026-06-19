@@ -27,7 +27,8 @@ vi.mock('vuedraggable', () => ({
     default: {
         name: 'draggable',
         props: ['modelValue', 'handle', 'ghostClass', 'group', 'itemKey', 'forceFallback'],
-        template: '<div><div v-for="item in modelValue" :key="item.title" class="draggable-item"><slot name="item" :element="item" /></div></div>',
+        template:
+            '<div><div v-for="item in modelValue" :key="item.title" class="draggable-item"><slot name="item" :element="item" /></div></div>',
     },
 }))
 

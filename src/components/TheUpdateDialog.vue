@@ -1,5 +1,5 @@
 <template>
-    <v-dialog :value="application !== ''" persistent max-width="800" class="mx-0">
+    <v-dialog :model-value="application !== ''" persistent max-width="800" class="mx-0">
         <v-card :loading="!complete">
             <template #progress>
                 <v-progress-linear color="primary" indeterminate></v-progress-linear>
@@ -81,8 +81,8 @@ import { OverlayScrollbarsComponent } from 'overlayscrollbars-vue'
 const store = useStore()
 const socket = useSocket()
 
-const updaterLogScroll = ref<any>(null)
-const updaterLog = ref<any>(null)
+const updaterLogScroll = ref<unknown>(null)
+const updaterLog = ref<unknown>(null)
 
 const headers = [
     {

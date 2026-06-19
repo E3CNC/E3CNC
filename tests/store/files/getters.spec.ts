@@ -1,9 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { getters } from '@/store/files/getters'
 
-import { describe, it, expect } from 'vitest'
-import { getters } from '@/store/files/getters'
-
 vi.mock('@/store/variables', () => ({
     themeDir: '.theme',
     thumbnailBigMin: 256,

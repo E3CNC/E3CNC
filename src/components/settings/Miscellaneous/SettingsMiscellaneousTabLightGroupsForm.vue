@@ -56,11 +56,10 @@
 import { ref, computed, watch, nextTick } from 'vue'
 import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
-import { useBase } from '@/composables/useBase'
 import SettingsRow from '@/components/settings/SettingsRow.vue'
 import { caseInsensitiveSort } from '@/plugins/helpers'
 import { GuiMacrosStateMacrogroup } from '@/store/gui/macros/types'
-import type { GuiMiscellaneousStateEntry, GuiMiscellaneousStateEntryLightgroup } from '@/store/gui/miscellaneous/types'
+import type { GuiMiscellaneousStateEntryLightgroup } from '@/store/gui/miscellaneous/types'
 
 const props = defineProps({
     type: { type: String, default: null },
@@ -74,7 +73,7 @@ const emit = defineEmits<{
 
 const store = useStore()
 const { t } = useI18n()
-const form = ref<any>(null)
+const form = ref<unknown>(null)
 const formValid = ref(false)
 const groupname = ref('')
 const start = ref(1)
@@ -102,12 +101,6 @@ const settings = computed(() => {
 })
 
 const chainCount = computed(() => settings.value?.chain_count ?? 1)
-
-const light = computed(() => {
-    if (!props.type || !props.name) return null
-    const key = `${props.type} ${props.name}`
-    return store.state.printer[key] ?? {}
-})
 
 const entry = computed(() => {
     const entries = store.state.gui.miscellaneous.entries ?? {}

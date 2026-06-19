@@ -23,7 +23,6 @@
 import { ref, computed, watch, onBeforeUnmount } from 'vue'
 import { useStore } from 'vuex'
 import { useWebcam } from '@/composables/useWebcam'
-import type { GuiWebcamStateWebcam } from '@/store/gui/webcams/types'
 import { capitalize } from '@/plugins/helpers'
 import WebcamNozzleCrosshair from '@/components/webcams/WebcamNozzleCrosshair.vue'
 
@@ -34,7 +33,7 @@ interface CameraStreamerResponse extends RTCSessionDescriptionInit {
 
 const props = defineProps({
     camSettings: { type: Object, required: true },
-    printerUrl: { default: null },
+    printerUrl: { type: String, default: null },
     page: { type: String, default: null },
 })
 

@@ -23,12 +23,9 @@ import { computed } from 'vue'
 import { useStore } from 'vuex'
 import { useBase } from '@/composables/useBase'
 import { useControl } from '@/composables/useControl'
-import { capitalize, convertName } from '@/plugins/helpers'
 import TempChart from '@/components/charts/TempChart.vue'
-import TemperatureInput from '@/components/inputs/TemperatureInput.vue'
 import Panel from '@/components/ui/Panel.vue'
-import Responsive from '@/components/ui/Responsive.vue'
-import { mdiCloseThick, mdiThermometerLines } from '@mdi/js'
+import { mdiThermometerLines } from '@mdi/js'
 
 const { klipperReadyForGui } = useBase()
 useControl()

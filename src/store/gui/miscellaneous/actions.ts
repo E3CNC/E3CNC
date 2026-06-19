@@ -1,7 +1,7 @@
 import { ActionTree } from 'vuex'
 import { RootState } from '@/store/types'
 import { v4 as uuidv4 } from 'uuid'
-import { getSocket, $toast } from '@/store/runtime'
+import { getSocket } from '@/store/runtime'
 import {
     GuiMiscellaneousState,
     GuiMiscellaneousStateEntryLightgroup,

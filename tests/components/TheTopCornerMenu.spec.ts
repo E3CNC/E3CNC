@@ -151,7 +151,12 @@ function createStoreWithState(overrides: StoreOverrides = {}) {
     })
 }
 
-// ── Helper: mount component ──
+// ── Helpers ──
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function vmAny(wrapper: any) {
+    return wrapper.vm as any
+}
 
 function mountComponent(storeOverrides: StoreOverrides = {}) {
     const store = createStoreWithState(storeOverrides)
@@ -308,7 +313,7 @@ describe('TheTopCornerMenu.vue', () => {
         })
 
         // Call klipperRestart directly
-        wrapper.vm.klipperRestart()
+        vmAny(wrapper).klipperRestart()
         await wrapper.vm.$nextTick()
 
         expect(dispatchSpy).toHaveBeenCalledWith('server/addEvent', {
@@ -332,7 +337,7 @@ describe('TheTopCornerMenu.vue', () => {
             },
         })
 
-        wrapper.vm.klipperFirmwareRestart()
+        vmAny(wrapper).klipperFirmwareRestart()
         await wrapper.vm.$nextTick()
 
         expect(dispatchSpy).toHaveBeenCalledWith('server/addEvent', {
@@ -348,7 +353,7 @@ describe('TheTopCornerMenu.vue', () => {
     it('host reboot emits socket event', async () => {
         const wrapper = await mountComponent()
 
-        wrapper.vm.hostReboot()
+        vmAny(wrapper).hostReboot()
         await wrapper.vm.$nextTick()
 
         expect(mockSocketEmit).toHaveBeenCalledWith('machine.reboot', {})
@@ -358,7 +363,7 @@ describe('TheTopCornerMenu.vue', () => {
     it('host shutdown emits socket event', async () => {
         const wrapper = await mountComponent()
 
-        wrapper.vm.hostShutdown()
+        vmAny(wrapper).hostShutdown()
         await wrapper.vm.$nextTick()
 
         expect(mockSocketEmit).toHaveBeenCalledWith('machine.shutdown', {})
@@ -383,13 +388,13 @@ describe('TheTopCornerMenu.vue', () => {
         await wrapper.vm.$nextTick()
 
         // Call changeSwitch directly (simulating click on a device)
-        wrapper.vm.changeSwitch(mockDevices[0], mockDevices[0].status)
+        vmAny(wrapper).changeSwitch(mockDevices[0], mockDevices[0].status)
         await wrapper.vm.$nextTick()
 
         // Dialog should now be visible
-        expect(wrapper.vm.dialogPowerDeviceChange.show).toBe(true)
-        expect(wrapper.vm.dialogPowerDeviceChange.device).toBe('Light')
-        expect(wrapper.vm.dialogPowerDeviceChange.value).toBe('off')
+        expect(vmAny(wrapper).dialogPowerDeviceChange.show).toBe(true)
+        expect(vmAny(wrapper).dialogPowerDeviceChange.device).toBe('Light')
+        expect(vmAny(wrapper).dialogPowerDeviceChange.value).toBe('off')
     })
 
     // ── 12. Fires toggle without confirmation when confirmOnPowerDeviceChange is false ──
@@ -411,11 +416,11 @@ describe('TheTopCornerMenu.vue', () => {
         await wrapper.vm.$nextTick()
 
         // Call changeSwitch — should fire toggle immediately
-        wrapper.vm.changeSwitch(mockDevices[0], mockDevices[0].status)
+        vmAny(wrapper).changeSwitch(mockDevices[0], mockDevices[0].status)
         await wrapper.vm.$nextTick()
 
         // Dialog should NOT be shown
-        expect(wrapper.vm.dialogPowerDeviceChange.show).toBe(false)
+        expect(vmAny(wrapper).dialogPowerDeviceChange.show).toBe(false)
 
         // Socket emit should have been called directly
         expect(mockSocketEmit).toHaveBeenCalledWith(
@@ -435,9 +440,9 @@ describe('TheTopCornerMenu.vue', () => {
         })
 
         // Set dialog state as if user clicked an 'on' device
-        wrapper.vm.dialogPowerDeviceChange.device = 'Fan'
-        wrapper.vm.dialogPowerDeviceChange.value = 'on'
-        wrapper.vm.powerDeviceToggle()
+        vmAny(wrapper).dialogPowerDeviceChange.device = 'Fan'
+        vmAny(wrapper).dialogPowerDeviceChange.value = 'on'
+        vmAny(wrapper).powerDeviceToggle()
         await wrapper.vm.$nextTick()
 
         expect(mockSocketEmit).toHaveBeenCalledWith(
@@ -456,9 +461,9 @@ describe('TheTopCornerMenu.vue', () => {
             },
         })
 
-        wrapper.vm.dialogPowerDeviceChange.device = 'Fan'
-        wrapper.vm.dialogPowerDeviceChange.value = 'off'
-        wrapper.vm.powerDeviceToggle()
+        vmAny(wrapper).dialogPowerDeviceChange.device = 'Fan'
+        vmAny(wrapper).dialogPowerDeviceChange.value = 'off'
+        vmAny(wrapper).powerDeviceToggle()
         await wrapper.vm.$nextTick()
 
         expect(mockSocketEmit).toHaveBeenCalledWith(
@@ -477,12 +482,12 @@ describe('TheTopCornerMenu.vue', () => {
         await wrapper.vm.$nextTick()
 
         // Call checkDialog with the klipperRestart function
-        wrapper.vm.checkDialog(wrapper.vm.klipperRestart, 'klipper', 'restart')
+        vmAny(wrapper).checkDialog(vmAny(wrapper).klipperRestart, 'klipper', 'restart')
         await wrapper.vm.$nextTick()
 
-        expect(wrapper.vm.dialogConfirmation.show).toBe(true)
-        expect(wrapper.vm.dialogConfirmation.title).toBeTruthy()
-        expect(wrapper.vm.dialogConfirmation.description).toBeTruthy()
+        expect(vmAny(wrapper).dialogConfirmation.show).toBe(true)
+        expect(vmAny(wrapper).dialogConfirmation.title).toBeTruthy()
+        expect(vmAny(wrapper).dialogConfirmation.description).toBeTruthy()
     })
 
     // ── 16. Confirmation dialog 'action' executes the stored function ──
@@ -502,13 +507,13 @@ describe('TheTopCornerMenu.vue', () => {
         })
 
         // Set up the dialog state
-        wrapper.vm.checkDialog(wrapper.vm.klipperRestart, 'klipper', 'restart')
+        vmAny(wrapper).checkDialog(vmAny(wrapper).klipperRestart, 'klipper', 'restart')
         await wrapper.vm.$nextTick()
 
-        expect(wrapper.vm.dialogConfirmation.show).toBe(true)
+        expect(vmAny(wrapper).dialogConfirmation.show).toBe(true)
 
         // Execute the dialog action
-        wrapper.vm.executeDialog()
+        vmAny(wrapper).executeDialog()
         await wrapper.vm.$nextTick()
 
         // The klipperRestart function should have been called
@@ -537,7 +542,7 @@ describe('TheTopCornerMenu.vue', () => {
         await wrapper.vm.$nextTick()
 
         // Only klipper-myprinter and moonraker-myprinter should remain
-        const services = wrapper.vm.services
+        const services = vmAny(wrapper).services
         expect(services).toContain('klipper-myprinter')
         expect(services).toContain('moonraker-myprinter')
         expect(services).not.toContain('klipper')
@@ -557,7 +562,7 @@ describe('TheTopCornerMenu.vue', () => {
         })
         await wrapper.vm.$nextTick()
 
-        const devices = wrapper.vm.powerDevices
+        const devices = vmAny(wrapper).powerDevices
         expect(devices.length).toBe(1)
         expect(devices[0].device).toBe('Light')
     })

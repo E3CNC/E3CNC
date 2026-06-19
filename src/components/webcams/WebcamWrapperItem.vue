@@ -42,7 +42,7 @@ import type { GuiWebcamStateWebcam } from '@/store/gui/webcams/types'
 const props = defineProps({
     webcam: { type: Object, required: true },
     showFps: { type: Boolean, default: true },
-    printerUrl: { default: null },
+    printerUrl: { type: String, default: null },
     page: { type: String, default: null },
 })
 

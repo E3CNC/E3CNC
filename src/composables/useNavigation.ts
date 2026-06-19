@@ -29,8 +29,6 @@ export function useNavigation() {
 
     const countPrinters = computed(() => store.getters['farm/countPrinters'])
 
-    const titlePrinters = computed(() => t('App.Printers'))
-
     const routesNaviPoints = computed<NaviPoint[]>(() => {
         const points: NaviPoint[] = []
 

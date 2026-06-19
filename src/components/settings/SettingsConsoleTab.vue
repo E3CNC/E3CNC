@@ -154,7 +154,7 @@ type ConsoleFilter = Omit<GuiConsoleStateFilter, 'id'> & { id: string }
 
 const store = useStore()
 const { t } = useI18n()
-const { klipperReadyForGui, moonrakerComponents } = useBase()
+const { moonrakerComponents } = useBase()
 useConsole()
 
 const form = ref<consoleForm>({
@@ -226,10 +226,6 @@ const consoleHeight = computed({
 watch(consoleHeight, (newVal) => {
     consoleHeightTmp.value = newVal
 })
-
-function debounceConsoleHeight(newVal: number) {
-    updateConsoleHeight(newVal)
-}
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 function updateConsoleHeight(newVal: number) {

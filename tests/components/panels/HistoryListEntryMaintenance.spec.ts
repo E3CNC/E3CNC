@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createStore } from 'vuex'
+import type { GuiMaintenanceStateEntry } from '@/store/gui/maintenance/types'
 import HistoryListEntryMaintenance from '@/components/panels/History/HistoryListEntryMaintenance.vue'
 
 const mockBaseValues = vi.hoisted(() => {
@@ -162,7 +163,7 @@ function createMockItem(overrides: Record<string, any> = {}) {
             date: { bool: false, value: null },
         },
         ...overrides,
-    }
+    } as GuiMaintenanceStateEntry
 }
 
 describe('HistoryListEntryMaintenance.vue', () => {
@@ -230,9 +231,10 @@ describe('HistoryListEntryMaintenance.vue', () => {
         const checkbox = wrapper.find('input[type="checkbox"]')
         await checkbox.trigger('click')
 
-        expect(wrapper.emitted('select')).toBeTruthy()
-        if (wrapper.emitted('select')) {
-            expect(wrapper.emitted('select')[0]).toEqual([true])
+        const emitted = wrapper.emitted('select')
+        expect(emitted).toBeTruthy()
+        if (emitted) {
+            expect(emitted[0]).toEqual([true])
         }
     })
 

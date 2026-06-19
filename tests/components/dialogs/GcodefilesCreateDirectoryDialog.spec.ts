@@ -44,9 +44,7 @@ const mockStoreState = {
         },
     },
     files: {
-        gcodefiles: [
-            { filename: 'existing-file.gcode', type: 'file' },
-        ],
+        gcodefiles: [{ filename: 'existing-file.gcode', type: 'file' }],
     },
 }
 

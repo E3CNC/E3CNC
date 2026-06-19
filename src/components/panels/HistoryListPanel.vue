@@ -199,7 +199,6 @@ import {
     ServerHistoryStateAllPrintStatusEntry,
     ServerHistoryStateJob,
 } from '@/store/server/history/types'
-import { caseInsensitiveSort, formatFilesize } from '@/plugins/helpers'
 import Panel from '@/components/ui/Panel.vue'
 import {
     mdiCog,
@@ -213,7 +212,6 @@ import {
     mdiSortDescending,
     mdiSortVariant,
 } from '@mdi/js'
-import HistoryListPanelDetailsDialog from '@/components/dialogs/HistoryListPanelDetailsDialog.vue'
 import HistoryListEntryJob from '@/components/panels/History/HistoryListEntryJob.vue'
 import HistoryListPanelAddMaintenance from '@/components/dialogs/HistoryListPanelAddMaintenance.vue'
 import type { GuiMaintenanceStateEntry, HistoryListRowMaintenance } from '@/store/gui/maintenance/types'
@@ -224,7 +222,7 @@ export type HistoryListPanelRow = HistoryListRowJob | HistoryListRowMaintenance
 
 const { loadings } = useBase()
 const socket = useSocket()
-const { jobs, selectedJobs, moonrakerHistoryFields } = useHistory()
+const { jobs, moonrakerHistoryFields } = useHistory()
 const { printStatusArray } = useHistoryStats('jobs')
 
 const { t } = useI18n()
@@ -380,11 +378,6 @@ const configHeaders = computed<HistoryListPanelCol[]>(() =>
 const filteredHeaders = computed<HistoryListPanelCol[]>(() =>
     headers.value.filter((header: HistoryListPanelCol) => header.visible)
 )
-
-const allPrintStatusArray = computed<ServerHistoryStateAllPrintStatusEntry[]>(() => {
-    const statuses = store.getters['server/history/getAllPrintStatusArray'] ?? []
-    return caseInsensitiveSort(statuses as ServerHistoryStateAllPrintStatusEntry[], 'name')
-})
 
 const countPerPage = computed({
     get: () => store.state.gui.view.history.countPerPage ?? 10,

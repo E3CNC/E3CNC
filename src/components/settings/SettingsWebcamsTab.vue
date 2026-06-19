@@ -30,8 +30,6 @@
 import { ref, computed } from 'vue'
 import { useStore } from 'vuex'
 import { useWebcam } from '@/composables/useWebcam'
-import SettingsRow from '@/components/settings/SettingsRow.vue'
-import { mdiDelete, mdiPencil } from '@mdi/js'
 import type { FileStateFile } from '@/store/files/types'
 import WebcamForm from '@/components/settings/Webcams/WebcamForm.vue'
 import WebcamListEntry from '@/components/settings/Webcams/WebcamListEntry.vue'

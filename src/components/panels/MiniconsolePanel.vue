@@ -151,12 +151,6 @@ function scrollToBottom() {
     })
 }
 
-function scrollToTop() {
-    nextTick(() => {
-        scrollTo(0)
-    })
-}
-
 function scrollTo(position: number) {
     if (!miniConsoleScroll.value) return
 

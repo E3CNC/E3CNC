@@ -98,7 +98,6 @@ export function createMockUseControl(overrides: Record<string, any> = {}) {
         feedrateZ: computed(() => 25),
         existsQGL: computed(() => false),
         existsZtilt: computed(() => false),
-        existsZtilt: computed(() => false),
         existsDeltaCalibrate: computed(() => false),
         existsScrewsTilt: computed(() => false),
         existsFirmwareRetraction: computed(() => false),

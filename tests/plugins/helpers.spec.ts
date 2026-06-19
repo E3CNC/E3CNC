@@ -664,12 +664,12 @@ describe('typeSortValue', () => {
 })
 
 describe('sortFiles with filetype key', () => {
-    const files = [
-        { isDirectory: false, filename: 'notes.txt' },
-        { isDirectory: false, filename: 'script.py' },
-        { isDirectory: false, filename: 'printer.cfg' },
-        { isDirectory: true, filename: 'subdir' },
-        { isDirectory: false, filename: 'photo.png' },
+    const files: any[] = [
+        { isDirectory: false, filename: 'notes.txt', modified: new Date(0), permissions: 'rw' },
+        { isDirectory: false, filename: 'script.py', modified: new Date(0), permissions: 'rw' },
+        { isDirectory: false, filename: 'printer.cfg', modified: new Date(0), permissions: 'rw' },
+        { isDirectory: true, filename: 'subdir', modified: new Date(0), permissions: 'rw' },
+        { isDirectory: false, filename: 'photo.png', modified: new Date(0), permissions: 'rw' },
     ]
 
     it('sorts by filetype in ascending order, directories first', () => {

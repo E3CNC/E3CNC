@@ -22,11 +22,10 @@
 import { ref, computed, watch, onBeforeUnmount } from 'vue'
 import { useStore } from 'vuex'
 import { useWebcam } from '@/composables/useWebcam'
-import type { GuiWebcamStateWebcam } from '@/store/gui/webcams/types'
 
 const props = defineProps({
     camSettings: { type: Object, required: true },
-    printerUrl: { default: null },
+    printerUrl: { type: String, default: null },
 })
 
 const store = useStore()

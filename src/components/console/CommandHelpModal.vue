@@ -61,7 +61,7 @@ import { OverlayScrollbarsComponent } from 'overlayscrollbars-vue'
 import { mdiHelp, mdiCloseThick } from '@mdi/js'
 import CommandHelpModalEntry from '@/components/console/CommandHelpModalEntry.vue'
 
-const props = defineProps<{
+defineProps<{
     isMini?: boolean
     inToolbar?: boolean
 }>()

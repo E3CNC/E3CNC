@@ -5,7 +5,11 @@ import { createI18n } from 'vue-i18n'
 vi.mock('vuetify/components', () => ({
     VCard: { name: 'VCard', props: ['variant'], template: '<div><slot /></div>' },
     VCardText: { name: 'VCardText', template: '<div><slot /></div>' },
-    VListItem: { name: 'VListItem', props: ['lines'], template: '<div><slot name="title" /><slot name="subtitle" /><slot /></div>' },
+    VListItem: {
+        name: 'VListItem',
+        props: ['lines'],
+        template: '<div><slot name="title" /><slot name="subtitle" /><slot /></div>',
+    },
     VRow: { name: 'VRow', template: '<div><slot /></div>' },
     VCol: { name: 'VCol', template: '<div><slot /></div>' },
 }))
@@ -23,14 +27,19 @@ vi.mock('@/components/inputs/TextfieldWithCopy.vue', () => ({
 }))
 
 const i18n = createI18n({
-    legacy: false, locale: 'en',
-    messages: { en: { DevicesDialog: { DevicePath: 'Device Path', PathById: 'Path by ID', PathByHardware: 'Path by Hardware' } } },
+    legacy: false,
+    locale: 'en',
+    messages: {
+        en: {
+            DevicesDialog: { DevicePath: 'Device Path', PathById: 'Path by ID', PathByHardware: 'Path by Hardware' },
+        },
+    },
 })
 
 import DevicesDialogVideoDeviceV4l2 from '@/components/dialogs/DevicesDialogVideoDeviceV4l2.vue'
 
 describe('DevicesDialogVideoDeviceV4l2.vue', () => {
-    const baseDevice = {
+    const baseDevice: any = {
         camera_name: 'Camera 1',
         device_path: '/dev/video0',
         modes: [{ description: 'YUYV', format: 'YUYV', resolutions: [[1920, 1080]] }],
@@ -57,7 +66,7 @@ describe('DevicesDialogVideoDeviceV4l2.vue', () => {
 
     it('renders device path', () => {
         const wrapper = mount(DevicesDialogVideoDeviceV4l2, {
-            props: { device: { ...baseDevice, device_path: '/dev/video2' } },
+            props: { device: { ...baseDevice, device_path: '/dev/video2' } as any },
             global: { plugins: [i18n] },
         })
         expect(wrapper.text()).toContain('/dev/video2')

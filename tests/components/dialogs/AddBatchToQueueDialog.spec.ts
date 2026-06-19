@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
-import { nextTick } from 'vue'
 
 const t = (key: string): string => {
     const translations: Record<string, string> = {
@@ -46,8 +45,7 @@ vi.mock('vuetify/components', () => ({
     VBtn: {
         name: 'VBtn',
         props: ['disabled', 'variant', 'color', 'icon', 'size', 'type'],
-        template:
-            '<button :disabled="disabled" :type="type" @click="$emit(\'click\', $event)"><slot /></button>',
+        template: '<button :disabled="disabled" :type="type" @click="$emit(\'click\', $event)"><slot /></button>',
     },
     VTextField: {
         name: 'VTextField',

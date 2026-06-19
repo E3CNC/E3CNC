@@ -1,8 +1,8 @@
 <template>
     <div v-if="isVisible">
         <v-tooltip top :disabled="disableTooltip">
-            <template #activator="{ props }">
-                <span :style="cssStyle" v-bind="props">{{ formatValue }}</span>
+            <template #activator="{ props: tooltipProps }">
+                <span :style="cssStyle" v-bind="tooltipProps">{{ formatValue }}</span>
             </template>
             <span>
                 {{ $t('Panels.TemperaturePanel.Max') }}: {{ formatValue_max }}
@@ -30,12 +30,6 @@ const cssStyle = computed(() => {
     const style: Record<string, string> = { cursor: 'default', fontSize: '1em' }
     if (props.small !== false) style.fontSize = '0.8em'
     return style
-})
-
-const value = computed(() => {
-    const val = props.printerObject[props.keyName] ?? null
-    if (isNaN(val)) return null
-    return val
 })
 
 const intake_value = computed(() => {

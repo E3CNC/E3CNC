@@ -27,12 +27,11 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useWebcam } from '@/composables/useWebcam'
-import type { GuiWebcamStateWebcam } from '@/store/gui/webcams/types'
 import WebcamNozzleCrosshair from '@/components/webcams/WebcamNozzleCrosshair.vue'
 
 const props = defineProps({
     camSettings: { type: Object, required: true },
-    printerUrl: { default: null },
+    printerUrl: { type: String, default: null },
     showFps: { type: Boolean, default: true },
 })
 

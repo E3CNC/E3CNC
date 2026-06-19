@@ -182,7 +182,7 @@
                                         :value="localNozzleCrosshairColor"
                                         hide-mode-switch
                                         mode="rgba"
-                                        @update:color="updateLogoColor" />
+                                        @update:model-value="updateLogoColor" />
                                 </v-menu>
                                 <div class="v-label v-label--active text-subtitle-1 d-inline-block ml-2 mt-2">
                                     {{ $t('Settings.WebcamsTab.Color') }}
@@ -237,7 +237,7 @@ const store = useStore()
 const { t } = useI18n()
 const { convertWebcamIcon } = useWebcam()
 
-const webcamForm = ref<any>(null)
+const webcamForm = ref<unknown>(null)
 const selectIcon = ref(false)
 const valid = ref(false)
 const oldWebcamName = ref('')

@@ -55,17 +55,17 @@ const emit = defineEmits<{
 }>()
 
 const props = defineProps<{
-    'model-value': boolean
+    modelValue: boolean
 }>()
 
 const { isMobile, loadings } = useBase()
 const socket = useSocket()
 
-const showDialog = ref(props['model-value'])
+const showDialog = ref(props.modelValue)
 const selectedRolloverLogs = ref<string[]>([])
 
 watch(
-    () => props['model-value'],
+    () => props.modelValue,
     (val) => {
         showDialog.value = val
     }

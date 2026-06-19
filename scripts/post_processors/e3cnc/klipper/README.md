@@ -6,7 +6,6 @@ Useful klipper macros for using with your MPCNC.
 
 Clone this repo to your $Home folder.
 
-
 ### Configuration
 
 ```
@@ -31,7 +30,7 @@ managed_services: klipper
 ### Special output_pins
 
 | Name       | Description                                                                                           |
-|------------|-------------------------------------------------------------------------------------------------------|
+| ---------- | ----------------------------------------------------------------------------------------------------- |
 | RELAY_M3   | Relais pin for Spindle                                                                                |
 | RELAY_M3_1 | Relaus pin for Spindle, toggled on after a short delay e.g. for the safety switch on a RT0702C router |
 | RELAY_M7   | Relais pin for Coolant 1                                                                              |
@@ -41,7 +40,7 @@ managed_services: klipper
 ### Added G-codes
 
 | Gcode          | Description                              | config   |
-|----------------|------------------------------------------|----------|
+| -------------- | ---------------------------------------- | -------- |
 | CANCEL_PRINT   | Cancel the running print                 | optional |
 | END_PRINT      | End Print                                | optional |
 | G53            | Select machine coordinates               |          |
@@ -72,4 +71,3 @@ managed_services: klipper
 | RELAY_OFF      | Turn all via relay connected devices off | optional |
 | RESUME         | Resume the running print                 | optional |
 | START_PRINT    | Start Print                              | optional |
-

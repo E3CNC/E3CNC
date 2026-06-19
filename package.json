@@ -9,6 +9,7 @@
     },
     "scripts": {
         "serve": "vite serve",
+        "dev": "tmux has-session -t mainsail-cnc 2>/dev/null || tmux new-session -d -s mainsail-cnc 'vite'",
         "build": "vite build",
         "format": "bun run format:base -- --write",
         "format:base": "prettier .",

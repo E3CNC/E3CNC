@@ -93,7 +93,7 @@
                                         :value="editGroup.colorCustom"
                                         hide-mode-switch
                                         mode="rgba"
-                                        @update:color="updateGroupOptionColorCustom" />
+                                        @update:model-value="updateGroupOptionColorCustom" />
                                 </v-menu>
                             </settings-row>
                         </template>

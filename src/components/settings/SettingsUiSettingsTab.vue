@@ -42,11 +42,7 @@
                         <template #activator="{ props: activatorProps }">
                             <v-btn v-bind="activatorProps" :color="logoColor" class="minwidth-0 px-5" size="small" />
                         </template>
-                        <v-color-picker
-                            :value="logoColor"
-                            hide-mode-switch
-                            mode="rgba"
-                            @update:color="updateLogoColor" />
+                        <v-color-picker v-model="logoColor" hide-mode-switch mode="rgba" />
                     </v-menu>
                 </settings-row>
                 <v-divider class="my-2" />
@@ -63,11 +59,7 @@
                         <template #activator="{ props: activatorProps }">
                             <v-btn v-bind="activatorProps" :color="primaryColor" class="minwidth-0 px-5" size="small" />
                         </template>
-                        <v-color-picker
-                            :value="primaryColor"
-                            hide-mode-switch
-                            mode="rgba"
-                            @update:color="updatePrimaryColor" />
+                        <v-color-picker v-model="primaryColor" hide-mode-switch mode="rgba" />
                     </v-menu>
                 </settings-row>
                 <v-divider class="my-2" />
@@ -246,18 +238,13 @@ import { computed, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 import { useBase } from '@/composables/useBase'
-import { useTheme } from '@/composables/useTheme'
 import SettingsRow from '@/components/settings/SettingsRow.vue'
 import { defaultLogoColor, defaultPrimaryColor, themes } from '@/store/variables'
 import { mdiRestart, mdiTimerOutline } from '@mdi/js'
 import type { ServerPowerStateDevice } from '@/store/server/power/types'
-import { clearColorObject } from '@/plugins/helpers'
-import type { ColorPickerValue } from '@/plugins/helpers'
-
 const store = useStore()
 const { t } = useI18n()
 const { isMobile } = useBase()
-const { theme } = useTheme()
 
 const mode = computed({
     get: () => store.state.gui.uiSettings.mode,
@@ -307,10 +294,6 @@ const logoColor = computed({
         store.dispatch('gui/saveSetting', { name: 'uiSettings.logo', value: newVal })
     },
 })
-
-const defaultLogoColorValue = computed(() => theme.value?.colorLogo ?? defaultLogoColor)
-
-const defaultPrimaryColorValue = computed(() => theme.value?.colorPrimary ?? defaultPrimaryColor)
 
 const primaryColor = computed({
     get: () => store.state.gui.uiSettings.primary,
@@ -489,22 +472,6 @@ const hideOtherInstances = computed({
         store.dispatch('gui/saveSetting', { name: 'uiSettings.hideOtherInstances', value: newVal })
     },
 })
-
-let logoColorTimer: ReturnType<typeof setTimeout> | null = null
-function updateLogoColor(newVal: ColorPickerValue) {
-    if (logoColorTimer) clearTimeout(logoColorTimer)
-    logoColorTimer = setTimeout(() => {
-        logoColor.value = clearColorObject(newVal)
-    }, 500)
-}
-
-let primaryColorTimer: ReturnType<typeof setTimeout> | null = null
-function updatePrimaryColor(newVal: ColorPickerValue) {
-    if (primaryColorTimer) clearTimeout(primaryColorTimer)
-    primaryColorTimer = setTimeout(() => {
-        primaryColor.value = clearColorObject(newVal)
-    }, 500)
-}
 
 watch(themeName, (newVal: string) => {
     const themeObj = themes.find((themeData) => themeData.name === newVal)

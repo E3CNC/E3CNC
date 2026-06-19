@@ -36,6 +36,7 @@ import { useStore } from 'vuex'
 import { useSocket } from '@/composables/useSocket'
 import { useBase } from '@/composables/useBase'
 import { useI18n } from 'vue-i18n'
+import { useToast } from 'vue-toast-notification'
 import { mdiCheck, mdiInformation, mdiProgressUpload } from '@mdi/js'
 
 const { printer_state } = useBase()
@@ -69,8 +70,14 @@ const btnText = computed(() => {
     return t('Machine.UpdatePanel.UpToDate')
 })
 
-function doUpdate() {
-    socket.emit('machine.update.system', {})
+async function doUpdate() {
+    try {
+        await socket.emitAndWait('machine.update.system', {})
+    } catch (e) {
+        const $toast = useToast()
+        const message = (e as any)?.message || 'Unknown error'
+        $toast.error(t('Machine.UpdatePanel.UpdateFailed', { message }))
+    }
 }
 </script>
 

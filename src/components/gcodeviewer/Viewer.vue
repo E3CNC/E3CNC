@@ -111,8 +111,8 @@
                                     top
                                     :close-on-content-click="false"
                                     :title="$t('Files.SetupCurrentList')">
-                                    <template #activator="{ props }">
-                                        <v-btn class="minwidth-0 px-2 ml-3" v-bind="props">
+                                    <template #activator="{ props: menuProps }">
+                                        <v-btn class="minwidth-0 px-2 ml-3" v-bind="menuProps">
                                             <v-icon>{{ mdiCog }}</v-icon>
                                         </v-btn>
                                     </template>
@@ -206,12 +206,12 @@
                 <strong>{{ loadedFile }}</strong>
             </div>
             <v-progress-linear class="mt-2" :model-value="loadingPercent"></v-progress-linear>
-            <template #actions="{ props }">
+            <template #actions="{ props: snackbarProps }">
                 <v-btn
                     :icon="mdiClose"
                     color="red"
                     variant="text"
-                    v-bind="props"
+                    v-bind="snackbarProps"
                     style="min-width: auto"
                     @click="cancelRendering()" />
             </template>
@@ -234,12 +234,12 @@
                 </div>
                 <v-progress-linear class="mt-2" indeterminate />
             </template>
-            <template #actions="{ props }">
+            <template #actions="{ props: downloadProps }">
                 <v-btn
                     :icon="mdiClose"
                     color="red"
                     variant="text"
-                    v-bind="props"
+                    v-bind="downloadProps"
                     style="min-width: auto"
                     @click="cancelDownload" />
             </template>
@@ -250,10 +250,9 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useStore } from 'vuex'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useDisplay } from 'vuetify'
-import { useSocket } from '@/composables/useSocket'
 import { useBase } from '@/composables/useBase'
 import GCodeViewer from '@sindarius/gcodeviewer'
 import axios, { CancelTokenSource } from 'axios'
@@ -275,9 +274,7 @@ import {
     mdiPause,
     mdiFastForward,
     mdiBroom,
-    mdiSelectionRemove,
 } from '@mdi/js'
-import ConfirmationDialog from '@/components/dialogs/ConfirmationDialog.vue'
 
 interface DownloadSnackbar {
     status: boolean
@@ -300,13 +297,11 @@ interface ViewerObjectMetadata {
 
 const store = useStore()
 const route = useRoute()
-const router = useRouter()
 const { t } = useI18n()
 const display = useDisplay()
-const socket = useSocket()
-const { apiUrl, printerIsPrinting, printerIsPrintingOnly } = useBase()
+const { apiUrl, printerIsPrinting } = useBase()
 
-const props = defineProps<{
+defineProps<{
     filename?: string
 }>()
 
@@ -775,7 +770,7 @@ const forceLineRendering = computed({
     },
 })
 
-watch(forceLineRendering, async (newVal: boolean) => {
+watch(forceLineRendering, async () => {
     if (viewer === null) return
 
     viewer.gcodeProcessor.updateForceWireMode(true)
@@ -1047,10 +1042,6 @@ function objectCallback(metadata: ViewerObjectMetadata | null) {
         excludeObject.value.name = metadata.name ?? 'UNKNOWN'
         excludeObject.value.bool = true
     }
-}
-
-function cancelObject() {
-    socket.emit('printer.gcode.script', { script: 'EXCLUDE_OBJECT NAME=' + excludeObject.value.name })
 }
 </script>
 

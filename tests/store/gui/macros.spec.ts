@@ -50,6 +50,7 @@ describe('gui macros store', () => {
 
         it('groupUpdate updates an existing macrogroup', () => {
             state.macrogroups['g1'] = {
+                id: 'g1',
                 name: 'Old',
                 color: 'primary',
                 showInStandby: true,
@@ -67,6 +68,7 @@ describe('gui macros store', () => {
 
         it('addMacroToMacrogroup adds a macro to the group', () => {
             state.macrogroups['g1'] = {
+                id: 'g1',
                 name: 'Group1',
                 color: 'primary',
                 showInStandby: true,
@@ -82,6 +84,7 @@ describe('gui macros store', () => {
 
         it('removeMacroFromMacrogroup removes a macro', () => {
             state.macrogroups['g1'] = {
+                id: 'g1',
                 name: 'Group1',
                 color: 'primary',
                 showInStandby: true,
@@ -104,6 +107,7 @@ describe('gui macros store', () => {
 
         it('groupDelete removes a macrogroup', () => {
             state.macrogroups['g1'] = {
+                id: 'g1',
                 name: 'Group1',
                 color: 'primary',
                 showInStandby: true,

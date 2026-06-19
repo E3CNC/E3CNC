@@ -11,13 +11,11 @@
         "allowSyntheticDefaultImports": true,
         "sourceMap": true,
         "skipLibCheck": true,
-        "baseUrl": ".",
-        "types": ["vite/client"],
+        "types": ["vite/client", "vitest/globals"],
         "paths": {
-            "@/*": ["src/*"]
+            "@/*": ["./src/*"]
         },
-        "lib": ["esnext", "dom", "dom.iterable", "scripthost"],
-        "typeRoots": ["./node_modules/@types"]
+        "lib": ["esnext", "dom", "dom.iterable", "scripthost"]
     },
     "include": [
         "vite.config.ts",

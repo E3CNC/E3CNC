@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 declare module 'lodash.debounce' {
     type DebounceSettings = {
         leading?: boolean

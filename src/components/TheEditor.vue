@@ -50,8 +50,13 @@
                         <v-icon size="small" class="mr-1">{{ mdiRestart }}</v-icon>
                         {{ $t('Editor.SaveRestart') }}
                     </v-btn>
-                    <v-btn v-if="isWriteable" :icon="mdiContentSave" rounded="0" @click="save(null)" />
-                    <v-btn :icon="mdiCloseThick" rounded="0" @click="close" />
+                    <v-btn
+                        v-if="isWriteable"
+                        :icon="mdiContentSave"
+                        rounded="0"
+                        class="editor-header-icon-btn"
+                        @click="save(null)" />
+                    <v-btn :icon="mdiCloseThick" rounded="0" class="editor-header-icon-btn" @click="close" />
                 </template>
                 <v-card-text class="pa-0 d-flex">
                     <codemirror-async
@@ -256,7 +261,6 @@ const fileExtension = computed(() => {
     if (filename.value.lastIndexOf('.')) return filename.value.slice(filename.value.lastIndexOf('.') + 1)
     return ''
 })
-const fileroot = computed(() => store.state.editor.fileroot ?? 'gcodes')
 const permissions = computed((): string => store.state.editor.permissions ?? 'r')
 const isWriteable = computed(() => permissions.value.includes('w'))
 const sourcecode = computed({
@@ -383,6 +387,7 @@ function activeChangesItemClick(item: ConfigFileSection) {
     structureActive.value = [item.line]
     const cmEl = document.querySelector('.vue-codemirror')
     if (!cmEl) return
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cmVm = (cmEl as any).__vueParentComponent
     if (!cmVm?.setupState?.gotoLine) return
     cmVm.setupState.gotoLine(item.line)
@@ -391,11 +396,12 @@ function activeChangesItemClick(item: ConfigFileSection) {
 function activeChanges(activeItems: Array<ConfigFileSection[typeof treeviewItemKeyProp]>) {
     if (!activeItems.length) return
     const line = activeItems[0]
-    const cmEl = document.querySelector('.vue-codemirror')
-    if (!cmEl) return
-    const cmVm = (cmEl as any).__vueParentComponent
-    if (!cmVm?.setupState?.gotoLine) return
-    cmVm.setupState.gotoLine(line)
+    const cmEl2 = document.querySelector('.vue-codemirror')
+    if (!cmEl2) return
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const cmVm2 = (cmEl2 as any).__vueParentComponent
+    if (!cmVm2?.setupState?.gotoLine) return
+    cmVm2.setupState.gotoLine(line)
 }
 
 function lineChanges(line: number) {
@@ -485,5 +491,13 @@ watch(changed, (newVal: boolean) => {
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
+}
+
+.editor-header-icon-btn + .editor-header-icon-btn {
+    margin-inline-start: 8px;
+}
+
+:deep(.editor-dialog .v-toolbar__content) {
+    padding-right: 8px;
 }
 </style>

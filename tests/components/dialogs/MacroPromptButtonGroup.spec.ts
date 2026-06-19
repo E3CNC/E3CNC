@@ -10,7 +10,7 @@ vi.mock('@/components/dialogs/MacroPromptButton.vue', () => ({
     default: {
         name: 'MacroPromptButton',
         props: ['event'],
-        template: '<button class="macro-prompt-btn">{{ event?.name }}</button>',
+        template: '<button class="macro-prompt-btn">{{ event?.message }}</button>',
     },
 }))
 
@@ -28,8 +28,8 @@ describe('MacroPromptButtonGroup.vue', () => {
         const wrapper = mount(MacroPromptButtonGroup, {
             props: {
                 children: [
-                    { name: 'Confirm', type: 'button' },
-                    { name: 'Cancel', type: 'button' },
+                    { date: new Date(), type: 'button', message: 'Confirm' },
+                    { date: new Date(), type: 'button', message: 'Cancel' },
                 ],
                 groupIndex: 0,
             },
@@ -43,7 +43,7 @@ describe('MacroPromptButtonGroup.vue', () => {
     it('renders single button', () => {
         const wrapper = mount(MacroPromptButtonGroup, {
             props: {
-                children: [{ name: 'OK', type: 'button' }],
+                children: [{ date: new Date(), type: 'button', message: 'OK' }],
                 groupIndex: 1,
             },
         })

@@ -86,10 +86,13 @@ function mountComposable(overrides: Record<string, any> = {}) {
 }
 
 describe('useDashboard', () => {
-    it('spreads useBase properties', () => {
+    it('returns useBase viewport properties', () => {
         const c = mountComposable()
-        expect(c).toHaveProperty('socketIsConnected')
-        expect(c).toHaveProperty('guiIsReady')
+        expect(c).toHaveProperty('isMobile')
+        expect(c).toHaveProperty('isTablet')
+        expect(c).toHaveProperty('isDesktop')
+        expect(c).toHaveProperty('isWidescreen')
+        expect(c).toHaveProperty('viewport')
     })
 
     it('returns macrogroups from store getter', () => {

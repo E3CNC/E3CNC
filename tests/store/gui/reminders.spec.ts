@@ -33,6 +33,7 @@ describe('gui reminders store', () => {
     describe('mutations', () => {
         it('reset restores defaults', () => {
             state.reminders['r1'] = {
+                id: 'r1',
                 name: 'Test',
                 start_total_print_time: 1000,
                 time_delta: 3600,
@@ -79,6 +80,7 @@ describe('gui reminders store', () => {
 
         it('update modifies an existing reminder', () => {
             state.reminders['r1'] = {
+                id: 'r1',
                 name: 'Old',
                 start_total_print_time: 1000,
                 time_delta: 3600,
@@ -98,6 +100,7 @@ describe('gui reminders store', () => {
 
         it('delete removes a reminder', () => {
             state.reminders['r1'] = {
+                id: 'r1',
                 name: 'Test',
                 start_total_print_time: 0,
                 time_delta: 3600,
@@ -237,6 +240,7 @@ describe('gui reminders store', () => {
     describe('getters', () => {
         it('getReminders returns all reminders with ids', () => {
             state.reminders['r1'] = {
+                id: 'r1',
                 name: 'Lube',
                 start_total_print_time: 1000,
                 time_delta: 3600,
@@ -252,6 +256,7 @@ describe('gui reminders store', () => {
 
         it('getReminder finds reminder by id', () => {
             state.reminders['r1'] = {
+                id: 'r1',
                 name: 'Oil',
                 start_total_print_time: 1000,
                 time_delta: 3600,
@@ -272,6 +277,7 @@ describe('gui reminders store', () => {
 
         it('getOverdueReminders filters overdue entries', () => {
             state.reminders['r1'] = {
+                id: 'r1',
                 name: 'Overdue',
                 start_total_print_time: 1000,
                 time_delta: 500,
@@ -280,6 +286,7 @@ describe('gui reminders store', () => {
                 snooze_epoch_timestamps: [],
             }
             state.reminders['r2'] = {
+                id: 'r2',
                 name: 'Not overdue',
                 start_total_print_time: 1000,
                 time_delta: 10000,

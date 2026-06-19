@@ -20,8 +20,13 @@ vi.mock('@/components/inputs/TextfieldWithCopy.vue', () => ({
 }))
 
 const i18n = createI18n({
-    legacy: false, locale: 'en',
-    messages: { en: { DevicesDialog: { DevicePath: 'Device Path', PathById: 'Path by ID', PathByHardware: 'Path by Hardware' } } },
+    legacy: false,
+    locale: 'en',
+    messages: {
+        en: {
+            DevicesDialog: { DevicePath: 'Device Path', PathById: 'Path by ID', PathByHardware: 'Path by Hardware' },
+        },
+    },
 })
 
 import DevicesDialogSerialDevice from '@/components/dialogs/DevicesDialogSerialDevice.vue'
@@ -35,7 +40,7 @@ describe('DevicesDialogSerialDevice.vue', () => {
                     device_name: 'ttyUSB0',
                     device_path: '/dev/ttyUSB0',
                     driver_name: 'ch341',
-                },
+                } as any,
             },
             global: { plugins: [i18n] },
         })
@@ -50,7 +55,7 @@ describe('DevicesDialogSerialDevice.vue', () => {
                     device_name: 'ttyUSB0',
                     device_path: '/dev/ttyUSB0',
                     driver_name: 'ch341',
-                },
+                } as any,
             },
             global: { plugins: [i18n] },
         })
@@ -67,7 +72,7 @@ describe('DevicesDialogSerialDevice.vue', () => {
                     device_name: 'ttyAMA0',
                     device_path: '/dev/ttyAMA0',
                     driver_name: 'pl011',
-                },
+                } as any,
             },
             global: { plugins: [i18n] },
         })

@@ -24,8 +24,8 @@ describe('useToast', () => {
 
     it('install runs without throwing', async () => {
         const { ToastPlugin } = await import('@/composables/useToast')
-        const app = { use: vi.fn() }
-        expect(() => ToastPlugin.install(app)).not.toThrow()
+        const app: any = { use: vi.fn() }
+        expect(() => (ToastPlugin as any).install(app)).not.toThrow()
     })
 
     it('uses mod.default when available', async () => {
@@ -34,8 +34,8 @@ describe('useToast', () => {
 
         vi.resetModules()
         const { ToastPlugin } = await import('@/composables/useToast')
-        const app = { use: vi.fn() }
-        ToastPlugin.install(app)
+        const app: any = { use: vi.fn() }
+        ;(ToastPlugin as any).install(app)
 
         await new Promise((r) => setTimeout(r, 10))
         expect(app.use).toHaveBeenCalledWith(mockPlugin, {
@@ -51,8 +51,8 @@ describe('useToast', () => {
 
         vi.resetModules()
         const { ToastPlugin } = await import('@/composables/useToast')
-        const app = { use: vi.fn() }
-        ToastPlugin.install(app)
+        const app: any = { use: vi.fn() }
+        ;(ToastPlugin as any).install(app)
 
         await new Promise((r) => setTimeout(r, 10))
         expect(app.use).toHaveBeenCalledWith(mockPlugin, {
@@ -67,8 +67,8 @@ describe('useToast', () => {
 
         vi.resetModules()
         const { ToastPlugin } = await import('@/composables/useToast')
-        const app = { use: vi.fn() }
-        ToastPlugin.install(app)
+        const app: any = { use: vi.fn() }
+        ;(ToastPlugin as any).install(app)
 
         await new Promise((r) => setTimeout(r, 10))
         expect(app.use).toHaveBeenCalled()

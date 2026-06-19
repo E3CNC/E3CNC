@@ -22,7 +22,7 @@ const props = defineProps<{
     name: string
 }>()
 
-const { apiUrl, klipperState } = useBase()
+const { apiUrl } = useBase()
 const store = useStore()
 
 const logfiles = computed(() => store.getters['files/getDirectory']('logs')?.childrens ?? [])
@@ -68,7 +68,13 @@ function downloadLog(event: MouseEvent) {
 }
 
 :deep(.machine-logfiles-panel__log-button .v-btn__content) {
+    align-items: center;
+    display: flex;
     gap: 8px;
+    height: 100%;
+    justify-content: center;
+    line-height: 1;
+    min-height: 36px;
 }
 
 :deep(.machine-logfiles-panel__log-button .v-icon) {

@@ -1,7 +1,7 @@
 import { ActionTree } from 'vuex'
 import { RootState } from '@/store/types'
 import { GuiGcodehistoryState } from '@/store/gui/gcodehistory/types'
-import { getSocket, $toast } from '@/store/runtime'
+import { getSocket } from '@/store/runtime'
 import { maxGcodeHistory } from '@/store/variables'
 
 export const actions: ActionTree<GuiGcodehistoryState, RootState> = {

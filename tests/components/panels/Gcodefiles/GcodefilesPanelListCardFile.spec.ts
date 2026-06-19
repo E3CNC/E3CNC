@@ -588,7 +588,7 @@ describe('GcodefilesPanelListCardFile.vue', () => {
     it('navigates to viewer on view3D click', async () => {
         const { useRouter: mockUseRouter } = await import('vue-router')
         const push = vi.fn()
-        mockUseRouter.mockReturnValue({ push })
+        ;(mockUseRouter as any).mockReturnValue({ push })
 
         const store = createStoreWithState()
         const item = makeItem('test.gcode')

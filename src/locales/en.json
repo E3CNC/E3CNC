@@ -589,6 +589,7 @@
             "Unknown": "unknown",
             "Update": "update",
             "UpdateAll": "Update all components",
+            "UpdateFailed": "Update failed: {message}",
             "UpdateManager": "Update Manager",
             "UpdateWarning": "Update warning: {name}",
             "Upgrade": "upgrade",

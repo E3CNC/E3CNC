@@ -8,22 +8,26 @@
     <div>
         <v-row class="system-load-row py-0 pr-4 flex-nowrap" align="center">
             <v-col class="v-col system-load-row__info pl-6 pr-4">
-                <strong style="cursor: pointer" @click="hostDetailsDialog = true">Host</strong>
-                <v-tooltip top>
-                    <template #activator="{ props: activatorProps }">
-                        <small v-if="hostStats.cpuName" class="ml-2" v-bind="activatorProps">({{ cpuName }})</small>
-                    </template>
-                    <span>{{ cpuDesc }}</span>
-                </v-tooltip>
-                <br />
-                <div class="text-body-2">
-                    <div v-if="hostStats.version">
+                <div class="system-host-header">
+                    <strong class="system-host-title" @click="hostDetailsDialog = true">Host</strong>
+                    <v-tooltip top>
+                        <template #activator="{ props: activatorProps }">
+                            <span v-if="hostStats.cpuName" class="system-host-chip" v-bind="activatorProps">
+                                {{ cpuName }}
+                            </span>
+                        </template>
+                        <span>{{ cpuDesc }}</span>
+                    </v-tooltip>
+                </div>
+
+                <div class="system-host-meta text-body-2">
+                    <div v-if="hostStats.version" class="system-host-meta__item">
                         {{ $t('Machine.SystemPanel.Values.Version', { version: hostStats.version }) }}
                     </div>
-                    <div v-if="hostStats.os">
+                    <div v-if="hostStats.os" class="system-host-meta__item">
                         {{ $t('Machine.SystemPanel.Values.Os', { os: hostStats.os }) }}
                     </div>
-                    <div v-if="releaseName" class="text-no-wrap">
+                    <div v-if="releaseName" class="system-host-meta__item">
                         {{
                             $t('Machine.SystemPanel.Values.Distro', {
                                 name: releaseName,
@@ -34,91 +38,91 @@
                             ({{ hostStats.release_info.codename }})
                         </template>
                     </div>
-                    <div>
-                        <span class="text-no-wrap">
-                            {{ $t('Machine.SystemPanel.Values.Load', { load: hostStats.load }) }},
-                        </span>
-                        <span v-if="hostStats.memoryFormat" class="d-inline-block text-no-wrap">
-                            {{ $t('Machine.SystemPanel.Values.Memory', { memory: hostStats.memoryFormat }) }}
-                        </span>
-                        <span class="text-no-wrap">
-                            <template v-if="hostStats.tempSensor">
-                                <template
-                                    v-if="
-                                        hostStats.tempSensor.measured_min_temp !== null &&
-                                        hostStats.tempSensor.measured_max_temp !== null
-                                    ">
-                                    <v-tooltip top>
-                                        <template #activator="{ props: activatorProps }">
-                                            <span v-bind="activatorProps">
-                                                ,
-                                                {{
-                                                    $t('Machine.SystemPanel.Values.Temp', {
-                                                        temp: hostStats.tempSensor.temperature,
-                                                    })
-                                                }}
-                                            </span>
-                                        </template>
-                                        <span>
-                                            {{
-                                                $t('Machine.SystemPanel.Values.TempMax', {
-                                                    temp: hostStats.tempSensor.measured_max_temp,
-                                                })
-                                            }}
-                                            <br />
-                                            {{
-                                                $t('Machine.SystemPanel.Values.TempMin', {
-                                                    temp: hostStats.tempSensor.measured_min_temp,
-                                                })
-                                            }}
-                                        </span>
-                                    </v-tooltip>
+                </div>
+
+                <div class="system-host-stats text-body-2">
+                    <div class="system-host-stats__item">
+                        {{ $t('Machine.SystemPanel.Values.Load', { load: hostStats.load }) }}
+                    </div>
+                    <div v-if="hostStats.memoryFormat" class="system-host-stats__item">
+                        {{ $t('Machine.SystemPanel.Values.Memory', { memory: hostStats.memoryFormat }) }}
+                    </div>
+                    <div v-if="hostStats.tempSensor" class="system-host-stats__item">
+                        <template
+                            v-if="
+                                hostStats.tempSensor.measured_min_temp !== null &&
+                                hostStats.tempSensor.measured_max_temp !== null
+                            ">
+                            <v-tooltip top>
+                                <template #activator="{ props: activatorProps }">
+                                    <span v-bind="activatorProps">
+                                        {{
+                                            $t('Machine.SystemPanel.Values.Temp', {
+                                                temp: hostStats.tempSensor.temperature,
+                                            })
+                                        }}
+                                    </span>
                                 </template>
-                                <span v-else>
-                                    ,
+                                <span>
                                     {{
-                                        $t('Machine.SystemPanel.Values.Temp', {
-                                            temp: hostStats.tempSensor.temperature,
+                                        $t('Machine.SystemPanel.Values.TempMax', {
+                                            temp: hostStats.tempSensor.measured_max_temp,
+                                        })
+                                    }}
+                                    <br />
+                                    {{
+                                        $t('Machine.SystemPanel.Values.TempMin', {
+                                            temp: hostStats.tempSensor.measured_min_temp,
                                         })
                                     }}
                                 </span>
-                            </template>
-                        </span>
+                            </v-tooltip>
+                        </template>
+                        <template v-else>
+                            {{
+                                $t('Machine.SystemPanel.Values.Temp', {
+                                    temp: hostStats.tempSensor.temperature,
+                                })
+                            }}
+                        </template>
                     </div>
-                    <template v-if="networkInterfaces">
-                        <div v-for="(interfaceStats, interfaceName) in networkInterfaces" :key="interfaceName">
-                            <span class="text-no-wrap">
-                                {{ interfaceName }}
-                                <template v-if="'details' in interfaceStats">
-                                    {{ getIpAddress(interfaceStats.details.ip_addresses) }}
-                                </template>
-                                :
+                </div>
+
+                <div v-if="networkInterfaces" class="system-host-network text-body-2">
+                    <div
+                        v-for="(interfaceStats, interfaceName) in networkInterfaces"
+                        :key="interfaceName"
+                        class="system-host-network__item">
+                        <div class="system-host-network__header">
+                            <span class="system-host-network__name">{{ interfaceName }}</span>
+                            <span v-if="'details' in interfaceStats" class="system-host-network__ip">
+                                {{ getIpAddress(interfaceStats.details.ip_addresses) }}
                             </span>
-                            <span class="text-no-wrap">
+                        </div>
+                        <ul class="system-host-network__stats">
+                            <li class="system-host-network__stat">
                                 {{
                                     $t('Machine.SystemPanel.Values.Bandwidth', {
                                         bandwidth: formatFilesize(interfaceStats.bandwidth),
                                     })
                                 }}
-                            </span>
-                            ,
-                            <span class="text-no-wrap">
+                            </li>
+                            <li class="system-host-network__stat">
                                 {{
                                     $t('Machine.SystemPanel.Values.Received', {
                                         received: formatFilesize(interfaceStats.rx_bytes),
                                     })
                                 }}
-                            </span>
-                            ,
-                            <span class="text-no-wrap">
+                            </li>
+                            <li class="system-host-network__stat">
                                 {{
                                     $t('Machine.SystemPanel.Values.Transmitted', {
                                         transmitted: formatFilesize(interfaceStats.tx_bytes),
                                     })
                                 }}
-                            </span>
-                        </div>
-                    </template>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </v-col>
             <v-col class="system-load-row__gauges v-col-auto px-2">
@@ -133,7 +137,7 @@
                             :value="cpuUsage"
                             :color="cpuUsageColor"
                             :aria-label="`${$t('Machine.SystemPanel.Cpu')} ${cpuUsage}%`">
-                            {{ cpuUsage }}
+                            {{ cpuUsage }}%
                         </v-progress-circular>
                         <span class="mt-2">{{ $t('Machine.SystemPanel.Cpu') }}</span>
                     </div>
@@ -145,7 +149,7 @@
                             :value="hostStats.loadPercent"
                             :color="hostStats.loadProgressColor"
                             :aria-label="`${$t('Machine.SystemPanel.Load')} ${hostStats.loadPercent}%`">
-                            {{ hostStats.loadPercent }}
+                            {{ hostStats.loadPercent }}%
                         </v-progress-circular>
                         <span class="mt-2">{{ $t('Machine.SystemPanel.Load') }}</span>
                     </div>
@@ -159,7 +163,7 @@
                             :value="hostStats.memUsage"
                             :color="hostStats.memUsageColor"
                             :aria-label="`${$t('Machine.SystemPanel.Memory')} ${hostStats.memUsage}%`">
-                            {{ hostStats.memUsage }}
+                            {{ hostStats.memUsage }}%
                         </v-progress-circular>
                         <span class="mt-2">{{ $t('Machine.SystemPanel.Memory') }}</span>
                     </div>
@@ -212,13 +216,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useStore } from 'vuex'
-import { useBase } from '@/composables/useBase'
 import Panel from '@/components/ui/Panel.vue'
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-vue'
 import { formatFilesize } from '@/plugins/helpers'
 import { mdiTextBoxSearchOutline, mdiCloseThick } from '@mdi/js'
 
-const { klipperReadyForGui } = useBase()
 const store = useStore()
 
 const hostDetailsDialog = ref(false)
@@ -235,10 +237,6 @@ const releaseName = computed(() => {
     if (name.startsWith('0.')) return null
     return name
 })
-
-const directory = computed(() => store.getters['files/getDirectory']('gcodes'))
-
-const disk_usage = computed(() => directory.value?.disk_usage ?? { used: 0, free: 0, total: 0 })
 
 const cpuUsage = computed(() => store.getters['server/getCpuUsage'] ?? null)
 
@@ -279,6 +277,105 @@ const cpuName = computed(() => {
     min-width: 0;
 }
 
+.system-host-header {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.system-host-title {
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+}
+
+.system-host-chip {
+    background: rgba(var(--v-theme-on-surface), 0.08);
+    border: 1px solid rgba(var(--v-theme-on-surface), 0.08);
+    border-radius: 999px;
+    color: rgba(var(--v-theme-on-surface), 0.78);
+    display: inline-flex;
+    font-size: 0.75rem;
+    line-height: 1;
+    padding: 6px 10px;
+}
+
+.system-host-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.system-host-meta__item {
+    color: rgba(var(--v-theme-on-surface), 0.88);
+    line-height: 1.35;
+}
+
+.system-host-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.system-host-stats__item {
+    background: rgba(var(--v-theme-on-surface), 0.05);
+    border-radius: 10px;
+    color: rgba(var(--v-theme-on-surface), 0.92);
+    padding: 6px 10px;
+    white-space: nowrap;
+}
+
+.system-host-network {
+    border-top: 1px solid rgba(var(--v-theme-on-surface), 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 14px;
+    padding-top: 12px;
+}
+
+.system-host-network__item {
+    background: rgba(var(--v-theme-on-surface), 0.035);
+    border-radius: 12px;
+    padding: 10px 12px;
+}
+
+.system-host-network__header {
+    align-items: baseline;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.system-host-network__name {
+    color: rgb(var(--v-theme-on-surface));
+    font-weight: 600;
+}
+
+.system-host-network__ip {
+    color: rgba(var(--v-theme-on-surface), 0.6);
+    font-size: 0.8rem;
+}
+
+.system-host-network__stats {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.system-host-network__stat {
+    color: rgba(var(--v-theme-on-surface), 0.82);
+    white-space: nowrap;
+}
+
 .system-load-row__gauges {
     flex: 0 0 auto;
     width: fit-content;
@@ -287,12 +384,27 @@ const cpuName = computed(() => {
 .system-load-gauges {
     align-items: center;
     display: inline-flex;
-    gap: 6px;
+    gap: 10px;
     justify-content: flex-end;
     width: fit-content;
 }
 
 .system-load-gauge {
     min-width: 0;
+}
+
+@media (max-width: 960px) {
+    .system-load-row {
+        flex-wrap: wrap;
+    }
+
+    .system-load-row__gauges {
+        width: 100%;
+    }
+
+    .system-load-gauges {
+        justify-content: flex-start;
+        padding: 0 24px 16px;
+    }
 }
 </style>

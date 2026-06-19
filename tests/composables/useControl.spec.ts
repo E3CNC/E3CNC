@@ -62,7 +62,6 @@ describe('useControl', () => {
                 'socket/getUrl': () => '//localhost:8080',
                 'gui/getDefaultControlActionButton': () => 'homeAll',
                 'printer/existsQGL': () => qglExists,
-                'printer/existsZtilt': () => true,
                 'printer/existsZtilt': () => false,
                 'printer/existsDeltaCalibrate': () => false,
                 'printer/existsScrewsTilt': () => false,

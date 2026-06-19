@@ -25,9 +25,7 @@ const mockStoreState = {
         },
     },
     files: {
-        gcodefiles: [
-            { filename: 'existing-file.gcode', type: 'file' },
-        ],
+        gcodefiles: [{ filename: 'existing-file.gcode', type: 'file' }],
     },
 }
 
@@ -114,12 +112,12 @@ describe('GcodefilesRenameFileDialog.vue', () => {
     })
 
     it('renders without crashing', () => {
-        const wrapper = mount(GcodefilesRenameFileDialog, mountOptions)
+        const wrapper = mount(GcodefilesRenameFileDialog, mountOptions as any)
         expect(wrapper.exists()).toBe(true)
     })
 
     it('shows the dialog with correct title and fields', () => {
-        const wrapper = mount(GcodefilesRenameFileDialog, mountOptions)
+        const wrapper = mount(GcodefilesRenameFileDialog, mountOptions as any)
         expect(wrapper.text()).toContain('Rename File')
         expect(wrapper.text()).toContain('Name')
         expect(wrapper.text()).toContain('Cancel')
@@ -131,7 +129,7 @@ describe('GcodefilesRenameFileDialog.vue', () => {
         const wrapper = mount(GcodefilesRenameFileDialog, {
             props: { modelValue: false, item: sampleFile },
             global: mountOptions.global,
-        })
+        } as any)
         await wrapper.setProps({ modelValue: true })
         await nextTick()
         const textField = wrapper.findComponent({ name: 'VTextField' })
@@ -143,7 +141,7 @@ describe('GcodefilesRenameFileDialog.vue', () => {
         const wrapper = mount(GcodefilesRenameFileDialog, {
             props: { modelValue: false, item: sampleFile },
             global: mountOptions.global,
-        })
+        } as any)
         await wrapper.setProps({ modelValue: true })
         await nextTick()
         const buttons = wrapper.findAllComponents({ name: 'VBtn' })
@@ -157,7 +155,7 @@ describe('GcodefilesRenameFileDialog.vue', () => {
         const wrapper = mount(GcodefilesRenameFileDialog, {
             props: { modelValue: false, item: sampleFile },
             global: mountOptions.global,
-        })
+        } as any)
         await wrapper.setProps({ modelValue: true })
         await nextTick()
 
@@ -183,7 +181,7 @@ describe('GcodefilesRenameFileDialog.vue', () => {
     })
 
     it('closes the dialog on cancel', async () => {
-        const wrapper = mount(GcodefilesRenameFileDialog, mountOptions)
+        const wrapper = mount(GcodefilesRenameFileDialog, mountOptions as any)
 
         const closeButton = wrapper.findAllComponents({ name: 'VBtn' })[0]
         await closeButton.trigger('click')

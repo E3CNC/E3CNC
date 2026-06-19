@@ -20,7 +20,14 @@ import StartPrintDialogThumbnail from '@/components/dialogs/StartPrintDialogThum
 describe('StartPrintDialogThumbnail.vue', () => {
     it('renders without crashing', () => {
         const wrapper = mount(StartPrintDialogThumbnail, {
-            props: { file: { filename: 'test.gcode', thumbnails: [{ width: 256, height: 256, size: 1000 }] }, currentPath: '' },
+            props: {
+                file: {
+                    filename: 'test.gcode',
+                    modified: new Date(1000),
+                    thumbnails: [{ width: 256, height: 256, size: 1000, relative_path: '' }],
+                } as any,
+                currentPath: '',
+            },
             global: { plugins: [store] },
         })
         expect(wrapper.exists()).toBe(true)
@@ -28,7 +35,10 @@ describe('StartPrintDialogThumbnail.vue', () => {
 
     it('does not render when file has no thumbnails', () => {
         const wrapper = mount(StartPrintDialogThumbnail, {
-            props: { file: { filename: 'test.gcode', thumbnails: [] }, currentPath: '' },
+            props: {
+                file: { filename: 'test.gcode', modified: new Date(1000), thumbnails: [] } as any,
+                currentPath: '',
+            },
             global: { plugins: [store] },
         })
         expect(wrapper.find('.v-img').exists()).toBe(false)

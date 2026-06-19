@@ -1,5 +1,5 @@
 import { ActionTree } from 'vuex'
-import { getSocket, $toast } from '@/store/runtime'
+import { getSocket } from '@/store/runtime'
 import { PrinterState } from '@/store/printer/types'
 import { RootState } from '@/store/types'
 
@@ -72,7 +72,7 @@ export const actions: ActionTree<PrinterState, RootState> = {
         dispatch('socket/removeInitModule', 'printer/initSubscripts', { root: true })
     },
 
-    getData({ commit, dispatch, state }, payload) {
+    getData({ commit, dispatch }, payload) {
         if ('status' in payload) payload = payload.status
         if ('requestParams' in payload) delete payload.requestParams
 
