@@ -991,7 +991,7 @@ function onSvgClick() {
     const info = cursorInfo.value
     if (!info) return
 
-    const gcode = `G53\\nG1 X${info.x.toFixed(4)} Y${info.y.toFixed(4)} F3000`
+    const gcode = `G53\nG1 X${info.x.toFixed(4)} Y${info.y.toFixed(4)} F3000`
     getSocket().emit('printer.gcode.script', { script: gcode })
 }
 
