@@ -571,6 +571,11 @@
 :deep(.files-table .v-table__wrapper > table > tbody > tr > td:first-child) {
     padding-left: 16px !important;
 }
+
+:deep(.files-table .file-list-cursor:hover) {
+    cursor: pointer;
+    background-color: rgba(var(--v-theme-primary), 0.08);
+}
 </style>
 
 <script setup lang="ts">
