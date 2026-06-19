@@ -561,6 +561,25 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
+
+        <!-- Home confirmation dialog -->
+        <v-dialog v-model="homeConfirmDialogOpen" persistent max-width="400" @keydown="onHomeDialogKeydown">
+            <v-card>
+                <v-card-title class="text-subtitle-1">Machine Not Homed</v-card-title>
+                <v-card-text>
+                    The machine must be homed before it can move to the selected position.
+                    <br /><br />
+                    Press <kbd>Enter</kbd> to home the machine first, or <kbd>Esc</kbd> to cancel.
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer />
+                    <v-btn variant="text" @click="cancelHome">{{ $t('Buttons.Cancel') }}</v-btn>
+                    <v-btn variant="text" color="primary" @click="confirmHome">
+                        {{ $t('Buttons.Yes') }}
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
     </panel>
 </template>
 
@@ -631,6 +650,9 @@ const zeroConfirmDialogOpen = ref(false)
 const zeroConfirmText = ref('')
 const zeroConfirmTitle = ref('Confirm')
 const zeroConfirmAction = ref<'X' | 'Y' | 'Z' | null>(null)
+
+const homeConfirmDialogOpen = ref(false)
+const pendingClickCoords = ref<{ x: number; y: number } | null>(null)
 watch(gridStep, (v) => localStorage.setItem('cncPreviewGridStep', String(v)))
 watch(snapToGrid, (v) => localStorage.setItem('cncPreviewSnapToGrid', String(v)))
 watch(
@@ -987,12 +1009,54 @@ function onSvgMouseLeave() {
     snapInfo.value = null
 }
 
+function isMachineHomed(): boolean {
+    const homed = store.state.printer?.toolhead?.homed_axes ?? ''
+    return homed.includes('x') && homed.includes('y')
+}
+
 function onSvgClick() {
     const info = cursorInfo.value
     if (!info) return
 
-    const gcode = `G53\nG1 X${info.x.toFixed(4)} Y${info.y.toFixed(4)} F3000`
+    if (!isMachineHomed()) {
+        pendingClickCoords.value = { x: info.x, y: info.y }
+        homeConfirmDialogOpen.value = true
+        return
+    }
+
+    executeMove(info.x, info.y)
+}
+
+function executeMove(x: number, y: number) {
+    const gcode = `G53\nG1 X${x.toFixed(4)} Y${y.toFixed(4)} F3000`
     getSocket().emit('printer.gcode.script', { script: gcode })
+}
+
+function confirmHome() {
+    homeConfirmDialogOpen.value = false
+    const coords = pendingClickCoords.value
+    pendingClickCoords.value = null
+    if (!coords) return
+
+    // Home first, then move to the clicked position
+    getSocket().emit('printer.gcode.script', { script: 'G28' }, { loading: 'homeAll' })
+    // Give the homing a moment to start, then queue the move
+    setTimeout(() => {
+        executeMove(coords.x, coords.y)
+    }, 500)
+}
+
+function cancelHome() {
+    homeConfirmDialogOpen.value = false
+    pendingClickCoords.value = null
+}
+
+function onHomeDialogKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter') {
+        confirmHome()
+    } else if (e.key === 'Escape') {
+        cancelHome()
+    }
 }
 
 onMounted(() => {
