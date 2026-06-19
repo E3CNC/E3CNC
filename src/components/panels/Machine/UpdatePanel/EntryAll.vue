@@ -49,7 +49,8 @@ async function updateAll() {
         await socket.emitAndWait('machine.update.full', {})
     } catch (e) {
         const $toast = useToast()
-        const message = (e as any)?.message || 'Unknown error'
+        const err = e as { message?: string }
+        const message = err.message || 'Unknown error'
         $toast.error(t('Machine.UpdatePanel.UpdateFailed', { message }))
     }
 }
