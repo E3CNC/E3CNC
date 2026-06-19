@@ -55,7 +55,17 @@ describe('NumberInput.vue', () => {
                 stubs: {
                     'v-text-field': {
                         name: 'VTextField',
-                        props: ['modelValue', 'label', 'suffix', 'error', 'errorMessages', 'disabled', 'step', 'min', 'max'],
+                        props: [
+                            'modelValue',
+                            'label',
+                            'suffix',
+                            'error',
+                            'errorMessages',
+                            'disabled',
+                            'step',
+                            'min',
+                            'max',
+                        ],
                         template: `
                             <div class="v-text-field-stub">
                                 <slot name="append" />
@@ -73,7 +83,7 @@ describe('NumberInput.vue', () => {
                         props: ['disabled', 'icon', 'size', 'variant'],
                         template: '<button class="v-btn-stub" :disabled="disabled"><slot /></button>',
                     },
-                    'form': {
+                    form: {
                         name: 'Form',
                         template: '<form><slot /></form>',
                     },

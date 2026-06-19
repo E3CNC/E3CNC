@@ -20,8 +20,7 @@ describe('MoveToInput.vue', () => {
                     'v-text-field': {
                         name: 'VTextField',
                         props: ['label', 'modelValue', 'suffix', 'disabled'],
-                        template:
-                            '<div class="v-text-field-stub">{{ label }} {{ modelValue }} {{ suffix }}</div>',
+                        template: '<div class="v-text-field-stub">{{ label }} {{ modelValue }} {{ suffix }}</div>',
                     },
                 },
             },

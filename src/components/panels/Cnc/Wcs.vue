@@ -579,9 +579,7 @@
                     Machine Not Homed
                 </v-card-title>
                 <v-card-text>
-                    <p class="mb-4">
-                        The machine must be homed before it can move to the selected position.
-                    </p>
+                    <p class="mb-4">The machine must be homed before it can move to the selected position.</p>
                     <div class="d-flex align-center justify-center ga-4 py-2">
                         <v-chip size="small" color="primary" variant="flat" class="text-uppercase font-weight-bold">
                             Enter

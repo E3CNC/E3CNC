@@ -1,6 +1,6 @@
 {
     "name": "mainsail-cnc",
-    "version": "0.2.1",
+    "version": "0.2.2",
     "private": true,
     "type": "module",
     "description": "A web interface for Klipper-based CNC machines",
@@ -30,6 +30,7 @@
         "start": "vite build && vite preview",
         "test": "start-server-and-test preview http://127.0.0.1:4173/ 'cypress run'",
         "test:ui": "cypress open",
+        "typecheck": "vue-tsc --noEmit",
         "test:unit": "NODE_OPTIONS=\"${NODE_OPTIONS:---max-old-space-size=4096}\" vitest run",
         "test:unit:watch": "NODE_OPTIONS=\"${NODE_OPTIONS:---max-old-space-size=4096}\" vitest",
         "test:coverage": "NODE_OPTIONS=\"${NODE_OPTIONS:---max-old-space-size=4096}\" vitest run --coverage",

@@ -124,16 +124,22 @@ describe('MacroButton.vue', () => {
     })
 
     it('parses parameters from klipper macro data', () => {
-        const wrapper = mountComponent({}, {
-            params: { SPEED: { type: 'int', default: 100 }, FAN: { type: 'string', default: 'off' } },
-        })
+        const wrapper = mountComponent(
+            {},
+            {
+                params: { SPEED: { type: 'int', default: 100 }, FAN: { type: 'string', default: 'off' } },
+            }
+        )
         expect(wrapper.vm.paramArray.length).toBeGreaterThan(0)
     })
 
     it('skips parameters starting with underscore', () => {
-        const wrapper = mountComponent({}, {
-            params: { SPEED: { type: 'int', default: 100 }, _internal: { type: 'string', default: '' } },
-        })
+        const wrapper = mountComponent(
+            {},
+            {
+                params: { SPEED: { type: 'int', default: 100 }, _internal: { type: 'string', default: '' } },
+            }
+        )
         expect(wrapper.vm.paramArray).toContain('SPEED')
         expect(wrapper.vm.paramArray).not.toContain('_internal')
     })
@@ -183,17 +189,27 @@ describe('MacroButton.vue', () => {
 
     it('paramCols returns 1 on mobile', () => {
         mocks.mockIsMobile.value = true
-        const wrapper = mountComponent({}, {
-            params: { A: { type: 'int', default: 1 }, B: { type: 'int', default: 2 }, C: { type: 'int', default: 3 } },
-        })
+        const wrapper = mountComponent(
+            {},
+            {
+                params: {
+                    A: { type: 'int', default: 1 },
+                    B: { type: 'int', default: 2 },
+                    C: { type: 'int', default: 3 },
+                },
+            }
+        )
         expect(wrapper.vm.paramCols).toBe(1)
     })
 
     it('paramCols caps at 4 on desktop', () => {
         mocks.mockIsMobile.value = false
-        const wrapper = mountComponent({}, {
-            params: { A: {}, B: {}, C: {}, D: {}, E: {}, F: {} },
-        })
+        const wrapper = mountComponent(
+            {},
+            {
+                params: { A: {}, B: {}, C: {}, D: {}, E: {}, F: {} },
+            }
+        )
         // 6 params / 5 = 1.2, ceil = 2, min(2,4) = 2
         expect(wrapper.vm.paramCols).toBe(2)
     })

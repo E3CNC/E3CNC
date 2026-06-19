@@ -9,6 +9,7 @@ const mockBaseValues = vi.hoisted(() => ({
 
 const mockSocket = vi.hoisted(() => ({
     emit: vi.fn(),
+    emitAndWait: vi.fn().mockResolvedValue(undefined),
 }))
 
 vi.mock('@/composables/useBase', () => ({
@@ -17,6 +18,12 @@ vi.mock('@/composables/useBase', () => ({
 
 vi.mock('@/composables/useSocket', () => ({
     useSocket: () => mockSocket,
+}))
+
+vi.mock('vue-i18n', () => ({
+    useI18n: () => ({
+        t: (key: string) => key,
+    }),
 }))
 
 const vuetifyComponentsMock = vi.hoisted(() => ({
@@ -143,7 +150,7 @@ describe('UpdatePanel EntryAll.vue', () => {
         const btn = wrapper.findComponent({ name: 'VBtn' })
         btn.trigger('click')
 
-        expect(mockSocket.emit).toHaveBeenCalledWith('machine.update.full', {})
+        expect(mockSocket.emitAndWait).toHaveBeenCalledWith('machine.update.full', {})
     })
 
     it('does not emit directly when hideUpdateWarnings is false', async () => {
@@ -156,6 +163,6 @@ describe('UpdatePanel EntryAll.vue', () => {
         await btn.trigger('click')
 
         // socket.emit should NOT be called since hint dialog is shown first
-        expect(mockSocket.emit).not.toHaveBeenCalled()
+        expect(mockSocket.emitAndWait).not.toHaveBeenCalled()
     })
 })

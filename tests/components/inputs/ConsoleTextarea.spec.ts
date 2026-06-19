@@ -24,11 +24,13 @@ vi.mock('@/composables/useConsole', () => ({
 }))
 
 // ── Mock helpers ──
-const mockStrLongestEqual = vi.hoisted(() => vi.fn((a: string, b: string) => {
-    let i = 0
-    while (i < a.length && i < b.length && a[i] === b[i]) i++
-    return a.substring(0, i)
-}))
+const mockStrLongestEqual = vi.hoisted(() =>
+    vi.fn((a: string, b: string) => {
+        let i = 0
+        while (i < a.length && i < b.length && a[i] === b[i]) i++
+        return a.substring(0, i)
+    })
+)
 
 vi.mock('@/plugins/helpers', () => ({
     strLongestEqual: mockStrLongestEqual,
@@ -195,9 +197,7 @@ describe('ConsoleTextarea.vue', () => {
     })
 
     it('does autocomplete() with single matching command updates gcode', () => {
-        mockHelplist.value = [
-            { command: 'G28', help: 'Home all axes' },
-        ]
+        mockHelplist.value = [{ command: 'G28', help: 'Home all axes' }]
 
         const { wrapper } = createStoreAndMount()
         wrapper.vm.gcode = 'G2'

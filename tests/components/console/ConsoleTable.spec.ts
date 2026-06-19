@@ -51,7 +51,12 @@ describe('ConsoleTable.vue', () => {
         const store = createStoreWithState()
         const events: ServerStateEvent[] = [
             { date: new Date('2024-01-15T10:30:00'), type: 'message', message: 'Hello', formatMessage: 'Hello' },
-            { date: new Date('2024-01-15T10:31:00'), type: 'command', message: 'G28', formatMessage: '<a class="command">G28</a>' },
+            {
+                date: new Date('2024-01-15T10:31:00'),
+                type: 'command',
+                message: 'G28',
+                formatMessage: '<a class="command">G28</a>',
+            },
         ]
         const wrapper = shallowMount(ConsoleTable, {
             props: { events },

@@ -103,10 +103,11 @@
                 </v-card-text>
 
                 <!-- Validation console (sticky bottom) -->
-                <div v-if="validationErrors.length > 0" class="validation-console" :style="{ height: consoleHeight + 'px' }">
-                    <div
-                        class="validation-console__resize-handle"
-                        @pointerdown="onResizeStart" />
+                <div
+                    v-if="validationErrors.length > 0"
+                    class="validation-console"
+                    :style="{ height: consoleHeight + 'px' }">
+                    <div class="validation-console__resize-handle" @pointerdown="onResizeStart" />
                     <div class="validation-console__header">
                         <span class="validation-console__title">
                             {{ validationErrors.length }} issue{{ validationErrors.length !== 1 ? 's' : '' }} found
@@ -123,11 +124,7 @@
                             variant="outlined"
                             hide-details
                             style="min-width: 90px; max-width: 120px" />
-                        <v-btn
-                            icon
-                            size="x-small"
-                            variant="text"
-                            @click="validationErrors = []">
+                        <v-btn icon size="x-small" variant="text" @click="validationErrors = []">
                             <v-icon size="small">{{ mdiCloseThick }}</v-icon>
                         </v-btn>
                     </div>
@@ -793,5 +790,4 @@ watch(changed, (newVal: boolean) => {
 .validation-console__item--warning .validation-console__msg {
     color: #ffcc80;
 }
-
 </style>

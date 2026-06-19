@@ -96,7 +96,7 @@ describe('TemperatureInput.vue', () => {
                         props: ['link'],
                         template: '<div class="v-list-item-stub" @click="$emit(\'click\')"><slot /></div>',
                     },
-                    'form': {
+                    form: {
                         name: 'Form',
                         template: '<form><slot /></form>',
                     },

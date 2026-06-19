@@ -67,7 +67,8 @@ describe('TextfieldWithCopy.vue', () => {
                     },
                     'v-icon': {
                         name: 'VIcon',
-                        template: '<i class="v-icon-stub" @click="$parent.$parent.$parent.copy && $parent.$parent.$parent.copy()"><slot /></i>',
+                        template:
+                            '<i class="v-icon-stub" @click="$parent.$parent.$parent.copy && $parent.$parent.$parent.copy()"><slot /></i>',
                     },
                     'v-tooltip': {
                         name: 'VTooltip',

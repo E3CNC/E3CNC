@@ -32,7 +32,8 @@ vi.mock('@/components/console/CommandHelpModalEntry.vue', () => ({
     default: {
         name: 'CommandHelpModalEntry',
         props: ['command'],
-        template: '<div class="command-help-entry-stub" @click="$emit(\'click-on-command\', command)">{{ command }}</div>',
+        template:
+            '<div class="command-help-entry-stub" @click="$emit(\'click-on-command\', command)">{{ command }}</div>',
         emits: ['click-on-command'],
     },
 }))
@@ -80,7 +81,8 @@ describe('CommandHelpModal.vue', () => {
                     'v-dialog': {
                         name: 'VDialog',
                         props: ['modelValue'],
-                        template: '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
+                        template:
+                            '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
                     },
                 },
             },
@@ -105,7 +107,8 @@ describe('CommandHelpModal.vue', () => {
                     'v-dialog': {
                         name: 'VDialog',
                         props: ['modelValue'],
-                        template: '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
+                        template:
+                            '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
                     },
                 },
             },
@@ -129,7 +132,8 @@ describe('CommandHelpModal.vue', () => {
                     'v-dialog': {
                         name: 'VDialog',
                         props: ['modelValue'],
-                        template: '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
+                        template:
+                            '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
                     },
                 },
             },
@@ -153,7 +157,8 @@ describe('CommandHelpModal.vue', () => {
                 stubs: {
                     'v-dialog': {
                         name: 'VDialog',
-                        template: '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
+                        template:
+                            '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
                     },
                 },
             },
@@ -185,7 +190,8 @@ describe('CommandHelpModal.vue', () => {
                 stubs: {
                     'v-dialog': {
                         name: 'VDialog',
-                        template: '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
+                        template:
+                            '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
                     },
                 },
             },
@@ -212,7 +218,8 @@ describe('CommandHelpModal.vue', () => {
                 stubs: {
                     'v-dialog': {
                         name: 'VDialog',
-                        template: '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
+                        template:
+                            '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
                     },
                 },
             },
@@ -238,7 +245,8 @@ describe('CommandHelpModal.vue', () => {
                 stubs: {
                     'v-dialog': {
                         name: 'VDialog',
-                        template: '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
+                        template:
+                            '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
                     },
                 },
             },
@@ -264,7 +272,8 @@ describe('CommandHelpModal.vue', () => {
                 stubs: {
                     'v-dialog': {
                         name: 'VDialog',
-                        template: '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
+                        template:
+                            '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
                     },
                 },
             },
@@ -289,7 +298,8 @@ describe('CommandHelpModal.vue', () => {
                 stubs: {
                     'v-dialog': {
                         name: 'VDialog',
-                        template: '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
+                        template:
+                            '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
                     },
                 },
             },
@@ -315,7 +325,8 @@ describe('CommandHelpModal.vue', () => {
                 stubs: {
                     'v-dialog': {
                         name: 'VDialog',
-                        template: '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
+                        template:
+                            '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
                     },
                 },
             },
@@ -342,7 +353,8 @@ describe('CommandHelpModal.vue', () => {
                 stubs: {
                     'v-dialog': {
                         name: 'VDialog',
-                        template: '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
+                        template:
+                            '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
                     },
                 },
             },
@@ -373,7 +385,8 @@ describe('CommandHelpModal.vue', () => {
                     'v-dialog': {
                         name: 'VDialog',
                         props: ['modelValue', 'fullscreen'],
-                        template: '<div class="v-dialog-stub" :data-fullscreen="fullscreen"><slot name="activator" /><slot v-if="modelValue" /></div>',
+                        template:
+                            '<div class="v-dialog-stub" :data-fullscreen="fullscreen"><slot name="activator" /><slot v-if="modelValue" /></div>',
                     },
                     'v-btn': {
                         name: 'VBtn',
@@ -397,7 +410,8 @@ describe('CommandHelpModal.vue', () => {
                 stubs: {
                     'v-dialog': {
                         name: 'VDialog',
-                        template: '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
+                        template:
+                            '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
                     },
                 },
             },
@@ -416,7 +430,8 @@ describe('CommandHelpModal.vue', () => {
                 stubs: {
                     'v-dialog': {
                         name: 'VDialog',
-                        template: '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
+                        template:
+                            '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
                     },
                 },
             },
@@ -439,7 +454,8 @@ describe('CommandHelpModal.vue', () => {
                 stubs: {
                     'v-dialog': {
                         name: 'VDialog',
-                        template: '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
+                        template:
+                            '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
                     },
                 },
             },

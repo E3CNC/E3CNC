@@ -152,9 +152,9 @@ describe('root store', () => {
             expect(getters.getVersion(state, {}, {}, {})).toBe('0.0.0')
         })
 
-        it('getTitle returns Mainsail when not connected', () => {
+        it('getTitle returns E3CNC when not connected', () => {
             const result = (getters as any).getTitle({ ...state, socket: { isConnected: false } }, {}, {}, {})
-            expect(result).toBe('Mainsail')
+            expect(result).toBe('E3CNC')
         })
 
         it('getTitle returns Error when klippy not ready', () => {

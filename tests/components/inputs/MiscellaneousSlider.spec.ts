@@ -134,7 +134,11 @@ describe('MiscellaneousSlider.vue', () => {
 
     it('sendCmd for fan_generic sends SET_FAN_SPEED', () => {
         const store = createStore({
-            state: { gui: { uiSettings: { lockSlidersOnTouchDevices: false, lockSlidersDelay: 0, disableFanAnimation: false } } },
+            state: {
+                gui: {
+                    uiSettings: { lockSlidersOnTouchDevices: false, lockSlidersDelay: 0, disableFanAnimation: false },
+                },
+            },
         })
         const wrapper = shallowMount(MiscellaneousSlider, {
             props: { target: 0.5, type: 'fan_generic', name: 'my_fan', controllable: true, pwm: true },
@@ -142,12 +146,18 @@ describe('MiscellaneousSlider.vue', () => {
         })
         // Use a value different from current (value=0.5) to avoid early return
         wrapper.vm.sendCmd(0.8)
-        expect(mocks.mockSocketEmit).toHaveBeenCalledWith('printer.gcode.script', { script: 'SET_FAN_SPEED FAN=my_fan SPEED=0.8' })
+        expect(mocks.mockSocketEmit).toHaveBeenCalledWith('printer.gcode.script', {
+            script: 'SET_FAN_SPEED FAN=my_fan SPEED=0.8',
+        })
     })
 
     it('sendCmd for default type sends SET_PIN', () => {
         const store = createStore({
-            state: { gui: { uiSettings: { lockSlidersOnTouchDevices: false, lockSlidersDelay: 0, disableFanAnimation: false } } },
+            state: {
+                gui: {
+                    uiSettings: { lockSlidersOnTouchDevices: false, lockSlidersDelay: 0, disableFanAnimation: false },
+                },
+            },
         })
         const wrapper = shallowMount(MiscellaneousSlider, {
             // type must be provided (template uses type.includes())
@@ -155,12 +165,18 @@ describe('MiscellaneousSlider.vue', () => {
             global: { plugins: [store], mocks: { $t: (k: string) => k }, stubs: vuetifyStubs },
         })
         wrapper.vm.sendCmd(0.75)
-        expect(mocks.mockSocketEmit).toHaveBeenCalledWith('printer.gcode.script', { script: 'SET_PIN PIN=my_pin VALUE=0.75' })
+        expect(mocks.mockSocketEmit).toHaveBeenCalledWith('printer.gcode.script', {
+            script: 'SET_PIN PIN=my_pin VALUE=0.75',
+        })
     })
 
     it('switchOutputPin toggles between 0 and 1', () => {
         const store = createStore({
-            state: { gui: { uiSettings: { lockSlidersOnTouchDevices: false, lockSlidersDelay: 0, disableFanAnimation: false } } },
+            state: {
+                gui: {
+                    uiSettings: { lockSlidersOnTouchDevices: false, lockSlidersDelay: 0, disableFanAnimation: false },
+                },
+            },
         })
         const wrapper = shallowMount(MiscellaneousSlider, {
             // type must be provided (template uses type.includes())
@@ -168,7 +184,9 @@ describe('MiscellaneousSlider.vue', () => {
             global: { plugins: [store], mocks: { $t: (k: string) => k }, stubs: vuetifyStubs },
         })
         wrapper.vm.switchOutputPin()
-        expect(mocks.mockSocketEmit).toHaveBeenCalledWith('printer.gcode.script', { script: 'SET_PIN PIN=my_pin VALUE=0.00' })
+        expect(mocks.mockSocketEmit).toHaveBeenCalledWith('printer.gcode.script', {
+            script: 'SET_PIN PIN=my_pin VALUE=0.00',
+        })
     })
 
     it('increment and decrement functions exist', () => {
@@ -185,7 +203,11 @@ describe('MiscellaneousSlider.vue', () => {
 
     it('submitInput sends command', () => {
         const store = createStore({
-            state: { gui: { uiSettings: { lockSlidersOnTouchDevices: false, lockSlidersDelay: 0, disableFanAnimation: false } } },
+            state: {
+                gui: {
+                    uiSettings: { lockSlidersOnTouchDevices: false, lockSlidersDelay: 0, disableFanAnimation: false },
+                },
+            },
         })
         const wrapper = shallowMount(MiscellaneousSlider, {
             props: { target: 0.5, type: 'fan', name: 'my_fan', controllable: true, pwm: true },

@@ -55,8 +55,7 @@ describe('LedEffectButton.vue', () => {
                     'v-btn': {
                         name: 'VBtn',
                         props: ['color', 'loading', 'disabled', 'size'],
-                        template:
-                            '<button class="v-btn-stub" :class="color" :disabled="disabled"><slot /></button>',
+                        template: '<button class="v-btn-stub" :class="color" :disabled="disabled"><slot /></button>',
                     },
                 },
             },
@@ -79,8 +78,7 @@ describe('LedEffectButton.vue', () => {
                     'v-btn': {
                         name: 'VBtn',
                         props: ['color', 'loading', 'disabled'],
-                        template:
-                            '<button class="v-btn-stub" :class="color" :disabled="disabled"><slot /></button>',
+                        template: '<button class="v-btn-stub" :class="color" :disabled="disabled"><slot /></button>',
                     },
                 },
             },
@@ -104,8 +102,7 @@ describe('LedEffectButton.vue', () => {
                     'v-btn': {
                         name: 'VBtn',
                         props: ['color', 'loading', 'disabled'],
-                        template:
-                            '<button class="v-btn-stub" :class="color" :disabled="disabled"><slot /></button>',
+                        template: '<button class="v-btn-stub" :class="color" :disabled="disabled"><slot /></button>',
                     },
                 },
             },
@@ -127,8 +124,7 @@ describe('LedEffectButton.vue', () => {
                     'v-btn': {
                         name: 'VBtn',
                         props: ['disabled'],
-                        template:
-                            '<button class="v-btn-stub" :disabled="disabled"><slot /></button>',
+                        template: '<button class="v-btn-stub" :disabled="disabled"><slot /></button>',
                     },
                 },
             },
@@ -150,8 +146,7 @@ describe('LedEffectButton.vue', () => {
                     'v-btn': {
                         name: 'VBtn',
                         props: ['loading', 'disabled'],
-                        template:
-                            '<button class="v-btn-stub" :loading="loading"><slot /></button>',
+                        template: '<button class="v-btn-stub" :loading="loading"><slot /></button>',
                     },
                 },
             },

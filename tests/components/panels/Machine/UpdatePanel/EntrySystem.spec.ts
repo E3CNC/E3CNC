@@ -9,6 +9,7 @@ const mockBaseValues = vi.hoisted(() => ({
 
 const mockSocket = vi.hoisted(() => ({
     emit: vi.fn(),
+    emitAndWait: vi.fn().mockResolvedValue(undefined),
 }))
 
 vi.mock('@/composables/useBase', () => ({
@@ -196,7 +197,7 @@ describe('UpdatePanel EntrySystem.vue', () => {
         const chip = wrapper.findComponent({ name: 'VChip' })
         await chip.trigger('click')
 
-        expect(mockSocket.emit).toHaveBeenCalledWith('machine.update.system', {})
+        expect(mockSocket.emitAndWait).toHaveBeenCalledWith('machine.update.system', {})
     })
 
     it('renders SystemPackagesList child component', () => {

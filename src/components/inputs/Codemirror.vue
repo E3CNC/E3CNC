@@ -118,9 +118,7 @@ const cmExtensions = computed(() => {
     const ext = props.fileExtension ?? ''
     if (['cfg', 'conf'].includes(ext)) {
         extensions.push(StreamLanguage.define(klipper_config))
-
-    }
-    else if (['gcode'].includes(ext)) extensions.push(StreamLanguage.define(gcode))
+    } else if (['gcode'].includes(ext)) extensions.push(StreamLanguage.define(gcode))
     else if (['json'].includes(ext)) extensions.push(json())
     else if (['css', 'scss', 'sass'].includes(ext)) extensions.push(css())
 
