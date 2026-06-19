@@ -371,13 +371,12 @@ function addPrinter() {
         path: dialogAddPrinter.value.path,
         name: dialogAddPrinter.value.name,
     }
-    store.dispatch('gui/remoteprinters/store', { values })
     dialogAddPrinter.value.hostname = ''
     dialogAddPrinter.value.bool = false
     dialogAddPrinter.value.path = '/'
     dialogAddPrinter.value.name = ''
 
-    // Connect to the newly added printer
+    // Connect directly without farm registration
     const newPrinter = {
         socket: {
             hostname: values.hostname,
@@ -479,14 +478,15 @@ onMounted(() => {
         if (printers.value.length === 0 && instancesDB.value !== 'moonraker' && instancesDB.value !== 'json') {
             const detected = await autoDetectMoonraker()
             if (detected) {
-                store.dispatch('gui/remoteprinters/store', {
-                    values: {
+                // Connect directly without farm registration
+                const newPrinter = {
+                    socket: {
                         hostname: detected.hostname,
                         port: detected.port,
                         path: '/',
-                        name: '',
                     },
-                })
+                } as FarmPrinterState
+                connect(newPrinter)
                 return
             }
         }
