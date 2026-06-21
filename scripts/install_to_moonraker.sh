@@ -248,11 +248,11 @@ run_on_target "
 # 7) deploy Klipper extra: work_coordinate_systems.py
 # ---------------------------------------------------------------------------
 echo "==> [7/11] deploy work_coordinate_systems.py to klippy/extras/"
-REMOTE_WCS_EXTRAS_SRC="$REMOTE_REPO_DIR/klipper-extras/work_coordinate_systems.py"
+REMOTE_WCS_EXTRAS_SRC="$REMOTE_REPO_DIR/config/extras/work_coordinate_systems.py"
 run_on_target "
     set -e
     if [[ ! -f '$REMOTE_WCS_EXTRAS_SRC' ]]; then
-        echo '    skipping — klipper-extras/work_coordinate_systems.py not found in monorepo'
+        echo '    skipping — config/extras/work_coordinate_systems.py not found in monorepo'
     else
         install -m 0644 '$REMOTE_WCS_EXTRAS_SRC' '$REMOTE_KLIPPER_EXTRAS/work_coordinate_systems.py'
         echo '    installed at: '\$REMOTE_KLIPPER_EXTRAS/work_coordinate_systems.py
@@ -263,11 +263,11 @@ run_on_target "
 # 8) deploy WCS macros
 # ---------------------------------------------------------------------------
 echo "==> [8/11] deploy wcs_macros.cfg to printer_data/config/macros/"
-REMOTE_WCS_MACROS_SRC="$REMOTE_REPO_DIR/klipper-macros/wcs_macros.cfg"
+REMOTE_WCS_MACROS_SRC="$REMOTE_REPO_DIR/config/macros/wcs_macros.cfg"
 run_on_target "
     set -e
     if [[ ! -f '$REMOTE_WCS_MACROS_SRC' ]]; then
-        echo '    skipping — klipper-macros/wcs_macros.cfg not found in monorepo'
+        echo '    skipping — config/macros/wcs_macros.cfg not found in monorepo'
     else
         mkdir -p '$REMOTE_MACROS_DIR'
         install -m 0644 '$REMOTE_WCS_MACROS_SRC' '$REMOTE_MACROS_DIR/wcs_macros.cfg'
@@ -308,7 +308,7 @@ else
             printf 'is_system_service: False\n'
             printf 'info_tags:\n'
             printf '    desc=Mainsail CNC\n'
-            printf '    post_update=./deploy.sh --live && cp -f klipper-extras/work_coordinate_systems.py %s/work_coordinate_systems.py && cp -f klipper-macros/wcs_macros.cfg %s/wcs_macros.cfg && cp -f moonraker-cnc-agent/src/moonraker_cnc_agent/cnc_agent.py %s/cnc_agent/cnc_agent.py && cp -f moonraker-cnc-agent/src/moonraker_cnc_agent/cnc_metadata.py %s/cnc_metadata/cnc_metadata.py\n' "$REMOTE_KLIPPER_EXTRAS" "$REMOTE_MACROS_DIR" "$REMOTE_COMPONENTS_DIR" "$REMOTE_COMPONENTS_DIR"
+            printf '    post_update=./deploy.sh --live && cp -f config/extras/work_coordinate_systems.py %s/work_coordinate_systems.py && cp -f config/macros/wcs_macros.cfg %s/wcs_macros.cfg && cp -f moonraker-cnc-agent/src/moonraker_cnc_agent/cnc_agent.py %s/cnc_agent/cnc_agent.py && cp -f moonraker-cnc-agent/src/moonraker_cnc_agent/cnc_metadata.py %s/cnc_metadata/cnc_metadata.py\n' "$REMOTE_KLIPPER_EXTRAS" "$REMOTE_MACROS_DIR" "$REMOTE_COMPONENTS_DIR" "$REMOTE_COMPONENTS_DIR"
             printf 'managed_services: klipper moonraker\n'
             printf 'refresh_interval: 24\n'
         } > "$APPEND_BLOCK"

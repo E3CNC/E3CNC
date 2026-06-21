@@ -12,7 +12,7 @@ This directory contains Klipper macros for CNC operation.
 ## WCS Macros (`wcs_macros.cfg`)
 
 Requires the `[work_coordinate_systems]` Klipper extra plugin
-(`klipper-extras/work_coordinate_systems.py`), which provides:
+(`config/extras/work_coordinate_systems.py`), which provides:
 
 - **G54–G59** — six independent work coordinate system offset tables
 - **G10 L2 P<n> X<v> Y<v> Z<v>** — set WCS n to explicit machine coordinates

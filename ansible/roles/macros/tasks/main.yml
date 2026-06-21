@@ -7,7 +7,14 @@
 
 - name: Deploy wcs_macros.cfg
   ansible.builtin.copy:
-    src: '{{ repo.dest }}/klipper-macros/wcs_macros.cfg'
+    src: '{{ repo.dest }}/config/macros/wcs_macros.cfg'
     dest: '{{ printer_data.macros_dir }}/wcs_macros.cfg'
+    mode: '0644'
+    remote_src: true
+
+- name: Deploy e3cnc_macros.cfg
+  ansible.builtin.copy:
+    src: '{{ repo.dest }}/config/E3CNC/macros/e3cnc_macros.cfg'
+    dest: '{{ printer_data.macros_dir }}/e3cnc_macros.cfg'
     mode: '0644'
     remote_src: true

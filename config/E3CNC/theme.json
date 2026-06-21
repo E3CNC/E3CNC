@@ -1,0 +1,11 @@
+{
+  "name": "e3cnc",
+  "displayName": "E3CNC",
+  "colorLogo": "#00FF00",
+  "colorPrimary": "#00FF00",
+  "logo": {
+    "show": true,
+    "light": false,
+    "sidebar": "/img/themes/sidebarLogo-e3cnc.svg"
+  }
+}

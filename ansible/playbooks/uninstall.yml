@@ -58,6 +58,11 @@
         path: '{{ printer_data.macros_dir }}/wcs_macros.cfg'
         state: absent
 
+    - name: Remove e3cnc_macros.cfg from printer_data/config/macros/
+      ansible.builtin.file:
+        path: '{{ printer_data.macros_dir }}/e3cnc_macros.cfg'
+        state: absent
+
     - name: Remove macros directory if empty
       ansible.builtin.file:
         path: '{{ printer_data.macros_dir }}'
