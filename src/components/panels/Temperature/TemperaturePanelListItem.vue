@@ -42,8 +42,8 @@
                 v-if="command !== null"
                 :name="name"
                 :target="target"
-                :min_temp="min_temp"
-                :max_temp="max_temp"
+                :min-temp="min_temp"
+                :max-temp="max_temp"
                 :command="command"
                 :input-digits="inputDigits"
                 :attribute-name="commandAttributeName" />
