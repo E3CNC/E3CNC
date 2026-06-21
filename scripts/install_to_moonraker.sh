@@ -267,7 +267,7 @@ run_on_target "
 # ---------------------------------------------------------------------------
 echo "==> [8/11] deploy macros to printer_data/config/E3CNC/macros/"
 REMOTE_WCS_MACROS_SRC="$REMOTE_REPO_DIR/E3CNC/macros/wcs_macros.cfg"
-REMOTE_E3CNC_MACROS_SRC="$REMOTE_REPO_DIR/E3CNC/E3CNC/macros/e3cnc_macros.cfg"
+REMOTE_E3CNC_MACROS_SRC="$REMOTE_REPO_DIR/E3CNC/macros/e3cnc_macros.cfg"
 run_on_target "
     set -e
     mkdir -p '$REMOTE_E3CNC_DIR/macros'
@@ -281,7 +281,7 @@ run_on_target "
         install -m 0644 '$REMOTE_E3CNC_MACROS_SRC' '$REMOTE_E3CNC_DIR/macros/e3cnc_macros.cfg'
         echo '    e3cnc_macros.cfg installed'
     else
-        echo '    skipping — E3CNC/E3CNC/macros/e3cnc_macros.cfg not found'
+        echo '    skipping — E3CNC/macros/e3cnc_macros.cfg not found'
     fi
 "
 

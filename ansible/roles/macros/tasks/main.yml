@@ -14,14 +14,14 @@
 
 - name: Deploy e3cnc_macros.cfg
   ansible.builtin.copy:
-    src: '{{ repo.dest }}/E3CNC/E3CNC/macros/e3cnc_macros.cfg'
+    src: '{{ repo.dest }}/E3CNC/macros/e3cnc_macros.cfg'
     dest: '{{ printer_data.E3CNC_dir }}/macros/e3cnc_macros.cfg'
     mode: '0644'
     remote_src: true
 
 - name: Deploy theme.json
   ansible.builtin.copy:
-    src: '{{ repo.dest }}/E3CNC/E3CNC/theme.json'
+    src: '{{ repo.dest }}/E3CNC/theme.json'
     dest: '{{ printer_data.E3CNC_dir }}/theme.json'
     mode: '0644'
     remote_src: true
