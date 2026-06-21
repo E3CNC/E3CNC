@@ -9,7 +9,7 @@ frontend:
 
 agent:
   vender_dir: '{{ ansible_env.HOME }}/moonraker/moonraker/components'
-  source_dir: '{{ repo.dest }}/moonraker-cnc-agent/src/moonraker_cnc_agent'
+  source_dir: '{{ repo.dest }}/E3CNC/moonraker-cnc-agent/src/moonraker_cnc_agent'
 
 klipper:
   extras_dir: '{{ ansible_env.HOME }}/klipper/klippy/extras'

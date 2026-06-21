@@ -20,7 +20,7 @@ This directory contains CNC-focused dashboard panels for the Mainsail fork.
 - Moonraker websocket subscription for read-only state — read directly from
   the existing `printer` store, **no dedicated `cnc` Vuex module**
 - Moonraker CNC agent for CNC-specific state and guarded commands (see
-  `moonraker-cnc-agent/`)
+  `E3CNC/moonraker-cnc-agent/`)
 - With the `[work_coordinate_systems]` Klipper extra plugin (see
   `E3CNC/extras/`), this build **does** support `G10 L2/L20`. Work-zero
   operations use `G10 L20` per-WCS commands. The plugin is deployed as part

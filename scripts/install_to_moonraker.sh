@@ -8,7 +8,7 @@
 #      on the target, so the agent source, the Mainsail fork, and the
 #      Klipper macros all share one real git working tree
 #   2. vendors the cnc_agent component from
-#      <monorepo>/moonraker-cnc-agent/src/... into
+#      <monorepo>/E3CNC/moonraker-cnc-agent/src/... into
 #      moonraker/moonraker/components/cnc_agent/ so Moonraker's
 #      `import moonraker.components.cnc_agent` resolves
 #   3. vendors the cnc_metadata component (gcode_file processor) from
@@ -55,8 +55,8 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CNC_HOST="${CNC_HOST:-localhost}"
 
-if [[ ! -d "$REPO_ROOT/moonraker-cnc-agent/src/moonraker_cnc_agent" ]]; then
-    echo "error: $REPO_ROOT/moonraker-cnc-agent/src/moonraker_cnc_agent not found" >&2
+if [[ ! -d "$REPO_ROOT/E3CNC/moonraker-cnc-agent/src/moonraker_cnc_agent" ]]; then
+    echo "error: $REPO_ROOT/E3CNC/moonraker-cnc-agent/src/moonraker_cnc_agent not found" >&2
     exit 1
 fi
 
@@ -149,7 +149,7 @@ else
     "
 fi
 
-REMOTE_AGENT_SRC="$REMOTE_REPO_DIR/moonraker-cnc-agent/src/moonraker_cnc_agent"
+REMOTE_AGENT_SRC="$REMOTE_REPO_DIR/E3CNC/moonraker-cnc-agent/src/moonraker_cnc_agent"
 
 # ---------------------------------------------------------------------------
 # 2) vendor the cnc_agent component into moonraker/components/cnc_agent/
@@ -318,7 +318,7 @@ else
             printf 'is_system_service: False\n'
             printf 'info_tags:\n'
             printf '    desc=Mainsail CNC\n'
-            printf '    post_update=./deploy.sh --live && cp -f E3CNC/extras/work_coordinate_systems.py %s/work_coordinate_systems.py && cp -f E3CNC/macros/wcs_macros.cfg %s/E3CNC/macros/wcs_macros.cfg && cp -f moonraker-cnc-agent/src/moonraker_cnc_agent/cnc_agent.py %s/cnc_agent/cnc_agent.py && cp -f moonraker-cnc-agent/src/moonraker_cnc_agent/cnc_metadata.py %s/cnc_metadata/cnc_metadata.py\n' "$REMOTE_KLIPPER_EXTRAS" "$REMOTE_CONFIG_DIR" "$REMOTE_COMPONENTS_DIR" "$REMOTE_COMPONENTS_DIR"
+            printf '    post_update=./deploy.sh --live && cp -f E3CNC/extras/work_coordinate_systems.py %s/work_coordinate_systems.py && cp -f E3CNC/macros/wcs_macros.cfg %s/E3CNC/macros/wcs_macros.cfg && cp -f E3CNC/moonraker-cnc-agent/src/moonraker_cnc_agent/cnc_agent.py %s/cnc_agent/cnc_agent.py && cp -f E3CNC/moonraker-cnc-agent/src/moonraker_cnc_agent/cnc_metadata.py %s/cnc_metadata/cnc_metadata.py\n' "$REMOTE_KLIPPER_EXTRAS" "$REMOTE_CONFIG_DIR" "$REMOTE_COMPONENTS_DIR" "$REMOTE_COMPONENTS_DIR"
             printf 'managed_services: klipper moonraker\n'
             printf 'refresh_interval: 24\n'
         } > "$APPEND_BLOCK"

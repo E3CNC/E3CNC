@@ -49,7 +49,7 @@ G-code, history, webcams, and host system data.
 ### Run locally
 
 ```bash
-cd moonraker-cnc-agent
+cd E3CNC/moonraker-cnc-agent
 PYTHONPATH=src python -m moonraker_cnc_agent.mcp_server
 ```
 
