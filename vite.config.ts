@@ -10,6 +10,19 @@ import buildReleaseInfo from './src/plugins/build-release_info'
 import { VitePWA, VitePWAOptions } from 'vite-plugin-pwa'
 import postcssNesting from 'postcss-nesting'
 
+const devProxyTarget = process.env.VITE_DEV_PROXY_TARGET ?? process.env.DEV_PROXY_TARGET ?? 'http://192.168.0.239'
+const devProxyPaths = ['/access', '/api', '/machine', '/printer', '/server', '/webcam', '/webcam2', '/webcam3', '/webcam4', '/websocket']
+const devServerProxy = Object.fromEntries(
+    devProxyPaths.map((pathname) => [
+        pathname,
+        {
+            target: devProxyTarget,
+            changeOrigin: true,
+            ws: pathname === '/websocket',
+        },
+    ])
+)
+
 const PWAConfig: Partial<VitePWAOptions> = {
     registerType: 'autoUpdate',
     includeAssets: ['fonts/**/*.woff2', 'img/**/*.svg', 'img/**/*.png'],
@@ -149,6 +162,7 @@ export default defineConfig({
     server: {
         host: '0.0.0.0',
         port: 8080,
+        proxy: devServerProxy,
     },
 
     test: {

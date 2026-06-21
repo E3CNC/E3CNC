@@ -1,6 +1,6 @@
 {
     "name": "mainsail-cnc",
-    "version": "0.2.3",
+    "version": "0.2.4",
     "private": true,
     "type": "module",
     "description": "A web interface for Klipper-based CNC machines",

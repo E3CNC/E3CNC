@@ -16,7 +16,7 @@ export function useWebcam() {
     const base = useBase()
 
     function convertUrl(baseUrl: string, printerUrl: string | null) {
-        let url = new URL(baseUrl, base.hostUrl.toString())
+        let url = new URL(baseUrl, base.hostUrl.value.toString())
 
         if (printerUrl !== null) url = new URL(baseUrl, printerUrl)
 

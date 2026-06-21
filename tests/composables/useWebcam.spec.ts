@@ -43,6 +43,12 @@ function mountComposable() {
 }
 
 describe('useWebcam', () => {
+    it('converts webcam URLs using the current host port', () => {
+        const webcam = mountComposable()
+        expect(webcam.convertUrl('/webcam/?action=stream', null)).toBe('http://localhost:8080/webcam/?action=stream')
+        expect(webcam.convertUrl('/webcam/?action=snapshot', null)).toBe('http://localhost:8080/webcam/?action=snapshot')
+    })
+
     it('generates transforms and wrapper styles', () => {
         const webcam = mountComposable()
         expect(webcam.generateTransform(false, false, 0)).toBe('none')
