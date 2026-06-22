@@ -37,3 +37,4 @@ temp/
 validation_screenshot*.png
 verbose-snapshot*.txt
 .playwright-cli/
+prd/

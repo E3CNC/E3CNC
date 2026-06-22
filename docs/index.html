@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>E3CNC</title>
+        <title>E3CNC UI</title>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
         <style>
             @font-face {
@@ -64,6 +64,11 @@
             header {
                 text-align: center;
                 margin-bottom: 56px;
+            }
+            .header-logo {
+                height: 80px;
+                width: auto;
+                margin-bottom: 8px;
             }
             header h1 {
                 font-family: '0xProto Nerd Font Mono', monospace;
@@ -258,9 +263,9 @@
     <body>
         <div class="container">
             <header>
+                <img class="header-logo" src="assets/e3c_logo.svg" alt="E3CNC UI Logo" />
                 <h1>
-                    E3
-                    <span>CNC</span>
+                    E3<span>CNC</span> UI
                 </h1>
                 <p>A modern, responsive CNC controller interface for Klipper-based machines.</p>
                 <div class="badge-row">
@@ -286,7 +291,7 @@
                 <h2>Purpose</h2>
                 <div class="purpose">
                     <p>
-                        <strong>E3CNC</strong>
+                        <strong>E3CNC UI</strong>
                         (formerly Mainsail CNC) is a fork of
                         <a href="https://docs.mainsail.xyz/" style="color: var(--accent)">Mainsail</a>
                         adapted and extended for CNC machine control.
@@ -304,7 +309,7 @@
                 <div class="features">
                     <div class="feature">
                         <div class="icon"><i class="fa-solid fa-palette"></i></div>
-                        <h3>E3CNC Theme</h3>
+                        <h3>E3CNC UI Theme</h3>
                         <p>
                             Default green (#00FF00) branding theme with custom logo. Persisted to Moonraker database
                             after every update via Ansible.
@@ -383,9 +388,9 @@
                     <div class="entry">
                         <span class="tag tag-feat">feat</span>
                         <span class="desc">
-                            <strong>E3CNC default theme</strong>
+                            <strong>E3CNC UI default theme</strong>
                             — Green #00FF00 branding set as default, persisted to Moonraker DB after every update.
-                            Topbar, page title, and printer name default to "E3CNC".
+                            Topbar, page title, and printer name default to "E3CNC UI".
                         </span>
                     </div>
                     <div class="entry">
@@ -520,7 +525,7 @@
                         <span class="tag tag-fix">fix</span>
                         <span class="desc">
                             <strong>Logo rendering</strong>
-                            — E3CNC SVG logo now uses single-line <code>href</code> data URI instead of multiline
+                            — E3CNC UI SVG logo now uses single-line <code>href</code> data URI instead of multiline
                             <code>xlink:href</code>. Fixed blank logo across all browsers.
                         </span>
                     </div>
@@ -642,7 +647,7 @@
 
         <footer>
             <p>
-                E3CNC &mdash; based on
+                E3CNC UI &mdash; based on
                 <a href="https://docs.mainsail.xyz/">Mainsail</a>
                 , built for the CNC community.
             </p>
