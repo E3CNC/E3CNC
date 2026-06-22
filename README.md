@@ -14,7 +14,7 @@ ansible-playbook ansible/playbooks/install.yml   # idempotent full install
 ## Features
 
 - **DRO** — live machine/work position, velocity, homed flags, axis limits, offset display
-- **Jog** — directional pad, configurable step sizes (0.05mm–100mm), keyboard navigation with persistent toast, primary hover effects on jog buttons
+- **Jog** — directional pad, configurable step sizes (0.05mm–100mm), XY and Z feedrate sliders, feedrate override slider (M220, 10–300%), keyboard navigation with persistent toast, primary hover effects on jog buttons
 - **WCS Offsets** — G54–G59 manager with interactive SVG preview (click-to-move, snap-to-grid, stock size visualization, home confirmation dialog, smooth tool dot animation)
 - **SET ALL work zero** — single-button X/Y/Z zero reset with confirmation
 - **Spindle & Coolant** — ON/OFF/CCW, RPM control, flood/mist toggles

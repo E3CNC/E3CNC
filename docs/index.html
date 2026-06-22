@@ -583,6 +583,37 @@
                             Emits <code>CAM WCS Origin:</code> comments derived from stock bounds.
                         </span>
                     </div>
+                    <div class="entry">
+                        <span class="tag tag-feat">feat</span>
+                        <span class="desc">
+                            <strong>Feedrate override slider</strong>
+                            — Jog panel slider sends <code>M220 S&lt;percent&gt;</code> to adjust
+                            machine speed in real time. Range 10-300%, 1s debounce, always enabled.
+                        </span>
+                    </div>
+                    <div class="entry">
+                        <span class="tag tag-feat">feat</span>
+                        <span class="desc">
+                            <strong>Z Feed slider</strong>
+                            — Native range input below Z Feed field, matching XY Feed slider.
+                            Both sliders use dynamic min/max from toolhead, step 50.
+                        </span>
+                    </div>
+                    <div class="entry">
+                        <span class="tag tag-fix">fix</span>
+                        <span class="desc">
+                            <strong>Slider snap alignment</strong>
+                            — Feed slider min changed from 1 to 0 so values snap to
+                            round multiples of 50 instead of offset-by-1 values.
+                        </span>
+                    </div>
+                    <div class="entry">
+                        <span class="tag tag-feat">feat</span>
+                        <span class="desc">
+                            <strong>Larger slider thumb</strong>
+                            — Range input thumb doubled to 32×32 with thicker border.
+                        </span>
+                    </div>
                 </div>
             </section>
 
