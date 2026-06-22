@@ -1,4 +1,4 @@
-# E3CNC (formerly mainsail-cnc)
+# Mainsail-cnc
 
 [![Release](https://img.shields.io/github/v/release/isaaceliape/mainsail-cnc?style=flat&label=Release&color=00FF00)](https://github.com/isaaceliape/mainsail-cnc/releases)
 [![Build Frontend](https://github.com/isaaceliape/mainsail-cnc/actions/workflows/build-frontend.yml/badge.svg?branch=main)](https://github.com/isaaceliape/mainsail-cnc/actions/workflows/build-frontend.yml)
