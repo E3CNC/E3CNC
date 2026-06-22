@@ -67,14 +67,14 @@
                 </v-col>
             </v-row>
 
-            <v-row density="compact" class="mb-3">
+            <v-row density="compact" class="mb-1">
                 <v-col cols="6">
                     <v-text-field
                         v-model.number="feedrateXY"
                         label="XY Feed"
                         type="number"
-                        :min="1"
-                        :max="1000"
+                        :min="feedMin"
+                        :max="feedMax"
                         density="compact"
                         variant="outlined"
                         suffix="mm/min"
@@ -85,12 +85,60 @@
                         v-model.number="feedrateZ"
                         label="Z Feed"
                         type="number"
-                        :min="1"
-                        :max="500"
+                        :min="feedMin"
+                        :max="feedMax"
                         density="compact"
                         variant="outlined"
                         suffix="mm/min"
                         @change="saveFeedrates" />
+                </v-col>
+            </v-row>
+
+            <v-row density="compact" class="mb-3">
+                <v-col cols="6">
+                    <input
+                        :value="feedrateXY"
+                        type="range"
+                        :min="feedMin"
+                        :max="feedMax"
+                        :step="feedStep"
+                        :disabled="isFeedSliderDisabled"
+                        class="feed-slider"
+                        @input="feedrateXY = Number($event.target.value)"
+                        @change="saveFeedrates" />
+                </v-col>
+                <v-col cols="6">
+                    <input
+                        :value="feedrateZ"
+                        type="range"
+                        :min="feedMin"
+                        :max="feedMax"
+                        :step="feedStep"
+                        :disabled="isFeedSliderDisabled"
+                        class="feed-slider"
+                        @input="feedrateZ = Number($event.target.value)"
+                        @change="saveFeedrates" />
+                </v-col>
+            </v-row>
+
+            <v-row density="compact" class="mb-3">
+                <v-col cols="12">
+                    <div class="d-flex align-center mb-1">
+                        <span class="text-caption font-weight-bold mr-2">Feedrate Override</span>
+                        <v-chip size="x-small" :color="isPrinting ? 'primary' : 'disabled'" variant="tonal">
+                            {{ feedOverrideStore }}%
+                        </v-chip>
+                        <v-spacer />
+                        <span class="text-caption text-medium-emphasis">{{ overrideDisplayValue }}%</span>
+                    </div>
+                    <input
+                        :value="overrideDisplayValue"
+                        type="range"
+                        min="10"
+                        max="300"
+                        step="5"
+                        class="feed-slider"
+                        @input="onFeedOverrideInput(Number($event.target.value))" />
                 </v-col>
             </v-row>
 
@@ -257,6 +305,45 @@ const allAxesHomed = computed(
 const xyHomed = computed(() => homedAxes.value.includes('x') && homedAxes.value.includes('y'))
 
 const zHomed = computed(() => homedAxes.value.includes('z'))
+
+const toolhead = computed(() => store.state.printer.toolhead ?? {})
+const feedMax = computed(() => {
+    const maxVel = (toolhead.value as Record<string, unknown>)?.max_velocity
+    if (typeof maxVel === 'number' && maxVel > 0) {
+        return Math.round(maxVel * 60)
+    }
+    return 1000
+})
+const feedMin = 0
+const feedStep = 50
+const isFeedSliderDisabled = computed(() => ['printing'].includes(printer_state.value) || feedMax.value <= feedMin)
+
+const isPrinting = computed(() => ['printing', 'paused'].includes(printer_state.value))
+
+const feedOverrideStore = computed(() => {
+    const factor = store.state.printer.gcode_move?.speed_factor ?? 1
+    return Math.round(factor * 100)
+})
+
+const overrideDisplayValue = ref(feedOverrideStore.value)
+
+watch(feedOverrideStore, (val) => {
+    overrideDisplayValue.value = val
+})
+
+let feedOverrideTimer: ReturnType<typeof setTimeout> | null = null
+
+function onFeedOverrideInput(val: number) {
+    overrideDisplayValue.value = val
+    if (feedOverrideTimer !== null) {
+        clearTimeout(feedOverrideTimer)
+    }
+    feedOverrideTimer = setTimeout(() => {
+        const capped = Math.max(10, Math.min(300, val))
+        doSend(`M220 S${capped}`)
+        feedOverrideTimer = null
+    }, 1000)
+}
 
 const loadings = computed(() => store.state.server.loadings ?? [])
 
@@ -484,6 +571,47 @@ onBeforeUnmount(() => {
     background-color: transparent !important;
     height: 20px !important;
     min-height: 20px !important;
+}
+
+.jog-panel .v-input__details {
+    display: none !important;
+}
+
+.feed-slider {
+    width: 100%;
+    height: 8px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(var(--v-theme-on-surface), 0.23);
+    border-radius: 4px;
+    outline: none;
+    cursor: pointer;
+}
+
+.feed-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgb(var(--v-theme-primary));
+    cursor: pointer;
+    border: 3px solid rgb(var(--v-theme-surface));
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.feed-slider::-moz-range-thumb {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgb(var(--v-theme-primary));
+    cursor: pointer;
+    border: 3px solid rgb(var(--v-theme-surface));
+}
+
+.feed-slider:disabled {
+    opacity: 0.4;
+    cursor: default;
 }
 
 .step-unit {
