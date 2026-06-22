@@ -782,6 +782,19 @@ function resetAll() {
   fOutput.reset();
 }
 
+function formatSignedOriginOffset(value) {
+  return (value >= 0 ? " +" : " ") + xyzFormat.format(value);
+}
+
+function WriteStockOrigin(workpiece) {
+  WriteComment(eComment.Info, " CAM WCS Origin:");
+  WriteComment(eComment.Info, "   X: stock min" + formatSignedOriginOffset(-workpiece.lower.x) + " = stock max" + formatSignedOriginOffset(-workpiece.upper.x));
+  WriteComment(eComment.Info, "   Y: stock min" + formatSignedOriginOffset(-workpiece.lower.y) + " = stock max" + formatSignedOriginOffset(-workpiece.upper.y));
+  WriteComment(eComment.Info, "   Z: stock min" + formatSignedOriginOffset(-workpiece.lower.z) + " = stock max" + formatSignedOriginOffset(-workpiece.upper.z));
+  WriteComment(eComment.Info, "   (where setup X0 Y0 Z0 lies relative to the stock box)");
+  WriteComment(eComment.Info, " ");
+}
+
 function WriteInformation() {
   // Calcualte the min/max ranges across all sections
   var toolZRanges = {};
@@ -835,6 +848,7 @@ function WriteInformation() {
     WriteComment(eComment.Info, "   Y: Min=" + xyzFormat.format(workpiece.lower.y) + " Max=" + xyzFormat.format(workpiece.upper.y) + " Size=" + xyzFormat.format(workpiece.upper.y - workpiece.lower.y));
     WriteComment(eComment.Info, "   Z: Min=" + xyzFormat.format(workpiece.lower.z) + " Max=" + xyzFormat.format(workpiece.upper.z) + " Size=" + xyzFormat.format(workpiece.upper.z - workpiece.lower.z));
     WriteComment(eComment.Info, " ");
+    WriteStockOrigin(workpiece);
   }
 
   WriteComment(eComment.Info, " Ranges Table:");

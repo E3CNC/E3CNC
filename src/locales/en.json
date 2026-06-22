@@ -197,11 +197,17 @@
                 "FilamentTypeMismatch": "Filament type in the G-Code ({file}) does not match the selected filament type ({lane}).",
                 "FilamentWeightNotEnough": "Not enough filament in the selected lane ({lane}). Required: {required}, Available: {available}."
             },
+            "ChooseWcsToUse": "Please choose the WCS coordinates to use before starting {filename}.",
             "DoYouWantToStartFilename": "Do you want to start {filename}?",
             "DoYouWantToStartFilenameFilament": "Do you want to start {filename} with the following filament?",
+            "GcodeWcsSlot": "Available WCS coordinates",
             "Headline": "Start Job",
             "Print": "job",
-            "Timelapse": "Timelapse"
+            "Timelapse": "Timelapse",
+            "UseCurrentWcs": "Use current machine WCS ({wcs})",
+            "UseGcodeWcsSlot": "Use G-code WCS coordinates",
+            "WcsMode": "WCS coordinates to use",
+            "WcsSwitchFailed": "Failed to switch WCS before starting the job."
         }
     },
     "Editor": {

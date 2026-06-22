@@ -384,7 +384,7 @@
                             <v-col cols="12">
                                 <span class="text-caption font-weight-bold">Set Work Zero:</span>
                             </v-col>
-                            <v-col cols="4">
+                            <v-col cols="3">
                                 <v-btn
                                     size="small"
                                     block
@@ -395,7 +395,7 @@
                                     Set X
                                 </v-btn>
                             </v-col>
-                            <v-col cols="4">
+                            <v-col cols="3">
                                 <v-btn
                                     size="small"
                                     block
@@ -406,7 +406,7 @@
                                     Set Y
                                 </v-btn>
                             </v-col>
-                            <v-col cols="4">
+                            <v-col cols="3">
                                 <v-btn
                                     size="small"
                                     block
@@ -415,6 +415,17 @@
                                     @click="onSetWorkZeroClick('Z')">
                                     <v-icon size="small" start>{{ mdiAxisZArrow }}</v-icon>
                                     Set Z
+                                </v-btn>
+                            </v-col>
+                            <v-col cols="3">
+                                <v-btn
+                                    size="small"
+                                    block
+                                    variant="outlined"
+                                    :disabled="offsetActionsLocked"
+                                    @click="onSetWorkZeroClick('ALL')">
+                                    <v-icon size="small" start>{{ mdiTarget }}</v-icon>
+                                    Set All
                                 </v-btn>
                             </v-col>
                         </v-row>
@@ -670,7 +681,7 @@ const offsetInputZ = ref(0)
 const zeroConfirmDialogOpen = ref(false)
 const zeroConfirmText = ref('')
 const zeroConfirmTitle = ref('Confirm')
-const zeroConfirmAction = ref<'X' | 'Y' | 'Z' | null>(null)
+const zeroConfirmAction = ref<'X' | 'Y' | 'Z' | 'ALL' | null>(null)
 
 const homeConfirmDialogOpen = ref(false)
 const pendingClickCoords = ref<{ x: number; y: number } | null>(null)
@@ -936,10 +947,13 @@ async function onSelectWcs(name: string) {
     }
 }
 
-function onSetWorkZeroClick(axis: 'X' | 'Y' | 'Z') {
+function onSetWorkZeroClick(axis: 'X' | 'Y' | 'Z' | 'ALL') {
     if (requireConfirmForZeroReset.value) {
         zeroConfirmTitle.value = 'Set Work Zero'
-        zeroConfirmText.value = `Set ${axis} zero for the current work coordinate system?`
+        zeroConfirmText.value =
+            axis === 'ALL'
+                ? 'Set X, Y, and Z zero for the current work coordinate system?'
+                : `Set ${axis} zero for the current work coordinate system?`
         zeroConfirmAction.value = axis
         zeroConfirmDialogOpen.value = true
         return
@@ -947,9 +961,11 @@ function onSetWorkZeroClick(axis: 'X' | 'Y' | 'Z') {
     void setWorkZero(axis)
 }
 
-async function setWorkZero(axis: 'X' | 'Y' | 'Z') {
+async function setWorkZero(axis: 'X' | 'Y' | 'Z' | 'ALL') {
+    const axes = axis === 'ALL' ? ['X', 'Y', 'Z'] : [axis]
+
     try {
-        await setCncZero(store.getters['socket/getUrl'], { axes: [axis] })
+        await setCncZero(store.getters['socket/getUrl'], { axes })
         await refreshWcs()
     } catch (error) {
         const message = error instanceof Error ? error.message : `Failed to set ${axis} zero`

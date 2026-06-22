@@ -10,8 +10,8 @@ Supported firmware:
 
 Installation:
 
-- The post processor consists of a single file, mpcnc.cps.
-- It can be simply installed by selecting Manage->Post Library from the Fusion 360 menubar; alternatively the mpcnc.cps can be copied into a directory and selecting each time prior to a post operation. If there is an existing mpcnc.cps installed select it prior to installing and use the trash can icon to delete it
+- The E3CNC Fusion 360 post processor consists of a single file, E3CNC_Fusion360.cps.
+- It can be simply installed by selecting Manage->Post Library from the Fusion 360 menubar; alternatively the E3CNC_Fusion360.cps can be copied into a directory and selected each time prior to a post operation.
 - The desired post processor can be selected during a post using the Setup button and selecting Use Personal Post Library
 - For installation of the **needed** klipper macros see [klipper/README.md](klipper/README.md)
 

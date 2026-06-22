@@ -87,13 +87,13 @@
                                 </template>
                             </v-col>
                             <v-col class="v-col-12 v-col-sm-6 v-col-md-4">
-                                <v-select
-                                    v-model="previewWcs"
-                                    :items="previewWcsItems"
-                                    label="WCS"
+                                <v-text-field
+                                    :model-value="gcodeWcsSummary"
+                                    label="G-Code WCS"
                                     density="compact"
                                     hide-details
-                                    variant="outlined"></v-select>
+                                    readonly
+                                    variant="outlined"></v-text-field>
                             </v-col>
                             <v-col class="v-col-12 v-col-sm-6 v-col-md-4">
                                 <v-select
@@ -263,7 +263,6 @@ import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useDisplay, useTheme } from 'vuetify'
 import { useBase } from '@/composables/useBase'
-import { useCncOffsets, offsetNames } from '@/composables/useCncOffsets'
 import GCodeViewer from '@sindarius/gcodeviewer'
 import axios, { CancelTokenSource } from 'axios'
 import type { AxiosProgressEvent } from 'axios'
@@ -319,13 +318,23 @@ interface StockBoxBounds {
     zMax: number
 }
 
+interface CamWcsOriginAxis {
+    fromMin: number
+    fromMax: number
+}
+
+interface CamWcsOrigin {
+    X: CamWcsOriginAxis
+    Y: CamWcsOriginAxis
+    Z: CamWcsOriginAxis
+}
+
 const store = useStore()
 const route = useRoute()
 const { t } = useI18n()
 const display = useDisplay()
 const theme = useTheme()
 const { apiUrl, printerIsPrinting, klipperReadyForGui, socketIsConnected } = useBase()
-const { activeWcs, wcsOffsets, refreshWcs } = useCncOffsets()
 
 defineProps<{
     filename?: string
@@ -371,9 +380,11 @@ const downloadSnackbar = ref<DownloadSnackbar>({
 })
 
 const fileData = ref('')
-const previewWcs = ref('G54')
 const appliedPreviewOffset = ref({ X: 0, Y: 0, Z: 0 })
+const appliedPreviewAxesOffset = ref({ X: 0, Y: 0, Z: 0 })
+const appliedPreviewToolOffset = ref({ X: 0, Y: 0, Z: 0 })
 const stockBoxBounds = ref<StockBoxBounds | null>(null)
+const camWcsOrigin = ref<CamWcsOrigin | null>(null)
 const initialCameraAdjusted = ref(false)
 const primaryViewerColor = computed(() => normalizeThemeColor(theme.current.value.colors.primary ?? '#4caf50'))
 
@@ -382,12 +393,6 @@ const resizeObserver = ref<ResizeObserver | null>(null)
 onMounted(async () => {
     loadedFile.value = store.state.gcodeviewer?.loadedFileBackup ?? null
     viewer = store.state.gcodeviewer?.viewerBackup ?? null
-    try {
-        await refreshWcs()
-        previewWcs.value = activeWcs.value
-    } catch (error) {
-        window.console.error(error)
-    }
     await waitForMachineStateReady()
     await init()
 
@@ -551,10 +556,13 @@ function clearLoadedFile() {
     scrubFileSize.value = 0
     disposeStockBox()
     stockBoxBounds.value = null
+    camWcsOrigin.value = null
     viewer.clearScene(true)
     loadedFile.value = null
     tracking.value = false
     appliedPreviewOffset.value = { X: 0, Y: 0, Z: 0 }
+    appliedPreviewAxesOffset.value = { X: 0, Y: 0, Z: 0 }
+    appliedPreviewToolOffset.value = { X: 0, Y: 0, Z: 0 }
 }
 
 function chooseFile() {
@@ -573,6 +581,7 @@ function finishLoad() {
     refreshPrintingObjects()
     scrubFileSize.value = viewer.fileSize
     stockBoxBounds.value = parseStockBoxBounds(fileData.value)
+    camWcsOrigin.value = parseCamWcsOrigin(fileData.value)
     renderStockBox()
     applyPreviewOffset(true)
     zoomOutInitialCamera()
@@ -709,15 +718,18 @@ function zoomOutInitialCamera() {
     initialCameraAdjusted.value = true
 }
 
-const previewWcsItems = computed(() =>
-    offsetNames.map((name) => {
-        const offset = wcsOffsets.value[name] ?? { X: 0, Y: 0, Z: 0 }
-        return {
-            title: `${name} · X ${offset.X} · Y ${offset.Y} · Z ${offset.Z}`,
-            value: name,
-        }
-    })
-)
+const gcodeWcsSummary = computed(() => {
+    if (camWcsOrigin.value) {
+        const { X, Y, Z } = camWcsOrigin.value
+        return `X min ${formatSignedCoordinate(X.fromMin)} · Y min ${formatSignedCoordinate(Y.fromMin)} · Z min ${formatSignedCoordinate(Z.fromMin)}`
+    }
+
+    if (stockBoxBounds.value) {
+        return `X0 Y0 Z0 from file · stock Z0 offset ${formatSignedCoordinate(-stockBoxBounds.value.zMin)}`
+    }
+
+    return 'Load a G-code file'
+})
 
 function normalizeThemeColor(color: string): string {
     if (color.startsWith('#')) return color
@@ -732,6 +744,46 @@ function toColor3(color: string): Color3 {
 function disposeStockBox() {
     stockBoxMesh?.dispose(false, true)
     stockBoxMesh = null
+}
+
+function formatSignedCoordinate(value: number) {
+    return `${value >= 0 ? '+' : ''}${value}`
+}
+
+function parseCamWcsOrigin(text: string): CamWcsOrigin | null {
+    if (!text) return null
+
+    const lines = text.split(/\r?\n/)
+    const origin: Partial<CamWcsOrigin> = {}
+    let inBlock = false
+
+    for (const line of lines) {
+        if (/^\s*;\s*CAM WCS Origin\s*:/i.test(line)) {
+            inBlock = true
+            continue
+        }
+
+        if (!inBlock) continue
+
+        const match = line.match(
+            /^\s*;\s*([XYZ])\s*:\s*stock\s+min\s*([+-]?\d+(?:\.\d+)?)\s*=\s*stock\s+max\s*([+-]?\d+(?:\.\d+)?)/i
+        )
+        if (match) {
+            const [, axis, fromMinText, fromMaxText] = match
+            origin[axis.toUpperCase() as keyof CamWcsOrigin] = {
+                fromMin: Number(fromMinText),
+                fromMax: Number(fromMaxText),
+            } as CamWcsOriginAxis
+            continue
+        }
+
+        if (/^\s*;\s*[A-Z][A-Z\s]*:/i.test(line) || /^\s*[^;]/.test(line)) {
+            break
+        }
+    }
+
+    if (!origin.X || !origin.Y || !origin.Z) return null
+    return origin as CamWcsOrigin
 }
 
 function parseStockBoxBounds(text: string): StockBoxBounds | null {
@@ -818,12 +870,33 @@ function renderStockBox() {
 function applyPreviewOffset(force = false) {
     if (viewer === null || loadedFile.value === null) return
 
-    const nextOffset = wcsOffsets.value[previewWcs.value] ?? { X: 0, Y: 0, Z: 0 }
+    const zLift = camWcsOrigin.value?.Z.fromMin ?? (stockBoxBounds.value ? -stockBoxBounds.value.zMin : 0)
+    const nextOffset = { X: 0, Y: 0, Z: zLift }
+    const axesOffset = { X: 0, Y: 0, Z: zLift }
+    const toolOffset = { X: 0, Y: 0, Z: zLift }
     const deltaX = nextOffset.X - appliedPreviewOffset.value.X
     const deltaY = nextOffset.Y - appliedPreviewOffset.value.Y
     const deltaZ = nextOffset.Z - appliedPreviewOffset.value.Z
 
-    if (!force && deltaX === 0 && deltaY === 0 && deltaZ === 0) return
+    const axesDeltaX = axesOffset.X - appliedPreviewAxesOffset.value.X
+    const axesDeltaY = axesOffset.Y - appliedPreviewAxesOffset.value.Y
+    const axesDeltaZ = axesOffset.Z - appliedPreviewAxesOffset.value.Z
+    const toolDeltaX = toolOffset.X - appliedPreviewToolOffset.value.X
+    const toolDeltaY = toolOffset.Y - appliedPreviewToolOffset.value.Y
+    const toolDeltaZ = toolOffset.Z - appliedPreviewToolOffset.value.Z
+
+    if (
+        !force &&
+        deltaX === 0 &&
+        deltaY === 0 &&
+        axesDeltaX === 0 &&
+        axesDeltaY === 0 &&
+        axesDeltaZ === 0 &&
+        toolDeltaX === 0 &&
+        toolDeltaY === 0 &&
+        toolDeltaZ === 0
+    )
+        return
 
     viewer.scene?.meshes?.forEach((mesh: any) => {
         if (
@@ -841,32 +914,31 @@ function applyPreviewOffset(force = false) {
 
     const axesMesh = (viewer as any)?.axes?.axesMesh
     if (axesMesh?.position) {
-        axesMesh.position.x += deltaX
-        axesMesh.position.y += deltaZ
-        axesMesh.position.z += deltaY
+        axesMesh.position.x += axesDeltaX
+        axesMesh.position.y += axesDeltaZ
+        axesMesh.position.z += axesDeltaY
     }
 
     if (!tracking.value) {
         const toolCursor = (viewer as any)?.toolCursor
         if (toolCursor?.position) {
-            toolCursor.position.x += deltaX
-            toolCursor.position.y += deltaZ
-            toolCursor.position.z += deltaY
+            toolCursor.position.x += toolDeltaX
+            toolCursor.position.y += toolDeltaZ
+            toolCursor.position.z += toolDeltaY
         }
         syncToolCursorCylinder(false)
     }
 
-    appliedPreviewOffset.value = { ...nextOffset }
+    appliedPreviewOffset.value = nextOffset
+    appliedPreviewAxesOffset.value = axesOffset
+    appliedPreviewToolOffset.value = toolOffset
     viewer.forceRender()
 }
 
 function getPreviewAdjustedPosition(position: number[]) {
-    return [
-        position[0] + appliedPreviewOffset.value.X,
-        position[1] + appliedPreviewOffset.value.Y,
-        position[2] + appliedPreviewOffset.value.Z,
-        position[3] ?? 0,
-    ]
+    const zLift = camWcsOrigin.value?.Z.fromMin ?? (stockBoxBounds.value ? -stockBoxBounds.value.zMin : 0)
+
+    return [position[0], position[1], position[2] + zLift, position[3] ?? 0]
 }
 
 function applyPrimaryToolColor() {
@@ -937,15 +1009,13 @@ function reapplyPreviewOffsetToToolCursor() {
     const toolCursor = (viewer as any)?.toolCursor
     if (!toolCursor?.position) return
 
-    const { X, Y, Z } = appliedPreviewOffset.value
-    if (X === 0 && Y === 0 && Z === 0) {
+    const Z = camWcsOrigin.value?.Z.fromMin ?? (stockBoxBounds.value ? -stockBoxBounds.value.zMin : 0)
+    if (Z === 0) {
         syncToolCursorCylinder()
         return
     }
 
-    toolCursor.position.x += X
     toolCursor.position.y += Z
-    toolCursor.position.z += Y
     syncToolCursorCylinder()
 }
 
@@ -962,7 +1032,7 @@ watch(renderQuality, async (newVal: { value: number }) => {
     }
 })
 
-watch(previewWcs, () => {
+watch([stockBoxBounds, camWcsOrigin], () => {
     applyPreviewOffset()
 })
 

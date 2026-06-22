@@ -45,8 +45,8 @@
                     <v-btn
                         size="small"
                         class="d-block w-100"
-                        :disabled="['printing'].includes(printer_state) || !allAxesHomed"
-                        color="disabled"
+                        :disabled="['printing'].includes(printer_state) || homedAxes.length === 0"
+                        :color="homedAxes.length > 0 ? 'primary' : 'disabled'"
                         variant="outlined"
                         @click="disableSteppers">
                         <v-icon start size="small">{{ mdiCloseCircleOutline }}</v-icon>
@@ -60,7 +60,8 @@
                     <span class="text-caption mr-2">Jog Step:</span>
                     <v-btn-toggle v-model="selectedStepIndex" density="compact" size="small" class="flex-grow-1">
                         <v-btn v-for="(step, idx) in jogSteps" :key="idx" :value="idx" size="x-small">
-                            {{ formatStep(step) }}
+                            <span class="step-num">{{ step < 1 ? step.toFixed(2) : step }}</span>
+                            <span class="step-unit">mm</span>
                         </v-btn>
                     </v-btn-toggle>
                 </v-col>
@@ -96,7 +97,7 @@
             <v-row density="compact" class="mb-2 justify-center">
                 <v-col cols="12" md="6" class="d-flex flex-column align-center">
                     <div class="text-center mb-3 w-100">
-                        <span class="text-caption font-weight-bold">XY Jog ({{ currentStep }} mm)</span>
+                        <span class="text-caption font-weight-bold">XY Jog (<span class="step-num">{{ currentStep < 1 ? currentStep.toFixed(2) : currentStep }}</span><span class="step-unit">mm</span>)</span>
                     </div>
                     <div class="jog-panel__xy-pad">
                         <v-btn
@@ -148,7 +149,7 @@
                         :disabled="['printing'].includes(printer_state) || !zHomed"
                         @click="jog('Z', currentStep)">
                         <v-icon>{{ mdiChevronUp }}</v-icon>
-                        <span class="ml-2">{{ formatStep(currentStep) }} up</span>
+                        <span class="ml-2"><span class="step-num">{{ currentStep < 1 ? currentStep.toFixed(2) : currentStep }}</span><span class="step-unit">mm</span> up</span>
                     </v-btn>
                     <v-btn
                         class="jog-panel__jog-btn d-block w-100"
@@ -156,7 +157,7 @@
                         :disabled="['printing'].includes(printer_state) || !zHomed"
                         @click="jog('Z', -currentStep)">
                         <v-icon>{{ mdiChevronDown }}</v-icon>
-                        <span class="ml-2">{{ formatStep(currentStep) }} down</span>
+                        <span class="ml-2"><span class="step-num">{{ currentStep < 1 ? currentStep.toFixed(2) : currentStep }}</span><span class="step-unit">mm</span> down</span>
                     </v-btn>
                 </v-col>
             </v-row>
@@ -198,7 +199,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useStore } from 'vuex'
 import { useBase } from '@/composables/useBase'
 import { useControl } from '@/composables/useControl'
@@ -218,6 +219,7 @@ import {
 } from '@mdi/js'
 import { updateCncSettings } from '@/store/files/cncApi'
 import { useToast } from 'vue-toast-notification'
+import type { ActiveToast } from 'vue-toast-notification/types/toast'
 
 const { printer_state, klipperReadyForGui, socketIsConnected } = useBase()
 const { homedAxes, doHome, doHomeXY, doHomeZ, doSend } = useControl()
@@ -227,7 +229,8 @@ const socket = useSocket()
 const toast = useToast()
 
 const keyboardNavEnabled = ref(false)
-const jogSteps = [1.0, 5.0, 10.0, 25.0, 100.0]
+const keyboardNavToast = ref<ActiveToast | null>(null)
+const jogSteps = [0.05, 0.1, 1.0, 5.0, 10.0, 25.0, 100.0]
 const lastJogTimestamps: Record<string, number> = {}
 const jogRateLimitMs = 50
 
@@ -282,7 +285,7 @@ function saveFeedrates() {
 }
 
 function formatStep(step: number): string {
-    if (step < 1) return `${(step * 1000).toFixed(0)}µm`
+    if (step < 1) return `${step.toFixed(2)}mm`
     return `${step}mm`
 }
 
@@ -303,9 +306,36 @@ function jog(axis: string, distance: number) {
     socket.emit('printer.gcode.script', { script })
 }
 
+function showKeyboardNavToast(step: number) {
+    keyboardNavToast.value = toast.warning(
+        `KEYBOARD NAVIGATION IS ON, BE CAREFULL! (jog step: ${formatStep(step)})`,
+        {
+            position: 'bottom',
+            duration: 0,
+            onDismiss: () => {
+                keyboardNavEnabled.value = false
+                keyboardNavToast.value = null
+            },
+        }
+    )
+}
+
 function toggleKeyboardNav() {
     keyboardNavEnabled.value = !keyboardNavEnabled.value
+    if (keyboardNavEnabled.value) {
+        showKeyboardNavToast(currentStep.value)
+    } else if (keyboardNavToast.value) {
+        keyboardNavToast.value.dismiss()
+        keyboardNavToast.value = null
+    }
 }
+
+watch(currentStep, (newStep) => {
+    if (keyboardNavEnabled.value && keyboardNavToast.value) {
+        keyboardNavToast.value.dismiss()
+        showKeyboardNavToast(newStep)
+    }
+})
 
 function disableSteppers() {
     doSend('M18')
@@ -433,8 +463,17 @@ onBeforeUnmount(() => {
 }
 
 .jog-panel .v-btn-toggle .v-btn,
-.jog-panel .jog-panel__xy-btn {
+.jog-panel .jog-panel__xy-btn,
+.jog-panel .jog-panel__jog-btn {
     background-color: rgb(var(--v-theme-surface)) !important;
+    border: 1px solid rgba(var(--v-theme-on-surface), 0.23) !important;
+}
+
+.jog-panel .jog-panel__xy-btn:hover,
+.jog-panel .jog-panel__jog-btn:hover {
+    background-color: rgb(var(--v-theme-primary)) !important;
+    color: rgb(var(--v-theme-on-primary)) !important;
+    border-color: rgb(var(--v-theme-primary)) !important;
 }
 
 .jog-panel .v-btn-toggle .v-btn:not(.v-btn--active) {
@@ -445,6 +484,13 @@ onBeforeUnmount(() => {
     background-color: transparent !important;
     height: 20px !important;
     min-height: 20px !important;
+}
+
+.step-unit {
+    font-size: 0.75em;
+    opacity: 1;
+    font-weight: 600;
+    vertical-align: bottom;
 }
 
 .jog-panel .panel-toolbar {
