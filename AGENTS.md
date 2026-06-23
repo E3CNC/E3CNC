@@ -117,7 +117,7 @@ a9144473 spec: add Ansible migration plan
 - **Package Manager**: Bun (not npm). Use `bun install`, `bun run`, `bunx`.
 - **Dev Server**: Run within `tmux`; check for existing sessions first. HMR is active.
 - **Ansible**: Playbooks at `ansible/playbooks/`. Run `ansible-playbook ansible/playbooks/install.yml` for full install.
-- **Wiki**: The project wiki is available at `~/repos/E3CNC_UI-wiki/` (cloned from `https://github.com/E3CNC/E3CNC_UI.wiki.git`). Update `Home.md` and `Changelog.md` when shipping significant changes.
+- **Wiki**: The project wiki is available at `~/repos/E3CNC_UI.wiki/` (cloned from `https://github.com/E3CNC/E3CNC_UI.wiki.git`). Update `Home.md` and `Changelog.md` when shipping significant changes.
 - **CI**: Releases are triggered manually via GitHub Actions (`workflow_dispatch`). Check status with `gh run list`.
 
 ## Operational Guidelines
