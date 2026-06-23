@@ -24,6 +24,27 @@ export PATH="$HOME/.local/bin:$HOME/.bun/bin:/usr/local/bin:/usr/bin:/bin"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # ------------------------------------------------------------------
+# 0. Bootstrap Ansible (in case the user added the update manager
+#    block manually without running the Ansible install playbook first)
+# ------------------------------------------------------------------
+if ! command -v ansible-playbook &>/dev/null; then
+    echo "  Ansible not found — installing…"
+    if ! command -v pip3 &>/dev/null && ! command -v pip &>/dev/null; then
+        echo "  ERROR: pip not found. Install python3-pip first:"
+        echo "    sudo apt install python3-pip"
+        exit 1
+    fi
+    PIP="$(command -v pip3 || command -v pip)"
+    $PIP install ansible --user 2>&1 | tail -1
+    export PATH="$HOME/.local/bin:$PATH"
+fi
+
+if ! python3 -c 'import ansible_collections.community.general' 2>/dev/null; then
+    echo "  Installing community.general collection…"
+    ansible-galaxy collection install community.general 2>&1 | tail -1
+fi
+
+# ------------------------------------------------------------------
 # 1. Backup user configs and frontend
 # ------------------------------------------------------------------
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
