@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="docs/assets/e3c_logo.svg" alt="E3CNC UI" width="200">
+</div>
+
 # E3CNC UI
 
 [![Release](https://img.shields.io/github/v/release/E3CNC/E3CNC_UI?style=flat&label=Release&color=00FF00)](https://github.com/E3CNC/E3CNC_UI/releases)
