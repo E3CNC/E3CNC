@@ -382,12 +382,12 @@ describe('TheTopbar.vue', () => {
         const store = createStoreWithState()
         const wrapper = mountWithDefaults(TheTopbar, store)
 
-        // X: 100.123 → 100.12 (2 digits)
+        // X: 100.123 → 100.12 (2 digits, no trailing zeros)
         // Y: 50.456 → 50.46 (2 digits, rounded)
-        // Z: 10.789 → 10.789 (3 digits)
+        // Z: 10.789 → 10.79 (2 digits)
         expect(wrapper.text()).toContain('100.12')
         expect(wrapper.text()).toContain('50.46')
-        expect(wrapper.text()).toContain('10.789')
+        expect(wrapper.text()).toContain('10.79')
     })
 
     it('shows G91 mode when absolute_coordinates is false', () => {

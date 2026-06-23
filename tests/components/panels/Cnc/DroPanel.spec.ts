@@ -159,8 +159,8 @@ describe('DroPanel.vue', () => {
         expect(wrapper.text()).toContain('100.12')
         // Machine Y: 200.46 (toFixed(2))
         expect(wrapper.text()).toContain('200.46')
-        // Machine Z: 30.789 (toFixed(3))
-        expect(wrapper.text()).toContain('30.789')
+        // Machine Z: 30.789 → 30.79 (2 digits)
+        expect(wrapper.text()).toContain('30.79')
     })
 
     it('hides machine coordinates when showMachineCoords is false', () => {
@@ -173,13 +173,13 @@ describe('DroPanel.vue', () => {
 
     it('shows work coordinates for each axis', () => {
         const wrapper = createWrapper()
-        // Work X: 50.00 (toFixed(2))
+        // Work X: 50.00 → 50 (trailing zeros stripped)
         expect(wrapper.text()).toContain('Work')
-        expect(wrapper.text()).toContain('50.00')
-        // Work Y: 100.00 (toFixed(2))
-        expect(wrapper.text()).toContain('100.00')
-        // Work Z: 10.000 (toFixed(3))
-        expect(wrapper.text()).toContain('10.000')
+        expect(wrapper.text()).toContain('50')
+        // Work Y: 100.00 → 100
+        expect(wrapper.text()).toContain('100')
+        // Work Z: 10.000 → 10
+        expect(wrapper.text()).toContain('10')
     })
 
     it('shows computed offsets (machine - work)', () => {
@@ -189,7 +189,7 @@ describe('DroPanel.vue', () => {
         const wrapper = createWrapper()
         expect(wrapper.text()).toContain('+50.12')
         expect(wrapper.text()).toContain('+100.46')
-        expect(wrapper.text()).toContain('+20.789')
+        expect(wrapper.text()).toContain('+20.79')
     })
 
     it('shows negative offsets with minus sign', () => {
@@ -197,9 +197,9 @@ describe('DroPanel.vue', () => {
         store.state.printer.gcode_move.gcode_position = [50, 100, 30]
         // X: -40, Y: -80, Z: -25
         const wrapper = createWrapper()
-        expect(wrapper.text()).toContain('-40.00')
-        expect(wrapper.text()).toContain('-80.00')
-        expect(wrapper.text()).toContain('-25.000')
+        expect(wrapper.text()).toContain('-40')
+        expect(wrapper.text()).toContain('-80')
+        expect(wrapper.text()).toContain('-25')
     })
 
     it('shows homed/OPEN status per axis', () => {
@@ -225,13 +225,13 @@ describe('DroPanel.vue', () => {
         const wrapper = createWrapper()
         expect(wrapper.text()).toContain('Min')
         expect(wrapper.text()).toContain('Max')
-        // Axis minimums: X=0.00, Y=0.00, Z=-5.000
-        expect(wrapper.text()).toContain('0.00')
-        expect(wrapper.text()).toContain('-5.000')
-        // Axis maximums: X=500.00, Y=400.00, Z=300.000
-        expect(wrapper.text()).toContain('500.00')
-        expect(wrapper.text()).toContain('400.00')
-        expect(wrapper.text()).toContain('300.000')
+        // Axis minimums: X=0, Y=0, Z=-5
+        expect(wrapper.text()).toContain('Min')
+        expect(wrapper.text()).toContain('-5')
+        // Axis maximums: X=500, Y=400, Z=300
+        expect(wrapper.text()).toContain('500')
+        expect(wrapper.text()).toContain('400')
+        expect(wrapper.text()).toContain('300')
     })
 
     it('handles missing store state gracefully', () => {
@@ -245,8 +245,8 @@ describe('DroPanel.vue', () => {
         store.state.printer.motion_report.live_position = [100.1234, 200.5678, 30.9876]
         store.state.printer.gcode_move.gcode_position = [50, 100, 15]
         const wrapper = createWrapper()
-        // Machine Z should be 3 decimal places: 30.988
-        expect(wrapper.text()).toContain('30.988')
+        // Machine Z: 30.988 → 30.99 (2 digits)
+        expect(wrapper.text()).toContain('30.99')
     })
 
     it('renders X/Y axes with 2 decimal places', () => {

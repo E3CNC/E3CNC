@@ -38,6 +38,10 @@ const vuetifyComponentsMock = vi.hoisted(() => ({
     },
     VSpacer: { name: 'VSpacer', template: '<span />' },
     VDivider: { name: 'VDivider', template: '<hr />' },
+    VSelect: { name: 'VSelect', template: '<div><slot /></div>' },
+    VIcon: { name: 'VIcon', template: '<span><slot /></span>' },
+    VList: { name: 'VList', template: '<div><slot /></div>' },
+    VListItem: { name: 'VListItem', template: '<div><slot /></div>' },
 }))
 
 vi.mock('vuetify/components', () => vuetifyComponentsMock)
@@ -59,6 +63,7 @@ const i18n = createI18n({
                 StartPrint: {
                     Headline: 'Start Print',
                     DoYouWantToStartFilename: 'Do you want to start printing {filename}?',
+                    ChooseWcsToUse: 'Choose WCS for {filename}',
                     Print: 'Print',
                 },
             },
