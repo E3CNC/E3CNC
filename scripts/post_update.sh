@@ -23,6 +23,29 @@ export PATH="$HOME/.local/bin:$HOME/.bun/bin:/usr/local/bin:/usr/bin:/bin"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+# ------------------------------------------------------------------
+# 1. Backup existing frontend
+# ------------------------------------------------------------------
+WEB_ROOT="${HOME}/mainsail"
+BACKUP_DIR="${HOME}/printer_data/config/mainsail-backup"
+
+if [[ -d "$WEB_ROOT" ]] && [[ -n "$(ls -A "$WEB_ROOT" 2>/dev/null)" ]]; then
+    TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+    BACKUP_PATH="${BACKUP_DIR}-${TIMESTAMP}"
+    mkdir -p "$BACKUP_PATH"
+    cp -a "$WEB_ROOT/." "$BACKUP_PATH/"
+    echo "  Backed up $WEB_ROOT → $BACKUP_PATH"
+
+    # Remove old backups, keep the 3 most recent
+    ls -1d "${BACKUP_DIR}-"* 2>/dev/null | sort -r | tail -n +4 | while read -r old; do
+        rm -rf "$old"
+        echo "  Pruned old backup: $old"
+    done
+else
+    echo "  No existing frontend found — skipping backup"
+fi
+
+echo ""
 echo "=== E3CNC_UI post-update ==="
 echo "  Repo: $REPO_ROOT"
 echo "  Delegating to Ansible redeploy playbook..."
