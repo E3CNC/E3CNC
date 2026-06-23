@@ -44,7 +44,7 @@ ansible-playbook ansible/playbooks/install.yml   # idempotent full install
 
 | Method | Command |
 |--------|---------|
-| **Install (existing Mainsail user)** | Add `[update_manager E3CNC_UI]` block to `moonraker.conf`, restart Klipper, then update via UI |
+| **Install (existing Mainsail user)** | Add `[update_manager E3CNC_UI]` block to `moonraker.conf`, restart Klipper via UI, then update |
 | **Install (full)** | `ansible-playbook ansible/playbooks/install.yml` |
 | **Deploy** | `ansible-playbook ansible/playbooks/deploy.yml` |
 | **Uninstall** | `ansible-playbook ansible/playbooks/uninstall.yml` |
