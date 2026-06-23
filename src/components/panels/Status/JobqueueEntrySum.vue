@@ -1,6 +1,6 @@
 <template>
     <v-row class="jobqueue-entry-sum">
-        <v-col class="py-2" style="font-size: 0.875em">
+        <v-col class="py-2" style="font-size: 0.875rem">
             <small>
                 <span class="text-no-wrap mr-1">{{ $t('Panels.StatusPanel.Filament') }}: {{ filamentOutput }},</span>
                 <span class="text-no-wrap mr-1">{{ $t('Panels.StatusPanel.PrintTime') }}: {{ estimatedTime }},</span>

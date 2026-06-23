@@ -410,7 +410,7 @@ onBeforeUnmount(() => {
 }
 
 .gcode-card__name {
-    font-size: 14px;
+    font-size: 0.875rem;
     font-weight: 600;
     line-height: 1.25;
     color: rgba(var(--v-theme-on-surface), 0.92);
@@ -420,7 +420,7 @@ onBeforeUnmount(() => {
 }
 
 .gcode-card__sub {
-    font-size: 12px;
+    font-size: 0.75rem;
     color: rgba(var(--v-theme-on-surface), 0.55);
     display: flex;
     gap: 6px;
@@ -429,7 +429,6 @@ onBeforeUnmount(() => {
 }
 
 .gcode-card__size {
-    font-family: '0xProto Nerd Font Mono', monospace;
 }
 
 .gcode-card__sep {
@@ -445,7 +444,7 @@ onBeforeUnmount(() => {
 
 .gcode-card__chip {
     height: 20px !important;
-    font-size: 11px;
+    font-size: 0.6875rem;
 }
 
 .gcode-card__chip--runs {
@@ -472,21 +471,19 @@ onBeforeUnmount(() => {
 }
 
 .gcode-card__stat-label {
-    font-size: 10px;
+    font-size: 0.625rem;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
     color: rgba(var(--v-theme-on-surface), 0.4);
     margin-bottom: 2px;
 }
 
 .gcode-card__stat-value {
-    font-family: '0xProto Nerd Font Mono', monospace;
-    font-size: 13px;
+    font-size: 0.8125rem;
     color: rgba(var(--v-theme-on-surface), 0.85);
 }
 
 .gcode-card__stat-value--stock {
-    font-size: 11px;
+    font-size: 0.6875rem;
     white-space: normal;
     word-break: break-all;
 }
@@ -502,6 +499,5 @@ onBeforeUnmount(() => {
 .gcode-card__start {
     height: 32px !important;
     font-weight: 600;
-    letter-spacing: 0.02em;
 }
 </style>

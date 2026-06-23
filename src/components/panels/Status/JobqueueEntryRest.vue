@@ -3,7 +3,7 @@
         <v-col class="v-col-auto d-flex flex-column justify-center pr-0 py-0">
             <v-icon style="width: 32px">{{ mdiFileMultiple }}</v-icon>
         </v-col>
-        <v-col class="py-2" style="min-width: 0; font-size: 0.875em">
+        <v-col class="py-2" style="min-width: 0; font-size: 0.875rem">
             <div class="text-truncate">{{ headline }}</div>
             <small class="text-truncate">{{ description }}</small>
         </v-col>

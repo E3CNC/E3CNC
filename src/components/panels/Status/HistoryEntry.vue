@@ -32,7 +32,7 @@
             </v-tooltip>
             <v-icon v-else>{{ mdiFile }}</v-icon>
         </v-col>
-        <v-col class="py-1" style="min-width: 0; font-size: 0.875em">
+        <v-col class="py-1" style="min-width: 0; font-size: 0.875rem">
             <div class="text-truncate">
                 <strong v-if="job.count > 1">{{ job.count }}x</strong>
                 {{ job.filename }}

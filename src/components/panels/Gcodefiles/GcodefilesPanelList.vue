@@ -104,7 +104,6 @@ function selectItem(item: { filename: string }, value: boolean) {
 }
 
 .gcode-list__empty-title {
-    font-size: 14px;
-    letter-spacing: 0.02em;
+    font-size: 0.875rem;
 }
 </style>

@@ -138,7 +138,7 @@ onBeforeUnmount(() => {
 }
 
 .gcode-dir-card__name {
-    font-size: 14px;
+    font-size: 0.875rem;
     font-weight: 600;
     color: rgba(var(--v-theme-on-surface), 0.92);
     text-align: center;
@@ -150,8 +150,7 @@ onBeforeUnmount(() => {
 }
 
 .gcode-dir-card__meta {
-    font-size: 12px;
+    font-size: 0.75rem;
     color: rgba(var(--v-theme-on-surface), 0.5);
-    font-family: '0xProto Nerd Font Mono', monospace;
 }
 </style>

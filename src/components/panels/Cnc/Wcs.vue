@@ -137,7 +137,6 @@
                                 text-anchor="middle"
                                 :fill="entry.color"
                                 font-size="7"
-                                font-family="0xProto Nerd Font Mono"
                                 opacity="0.7">
                                 {{ stockSizes[entry.name].name || entry.name }}
                             </text>
@@ -232,8 +231,7 @@
                             :y="svgHeight - 2"
                             text-anchor="middle"
                             fill="rgba(var(--v-theme-on-surface), 0.5)"
-                            font-size="9"
-                            font-family="0xProto Nerd Font Mono">
+                            font-size="9">
                             X ({{ machineMaxX.toFixed(0) }}mm)
                         </text>
                         <text
@@ -242,7 +240,6 @@
                             text-anchor="middle"
                             fill="rgba(var(--v-theme-on-surface), 0.5)"
                             font-size="9"
-                            font-family="0xProto Nerd Font Mono"
                             :transform="`rotate(-90, ${padding - 8}, ${padding + plotHeight / 2})`">
                             Y ({{ machineMaxY.toFixed(0) }}mm)
                         </text>
@@ -1217,7 +1214,7 @@ onMounted(() => {
     display: flex;
     align-items: center;
     gap: 4px;
-    font-size: 11px;
+    font-size: 0.6875rem;
     opacity: 0.7;
     transition: opacity 0.15s;
 }
@@ -1247,8 +1244,7 @@ onMounted(() => {
 
 .offset-preview-legend__coords {
     color: rgba(var(--v-theme-on-surface), 0.45);
-    font-family: '0xProto Nerd Font Mono', monospace;
-    font-size: 10px;
+    font-size: 0.625rem;
 }
 
 .offset-preview-legend__card {
@@ -1274,6 +1270,7 @@ onMounted(() => {
     display: inline-block;
     margin-bottom: 0;
     line-height: 1;
+    font: inherit;
 }
 
 .offset-preview-summary-card {
@@ -1336,7 +1333,7 @@ onMounted(() => {
     display: inline-flex;
     align-items: baseline;
     gap: 4px;
-    font-size: 11px;
+    font-size: 0.6875rem;
     line-height: 1;
     white-space: nowrap;
 }
@@ -1391,13 +1388,12 @@ onMounted(() => {
 .offset-preview-legend__card-title {
     color: rgba(var(--v-theme-on-surface), 0.9);
     font-weight: 600;
-    font-size: 11px;
+    font-size: 0.6875rem;
 }
 
 .offset-preview-legend__card-origin {
     color: rgba(var(--v-theme-on-surface), 0.4);
-    font-family: '0xProto Nerd Font Mono', monospace;
-    font-size: 10px;
+    font-size: 0.625rem;
 }
 
 .offset-preview-legend__card-axis {
@@ -1424,7 +1420,7 @@ onMounted(() => {
 
 .offset-preview-legend__card-stock-name {
     color: rgba(var(--v-theme-on-surface), 0.6);
-    font-size: 10px;
+    font-size: 0.625rem;
     margin-bottom: 2px;
 }
 
@@ -1433,8 +1429,7 @@ onMounted(() => {
     align-items: center;
     gap: 2px;
     color: rgba(var(--v-theme-on-surface), 0.45);
-    font-family: '0xProto Nerd Font Mono', monospace;
-    font-size: 10px;
+    font-size: 0.625rem;
     flex-wrap: wrap;
 }
 
@@ -1459,8 +1454,7 @@ onMounted(() => {
     position: fixed;
     background: #000;
     color: #fff;
-    font-family: '0xProto Nerd Font Mono', monospace;
-    font-size: 10px;
+    font-size: 0.625rem;
     padding: 2px 6px;
     border-radius: 3px;
     pointer-events: none;

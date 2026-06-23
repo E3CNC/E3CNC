@@ -150,6 +150,6 @@ onBeforeUnmount(() => {
 .fullscreen-upload__dragzone .textnode {
     text-align: center;
     transition: font-size 175ms;
-    font-size: 82px;
+    font-size: 5.125rem;
 }
 </style>

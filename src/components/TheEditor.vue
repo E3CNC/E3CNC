@@ -621,7 +621,7 @@ watch(changed, (newVal: boolean) => {
     background-color: transparent;
     background-size: contain;
     box-shadow: inset 0 0 0 1px rgba(var(--v-theme-on-surface), 0.23);
-    font-size: 16px;
+    font-size: 1rem;
 }
 
 :deep(.ͼ1 .cm-panel.cm-search input[type='checkbox']:checked) {
@@ -697,8 +697,7 @@ watch(changed, (newVal: boolean) => {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    font-family: '0xProto Nerd Font Mono', monospace;
-    font-size: 12px;
+    font-size: 0.75rem;
     width: 100%;
     flex-shrink: 0;
 }
@@ -721,10 +720,9 @@ watch(changed, (newVal: boolean) => {
     align-items: center;
     gap: 8px;
     padding: 4px 8px 4px 12px;
-    font-size: 11px;
+    font-size: 0.6875rem;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
     color: rgba(var(--v-theme-on-surface), 0.5);
     border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.08);
     flex-shrink: 0;
@@ -761,7 +759,7 @@ watch(changed, (newVal: boolean) => {
     flex-shrink: 0;
     width: 14px;
     text-align: center;
-    font-size: 11px;
+    font-size: 0.6875rem;
 }
 
 .validation-console__item--error .validation-console__icon {

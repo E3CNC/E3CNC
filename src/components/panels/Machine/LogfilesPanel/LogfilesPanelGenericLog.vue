@@ -61,7 +61,6 @@ function downloadLog(event: MouseEvent) {
     display: flex;
     font-weight: 700;
     justify-content: center;
-    letter-spacing: 0.08em;
     min-height: 36px;
     text-transform: uppercase;
     width: 100%;

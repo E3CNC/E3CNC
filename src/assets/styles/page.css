@@ -10,7 +10,33 @@ body,
 .v-overlay-container,
 .v-theme--dark,
 .v-theme--light {
-    font-family: '0xProto Nerd Font Mono', monospace !important;
+    font-family: var(--font-family, '0xProto Nerd Font Mono', monospace) !important;
+    letter-spacing: var(--letter-spacing, normal);
+}
+
+:root {
+    --border-radius: 8px;
+}
+
+/* Vuetify typography and card classes should inherit from root */
+.text-h1, .text-h2, .text-h3, .text-h4, .text-h5, .text-h6,
+.text-subtitle-1, .text-subtitle-2,
+.text-body-1, .text-body-2,
+.text-caption, .text-overline,
+.text-button,
+.v-card-title,
+.v-card-subtitle,
+.v-card-text {
+    font: inherit !important;
+    letter-spacing: var(--letter-spacing, normal) !important;
+}
+
+/* Dialogs and modals use border-radius variable */
+.v-dialog > .v-card,
+.v-dialog > .v-sheet,
+.v-overlay__content > .v-card,
+.v-overlay__content > .v-sheet {
+    border-radius: var(--border-radius) !important;
 }
 
 body {

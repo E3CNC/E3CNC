@@ -51,7 +51,6 @@ function closeDialog() {
 
 <style scoped>
 .system-packages-list {
-    font-family: '0xProto Nerd Font Mono', monospace;
     margin-bottom: 0 !important;
 }
 </style>

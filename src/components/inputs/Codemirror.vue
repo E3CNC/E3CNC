@@ -273,7 +273,7 @@ function gotoLine(line: number) {
     align-items: center;
     justify-content: center;
     width: 20px;
-    font-size: 13px;
+    font-size: 0.8125rem;
     cursor: default;
     user-select: none;
 }

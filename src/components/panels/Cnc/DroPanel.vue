@@ -101,17 +101,17 @@ const liveVelocity = computed(() => {
 
 const allAxesHomed = computed(() => xAxisHomed.value && yAxisHomed.value && zAxisHomed.value)
 
-function formatAxis(value: number, digits: number) {
-    return Number(value ?? 0).toFixed(digits)
+function formatAxis(value: number) {
+    return parseFloat(Number(value ?? 0).toFixed(2)).toString()
 }
 
-const machineX = computed(() => formatAxis(machinePosition.value.x, 2))
-const machineY = computed(() => formatAxis(machinePosition.value.y, 2))
-const machineZ = computed(() => formatAxis(machinePosition.value.z, 3))
+const machineX = computed(() => formatAxis(machinePosition.value.x))
+const machineY = computed(() => formatAxis(machinePosition.value.y))
+const machineZ = computed(() => formatAxis(machinePosition.value.z))
 
-const workX = computed(() => formatAxis(workPosition.value.x, 2))
-const workY = computed(() => formatAxis(workPosition.value.y, 2))
-const workZ = computed(() => formatAxis(workPosition.value.z, 3))
+const workX = computed(() => formatAxis(workPosition.value.x))
+const workY = computed(() => formatAxis(workPosition.value.y))
+const workZ = computed(() => formatAxis(workPosition.value.z))
 
 const axes = computed(() => [
     {
@@ -119,32 +119,32 @@ const axes = computed(() => [
         homed: xAxisHomed.value,
         machine: machineX.value,
         work: workX.value,
-        offset: formatSigned(workOffset.value.x, 2),
-        min: formatAxis(axisMinimum.value.x, 2),
-        max: formatAxis(axisMaximum.value.x, 2),
+        offset: formatSigned(workOffset.value.x),
+        min: formatAxis(axisMinimum.value.x),
+        max: formatAxis(axisMaximum.value.x),
     },
     {
         id: 'Y',
         homed: yAxisHomed.value,
         machine: machineY.value,
         work: workY.value,
-        offset: formatSigned(workOffset.value.y, 2),
-        min: formatAxis(axisMinimum.value.y, 2),
-        max: formatAxis(axisMaximum.value.y, 2),
+        offset: formatSigned(workOffset.value.y),
+        min: formatAxis(axisMinimum.value.y),
+        max: formatAxis(axisMaximum.value.y),
     },
     {
         id: 'Z',
         homed: zAxisHomed.value,
         machine: machineZ.value,
         work: workZ.value,
-        offset: formatSigned(workOffset.value.z, 3),
-        min: formatAxis(axisMinimum.value.z, 3),
-        max: formatAxis(axisMaximum.value.z, 3),
+        offset: formatSigned(workOffset.value.z),
+        min: formatAxis(axisMinimum.value.z),
+        max: formatAxis(axisMaximum.value.z),
     },
 ])
 
-function formatSigned(value: number, digits: number) {
-    const output = Number(value ?? 0).toFixed(digits)
+function formatSigned(value: number) {
+    const output = parseFloat(Number(value ?? 0).toFixed(2)).toString()
     return value > 0 ? `+${output}` : output
 }
 </script>
@@ -181,7 +181,6 @@ function formatSigned(value: number, digits: number) {
 .dro-panel__axis-name {
     font-size: 1rem;
     font-weight: 800;
-    letter-spacing: 0.08em;
 }
 
 .dro-panel__axis-section {
@@ -193,19 +192,16 @@ function formatSigned(value: number, digits: number) {
 .dro-panel__label {
     font-size: 0.72rem;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
     opacity: 0.68;
 }
 
 .dro-panel__value {
-    font-family: '0xProto Nerd Font Mono', monospace;
     font-size: 1.45rem;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
 }
 
 .dro-panel__offset {
-    font-family: '0xProto Nerd Font Mono', monospace;
     font-size: 1rem;
     font-variant-numeric: tabular-nums;
     opacity: 0.9;

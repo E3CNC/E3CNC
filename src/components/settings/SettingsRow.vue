@@ -63,7 +63,7 @@ const secondColClasses = computed(() => {
 
 .settings-row-subtitle {
     display: block;
-    font-size: 0.8em;
+    font-size: 0.8rem;
     line-height: 1.3;
     margin-top: 3px;
 }

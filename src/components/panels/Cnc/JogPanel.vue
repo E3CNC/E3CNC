@@ -615,7 +615,7 @@ onBeforeUnmount(() => {
 }
 
 .step-unit {
-    font-size: 0.75em;
+    font-size: 0.75rem;
     opacity: 1;
     font-weight: 600;
     vertical-align: bottom;

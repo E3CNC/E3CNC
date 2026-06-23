@@ -289,7 +289,6 @@ const cpuName = computed(() => {
     cursor: pointer;
     font-size: 1rem;
     font-weight: 700;
-    letter-spacing: 0.01em;
 }
 
 .system-host-chip {

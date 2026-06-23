@@ -102,6 +102,14 @@ const mode = computed(() => store.state.gui.uiSettings.mode)
 const primaryColor = computed(() => store.state.gui.uiSettings.primary)
 const warningColor = computed((): string => vuetifyTheme.global.current.value.colors?.warning?.toString() ?? '#ff8300')
 
+const themeFontFamily = computed((): string => {
+    return themeObj.value.fontFamily ?? "'0xProto Nerd Font Mono', monospace"
+})
+
+const themeLetterSpacing = computed((): string => {
+    return themeObj.value.letterSpacing ?? 'normal'
+})
+
 const primaryTextColor = computed((): string => {
     const splits = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(primaryColor.value)
     if (splits) {
@@ -115,6 +123,8 @@ const primaryTextColor = computed((): string => {
 })
 
 const cssVars = computed((): { [key: string]: string } => ({
+    '--font-family': themeFontFamily.value,
+    '--letter-spacing': themeLetterSpacing.value,
     '--v-btn-text-primary': primaryTextColor.value,
     '--color-logo': logoColor.value,
     '--color-primary': primaryColor.value,
@@ -200,6 +210,14 @@ watch(primaryColor, (newVal: string): void => {
         const themeName = vuetifyTheme.global.name.value
         vuetifyTheme.themes.value[themeName].colors.primary = newVal
     })
+})
+
+watch(themeFontFamily, (newVal: string): void => {
+    document.documentElement.style.setProperty('--font-family', newVal)
+})
+
+watch(themeLetterSpacing, (newVal: string): void => {
+    document.documentElement.style.setProperty('--letter-spacing', newVal)
 })
 
 watch(mode, (newVal: string): void => {

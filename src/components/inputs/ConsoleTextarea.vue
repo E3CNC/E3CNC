@@ -137,6 +137,5 @@ function updateGcode(text: string, start: number, end: number) {
 
 <style scoped>
 .gcode-command-field {
-    font-family: '0xProto Nerd Font Mono', monospace;
 }
 </style>

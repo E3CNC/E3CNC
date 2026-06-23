@@ -9,7 +9,7 @@
         <v-col class="v-col-auto d-flex flex-column justify-center pr-0 py-0">
             <gcodefiles-thumbnail :item="job" />
         </v-col>
-        <v-col class="py-1" style="min-width: 0; font-size: 0.875em">
+        <v-col class="py-1" style="min-width: 0; font-size: 0.875rem">
             <div class="text-truncate">
                 <strong v-if="job.combinedIds?.length">{{ job.combinedIds.length + 1 }}x</strong>
                 {{ job.filename }}

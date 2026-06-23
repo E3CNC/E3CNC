@@ -213,7 +213,6 @@ watch(activeGcodeFilename, () => {
 .cnc-status-panel__metadata-title {
     font-size: 0.95rem;
     font-weight: 700;
-    letter-spacing: 0.02em;
 }
 
 .cnc-status-panel__metadata-grid {
@@ -241,7 +240,6 @@ watch(activeGcodeFilename, () => {
 .cnc-status-panel__label {
     font-size: 0.8rem;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
     opacity: 0.72;
 }
 

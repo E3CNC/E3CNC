@@ -44,6 +44,8 @@ export interface Theme {
     displayName: string
     colorLogo: string
     colorPrimary?: string
+    fontFamily?: string
+    letterSpacing?: string
     logo?: {
         show: boolean
         light: boolean

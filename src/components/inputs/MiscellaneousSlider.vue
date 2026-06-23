@@ -301,7 +301,7 @@ function submitInput(): void {
 
 ._error-msg {
     color: rgb(var(--v-theme-error));
-    font-size: 12px;
+    font-size: 0.75rem;
     padding: 4px 16px 2px 0;
 }
 

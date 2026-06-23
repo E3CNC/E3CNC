@@ -14,7 +14,7 @@
 }
 
 #nav-header .v-toolbar__title {
-    font-size: 24px;
+    font-size: 1.5rem;
     vertical-align: middle;
 }
 
@@ -39,7 +39,7 @@ nav ul.navi .nav-link {
     color: rgb(var(--v-theme-on-surface));
     border-radius: 0.5em;
     line-height: 30px;
-    font-size: 14px;
+    font-size: 0.875rem;
     font-weight: 600;
     padding: 10px 15px;
     opacity: 0.85;
@@ -62,7 +62,7 @@ nav ul.navi .nav-link.router-link-active i.nav-arrow {
 
 nav ul.navi .nav-link > i.v-icon {
     color: rgb(var(--v-theme-on-surface));
-    font-size: 1.7em;
+    font-size: 1.7rem;
     margin-right: 0.5em;
 }
 
@@ -71,7 +71,6 @@ nav ul.navi .nav-link > span.nav-title {
     font-weight: 600;
     text-transform: uppercase;
     white-space: nowrap;
-    letter-spacing: 1px;
 }
 
 nav ul.navi .nav-link > .nav-arrow {
@@ -108,5 +107,5 @@ nav ul.navi > li > ul.child .nav-link.router-link-active {
 nav ul.navi > li > ul.child .nav-link > span.nav-title {
     text-transform: capitalize;
     font-weight: 400;
-    font-size: 14px;
+    font-size: 0.875rem;
 }

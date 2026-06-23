@@ -194,7 +194,7 @@ const zAxisHomed = computed((): boolean => homedAxes.value.includes('z'))
 
 const liveVelocity = computed(() => {
     const v = store.state.printer?.motion_report?.live_velocity ?? 0
-    return `${Number(v).toFixed(1)} mm/s`
+    return `${parseFloat(Number(v).toFixed(2))} mm/s`
 })
 
 const coordinateModeLabel = computed(() => {
@@ -202,14 +202,14 @@ const coordinateModeLabel = computed(() => {
     return abs ? 'G90' : 'G91'
 })
 
-function formatAxis(value: number, digits: number) {
-    return Number(value ?? 0).toFixed(digits)
+function formatAxis(value: number) {
+    return parseFloat(Number(value ?? 0).toFixed(2)).toString()
 }
 
 const droAxes = computed(() => [
-    { id: 'X', homed: xAxisHomed.value, machine: formatAxis(machinePosition.value.x, 2) },
-    { id: 'Y', homed: yAxisHomed.value, machine: formatAxis(machinePosition.value.y, 2) },
-    { id: 'Z', homed: zAxisHomed.value, machine: formatAxis(machinePosition.value.z, 3) },
+    { id: 'X', homed: xAxisHomed.value, machine: formatAxis(machinePosition.value.x) },
+    { id: 'Y', homed: yAxisHomed.value, machine: formatAxis(machinePosition.value.y) },
+    { id: 'Z', homed: zAxisHomed.value, machine: formatAxis(machinePosition.value.z) },
 ])
 
 const boolHideUploadAndPrintButton = computed(() => store.state.gui.uiSettings.boolHideUploadAndPrintButton ?? false)
@@ -338,11 +338,22 @@ function emergencyStop() {
     padding-bottom: 0;
 }
 
+:deep(.topbar) .v-toolbar__title {
+    text-overflow: unset;
+}
+
+:deep(.topbar) .v-toolbar-title__placeholder {
+    text-overflow: unset;
+}
+
+:deep(.topbar) .v-app-bar-nav-icon {
+    margin-left: 8px;
+}
+
 .topbar-dro {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-family: '0xProto Nerd Font Mono', monospace;
     font-size: 0.8rem;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;

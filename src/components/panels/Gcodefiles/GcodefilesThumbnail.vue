@@ -171,7 +171,7 @@ function buildUrl(relativePath: string) {
 .gcode-thumbnail-fallback--card {
     width: 100%;
     height: 100%;
-    font-size: 48px;
+    font-size: 3rem;
     color: rgba(var(--v-theme-on-surface), 0.35);
 }
 </style>

@@ -319,7 +319,7 @@ function tooltipFormatter(params: TopLevelFormatterParams): string {
         '<div class="row">' +
         '<div class="v-col py-1" style=\'border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.24);\'>' +
         `<span class="v-icon mdi ${theme}" style="margin-right: 5px;">` +
-        '<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true" viewBox="0 0 24 24" class="v-icon__svg" style="font-size: 12px; width: 12px; height: 12px;">' +
+        '<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true" viewBox="0 0 24 24" class="v-icon__svg" style="font-size: 0.75rem; width: 12px; height: 12px;">' +
         `<path d="${mdiClock}"></path>` +
         '</svg>' +
         '</span>' +

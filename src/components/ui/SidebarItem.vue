@@ -68,9 +68,8 @@ const itemClass = computed(() => ({
 }
 
 .menu-item-title {
-    font-size: 13px;
+    font-size: 0.8125rem;
     font-weight: 700;
-    letter-spacing: 0.04em;
     line-height: 1;
     text-transform: uppercase;
     opacity: 0.88;
