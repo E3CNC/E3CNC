@@ -4,6 +4,13 @@ import { createStore } from 'vuex'
 
 // --- Mock ref utility ---
 
+const consoleScrollMock = vi.hoisted(() => ({
+    osInstance: vi.fn(() => ({
+        scroll: vi.fn(),
+    })),
+    scroll: vi.fn(),
+}))
+
 const mockConsoleValues = vi.hoisted(() => {
     class MockRef<T> {
         _value: T
@@ -34,6 +41,7 @@ const mockConsoleValues = vi.hoisted(() => {
         clearConsole: vi.fn(),
         commandClick: vi.fn(),
         toggleFilter: vi.fn(),
+        gcodeSetGcode: vi.fn(),
     }
 })
 
@@ -44,7 +52,7 @@ vi.mock('vue-i18n', () => ({
     }),
 }))
 
-// Mock vuetify/components — VRow, VCol, VBtn, VIcon, VMenu, VList, VListItem, VCheckbox, VChip as slot stubs
+// Mock vuetify/components
 vi.mock('vuetify/components', () => ({
     VRow: { name: 'VRow', template: '<div class="v-row"><slot /></div>' },
     VCol: { name: 'VCol', template: '<div class="v-col"><slot /></div>' },
@@ -106,7 +114,11 @@ vi.mock('@mdi/js', () => ({
 vi.mock('@/components/inputs/ConsoleTextarea.vue', () => ({
     default: {
         name: 'ConsoleTextarea',
+        props: ['modelValue'],
         template: '<div class="console-textarea-stub" />',
+        methods: {
+            setGcode: (_msg: string) => {},
+        },
     },
 }))
 
@@ -120,6 +132,7 @@ vi.mock('@/components/console/CommandHelpModal.vue', () => ({
 vi.mock('@/components/console/ConsoleTable.vue', () => ({
     default: {
         name: 'ConsoleTable',
+        props: ['isMini', 'events'],
         template: '<div class="console-table-stub" />',
     },
 }))
@@ -146,6 +159,8 @@ function mountConsole(consoleDirectionValue: string = 'shell', overrides: { moon
     mockConsoleValues.hideTlCommands._value = false
     mockConsoleValues.customFilters._value = {}
     mockConsoleValues.moonrakerComponents._value = overrides.moonrakerComponents ?? []
+    mockConsoleValues.gcodeSetGcode.mockClear()
+    mockConsoleValues.clearConsole.mockClear()
 
     const store = createStore({
         state: {
@@ -186,6 +201,13 @@ describe('Console.vue', () => {
         expect(wrapper.findComponent({ name: 'CommandHelpModal' }).exists()).toBe(true)
     })
 
+    it('renders ConsoleTable with correct props', () => {
+        const wrapper = mountConsole()
+        const table = wrapper.findComponent({ name: 'ConsoleTable' })
+        expect(table.exists()).toBe(true)
+        expect(table.props('isMini')).toBe(false)
+    })
+
     it('has clear button with trash icon', () => {
         const wrapper = mountConsole()
         const trashIcon = wrapper.find('.v-icon')
@@ -196,7 +218,6 @@ describe('Console.vue', () => {
     it('has settings menu button', () => {
         const wrapper = mountConsole()
         const buttons = wrapper.findAll('.v-btn')
-        // Find the cog button (settings)
         const settingsBtn = buttons.find((btn) => btn.text().includes('mdiCog'))
         expect(settingsBtn).toBeDefined()
     })
@@ -204,7 +225,9 @@ describe('Console.vue', () => {
     it('settings menu shows autoscroll checkbox when consoleDirection is shell', () => {
         const wrapper = mountConsole('shell')
         const checkboxes = wrapper.findAll('.v-checkbox')
-        const autoscrollCheckbox = checkboxes.find((cb) => cb.text().includes('Panels.MiniconsolePanel.Autoscroll'))
+        const autoscrollCheckbox = checkboxes.find((cb) =>
+            cb.text().includes('Panels.MiniconsolePanel.Autoscroll')
+        )
         expect(autoscrollCheckbox).toBeDefined()
     })
 
@@ -218,20 +241,26 @@ describe('Console.vue', () => {
 
     it('settings menu shows hide temperatures checkbox', () => {
         const wrapper = mountConsole()
-        const checkbox = wrapper.findAll('.v-checkbox').find((cb) => cb.text().includes('Console.HideTemperatures'))
+        const checkbox = wrapper
+            .findAll('.v-checkbox')
+            .find((cb) => cb.text().includes('Console.HideTemperatures'))
         expect(checkbox).toBeDefined()
     })
 
     it('settings menu shows hide timelapse checkbox when timelapse component is present', () => {
         const wrapper = mountConsole('shell', { moonrakerComponents: ['timelapse'] })
-        const checkbox = wrapper.findAll('.v-checkbox').find((cb) => cb.text().includes('Console.HideTimelapse'))
+        const checkbox = wrapper
+            .findAll('.v-checkbox')
+            .find((cb) => cb.text().includes('Console.HideTimelapse'))
         expect(checkbox).toBeDefined()
     })
 
     it('settings menu does NOT show hide timelapse checkbox when timelapse component is absent', () => {
         mockConsoleValues.moonrakerComponents._value = []
         const wrapper = mountConsole()
-        const checkbox = wrapper.findAll('.v-checkbox').find((cb) => cb.text().includes('Console.HideTimelapse'))
+        const checkbox = wrapper
+            .findAll('.v-checkbox')
+            .find((cb) => cb.text().includes('Console.HideTimelapse'))
         expect(checkbox).toBeUndefined()
     })
 
@@ -245,13 +274,22 @@ describe('Console.vue', () => {
 
     it('clear button calls clearConsole function', () => {
         const wrapper = mountConsole()
-        // Find the VBtn containing the trash icon (the clear button)
         const clearBtn = wrapper.findAll('.v-btn').at(0)
         if (clearBtn) {
             clearBtn.trigger('click')
         }
-        // clearConsole may be called by onMounted's scrollToBottom path if consoleDirection is 'shell'
-        // so check it was called AT LEAST once
         expect(mockConsoleValues.clearConsole).toHaveBeenCalled()
+    })
+
+    it('renders OverlayScrollbarsComponent', () => {
+        const wrapper = mountConsole()
+        expect(wrapper.find('.overlayscrollbars').exists()).toBe(true)
+    })
+
+    it('renders ConsoleTable inside the scroll container', () => {
+        const wrapper = mountConsole()
+        const scrollContainer = wrapper.find('.overlayscrollbars')
+        const table = scrollContainer.findComponent({ name: 'ConsoleTable' })
+        expect(table.exists()).toBe(true)
     })
 })

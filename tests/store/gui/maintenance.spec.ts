@@ -213,6 +213,229 @@ describe('gui maintenance store', () => {
             })
             expect(dispatch).not.toHaveBeenCalled()
         })
+
+        it('perform updates entry without creating repeat when reminder type is not repeat', () => {
+            const dispatch = vi.fn()
+            const stateMock = {
+                entries: {
+                    e1: makeEntry({ reminder: { ...defaultReminder, type: 'one-time' } }),
+                },
+            }
+            actions.perform(
+                {
+                    dispatch,
+                    state: stateMock as any,
+                    rootState: {
+                        server: { history: { job_totals: { total_filament_used: 50, total_print_time: 1800 } } },
+                    },
+                } as any,
+                { id: 'e1', note: 'completed' }
+            )
+            // Should have called update but NOT store (since type is not 'repeat')
+            expect(dispatch).toHaveBeenCalledWith(
+                'update',
+                expect.objectContaining({ perform_note: 'completed' })
+            )
+            expect(dispatch).not.toHaveBeenCalledWith('store', expect.anything())
+        })
+
+        it('perform trims note and stores null for empty note', () => {
+            const dispatch = vi.fn()
+            const stateMock = {
+                entries: {
+                    e1: makeEntry({ reminder: { ...defaultReminder, type: 'one-time' } }),
+                },
+            }
+            actions.perform(
+                {
+                    dispatch,
+                    state: stateMock as any,
+                    rootState: {
+                        server: { history: { job_totals: {} } },
+                    },
+                } as any,
+                { id: 'e1', note: '   ' }
+            )
+            expect(dispatch).toHaveBeenCalledWith(
+                'update',
+                expect.objectContaining({ perform_note: null })
+            )
+        })
+
+        describe('initDb', () => {
+            const makeFetchMock = (status: number, body: any) =>
+                vi.fn().mockResolvedValue({
+                    status,
+                    json: () => Promise.resolve(body),
+                })
+
+            beforeEach(() => {
+                global.fetch = vi.fn()
+            })
+
+            it('fetches and processes maintenance.json with entries', async () => {
+                const dispatch = vi.fn()
+                const rootGetters = { 'socket/getUrl': 'http://localhost:7125' }
+
+                // Mock the fetch for maintenance.json
+                global.fetch = makeFetchMock(200, {
+                    entries: [
+                        {
+                            name: 'Oil change',
+                            note: 'Every 1000h',
+                            reminder: {
+                                type: 'one-time',
+                                filament: { bool: true, value: 1000 },
+                                printtime: { bool: false, value: null },
+                                date: { bool: false, value: null },
+                            },
+                        },
+                    ],
+                })
+
+                // Need a separate mock for the history totals fetch
+                const totalsMock = makeFetchMock(200, {
+                    result: {
+                        job_totals: { total_filament_used: 500, total_print_time: 3600 },
+                    },
+                })
+
+                // First call returns maintenance.json, second returns history totals
+                global.fetch = vi
+                    .fn()
+                    .mockResolvedValueOnce({
+                        status: 200,
+                        json: () =>
+                            Promise.resolve({
+                                entries: [
+                                    {
+                                        name: 'Oil change',
+                                        note: 'Every 1000h',
+                                        reminder: {
+                                            type: 'one-time',
+                                            filament: { bool: true, value: 1000 },
+                                            printtime: { bool: false, value: null },
+                                            date: { bool: false, value: null },
+                                        },
+                                    },
+                                ],
+                            }),
+                    })
+                    .mockResolvedValueOnce({
+                        status: 200,
+                        json: () =>
+                            Promise.resolve({
+                                result: {
+                                    job_totals: { total_filament_used: 500, total_print_time: 3600 },
+                                },
+                            }),
+                    })
+
+                await actions.initDb({ dispatch, rootGetters } as any)
+
+                // Should have dispatched 'store' for the entry
+                expect(dispatch).toHaveBeenCalledWith('store', expect.objectContaining({
+                    entry: expect.objectContaining({
+                        name: 'Oil change',
+                        start_filament: 500,
+                        start_printtime: 3600,
+                    }),
+                }))
+            })
+
+            it('emits MAINTENANCE_INIT when maintenance.json has empty entries', async () => {
+                const dispatch = vi.fn()
+                const rootGetters = { 'socket/getUrl': 'http://localhost:7125' }
+
+                global.fetch = vi.fn().mockResolvedValueOnce({
+                    status: 200,
+                    json: () => Promise.resolve({ entries: [] }),
+                })
+
+                await actions.initDb({ dispatch, rootGetters } as any)
+
+                expect(mockSocket.emit).toHaveBeenCalledWith('server.database.post_item', {
+                    namespace: 'maintenance',
+                    key: 'mocked-uuid',
+                    value: { name: 'MAINTENANCE_INIT' },
+                })
+                expect(dispatch).not.toHaveBeenCalledWith('store', expect.anything())
+            })
+
+            it('handles maintenance.json fetch failure', async () => {
+                const dispatch = vi.fn()
+                const rootGetters = { 'socket/getUrl': 'http://localhost:7125' }
+
+                global.fetch = vi.fn().mockResolvedValueOnce({
+                    status: 404,
+                })
+
+                await actions.initDb({ dispatch, rootGetters } as any)
+
+                // 404 returns { entries: [] }, so MAINTENANCE_INIT should be emitted
+                expect(mockSocket.emit).toHaveBeenCalledWith('server.database.post_item', {
+                    namespace: 'maintenance',
+                    key: 'mocked-uuid',
+                    value: { name: 'MAINTENANCE_INIT' },
+                })
+            })
+
+            it('handles maintenance.json parse error', async () => {
+                const dispatch = vi.fn()
+                const rootGetters = { 'socket/getUrl': 'http://localhost:7125' }
+                const consoleSpy = vi.spyOn(window.console, 'error').mockImplementation(() => {})
+
+                global.fetch = vi.fn().mockRejectedValueOnce(new Error('Network error'))
+
+                await actions.initDb({ dispatch, rootGetters } as any)
+
+                expect(consoleSpy).toHaveBeenCalled()
+                expect(mockSocket.emit).toHaveBeenCalledWith('server.database.post_item', {
+                    namespace: 'maintenance',
+                    key: 'mocked-uuid',
+                    value: { name: 'MAINTENANCE_INIT' },
+                })
+
+                consoleSpy.mockRestore()
+            })
+
+            it('handles history totals fetch failure gracefully', async () => {
+                const dispatch = vi.fn()
+                const rootGetters = { 'socket/getUrl': 'http://localhost:7125' }
+                const consoleSpy = vi.spyOn(window.console, 'debug').mockImplementation(() => {})
+
+                global.fetch = vi
+                    .fn()
+                    .mockResolvedValueOnce({
+                        status: 200,
+                        json: () =>
+                            Promise.resolve({
+                                entries: [
+                                    {
+                                        name: 'Oil change',
+                                        note: null,
+                                        reminder: { type: null, filament: { bool: false }, printtime: { bool: false }, date: { bool: false } },
+                                    },
+                                ],
+                            }),
+                    })
+                    .mockRejectedValueOnce(new Error('History error'))
+
+                await actions.initDb({ dispatch, rootGetters } as any)
+
+                expect(consoleSpy).toHaveBeenCalled()
+                // Should still dispatch store with fallback values (0)
+                expect(dispatch).toHaveBeenCalledWith('store', expect.objectContaining({
+                    entry: expect.objectContaining({
+                        start_filament: 0,
+                        start_printtime: 0,
+                    }),
+                }))
+
+                consoleSpy.mockRestore()
+            })
+        })
+
     })
 
     describe('getters', () => {

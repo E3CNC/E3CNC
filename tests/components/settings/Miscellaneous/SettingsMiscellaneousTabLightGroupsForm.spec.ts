@@ -1,52 +1,57 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createStore } from 'vuex'
-import { createI18n } from 'vue-i18n'
+import SettingsMiscellaneousTabLightGroupsForm from '@/components/settings/Miscellaneous/SettingsMiscellaneousTabLightGroupsForm.vue'
+
+vi.mock('vue-i18n', () => ({
+    useI18n: () => ({ t: (key: string) => key }),
+}))
 
 vi.mock('vuetify/components', () => ({
-    VForm: { name: 'VForm', template: '<form><slot /></form>' },
-    VCardText: { name: 'VCardText', template: '<div><slot /></div>' },
-    VCardActions: { name: 'VCardActions', template: '<div><slot /></div>' },
-    VDivider: { name: 'VDivider', template: '<hr />' },
-    VTextField: {
-        name: 'VTextField',
-        props: ['modelValue'],
-        template: '<input class="v-text-field" :value="modelValue" />',
-    },
-    VBtn: {
-        name: 'VBtn',
-        props: ['disabled', 'variant', 'color'],
-        template: '<button :disabled="disabled" @click="$emit(\'click\', $event)"><slot /></button>',
-    },
-    VSpacer: { name: 'VSpacer', template: '<span />' },
+    VForm: { name: 'VForm', props: ['modelValue'], template: '<div class="v-form"><slot /></div>' },
+    VCardText: { name: 'VCardText', template: '<div class="v-card-text"><slot /></div>' },
+    VTextField: { name: 'VTextField', props: ['modelValue', 'hideDetails', 'rules', 'density', 'variant', 'type', 'step'], template: '<input class="v-text-field" />' },
+    VDivider: { name: 'VDivider', template: '<hr class="v-divider" />' },
+    VCardActions: { name: 'VCardActions', template: '<div class="v-card-actions"><slot /></div>' },
+    VSpacer: { name: 'VSpacer', template: '<div class="v-spacer" />' },
+    VBtn: { name: 'VBtn', props: ['variant', 'color', 'disabled'], template: '<button class="v-btn" :disabled="disabled" @click="$emit(`click`, $event)"><slot /></button>' },
 }))
 
 vi.mock('@/components/settings/SettingsRow.vue', () => ({
     default: {
         name: 'SettingsRow',
-        props: { title: { default: '' } },
-        template: '<div class="settings-row">{{ title }}<slot /></div>',
+        props: ['title', 'subTitle', 'icon', 'loading'],
+        template: '<div class="settings-row"><span class="settings-row-title">{{ title }}</span><slot /></div>',
     },
 }))
 
-const i18n = createI18n({
-    legacy: false,
-    locale: 'en',
-    messages: {
-        en: {
-            Settings: {
-                MiscellaneousTab: { Name: 'Name', Start: 'Start', End: 'End' },
-                Store: 'Save',
-                Update: 'Update',
+vi.mock('@/plugins/helpers', () => ({
+    caseInsensitiveSort: (arr: any[], key: string) =>
+        [...arr].sort((a: any, b: any) => String(a[key] ?? '').localeCompare(String(b[key] ?? ''), undefined, { sensitivity: 'base' })),
+}))
+
+function createMockStore(overrides: Record<string, any> = {}) {
+    return createStore({
+        state: {
+            printer: {
+                configfile: {
+                    settings: {
+                        'neopixel my_strip': {
+                            chain_count: 10,
+                            ...(overrides.configfile ?? {}),
+                        },
+                    },
+                },
             },
-            Buttons: { Cancel: 'Cancel' },
+            gui: {
+                miscellaneous: {
+                    entries: overrides.entries ?? {},
+                },
+            },
         },
-    },
-})
-
-const store = createStore({ state: { instancesDB: 'moonraker', gui: { miscellaneous: {} } } })
-
-import SettingsMiscellaneousTabLightGroupsForm from '@/components/settings/Miscellaneous/SettingsMiscellaneousTabLightGroupsForm.vue'
+        getters: {},
+    })
+}
 
 describe('SettingsMiscellaneousTabLightGroupsForm.vue', () => {
     beforeEach(() => {
@@ -55,17 +60,83 @@ describe('SettingsMiscellaneousTabLightGroupsForm.vue', () => {
 
     it('renders without crashing', () => {
         const wrapper = mount(SettingsMiscellaneousTabLightGroupsForm, {
-            props: { modelValue: true, lightType: 'neopixel', lightName: 'case' },
-            global: { plugins: [store, i18n] },
+            props: { type: 'neopixel', name: 'my_strip' },
+            global: {
+                plugins: [createMockStore()],
+                mocks: { $t: (key: string) => key },
+            },
         })
         expect(wrapper.exists()).toBe(true)
     })
 
-    it('renders name, start, end fields', () => {
+    it('renders create title when no groupId', () => {
         const wrapper = mount(SettingsMiscellaneousTabLightGroupsForm, {
-            props: { modelValue: true, lightType: 'neopixel', lightName: 'case' },
-            global: { plugins: [store, i18n] },
+            props: { type: 'neopixel', name: 'my_strip' },
+            global: {
+                plugins: [createMockStore()],
+                mocks: { $t: (key: string) => key },
+            },
         })
-        expect(wrapper.findAll('.settings-row').length).toBeGreaterThanOrEqual(3)
+        expect(wrapper.text()).toContain('Settings.MiscellaneousTab.CreateGroup')
+    })
+
+    it('renders edit title when groupId is provided', () => {
+        const wrapper = mount(SettingsMiscellaneousTabLightGroupsForm, {
+            props: { type: 'neopixel', name: 'my_strip', groupId: 'group-1' },
+            global: {
+                plugins: [createMockStore()],
+                mocks: { $t: (key: string) => key },
+            },
+        })
+        expect(wrapper.text()).toContain('Settings.MiscellaneousTab.EditGroup')
+    })
+
+    it('renders cancel and store buttons', () => {
+        const wrapper = mount(SettingsMiscellaneousTabLightGroupsForm, {
+            props: { type: 'neopixel', name: 'my_strip' },
+            global: {
+                plugins: [createMockStore()],
+                mocks: { $t: (key: string) => key },
+            },
+        })
+        const buttons = wrapper.findAll('.v-btn')
+        expect(buttons.length).toBeGreaterThanOrEqual(2)
+    })
+
+    it('emits close on cancel button click', async () => {
+        const wrapper = mount(SettingsMiscellaneousTabLightGroupsForm, {
+            props: { type: 'neopixel', name: 'my_strip' },
+            global: {
+                plugins: [createMockStore()],
+                mocks: { $t: (key: string) => key },
+            },
+        })
+        const cancelBtn = wrapper.findAll('.v-btn')[0]
+        await cancelBtn.trigger('click')
+        expect(wrapper.emitted('close')).toBeTruthy()
+    })
+
+    it('renders store button', () => {
+        const wrapper = mount(SettingsMiscellaneousTabLightGroupsForm, {
+            props: { type: 'neopixel', name: 'my_strip' },
+            global: {
+                plugins: [createMockStore()],
+                mocks: { $t: (key: string) => key },
+            },
+        })
+        const buttons = wrapper.findAll('.v-btn')
+        // Cancel button + Store button (when no groupId)
+        expect(buttons.length).toBe(2)
+    })
+
+    it('renders update button when groupId is provided', () => {
+        const wrapper = mount(SettingsMiscellaneousTabLightGroupsForm, {
+            props: { type: 'neopixel', name: 'my_strip', groupId: 'group-1' },
+            global: {
+                plugins: [createMockStore()],
+                mocks: { $t: (key: string) => key },
+            },
+        })
+        expect(wrapper.text()).toContain('Settings.Update')
     })
 })
