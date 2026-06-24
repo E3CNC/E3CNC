@@ -193,7 +193,7 @@ watch(activeGcodeFilename, () => {
 
 .cnc-status-panel__grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.75rem;
 }
 
@@ -252,7 +252,7 @@ watch(activeGcodeFilename, () => {
     word-break: break-word;
 }
 
-@media (max-width: 960px) {
+@media (max-width: 680px) {
     .cnc-status-panel__grid,
     .cnc-status-panel__metadata-grid,
     .cnc-status-panel__fields {

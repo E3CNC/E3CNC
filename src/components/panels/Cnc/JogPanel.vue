@@ -142,6 +142,75 @@
                 </v-col>
             </v-row>
 
+            <v-row density="compact" class="mb-3">
+                <v-col cols="12">
+                    <div class="text-center mb-3 w-100">
+                        <span class="text-caption font-weight-bold">Precise Jog</span>
+                    </div>
+                </v-col>
+                <v-col cols="12" sm="4">
+                    <v-text-field
+                        v-model.number="preciseJogX"
+                        label="X"
+                        type="number"
+                        density="compact"
+                        variant="outlined"
+                        step="0.001" />
+                </v-col>
+                <v-col cols="12" sm="4">
+                    <v-text-field
+                        v-model.number="preciseJogY"
+                        label="Y"
+                        type="number"
+                        density="compact"
+                        variant="outlined"
+                        step="0.001" />
+                </v-col>
+                <v-col cols="12" sm="4">
+                    <v-text-field
+                        v-model.number="preciseJogZ"
+                        label="Z"
+                        type="number"
+                        density="compact"
+                        variant="outlined"
+                        step="0.001" />
+                </v-col>
+                <v-col cols="12">
+                    <v-row density="compact">
+                        <v-col cols="4">
+                            <v-btn
+                                class="d-block w-100"
+                                size="small"
+                                variant="outlined"
+                                :disabled="['printing'].includes(printer_state) || !xyHomed || preciseJogX === 0"
+                                @click="jogPrecise('X', preciseJogX)">
+                                Jog X
+                            </v-btn>
+                        </v-col>
+                        <v-col cols="4">
+                            <v-btn
+                                class="d-block w-100"
+                                size="small"
+                                variant="outlined"
+                                :disabled="['printing'].includes(printer_state) || !xyHomed || preciseJogY === 0"
+                                @click="jogPrecise('Y', preciseJogY)">
+                                Jog Y
+                            </v-btn>
+                        </v-col>
+                        <v-col cols="4">
+                            <v-btn
+                                class="d-block w-100"
+                                size="small"
+                                variant="outlined"
+                                :disabled="['printing'].includes(printer_state) || !zHomed || preciseJogZ === 0"
+                                @click="jogPrecise('Z', preciseJogZ)">
+                                Jog Z
+                            </v-btn>
+                        </v-col>
+                    </v-row>
+                </v-col>
+            </v-row>
+
             <v-row density="compact" class="mb-2 justify-center">
                 <v-col cols="12" md="6" class="d-flex flex-column align-center">
                     <div class="text-center mb-3 w-100">
@@ -361,6 +430,10 @@ const feedrateZ = computed({
     },
 })
 
+const preciseJogX = ref(0)
+const preciseJogY = ref(0)
+const preciseJogZ = ref(0)
+
 function saveFeedrates() {
     void updateCncSettings(store.getters['socket/getUrl'], {
         feedrateXY: feedrateXY.value,
@@ -391,6 +464,11 @@ function jog(axis: string, distance: number) {
     const feedrate = getAxisFeedrate(axis)
     const script = buildJogScript(axis, distance, feedrate)
     socket.emit('printer.gcode.script', { script })
+}
+
+function jogPrecise(axis: string, distance: number) {
+    if (distance === 0) return
+    jog(axis, distance)
 }
 
 function showKeyboardNavToast(step: number) {
@@ -533,6 +611,11 @@ onBeforeUnmount(() => {
     margin-bottom: 12px !important;
 }
 
+.jog-panel .v-row.mb-3 .v-row {
+    margin-left: -4px !important;
+    margin-right: -4px !important;
+}
+
 .jog-panel .v-row.mb-2 {
     margin-top: 4px !important;
     margin-bottom: 8px !important;
@@ -615,6 +698,13 @@ onBeforeUnmount(() => {
 }
 
 .step-unit {
+    font-size: 0.75rem;
+    opacity: 1;
+    font-weight: 600;
+    vertical-align: bottom;
+}
+
+.step-num {
     font-size: 0.75rem;
     opacity: 1;
     font-weight: 600;

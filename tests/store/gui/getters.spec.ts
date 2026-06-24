@@ -285,4 +285,136 @@ describe('gui getters', () => {
         const state = defaultState({ general: { timeFormat: '24hours' } as any })
         expect((getters as any).getHours12Format(state)).toBe(false)
     })
+
+    it('getDatasetValue returns false by default for non-temperature datasets', () => {
+        const state = defaultState()
+        const result = (getters as any).getDatasetValue(state)({ name: 'extruder', type: 'power' })
+        expect(result).toBe(false)
+    })
+
+    it('getDatasetAdditionalSensorValue returns true when additionalSensors are missing', () => {
+        const state = defaultState({
+            view: { tempchart: { datasetSettings: { extruder: { color: '#fff' } } } } as any,
+        })
+        const result = (getters as any).getDatasetAdditionalSensorValue(state)({ name: 'extruder', sensor: 'power' })
+        expect(result).toBe(true)
+    })
+
+    it('getAllPossiblePanels adapts to expert macros and printer capabilities', () => {
+        const state = defaultState({ macros: { mode: 'expert' } as any })
+        const result = (getters as any).getAllPossiblePanels(
+            state,
+            {
+                'macros/getAllMacrogroups': [{ id: 'grp1' }],
+                'webcams/getWebcams': [],
+            },
+            {
+                printer: {
+                    heaters: { available_sensors: [] },
+                },
+            },
+            {
+                'printer/getKinematics': 'none',
+            }
+        )
+
+        expect(result).toContain('macrogroup_grp1')
+        expect(result).not.toContain('macros')
+        expect(result).not.toContain('machine-settings')
+        expect(result).not.toContain('temperature')
+        expect(result).not.toContain('webcam')
+        expect(result).not.toContain('led-effects')
+    })
+
+    it('getAllPossiblePanels keeps led-effects when a led_effect object exists', () => {
+        const state = defaultState()
+        const result = (getters as any).getAllPossiblePanels(
+            state,
+            {
+                'macros/getAllMacrogroups': [],
+                'webcams/getWebcams': [{ name: 'cam1' }],
+            },
+            {
+                printer: {
+                    heaters: { available_sensors: ['extruder'] },
+                    'led_effect rainbow': {},
+                },
+            },
+            {
+                'printer/getKinematics': 'cartesian',
+            }
+        )
+
+        expect(result).toContain('led-effects')
+        expect(result).toContain('webcam')
+        expect(result).toContain('temperature')
+    })
+
+    it('getPanels adds missing first-column panels and filters hidden ones when onlyVisible is true', () => {
+        const state = defaultState({
+            dashboard: {
+                ...defaultState().dashboard,
+                desktopLayout1: [{ name: 'webcam', visible: false }],
+            } as any,
+        })
+        const result = (getters as any).getPanels(
+            state,
+            {
+                getAllPossiblePanels: ['webcam', 'temperature'],
+                getAllPanelsFromViewport: vi.fn(() => [{ name: 'webcam', visible: false }]),
+                'macros/getAllMacrogroups': [],
+            },
+            { gui: { macros: { mode: 'simple' } } }
+        )('desktop', 1, true)
+
+        expect(result).toEqual([{ name: 'temperature', visible: true }])
+    })
+
+    it('getPanels removes macros panel in expert mode and keeps only existing macrogroup panels', () => {
+        const state = defaultState({
+            dashboard: {
+                ...defaultState().dashboard,
+                desktopLayout1: [
+                    { name: 'macros', visible: true },
+                    { name: 'macrogroup_exists', visible: true },
+                    { name: 'macrogroup_missing', visible: true },
+                ],
+            } as any,
+        })
+        const result = (getters as any).getPanels(
+            state,
+            {
+                getAllPossiblePanels: ['macros', 'macrogroup_exists', 'macrogroup_missing'],
+                getAllPanelsFromViewport: vi.fn(() => state.dashboard.desktopLayout1),
+                'macros/getAllMacrogroups': [{ id: 'exists' }],
+            },
+            { gui: { macros: { mode: 'expert' } } }
+        )('desktop', 1)
+
+        expect(result.map((panel: any) => panel.name)).toEqual(['macrogroup_exists'])
+    })
+
+    it('getAllPanelsFromViewport collects base and numbered layouts', () => {
+        const state = defaultState({
+            dashboard: {
+                baseLayout: [{ name: 'webcam', visible: true }],
+                baseLayout1: [{ name: 'temperature', visible: true }],
+                baseLayout2: [{ name: 'dro', visible: true }],
+            } as any,
+        })
+
+        const result = (getters as any).getAllPanelsFromViewport(state)('base')
+        expect(result.map((panel: any) => panel.name)).toEqual(['webcam', 'temperature', 'dro'])
+    })
+
+    it('getHours12Format uses Intl when setting is null', () => {
+        const spy = vi.spyOn(Intl, 'DateTimeFormat').mockReturnValue({
+            resolvedOptions: () => ({ hour12: true }),
+        } as any)
+
+        const state = defaultState({ general: { timeFormat: null } as any })
+        expect((getters as any).getHours12Format(state)).toBe(true)
+
+        spy.mockRestore()
+    })
 })

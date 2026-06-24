@@ -36,9 +36,11 @@ vi.mock('@/composables/useBase', () => ({
     useBase: () => mockBaseValues,
 }))
 
+const mockSocketEmit = vi.fn()
+
 vi.mock('@/composables/useSocket', () => ({
     useSocket: () => ({
-        emit: vi.fn(),
+        emit: mockSocketEmit,
     }),
 }))
 
@@ -263,5 +265,59 @@ describe('KlippyStatePanel.vue', () => {
 
         expect(wrapper.text()).toContain('Panels.KlippyStatePanel.MoonrakerCannotConnect')
         expect(wrapper.text()).toContain('Panels.KlippyStatePanel.CheckKlippyAndUdsAddress')
+    })
+
+    it('restart button calls printer.restart via socket', async () => {
+        const store = createStoreWithState()
+        const wrapper = mount(KlippyStatePanel, {
+            global: {
+                plugins: [store],
+                mocks: { $t: (key: string) => key },
+            },
+        })
+
+        const buttons = wrapper.findAllComponents({ name: 'VBtn' })
+        const restartBtn = buttons.find((b) => b.text().includes('Panels.KlippyStatePanel.Restart'))
+        expect(restartBtn).toBeDefined()
+        await restartBtn!.trigger('click')
+        expect(mockSocketEmit).toHaveBeenCalledWith('printer.restart', {}, { loading: 'restart' })
+    })
+
+    it('firmware restart button calls printer.firmware_restart via socket', async () => {
+        const store = createStoreWithState()
+        const wrapper = mount(KlippyStatePanel, {
+            global: {
+                plugins: [store],
+                mocks: { $t: (key: string) => key },
+            },
+        })
+
+        const buttons = wrapper.findAllComponents({ name: 'VBtn' })
+        const fwBtn = buttons.find((b) => b.text().includes('Panels.KlippyStatePanel.FirmwareRestart'))
+        expect(fwBtn).toBeDefined()
+        await fwBtn!.trigger('click')
+        expect(mockSocketEmit).toHaveBeenCalledWith('printer.firmware_restart', {}, { loading: 'firmwareRestart' })
+    })
+
+    it('power on button calls machine.device_power.on via socket', async () => {
+        mockBaseValues.klipperState.value = 'disconnected'
+        mockBaseValues.klippyIsConnected.value = false
+        mockBaseValues.isPrinterPowerOff.value = true
+
+        const store = createStoreWithState({
+            server: { klippy_connected: false, klippy_state: '', klippy_message: null, components: [] },
+        })
+        const wrapper = mount(KlippyStatePanel, {
+            global: {
+                plugins: [store],
+                mocks: { $t: (key: string) => key },
+            },
+        })
+
+        const buttons = wrapper.findAllComponents({ name: 'VBtn' })
+        const powerBtn = buttons.find((b) => b.text().includes('Panels.KlippyStatePanel.PowerOn'))
+        expect(powerBtn).toBeDefined()
+        await powerBtn!.trigger('click')
+        expect(mockSocketEmit).toHaveBeenCalledWith('machine.device_power.post_device', { device: 'printer', action: 'on' }, { action: 'server/power/responseToggle' })
     })
 })

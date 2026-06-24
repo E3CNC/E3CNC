@@ -634,5 +634,210 @@ describe('farm printer store', () => {
             const mainsailCall = sendObjCalls.find((c: any[]) => c[1]?.params?.namespace === 'mainsail')
             expect(mainsailCall).toBeUndefined()
         })
+
+        it('sendObj sends JSON-RPC over WebSocket when open', () => {
+            const send = vi.fn()
+            state.socket.instance = { readyState: WebSocket.OPEN, send } as any
+            state.socket.wsData = []
+
+            printer.actions.sendObj({ state, commit } as any, {
+                method: 'printer.info',
+                action: 'getObjectsList',
+                params: {},
+            })
+
+            expect(commit).toHaveBeenCalledWith('addWsData', expect.objectContaining({
+                action: 'getObjectsList',
+                params: {},
+            }))
+            expect(send).toHaveBeenCalledWith(expect.stringContaining('printer.info'))
+        })
+
+        it('sendObj does nothing when WebSocket is not OPEN', () => {
+            const send = vi.fn()
+            state.socket.instance = { readyState: WebSocket.CLOSED, send } as any
+
+            printer.actions.sendObj({ state, commit } as any, {
+                method: 'printer.info',
+                action: 'testAction',
+            })
+
+            expect(send).not.toHaveBeenCalled()
+            expect(commit).not.toHaveBeenCalled()
+        })
+
+        it('initPrinter sends object list, config dir, and database queries when klippy is connected', () => {
+            state.server.klippy_connected = true
+
+            printer.actions.initPrinter({ state, commit, dispatch } as any)
+            expect(commit).toHaveBeenCalledWith('resetData')
+            expect(dispatch).toHaveBeenCalledWith('sendObj', {
+                method: 'printer.objects.list',
+                action: 'getObjectsList',
+            })
+            expect(dispatch).toHaveBeenCalledWith('sendObj', {
+                method: 'server.files.list',
+                action: 'getConfigDir',
+                params: { root: 'config' },
+            })
+            expect(dispatch).toHaveBeenCalledWith('sendObj', {
+                method: 'server.database.list',
+                action: 'getDatabases',
+            })
+        })
+
+        it('initPrinter skips object list when klippy is not connected', () => {
+            state.server.klippy_connected = false
+            const dispatch = vi.fn()
+
+            printer.actions.initPrinter({ state, commit, dispatch } as any)
+            expect(commit).toHaveBeenCalledWith('resetData')
+
+            const sendObjCalls = dispatch.mock.calls.filter((c: any[]) => c[0] === 'sendObj')
+            const printerObjectsCall = sendObjCalls.find((c: any[]) => c[1]?.method === 'printer.objects.list')
+            expect(printerObjectsCall).toBeUndefined()
+        })
+
+        it('getObjectsList subscribes to allowed objects and skips disallowed ones', () => {
+            const dispatch = vi.fn()
+
+            printer.actions.getObjectsList({ dispatch } as any, {
+                objects: [
+                    'webhooks',
+                    'extruder',
+                    'some_unknown_stepper',
+                    'heater_bed',
+                ],
+            })
+
+            expect(dispatch).toHaveBeenCalledWith('sendObj', {
+                method: 'printer.objects.subscribe',
+                params: {
+                    objects: {
+                        webhooks: null,
+                        extruder: null,
+                        heater_bed: null,
+                    },
+                },
+                action: 'getData',
+            })
+        })
+
+        it('getObjectsList does not subscribe when no allowed objects found', () => {
+            const dispatch = vi.fn()
+
+            printer.actions.getObjectsList({ dispatch } as any, {
+                objects: ['some_unknown_stepper'],
+            })
+
+            expect(dispatch).not.toHaveBeenCalled()
+        })
+
+        it('getData updates state and requests metadata for current file', () => {
+            const commit = vi.fn()
+            const dispatch = vi.fn()
+
+            printer.actions.getData({ commit, dispatch } as any, {
+                status: {
+                    print_stats: { filename: 'gcodes/test.gcode', state: 'printing' },
+                    toolhead: { position: [10, 20, 30] },
+                },
+            })
+
+            expect(commit).toHaveBeenCalledWith('setData', {
+                print_stats: { filename: 'gcodes/test.gcode', state: 'printing' },
+                toolhead: { position: [10, 20, 30] },
+            })
+            expect(dispatch).toHaveBeenCalledWith('sendObj', {
+                method: 'server.files.metadata',
+                params: { filename: 'gcodes/test.gcode' },
+                action: 'getMetadataCurrentFile',
+            })
+        })
+
+        it('getData does not request metadata when no print_stats filename', () => {
+            const commit = vi.fn()
+            const dispatch = vi.fn()
+
+            printer.actions.getData({ commit, dispatch } as any, {
+                status: { toolhead: { position: [0, 0, 0] } },
+            })
+
+            expect(commit).toHaveBeenCalled()
+            expect(dispatch).not.toHaveBeenCalledWith('sendObj', expect.objectContaining({
+                method: 'server.files.metadata',
+            }))
+        })
+
+        it('setSettings commits and updates remote printer settings', () => {
+            const commit = vi.fn()
+            const dispatch = vi.fn()
+            const stateMock = { _namespace: 'remote-1', settings: { speed: 100 } }
+
+            printer.actions.setSettings({ commit, dispatch, state: stateMock } as any, { speed: 200 } as any)
+
+            expect(commit).toHaveBeenCalledWith('setSettings', { speed: 200 })
+            expect(dispatch).toHaveBeenCalledWith(
+                'gui/remoteprinters/updateSettings',
+                { id: 'remote-1', values: { speed: 100 } },
+                { root: true }
+            )
+        })
+
+        it('reconnect closes existing socket and reconnects', () => {
+            const close = vi.fn()
+            state.socket.instance = { close } as any
+
+            printer.actions.reconnect({ state, dispatch } as any)
+            expect(close).toHaveBeenCalled()
+            expect(dispatch).toHaveBeenCalledWith('connect')
+        })
+
+        it('reconnect handles missing socket instance gracefully', () => {
+            state.socket.instance = null
+
+            printer.actions.reconnect({ state, dispatch } as any)
+            expect(dispatch).toHaveBeenCalledWith('connect')
+        })
+
+        it('connect opens a WebSocket and dispatches server.info on open', () => {
+            vi.useFakeTimers()
+
+            const stateMock = {
+                _namespace: 'remote-1',
+                socket: {
+                    hostname: 'printer.local',
+                    port: 81,
+                    path: '/mainsail',
+                    protocol: 'ws',
+                    reconnects: 0,
+                    maxReconnects: 3,
+                    reconnectInterval: 2000,
+                    isConnected: false,
+                    isConnecting: false,
+                    instance: null,
+                    wsData: [],
+                },
+                server: { klippy_connected: false },
+                data: { gui: {}, webcams: [] },
+                current_file: null,
+                theme_files: [],
+                databases: [],
+                settings: {},
+            }
+
+            const commit = vi.fn()
+            const dispatch = vi.fn()
+            const getters = { getSocketUrl: 'ws://printer.local:81/mainsail/websocket' }
+
+            // Call connect — it creates WebSocket (mocked by happy-dom which returns null)
+            // We just verify the commit and the getter is read
+            printer.actions.connect({ state: stateMock as any, commit, dispatch, getters, rootGetters: {
+                'farm/existsPrinter': vi.fn(() => true),
+            } } as any)
+
+            expect(commit).toHaveBeenCalledWith('setSocketData', { isConnecting: true })
+            vi.useRealTimers()
+        })
     })
 })

@@ -272,6 +272,9 @@
                         <v-row class="mt-6 mb-3 flex-column flex-md-row">
                             <v-col class="py-0 align-content-center mb-3 mb-md-0">
                                 <h3 class="text-h5">{{ $t('Settings.MacrosTab.AvailableMacros') }}</h3>
+                                <p class="text-caption text-medium-emphasis mb-0">
+                                    Related items are grouped together to make scanning easier.
+                                </p>
                             </v-col>
                             <v-col class="py-0">
                                 <v-text-field
@@ -285,18 +288,30 @@
                                     dense />
                             </v-col>
                         </v-row>
-                        <template v-if="availableMacros.length">
-                            <template v-for="(macro, index) in availableMacros" :key="'availableMacro_macro_' + index">
-                                <v-divider v-if="index" class="my-2"></v-divider>
-                                <settings-row
-                                    :title="macro.name"
-                                    :sub-title="macro.description"
-                                    :dynamic-slot-width="true">
-                                    <v-btn size="small" variant="outlined" class="ml-3" @click="addMacroToGroup(macro)">
-                                        <v-icon start size="small">{{ mdiPlus }}</v-icon>
-                                        {{ $t('Settings.MacrosTab.Add') }}
-                                    </v-btn>
-                                </settings-row>
+                        <template v-if="availableMacroGroups.length">
+                            <template
+                                v-for="(group, groupIndex) in availableMacroGroups"
+                                :key="'availableMacro_group_' + group.key">
+                                <v-divider v-if="groupIndex" class="my-4" />
+                                <div class="available-macros-group-header">
+                                    <span class="text-subtitle-2 font-weight-bold">{{ group.label }}</span>
+                                    <span class="text-caption text-medium-emphasis">
+                                        {{ group.macros.length }}
+                                        {{ group.macros.length === 1 ? 'macro' : 'macros' }}
+                                    </span>
+                                </div>
+                                <template v-for="(macro, index) in group.macros" :key="'availableMacro_macro_' + macro.name">
+                                    <v-divider v-if="index" class="my-2" />
+                                    <settings-row
+                                        :title="macro.name"
+                                        :sub-title="macro.description"
+                                        :dynamic-slot-width="true">
+                                        <v-btn size="small" variant="outlined" class="ml-3" @click="addMacroToGroup(macro)">
+                                            <v-icon start size="small">{{ mdiPlus }}</v-icon>
+                                            {{ $t('Settings.MacrosTab.Add') }}
+                                        </v-btn>
+                                    </settings-row>
+                                </template>
                             </template>
                         </template>
                         <template v-else>
@@ -413,6 +428,14 @@ html.theme--light .macrogroup-edit-header {
 .macrogroup-edit-spacer {
     height: 8px;
 }
+
+.available-macros-group-header {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 4px 0 8px;
+}
 </style>
 
 <script setup lang="ts">
@@ -510,6 +533,25 @@ const allMacros = computed(() => {
 
 const availableMacros = computed(() => {
     return allMacros.value.filter((m: GuiMacrosStateMacrogroupMacro) => !editGroupUsedMacros.value.includes(m.name))
+})
+
+const availableMacroGroups = computed(() => {
+    const grouped = new Map<string, PrinterStateMacro[]>()
+
+    availableMacros.value.forEach((macro: PrinterStateMacro) => {
+        const groupKey = getMacroGroupKey(macro.name)
+        const existing = grouped.get(groupKey) ?? []
+        existing.push(macro)
+        grouped.set(groupKey, existing)
+    })
+
+    return Array.from(grouped.entries())
+        .map(([key, macros]) => ({
+            key,
+            label: getMacroGroupLabel(key),
+            macros: macros.sort((a, b) => a.name.localeCompare(b.name)),
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label))
 })
 
 const groups = computed(() => {
@@ -622,6 +664,28 @@ function getMacroDescription(macroname: string) {
     if (!macro) return t('Settings.MacrosTab.DeletedMacro')
 
     return macro?.description ?? null
+}
+
+function getMacroGroupKey(name: string) {
+    const normalized = name.trim().toUpperCase()
+
+    const gcodeMatch = normalized.match(/^([GM])\d+/)
+    if (gcodeMatch) return `${gcodeMatch[1]}-CODES`
+
+    const separatorIndex = normalized.search(/[_\s-]/)
+    if (separatorIndex > 0) return normalized.slice(0, separatorIndex)
+
+    if (normalized.length <= 5) return normalized
+
+    return 'OTHER'
+}
+
+function getMacroGroupLabel(key: string) {
+    if (key === 'OTHER') return 'Other'
+    if (key === 'G-CODES') return 'G-Codes'
+    if (key === 'M-CODES') return 'M-Codes'
+
+    return key
 }
 
 function updateMacrogroupOption(option: string, newVal: boolean | string) {

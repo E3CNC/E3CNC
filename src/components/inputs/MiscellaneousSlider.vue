@@ -293,6 +293,9 @@ function submitInput(): void {
 <style scoped>
 ._fan-slider-subheader {
     height: auto;
+    padding: 6px 12px 4px 16px;
+    align-items: flex-start;
+    gap: 0.5rem;
 }
 
 ._lock-button {

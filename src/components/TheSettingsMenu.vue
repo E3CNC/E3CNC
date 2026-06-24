@@ -10,7 +10,7 @@
             :aria-label="$t('Settings.InterfaceSettings')"
             @keydown.esc="closeSettingsMenu">
             <v-card class="settings-menu-dialog">
-                <v-toolbar flat density="compact">
+                <v-toolbar flat density="compact" class="settings-menu-toolbar">
                     <v-icon start :icon="mdiCogs" />
                     <v-toolbar-title>{{ $t('Settings.InterfaceSettings') }}</v-toolbar-title>
                     <v-spacer />
@@ -338,6 +338,26 @@ function resetDashboardLayout() {
     height: 100%;
 }
 
+.settings-tabs-bar :deep(.v-tab) {
+    justify-content: flex-start;
+    min-height: 40px;
+    padding-inline: 14px 12px;
+}
+
+.settings-tabs-bar :deep(.v-tab .v-icon) {
+    margin-inline-end: 8px;
+}
+
+.settings-tabs-bar :deep(.v-tab__slider) {
+    background: transparent;
+}
+
+.settings-tabs-bar :deep(.v-tab--selected .v-tab__slider),
+.settings-tabs-bar :deep(.v-tab-item--selected .v-tab__slider) {
+    background: rgb(var(--v-theme-primary));
+    opacity: 1;
+}
+
 .settings-contentrow {
     height: clamp(320px, calc(var(--app-height) - 191px), 500px);
 }
@@ -353,6 +373,10 @@ function resetDashboardLayout() {
     flex: 1 1 auto;
     min-height: 0;
     max-height: 100%;
+}
+
+:deep(.settings-menu-toolbar .v-toolbar__content) {
+    padding-left: 12px;
 }
 </style>
 

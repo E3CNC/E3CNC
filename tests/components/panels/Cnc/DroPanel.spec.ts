@@ -125,7 +125,7 @@ describe('DroPanel.vue', () => {
 
     it('shows live velocity', () => {
         const wrapper = createWrapper()
-        expect(wrapper.text()).toContain('Velocity 150.50 mm/s')
+        expect(wrapper.text()).toContain('Vel 150.50 mm/s')
     })
 
     it('shows "Homed" chip when all axes homed', () => {

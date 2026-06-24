@@ -82,6 +82,37 @@ describe('gui macros store', () => {
             expect(state.macrogroups['g1'].macros![0].pos).toBe(1)
         })
 
+        it('addMacroToMacrogroup increments pos when macros already exist', () => {
+            state.macrogroups['g1'] = {
+                id: 'g1',
+                name: 'Group1',
+                color: 'primary',
+                showInStandby: true,
+                showInPrinting: true,
+                showInPause: true,
+                macros: [{ pos: 3, name: 'M1', color: 'group', showInStandby: true, showInPrinting: true, showInPause: true }],
+            }
+            mutations.addMacroToMacrogroup(state, { id: 'g1', macro: 'G28' })
+            expect(state.macrogroups['g1'].macros).toHaveLength(2)
+            expect(state.macrogroups['g1'].macros![1].name).toBe('G28')
+            expect(state.macrogroups['g1'].macros![1].pos).toBe(4)
+        })
+
+        it('updateMacroFromMacrogroup does nothing when macro not found', () => {
+            state.macrogroups['g1'] = {
+                id: 'g1',
+                name: 'Group1',
+                color: 'primary',
+                showInStandby: true,
+                showInPrinting: true,
+                showInPause: true,
+                macros: [{ pos: 1, name: 'G28', color: 'group', showInStandby: true, showInPrinting: true, showInPause: true }],
+            }
+
+            mutations.updateMacroFromMacrogroup(state, { id: 'g1', macro: 'Missing', option: 'name', value: 'NewName' })
+            expect(state.macrogroups['g1'].macros![0].name).toBe('G28')
+        })
+
         it('removeMacroFromMacrogroup removes a macro', () => {
             state.macrogroups['g1'] = {
                 id: 'g1',
@@ -103,6 +134,49 @@ describe('gui macros store', () => {
             }
             mutations.removeMacroFromMacrogroup(state, { id: 'g1', macro: 'G28' })
             expect(state.macrogroups['g1'].macros).toHaveLength(0)
+        })
+
+        it('removeMacroFromMacrogroup reorders remaining positions', () => {
+            state.macrogroups['g1'] = {
+                id: 'g1',
+                name: 'Group1',
+                color: 'primary',
+                showInStandby: true,
+                showInPrinting: true,
+                showInPause: true,
+                macros: [
+                    {
+                        pos: 1,
+                        name: 'G28',
+                        color: 'group',
+                        showInStandby: true,
+                        showInPrinting: true,
+                        showInPause: true,
+                    },
+                    {
+                        pos: 2,
+                        name: 'G29',
+                        color: 'group',
+                        showInStandby: true,
+                        showInPrinting: true,
+                        showInPause: true,
+                    },
+                    {
+                        pos: 3,
+                        name: 'G30',
+                        color: 'group',
+                        showInStandby: true,
+                        showInPrinting: true,
+                        showInPause: true,
+                    },
+                ],
+            }
+            mutations.removeMacroFromMacrogroup(state, { id: 'g1', macro: 'G28' })
+            expect(state.macrogroups['g1'].macros).toHaveLength(2)
+            expect(state.macrogroups['g1'].macros![0].name).toBe('G29')
+            expect(state.macrogroups['g1'].macros![0].pos).toBe(1)
+            expect(state.macrogroups['g1'].macros![1].name).toBe('G30')
+            expect(state.macrogroups['g1'].macros![1].pos).toBe(2)
         })
 
         it('groupDelete removes a macrogroup', () => {

@@ -388,7 +388,7 @@ describe('JogPanel.vue', () => {
         }
     })
 
-    it('renders all sections: XY jog, Z jog, Feedrate Override, Keyboard Nav', () => {
+    it('renders all sections: precise jog, XY jog, Z jog, Feedrate Override, Keyboard Nav', () => {
         const wrapper = mount(JogPanel, {
             global: {
                 plugins: [createStoreInstance()],
@@ -406,6 +406,7 @@ describe('JogPanel.vue', () => {
                 },
             },
         })
+        expect(wrapper.text()).toContain('Precise Jog')
         expect(wrapper.text()).toContain('XY Jog')
         expect(wrapper.text()).toContain('Z Jog')
         expect(wrapper.text()).toContain('Feedrate Override')

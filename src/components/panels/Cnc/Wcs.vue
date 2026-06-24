@@ -267,14 +267,12 @@
                                     <span class="offset-preview-legend__card-number">
                                         {{ formatOffsetValue(entry.offsetX) }}
                                     </span>
-                                    ,
                                     <span class="offset-preview-legend__card-axis" :style="{ color: entry.color }">
                                         y
                                     </span>
                                     <span class="offset-preview-legend__card-number">
                                         {{ formatOffsetValue(entry.offsetY) }}
                                     </span>
-                                    ,
                                     <span class="offset-preview-legend__card-axis" :style="{ color: entry.color }">
                                         z
                                     </span>
@@ -381,7 +379,7 @@
                             <v-col cols="12">
                                 <span class="text-caption font-weight-bold">Set Work Zero:</span>
                             </v-col>
-                            <v-col cols="3">
+                            <v-col cols="6" md="3">
                                 <v-btn
                                     size="small"
                                     block
@@ -392,7 +390,7 @@
                                     Set X
                                 </v-btn>
                             </v-col>
-                            <v-col cols="3">
+                            <v-col cols="6" md="3">
                                 <v-btn
                                     size="small"
                                     block
@@ -403,7 +401,7 @@
                                     Set Y
                                 </v-btn>
                             </v-col>
-                            <v-col cols="3">
+                            <v-col cols="6" md="3">
                                 <v-btn
                                     size="small"
                                     block
@@ -414,7 +412,7 @@
                                     Set Z
                                 </v-btn>
                             </v-col>
-                            <v-col cols="3">
+                            <v-col cols="6" md="3">
                                 <v-btn
                                     size="small"
                                     block
@@ -433,7 +431,7 @@
                             <v-col cols="12">
                                 <span class="text-caption font-weight-bold">Manual Offset:</span>
                             </v-col>
-                            <v-col cols="4">
+                            <v-col cols="12" sm="4">
                                 <v-text-field
                                     v-model.number="offsetInputX"
                                     label="X"
@@ -442,7 +440,7 @@
                                     variant="outlined"
                                     step="0.001" />
                             </v-col>
-                            <v-col cols="4">
+                            <v-col cols="12" sm="4">
                                 <v-text-field
                                     v-model.number="offsetInputY"
                                     label="Y"
@@ -451,7 +449,7 @@
                                     variant="outlined"
                                     step="0.001" />
                             </v-col>
-                            <v-col cols="4">
+                            <v-col cols="12" sm="4">
                                 <v-text-field
                                     v-model.number="offsetInputZ"
                                     label="Z"
@@ -1310,8 +1308,9 @@ onMounted(() => {
 
 .compact-axis-list {
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 4px 10px;
     margin-top: 0;
     align-items: flex-start;
 }
@@ -1339,8 +1338,19 @@ onMounted(() => {
 }
 
 .compact-axis--stacked {
-    width: 100%;
+    width: auto;
     justify-content: flex-start;
+}
+
+@media (max-width: 640px) {
+    .compact-axis-list {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .compact-axis--stacked {
+        width: 100%;
+    }
 }
 
 .offset-preview-controls__row {
@@ -1372,8 +1382,9 @@ onMounted(() => {
 
 .offset-preview-legend__card-header {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 5px;
+    gap: 4px 6px;
 }
 
 .offset-preview-legend__card-eye {
@@ -1389,11 +1400,27 @@ onMounted(() => {
     color: rgba(var(--v-theme-on-surface), 0.9);
     font-weight: 600;
     font-size: 0.6875rem;
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 .offset-preview-legend__card-origin {
     color: rgba(var(--v-theme-on-surface), 0.4);
     font-size: 0.625rem;
+    display: flex;
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 4px;
+    min-width: 0;
+    line-height: 1.2;
+}
+
+@media (min-width: 560px) {
+    .offset-preview-legend__card-origin {
+        flex-basis: auto;
+        margin-left: auto;
+    }
 }
 
 .offset-preview-legend__card-axis {

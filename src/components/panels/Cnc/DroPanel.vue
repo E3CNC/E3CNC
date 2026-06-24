@@ -3,7 +3,7 @@
         <v-container class="py-2">
             <div class="dro-panel__meta">
                 <v-chip size="small" label variant="outlined" class="mr-2">{{ coordinateModeLabel }}</v-chip>
-                <v-chip size="small" label variant="outlined" class="mr-2">Velocity {{ liveVelocity }}</v-chip>
+                <v-chip size="small" label variant="outlined" class="mr-2">Vel {{ liveVelocity }}</v-chip>
                 <v-chip size="small" label variant="outlined" :color="allAxesHomed ? 'primary' : 'warning'">
                     {{ allAxesHomed ? 'Homed' : 'Not Homed' }}
                 </v-chip>
@@ -155,19 +155,21 @@ function formatSigned(value: number) {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+    gap: 0.5rem 0.75rem;
 }
 
 .dro-panel__axis-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1rem;
+    gap: 0.65rem;
     margin: 0.75rem 0 1rem;
+    align-items: start;
 }
 
 .dro-panel__axis-card {
     border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
     border-radius: 0.5rem;
-    padding: 0.75rem 1rem;
+    padding: 0.6rem 0.75rem;
     background: rgba(var(--v-theme-on-surface), 0.02);
 }
 
@@ -175,34 +177,34 @@ function formatSigned(value: number) {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.85rem;
+    margin-bottom: 0.6rem;
 }
 
 .dro-panel__axis-name {
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 800;
 }
 
 .dro-panel__axis-section {
     display: grid;
     gap: 0.2rem;
-    margin-bottom: 0.65rem;
+    margin-bottom: 0.55rem;
 }
 
 .dro-panel__label {
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     text-transform: uppercase;
     opacity: 0.68;
 }
 
 .dro-panel__value {
-    font-size: 1.45rem;
+    font-size: 1.25rem;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
 }
 
 .dro-panel__offset {
-    font-size: 1rem;
+    font-size: 0.92rem;
     font-variant-numeric: tabular-nums;
     opacity: 0.9;
 }
@@ -211,26 +213,21 @@ function formatSigned(value: number) {
     display: flex;
     justify-content: space-between;
     gap: 1rem;
-    padding-top: 0.3rem;
-    margin-top: 0.35rem;
+    padding-top: 0.25rem;
+    margin-top: 0.2rem;
     border-top: 1px solid rgba(var(--v-theme-on-surface), 0.08);
 }
 
 .dro-panel__limit {
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     opacity: 0.7;
     font-variant-numeric: tabular-nums;
 }
 
-@media (max-width: 960px) {
+@media (max-width: 580px) {
     .dro-panel__axis-grid {
         grid-template-columns: 1fr;
-    }
-}
-
-@media (min-width: 961px) and (max-width: 1264px) {
-    .dro-panel__axis-grid {
-        grid-template-columns: 1fr;
+        gap: 0.65rem;
     }
 }
 </style>

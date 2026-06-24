@@ -10,11 +10,13 @@ import { mutations } from '@/store/files/mutations'
 import { getDefaultState } from '@/store/files/index'
 import type { FileState } from '@/store/files/types'
 
+const mockSocket = vi.hoisted(() => ({
+    emit: vi.fn(),
+}))
+
 // Mock the runtime module
 vi.mock('@/store/runtime', () => ({
-    getSocket: () => ({
-        emit: vi.fn(),
-    }),
+    getSocket: () => mockSocket,
     $toast: {
         success: vi.fn(),
         error: vi.fn(),
@@ -25,6 +27,7 @@ describe('files mutations', () => {
     let state: FileState
 
     beforeEach(() => {
+        vi.clearAllMocks()
         state = getDefaultState()
     })
 
@@ -207,6 +210,260 @@ describe('files mutations', () => {
 
             mutations.setRootPermissions(state, { name: 'gcodes', permissions: 'rw' })
             expect(state.filetree[0].permissions).toBe('rw')
+        })
+    })
+
+    describe('metadata mutations', () => {
+        beforeEach(() => {
+            state.filetree = [
+                {
+                    isDirectory: true,
+                    filename: 'gcodes',
+                    childrens: [
+                        {
+                            isDirectory: false,
+                            filename: 'test.gcode',
+                            modified: new Date('2024-01-01'),
+                            permissions: 'rw',
+                            size: 100,
+                            metadataRequested: false,
+                            metadataPulled: false,
+                        },
+                        {
+                            isDirectory: true,
+                            filename: 'folder',
+                            childrens: [
+                                {
+                                    isDirectory: false,
+                                    filename: 'nested.gcode',
+                                    modified: new Date('2024-01-01'),
+                                    permissions: 'rw',
+                                    size: 200,
+                                    metadataRequested: false,
+                                    metadataPulled: false,
+                                },
+                            ],
+                        },
+                    ],
+                } as any,
+            ]
+        })
+
+        it('setMetadataRequested marks an existing file', () => {
+            mutations.setMetadataRequested(state, { filename: 'test.gcode' })
+            expect(state.filetree[0].childrens![0].metadataRequested).toBe(true)
+        })
+
+        it('setMetadata copies allowed metadata and marks file as pulled', () => {
+            mutations.setMetadata(state, {
+                filename: 'test.gcode',
+                estimated_time: 123,
+                filament_total: 456,
+                ignored_key: 'nope',
+            })
+
+            const file = state.filetree[0].childrens![0] as any
+            expect(file.estimated_time).toBe(123)
+            expect(file.filament_total).toBe(456)
+            expect(file.ignored_key).toBeUndefined()
+            expect(file.metadataRequested).toBe(true)
+            expect(file.metadataPulled).toBe(true)
+        })
+    })
+
+    describe('file tree mutations', () => {
+        it('setCreateFile adds a new file to the parent directory', () => {
+            state.filetree = [
+                {
+                    isDirectory: true,
+                    filename: 'gcodes',
+                    childrens: [],
+                } as any,
+            ]
+
+            mutations.setCreateFile(state, {
+                item: {
+                    root: 'gcodes',
+                    path: 'test.gcode',
+                    permissions: 'rw',
+                    modified: 1710000000,
+                    size: 321,
+                },
+            })
+
+            expect(state.filetree[0].childrens).toHaveLength(1)
+            expect((state.filetree[0].childrens![0] as any).filename).toBe('test.gcode')
+            expect((state.filetree[0].childrens![0] as any).size).toBe(321)
+        })
+
+        it('setCreateFile updates an existing gcode file and requests metadata again', () => {
+            state.filetree = [
+                {
+                    isDirectory: true,
+                    filename: 'gcodes',
+                    childrens: [
+                        {
+                            isDirectory: false,
+                            filename: 'test.gcode',
+                            modified: new Date('2024-01-01'),
+                            permissions: 'rw',
+                            size: 100,
+                            metadataRequested: true,
+                            metadataPulled: true,
+                        },
+                    ],
+                } as any,
+            ]
+
+            mutations.setCreateFile(state, {
+                item: {
+                    root: 'gcodes',
+                    path: 'test.gcode',
+                    permissions: 'rw',
+                    modified: 1710000000,
+                    size: 321,
+                },
+            })
+
+            const file = state.filetree[0].childrens![0] as any
+            expect(file.size).toBe(321)
+            expect(file.metadataRequested).toBe(false)
+            expect(file.metadataPulled).toBe(false)
+            expect(mockSocket.emit).toHaveBeenCalledWith(
+                'server.files.metadata',
+                { filename: 'test.gcode' },
+                { action: 'files/getMetadata' }
+            )
+        })
+
+        it('setMoveFile moves files between directories and clears thumbnails', () => {
+            state.filetree = [
+                {
+                    isDirectory: true,
+                    filename: 'gcodes',
+                    childrens: [
+                        {
+                            isDirectory: true,
+                            filename: 'src',
+                            childrens: [
+                                {
+                                    isDirectory: false,
+                                    filename: 'part.gcode',
+                                    modified: new Date('2024-01-01'),
+                                    permissions: 'rw',
+                                    size: 100,
+                                    metadataPulled: true,
+                                    thumbnails: [{ relative_path: 'thumb.png' }],
+                                },
+                            ],
+                        },
+                        {
+                            isDirectory: true,
+                            filename: 'dest',
+                            childrens: [],
+                        },
+                    ],
+                } as any,
+            ]
+
+            mutations.setMoveFile(state, {
+                source_item: { root: 'gcodes', path: 'src/part.gcode' },
+                item: { root: 'gcodes', path: 'dest/renamed.gcode' },
+            })
+
+            const srcChildren = ((state.filetree[0].childrens![0] as any).childrens ?? [])
+            const destChildren = ((state.filetree[0].childrens![1] as any).childrens ?? [])
+            expect(srcChildren).toHaveLength(0)
+            expect(destChildren[0].filename).toBe('renamed.gcode')
+            expect((destChildren[0] as any).metadataPulled).toBe(false)
+            expect((destChildren[0] as any).thumbnails).toBeUndefined()
+        })
+
+        it('setModifyFile updates timestamps, size, and clears cached thumbnails', () => {
+            state.filetree = [
+                {
+                    isDirectory: true,
+                    filename: 'gcodes',
+                    childrens: [
+                        {
+                            isDirectory: false,
+                            filename: 'test.gcode',
+                            modified: new Date('2024-01-01'),
+                            permissions: 'rw',
+                            size: 100,
+                            metadataPulled: true,
+                            thumbnails: [{ relative_path: 'thumb.png' }],
+                        },
+                    ],
+                } as any,
+            ]
+
+            mutations.setModifyFile(state, {
+                item: { root: 'gcodes', path: 'test.gcode', modified: 1710000100, size: 222 },
+            })
+
+            const file = state.filetree[0].childrens![0] as any
+            expect(file.size).toBe(222)
+            expect(file.metadataPulled).toBe(false)
+            expect(file.thumbnails).toBeUndefined()
+        })
+
+        it('setMoveDir renames and moves a directory', () => {
+            state.filetree = [
+                {
+                    isDirectory: true,
+                    filename: 'gcodes',
+                    childrens: [
+                        { isDirectory: true, filename: 'src', childrens: [{ isDirectory: true, filename: 'dirA', childrens: [] }] },
+                        { isDirectory: true, filename: 'dest', childrens: [] },
+                    ],
+                } as any,
+            ]
+
+            mutations.setMoveDir(state, {
+                source_item: { root: 'gcodes', path: 'src/dirA' },
+                item: { root: 'gcodes', path: 'dest/dirB' },
+            })
+
+            expect(((state.filetree[0].childrens![0] as any).childrens ?? [])).toHaveLength(0)
+            expect((((state.filetree[0].childrens![1] as any).childrens ?? [])[0] as any).filename).toBe('dirB')
+        })
+
+        it('setDiskUsage updates disk usage for nested directories', () => {
+            state.filetree = [
+                {
+                    isDirectory: true,
+                    filename: 'gcodes',
+                    childrens: [
+                        {
+                            isDirectory: true,
+                            filename: 'folder',
+                            childrens: [],
+                        },
+                    ],
+                } as any,
+            ]
+
+            mutations.setDiskUsage(state, {
+                path: 'gcodes/folder',
+                disk_usage: { total: 10, used: 7, free: 3 },
+            })
+
+            expect((state.filetree[0].childrens![0] as any).disk_usage).toEqual({ total: 10, used: 7, free: 3 })
+        })
+    })
+
+    describe('upload mutation guards', () => {
+        it('uploadSetPercent does not rewrite the same value', () => {
+            state.upload.percent = 50
+            mutations.uploadSetPercent(state, 50)
+            expect(state.upload.percent).toBe(50)
+        })
+
+        it('uploadSetSpeed does not rewrite the same value', () => {
+            state.upload.speed = 1024
+            mutations.uploadSetSpeed(state, 1024)
+            expect(state.upload.speed).toBe(1024)
         })
     })
 })
