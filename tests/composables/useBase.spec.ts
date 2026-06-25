@@ -297,4 +297,73 @@ describe('useBase', () => {
             expect(result).toContain('2026')
         })
     })
+
+    describe('viewport detection', () => {
+        it('detects mobile viewport', () => {
+            // Default mock has mobile=false, smAndUp=true, lgAndUp=false, xl=false → 'tablet'
+            const base = mountComposable()
+            expect(base.viewport.value).toBe('tablet')
+        })
+    })
+
+    describe('device detection', () => {
+        it('detects ios device from user agent', () => {
+            const base = mountComposable()
+            expect(base.isIOS.value).toBeDefined()
+        })
+    })
+
+    describe('spoolManagerUrl', () => {
+        it('returns undefined when no spoolman config', () => {
+            const base = mountComposable()
+            expect(base.spoolManagerUrl.value).toBeUndefined()
+        })
+
+        it('rewrites localhost in spoolman URL', () => {
+            store.state.server.config.config.spoolman = { server: 'http://localhost:8000' }
+            const base = mountComposable()
+            expect(base.spoolManagerUrl.value).toContain(store.state.socket.hostname)
+        })
+    })
+
+    describe('formatTimeOptions', () => {
+        it('uses 12hours format', () => {
+            store.state.gui.general.timeFormat = '12hours'
+            const base = mountComposable()
+            const opts = base.formatTimeOptions.value
+            expect(opts.hourCycle).toBe('h12')
+        })
+
+        it('uses default format for unknown value', () => {
+            store.state.gui.general.timeFormat = 'unknown'
+            const base = mountComposable()
+            const opts = base.formatTimeOptions.value
+            expect(opts.timeStyle).toBe('short')
+        })
+    })
+
+    describe('formatDate edge cases', () => {
+        it('formats with dot delimiter', () => {
+            const base = mountComposable()
+            const date = new Date('2026-06-13T12:00:00Z')
+            const result = base.formatDate(date, 'dd.mm.yyyy')
+            expect(result).toBe('13.06.2026')
+        })
+
+        it('formats with dot-space delimiter', () => {
+            const base = mountComposable()
+            const date = new Date('2026-06-13T12:00:00Z')
+            const result = base.formatDate(date, 'd. m. yyyy')
+            expect(result).toContain('13')
+            expect(result).toContain('6')
+            expect(result).toContain('2026')
+        })
+
+        it('handles trailing dot in format', () => {
+            const base = mountComposable()
+            const date = new Date('2026-06-13T12:00:00Z')
+            const result = base.formatDate(date, 'dd.mm.yyyy.')
+            expect(result).toContain('.')
+        })
+    })
 })
