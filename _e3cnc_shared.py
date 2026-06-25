@@ -196,14 +196,6 @@ def check_dependencies(output_callback=None) -> Tuple[bool, List[str]]:
             ["ansible-playbook", "--version"], capture_output=True, text=True
         ).stdout.splitlines()[0]
         lines.append(f"  → ansible-playbook version: {ansible_ver.strip()}")
-        result = subprocess.run(
-            [sys.executable, "-c", "import ansible_collections.community.general"],
-            capture_output=True, text=True,
-        )
-        if result.returncode == 0:
-            lines.append("  ✓ Ansible collection: community.general")
-        else:
-            _w("Ansible collection: community.general not found — install with: ansible-galaxy collection install community.general")
 
     lines.append("")
     lines.append("  Project structure")

@@ -7,20 +7,18 @@
     create: true
 
 - name: Ensure extractor_path in [cnc_metadata] section
-  community.general.ini_file:
+  ansible.builtin.lineinfile:
     path: '{{ moonraker_conf }}'
-    section: cnc_metadata
-    option: extractor_path
-    value: '{{ printer_data.scripts_dir }}/cnc_metadata_extractor.py'
-    value_delimiter: ': '
+    regexp: '^extractor_path:'
+    line: 'extractor_path: {{ printer_data.scripts_dir }}/cnc_metadata_extractor.py'
+    insertafter: '\[cnc_metadata\]'
 
 - name: Ensure timeout in [cnc_metadata] section
-  community.general.ini_file:
+  ansible.builtin.lineinfile:
     path: '{{ moonraker_conf }}'
-    section: cnc_metadata
-    option: timeout
-    value: '30.0'
-    value_delimiter: ': '
+    regexp: '^timeout:'
+    line: 'timeout: 30.0'
+    insertafter: '\[cnc_metadata\]'
 
 - name: Ensure [update_manager E3CNC_UI] section in moonraker.conf
   ansible.builtin.blockinfile:

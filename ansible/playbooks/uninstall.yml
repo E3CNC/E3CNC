@@ -27,20 +27,16 @@
         state: absent
 
     - name: Remove extractor_path from [cnc_metadata] section
-      community.general.ini_file:
+      ansible.builtin.lineinfile:
         path: '{{ moonraker_conf }}'
-        section: cnc_metadata
-        option: extractor_path
+        regexp: '^extractor_path:'
         state: absent
-        value_delimiter: ': '
 
     - name: Remove timeout from [cnc_metadata] section
-      community.general.ini_file:
+      ansible.builtin.lineinfile:
         path: '{{ moonraker_conf }}'
-        section: cnc_metadata
-        option: timeout
+        regexp: '^timeout:'
         state: absent
-        value_delimiter: ': '
 
     - name: Remove [update_manager E3CNC_UI] block from moonraker.conf
       ansible.builtin.blockinfile:

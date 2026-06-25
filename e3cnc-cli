@@ -234,14 +234,6 @@ def check_dependencies(output_callback=None) -> Tuple[bool, List[str]]:
             ["ansible-playbook", "--version"], capture_output=True, text=True
         ).stdout.splitlines()[0]
         lines.append(f"  → ansible-playbook version: {ansible_ver.strip()}")
-        result = subprocess.run(
-            [sys.executable, "-c", "import ansible_collections.community.general"],
-            capture_output=True, text=True,
-        )
-        if result.returncode == 0:
-            lines.append("  ✓ Ansible collection: community.general")
-        else:
-            _w("Ansible collection: community.general not found — install with: ansible-galaxy collection install community.general")
             all_ok = False
 
     lines.append("")
@@ -1000,27 +992,7 @@ def _ensure_system_packages() -> None:
         warn("Install manually: sudo apt install " + " ".join(missing))
 
 
-def _ensure_ansible_collections() -> None:
-    """Install required Ansible collections."""
-    result = subprocess.run(
-        [sys.executable, "-c", "import ansible_collections.community.general"],
-        capture_output=True, text=True,
-    )
-    if result.returncode == 0:
-        return
-    info("Installing Ansible collection: community.general...")
-    subprocess.run(
-        ["ansible-galaxy", "collection", "install", "community.general"],
-        cwd=ANSIBLE_DIR, capture_output=True, text=True,
-    )
-    result = subprocess.run(
-        [sys.executable, "-c", "import ansible_collections.community.general"],
-        capture_output=True, text=True,
-    )
-    if result.returncode == 0:
-        ok("Ansible collection: community.general installed")
-    else:
-        warn("Failed to install community.general — install manually: ansible-galaxy collection install community.general")
+
 
 
 def cmd_install(args: argparse.Namespace) -> None:
@@ -1028,7 +1000,6 @@ def cmd_install(args: argparse.Namespace) -> None:
     header("Prerequisites")
     _require_ansible()
     _ensure_system_packages()
-    _ensure_ansible_collections()
     _run_ansible_cmd(INSTALL_PLAYBOOK, args, "Install")
 
 

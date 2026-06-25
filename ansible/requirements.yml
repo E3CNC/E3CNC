@@ -1,4 +1,1 @@
----
-collections:
-  - name: community.general
-    version: '>=4.0.0'
+# No external collections required — all modules use ansible.builtin.
