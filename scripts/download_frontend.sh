@@ -37,31 +37,8 @@ ZIP_FILE="$TMP_DIR/$ASSET_NAME"
 
 echo "    target release asset: $ASSET_NAME"
 
-RELEASES_API_URL="https://api.github.com/repos/${OWNER}/${REPO}/releases?per_page=10"
-if command -v node &>/dev/null; then
-    ZIP_URL=$(curl -sfL "$RELEASES_API_URL" | node -e "
-let data = '';
-process.stdin.on('data', c => data += c);
-process.stdin.on('end', () => {
-  try {
-    const releases = JSON.parse(data);
-    for (const release of releases) {
-      const asset = (release.assets || []).find(a => a.name === '$ASSET_NAME');
-      if (asset) {
-        console.log(asset.browser_download_url);
-        return;
-      }
-    }
-    console.log('');
-  } catch (e) {
-    console.log('');
-  }
-});
-")
-else
-    echo "    WARNING: node not found — skipping release lookup" >&2
-    ZIP_URL=""
-fi
+# Construct direct download URL — no API/JSON parsing needed
+ZIP_URL="https://github.com/${OWNER}/${REPO}/releases/download/${RELEASE_VER}/${ASSET_NAME}"
 
 if [[ -n "$ZIP_URL" ]] && curl -sfL "$ZIP_URL" -o "$ZIP_FILE" && [[ -s "$ZIP_FILE" ]]; then
     echo "    downloaded nightly build ($(du -h "$ZIP_FILE" | cut -f1))"

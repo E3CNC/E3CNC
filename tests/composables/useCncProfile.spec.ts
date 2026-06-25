@@ -88,4 +88,14 @@ describe('useCncProfile', () => {
         expect(profile.requireConfirmForSpindleStart.value).toBe(false)
         expect(profile.requireHomingBeforeOffsets.value).toBe(true)
     })
+
+    it('handles cnc state API failure gracefully', async () => {
+        vi.mocked(getCncState).mockRejectedValue(new Error('API error'))
+
+        const profile = await mountComposable()
+        expect(profile.machineName.value).toBe('')
+        expect(profile.spindleEnabled.value).toBe(true)
+        // Component should still export profile with defaults
+        expect(profile).toBeDefined()
+    })
 })

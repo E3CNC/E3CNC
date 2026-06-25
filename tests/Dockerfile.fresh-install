@@ -38,4 +38,14 @@ WORKDIR /home/testbed
 # Clone the repo
 RUN git clone https://github.com/E3CNC/E3CNC_UI.git /home/testbed/E3CNC_UI
 
+# Create directory structure expected by Klipper + Moonraker install
+RUN mkdir -p /home/testbed/printer_data/config/E3CNC/macros \
+             /home/testbed/printer_data/scripts \
+             /home/testbed/printer_data/logs \
+             /home/testbed/moonraker/moonraker/components \
+             /home/testbed/klipper/klippy/extras \
+             /home/testbed/mainsail \
+    && touch /home/testbed/printer_data/config/moonraker.conf \
+    && touch /home/testbed/printer_data/config/printer.cfg
+
 CMD ["bash"]
