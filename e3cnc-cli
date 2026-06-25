@@ -869,18 +869,32 @@ def _require_ansible() -> None:
         return
 
     print(f"  {Style.CYAN}→{Style.RESET} Installing Ansible...")
-    # Ensure pip is available
-    if not shutil.which("pip3") and not shutil.which("pip"):
-        info("Installing pip...")
-        subprocess.run(
+
+    def _install_pip() -> bool:
+        # Try ensurepip first (works on most Python installs)
+        result = subprocess.run(
             [sys.executable, "-m", "ensurepip", "--upgrade"],
             capture_output=True, text=True,
         )
-        pip_cmd = "pip3" if shutil.which("pip3") else "pip"
-        if not shutil.which(pip_cmd):
+        if result.returncode == 0 and (shutil.which("pip3") or shutil.which("pip")):
+            return True
+        # Fall back to apt
+        info("Installing python3-pip via apt...")
+        result = subprocess.run(
+            ["sudo", "apt-get", "install", "-y", "python3-pip"],
+            capture_output=True, text=True,
+        )
+        return result.returncode == 0 and (shutil.which("pip3") or shutil.which("pip"))
+
+    # Ensure pip is available
+    if not shutil.which("pip3") and not shutil.which("pip"):
+        info("Installing pip...")
+        if not _install_pip():
             fail("Could not install pip. Try: sudo apt install python3-pip")
+        ok("pip installed")
 
     pip_cmd = "pip3" if shutil.which("pip3") else "pip"
+    info("Installing Ansible via pip...")
     result = subprocess.run(
         [pip_cmd, "install", "--user", "ansible"],
         capture_output=True, text=True,
