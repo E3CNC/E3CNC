@@ -425,6 +425,18 @@
                     <div class="entry">
                         <span class="tag tag-feat">feat</span>
                         <span class="desc">
+                            <strong>e3cnc-cli unified CLI tool</strong>
+                            — Zero-dependency CLI with interactive menu, direct commands,
+                            bash tab completion, SSH validation, confirmation prompts for
+                            destructive operations, and multi-instance detection for machines
+                            with multiple Klipper/Moonraker setups.
+                            Run <code>./e3cnc-cli</code> for the interactive menu or
+                            <code>./e3cnc-cli install</code> for direct install.
+                        </span>
+                    </div>
+                    <div class="entry">
+                        <span class="tag tag-feat">feat</span>
+                        <span class="desc">
                             <strong>Ndot57 theme</strong>
                             — New theme with Ndot 57 Aligned display font, configurable letter-spacing, and
                             cyan accent colours. Theme interface extended with <code>fontFamily</code> and
@@ -710,7 +722,9 @@ cd ~/E3CNC_UI
 ./e3cnc-cli install</code></pre>
 
                 <p class="install-note">
-                    Run <code>./e3cnc-cli</code> with no arguments for an interactive menu.
+                    Run <code>./e3cnc-cli</code> with no arguments for an interactive menu
+                    that loops after each command. Use <code>[W]</code> to switch between
+                    multiple Klipper/Moonraker instances on the same machine.
                     Tab completion available via
                     <code>source ~/E3CNC_UI/scripts/e3cnc-completion.sh</code>.
                     See the

@@ -46,6 +46,7 @@ git clone https://github.com/E3CNC/E3CNC_UI.git ~/E3CNC_UI && cd ~/E3CNC_UI
 |--------|---------|
 | **Install (existing Mainsail user)** | Add `[update_manager E3CNC_UI]` block to `moonraker.conf`, restart Klipper via UI, then update |
 | **Install (full)** | `./e3cnc-cli install` |
+| **Interactive menu** | `./e3cnc-cli` (with auto-loop after each command) |
 | **Deploy** | `./e3cnc-cli deploy` |
 | **Update / Redeploy** | `./e3cnc-cli update` |
 | **Uninstall** | `./e3cnc-cli uninstall` |
@@ -57,6 +58,8 @@ git clone https://github.com/E3CNC/E3CNC_UI.git ~/E3CNC_UI && cd ~/E3CNC_UI
 | **Remote install** | `./e3cnc-cli install --remote pi@cnc` |
 | **Dry-run install** | `./e3cnc-cli install --check` |
 | **Logs** | `./e3cnc-cli logs` |
+| **Tab completion** | `source scripts/e3cnc-completion.sh` |
+| **Select instance** | `./e3cnc-cli --instance cnc_2 status` or use the `[W]` menu option |
 
 ## Documentation
 
