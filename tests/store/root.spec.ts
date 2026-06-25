@@ -198,6 +198,74 @@ describe('root store', () => {
             expect(result).toBe('Pause')
         })
 
+        it('getTitle returns Printing when paused but timelapse frame is active', () => {
+            const result = (getters as any).getTitle(
+                {
+                    ...state,
+                    socket: { isConnected: true },
+                    server: { klippy_state: 'ready' },
+                    printer: {
+                        print_stats: { state: 'paused' },
+                        'gcode_macro TIMELAPSE_TAKE_FRAME': { is_paused: true },
+                    },
+                },
+                { 'printer/getEstimatedTimeETAFormat': '--', 'printer/getPrintPercent': 0.5 },
+                {},
+                {}
+            )
+            // TIMELAPSE overrides paused → printing
+            expect(result).toContain('Printing')
+        })
+
+        it('getTitle includes printername in complete state', () => {
+            const result = (getters as any).getTitle(
+                {
+                    ...state,
+                    socket: { isConnected: true },
+                    server: { klippy_state: 'ready' },
+                    printer: { print_stats: { state: 'complete', filename: 'test.gcode' } },
+                    gui: { general: { printername: 'My CNC' } },
+                },
+                {},
+                {},
+                {}
+            )
+            expect(result).toContain('Complete')
+            expect(result).toContain('My CNC')
+        })
+
+        it('getTitle returns hostname when no printername', () => {
+            const result = (getters as any).getTitle(
+                {
+                    ...state,
+                    socket: { isConnected: true },
+                    server: { klippy_state: 'ready' },
+                    printer: { print_stats: { state: 'standby' }, hostname: 'myprinter' },
+                    gui: { general: {} },
+                },
+                {},
+                {},
+                {}
+            )
+            expect(result).toBe('myprinter')
+        })
+
+        it('getTitle returns E3CNC fallback when no printername or hostname', () => {
+            const result = (getters as any).getTitle(
+                {
+                    ...state,
+                    socket: { isConnected: true },
+                    server: { klippy_state: 'ready' },
+                    printer: { print_stats: { state: 'standby' } },
+                    gui: { general: {} },
+                },
+                {},
+                {},
+                {}
+            )
+            expect(result).toBe('E3CNC')
+        })
+
         it('getTitle returns Complete when print is complete', () => {
             const result = (getters as any).getTitle(
                 {

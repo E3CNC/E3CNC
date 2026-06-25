@@ -201,6 +201,17 @@ class E3cncTui(App):
         ("down", "move_down", "Down"),
         ("left", "move_left", "Left"),
         ("right", "move_right", "Right"),
+        ("s", "run_status", "Status"),
+        ("i", "run_install", "Install"),
+        ("d", "run_deploy", "Deploy"),
+        ("u", "run_update", "Update"),
+        ("x", "run_uninstall", "Uninstall"),
+        ("c", "run_check", "Check"),
+        ("b", "run_backup", "Backup"),
+        ("r", "run_restore", "Restore"),
+        ("g", "run_diagnose", "Diagnose"),
+        ("l", "run_logs", "Logs"),
+        ("q", "run_exit", "Exit"),
     ]
 
     status_text = reactive("Ready")
@@ -524,6 +535,39 @@ class E3cncTui(App):
 
     def action_move_right(self) -> None:
         self._move_focus(col_delta=1)
+
+    def action_run_status(self) -> None:
+        self._run_command("status", "Status Check")
+
+    def action_run_install(self) -> None:
+        self._run_command("install", "Install")
+
+    def action_run_deploy(self) -> None:
+        self._run_command("deploy", "Deploy")
+
+    def action_run_update(self) -> None:
+        self._run_command("update", "Update")
+
+    def action_run_uninstall(self) -> None:
+        self._run_command("uninstall", "Uninstall")
+
+    def action_run_check(self) -> None:
+        self._run_command("check", "Dependency Check")
+
+    def action_run_backup(self) -> None:
+        self._run_command("backup", "Backup")
+
+    def action_run_restore(self) -> None:
+        self._run_command("restore", "Restore")
+
+    def action_run_diagnose(self) -> None:
+        self._run_command("diagnose", "Diagnostics")
+
+    def action_run_logs(self) -> None:
+        self._run_command("logs", "Logs")
+
+    def action_run_exit(self) -> None:
+        self.exit()
 
     def watch_status_text(self, text: str) -> None:
         """Reactively update the status bar."""
