@@ -2,587 +2,206 @@
 """
 e3cnc-tui — Terminal User Interface for E3CNC UI management.
 
-A Textual-based TUI that wraps the command logic from _e3cnc_shared.py
-with an interactive button grid, options panel, and live output display.
+Zero dependencies — uses only Python stdlib.
 
-Usage:
-    e3cnc-tui          # Launch the TUI
-
-Textual is auto-installed on first run if missing.
+Arrow keys to navigate, Enter to run, q to quit.
+Output prints inline in the same terminal.
 """
 
-import importlib
-import subprocess
+import os
 import sys
+import termios
+import tty
 
-# ── Self-bootstrap: auto-install textual if missing ────────────────────────
-
-def _ensure_textual() -> None:
-    """Check if textual is installed; if not, install it via pip."""
-    try:
-        import textual  # noqa: F401
-    except ImportError:
-        print("\n  E3CNC TUI requires the 'textual' library.")
-        print("  Installing it now...")
-        sys.stdout.flush()
-        result = subprocess.run(
-            [sys.executable, "-m", "pip", "install", "textual", "--quiet"],
-            capture_output=True, text=True,
-        )
-        if result.returncode != 0:
-            print(f"\n  Failed to install textual: {result.stderr}")
-            print("  Try manually: pip install textual")
-            sys.exit(1)
-        # Force reimport
-        importlib.invalidate_caches()
-        try:
-            import textual  # noqa: F401
-        except ImportError:
-            print("\n  textual was installed but cannot be imported.")
-            print("  Try restarting your terminal, or run: pip install textual")
-            sys.exit(1)
-        print("  ✓ textual installed successfully\n")
-
-
-_ensure_textual()
-
-
-# ── Textual imports (guaranteed available now) ─────────────────────────────
-
-import asyncio
-from pathlib import Path
-from typing import Optional
-
-from textual import work
-from textual.app import App, ComposeResult
-from textual.containers import Container, Horizontal, Vertical, VerticalScroll
-from textual.css.query import NoMatches
-from textual.reactive import reactive
-from textual.screen import Screen
-from textual.widgets import (
-    Button,
-    Checkbox,
-    Footer,
-    Header,
-    Input,
-    Label,
-    RichLog,
-    Static,
-)
-
-# Import shared command logic
 from _e3cnc_shared import (
-    VERSION, TOOL_NAME, HERE,
+    VERSION, TOOL_NAME,
     check_dependencies, check_status,
-    run_backup, run_restore, run_diagnose, run_logs,
+    run_backup, run_diagnose, run_logs,
     run_ansible_playbook,
     INSTALL_PLAYBOOK, DEPLOY_PLAYBOOK, UNINSTALL_PLAYBOOK, REDEPLOY_PLAYBOOK,
+    print_banner,
 )
 
-TUI_BANNER_RAW = """ ███████╗ ██████╗   ██████╗ ███╗   ██╗  ██████╗
- ██╔════╝ ╚════██╗ ██╔════╝ ████╗  ██║ ██╔════╝
- █████╗    █████╔╝ ██║      ██╔██╗ ██║ ██║
- ██╔══╝    ╚═══██╗ ██║      ██║╚██╗██║ ██║
- ███████╗ ██████╔╝ ╚██████╗ ██║ ╚████║ ╚██████╗
- ╚══════╝ ╚═════╝   ╚═════╝ ╚═╝  ╚═══╝  ╚═════╝"""
+# ── Menu data ──────────────────────────────────────────────────────────────
 
-# ── CSS ─────────────────────────────────────────────────────────────────────
+ITEMS = [
+    ("[S] Status",      "status"),
+    ("[I] Install",     "install"),
+    ("[D] Deploy",      "deploy"),
+    ("[U] Update",      "update"),
+    ("[X] Uninstall",   "uninstall"),
+    ("[C] Check Deps",  "check"),
+    ("[B] Backup",      "backup"),
+    ("[R] Restore",     "restore"),
+    ("[G] Diagnose",    "diagnose"),
+    ("[L] Logs",        "logs"),
+    ("",                None),       # spacer
+    ("[Q] Quit",        "quit"),
+]
 
-CSS = """
-E3cncTui {
-    background: #0a0a0a;
+LABELS = {
+    "status": "Status Check", "install": "Install",
+    "deploy": "Deploy", "update": "Update",
+    "uninstall": "Uninstall", "check": "Dependency Check",
+    "backup": "Backup", "restore": "Restore",
+    "diagnose": "Diagnostics", "logs": "Logs",
 }
 
-#banner {
-    color: #00FF00;
-    text-align: center;
-    padding: 0 1;
-}
-
-#title-bar {
-    background: #1a1a1a;
-    color: #888;
-    height: 1;
-    content-align: center middle;
-}
-
-#main-area {
-    height: 1fr;
-}
-
-#button-grid {
-    layout: grid;
-    grid-size: 4;
-    grid-gutter: 1;
-    padding: 1 2;
-    height: auto;
-    min-height: 6;
-}
-
-#button-grid Button {
-    width: 1fr;
-    height: 3;
-    background: #2f2f2f;
-    color: #dddddd;
-    border: solid #00FF00;
-}
-
-#button-grid Button:focus {
-    background: #00FF00;
-    color: #000000;
-    text-style: bold;
-}
+BANNER = """\
+\x1b[32m\
+███████╗ ██████╗   ██████╗ ███╗   ██╗  ██████╗
+██╔════╝ ╚════██╗ ██╔════╝ ████╗  ██║ ██╔════╝
+█████╗    █████╔╝ ██║      ██╔██╗ ██║ ██║
+██╔══╝    ╚═══██╗ ██║      ██║╚██╗██║ ██║
+███████╗ ██████╔╝ ╚██████╗ ██║ ╚████║ ╚██████╗
+╚══════╝ ╚═════╝   ╚═════╝ ╚═╝  ╚═══╝  ╚═════╝\
+\x1b[0m"""
 
 
-#output-panel {
-    height: 1fr;
-    border: solid #333;
-    margin: 1 1 0 1;
-}
+# ── Key reader ─────────────────────────────────────────────────────────────
 
-#output-panel > Label {
-    background: #1a1a1a;
-    color: #00FF00;
-    text-style: bold;
-    padding: 0 1;
-    height: 1;
-}
-
-#command-output {
-    background: #0d0d0d;
-    color: #ccc;
-    padding: 0 1;
-}
-
-#status-bar {
-    background: #1a1a1a;
-    color: #666;
-    height: 1;
-    padding: 0 1;
-}
-
-.status-ok {
-    color: #00FF00;
-}
-
-.status-warn {
-    color: #FFA500;
-}
-
-.status-err {
-    color: #FF4444;
-}
-
-.status-idle {
-    color: #666;
-}
-
-"""
+def _getch() -> str:
+    """Read a single keypress without Enter."""
+    fd = sys.stdin.fileno()
+    old = termios.tcgetattr(fd)
+    try:
+        tty.setraw(fd)
+        ch = sys.stdin.read(1)
+        if ch == "\x1b":
+            seq = ch + sys.stdin.read(2)
+            return seq
+        return ch
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old)
 
 
-# ── TUI App ─────────────────────────────────────────────────────────────────
+# ── Menu renderer ──────────────────────────────────────────────────────────
 
-class E3cncTui(App):
-    """E3CNC UI management TUI."""
+def _clear() -> None:
+    """Clear screen and move cursor home."""
+    sys.stdout.write("\x1b[2J\x1b[H")
+    sys.stdout.flush()
 
-    BUTTON_ROWS = [
-        ["btn-status", "btn-install", "btn-deploy", "btn-update"],
-        ["btn-uninstall", "btn-check", "btn-backup", "btn-restore"],
-        ["btn-diagnose", "btn-logs", "btn-exit"],
-    ]
 
-    TITLE = "E3CNC UI Manager"
-    CSS = CSS
-    BINDINGS = [
-        ("ctrl+c", "quit", "Quit"),
-        ("escape", "focus_button_grid", "Buttons"),
-        ("f5", "refresh_status", "Refresh Status"),
-        ("up", "move_up", "Up"),
-        ("down", "move_down", "Down"),
-        ("left", "move_left", "Left"),
-        ("right", "move_right", "Right"),
-        ("s", "run_status", "Status"),
-        ("i", "run_install", "Install"),
-        ("d", "run_deploy", "Deploy"),
-        ("u", "run_update", "Update"),
-        ("x", "run_uninstall", "Uninstall"),
-        ("c", "run_check", "Check"),
-        ("b", "run_backup", "Backup"),
-        ("r", "run_restore", "Restore"),
-        ("g", "run_diagnose", "Diagnose"),
-        ("l", "run_logs", "Logs"),
-        ("q", "run_exit", "Exit"),
-    ]
+def _render(selected: int) -> None:
+    """Render the menu at the current cursor position."""
+    lines = []
+    lines.append(BANNER)
+    lines.append(f"")
+    lines.append(f"  \x1b[90m{TOOL_NAME} v{VERSION}  —  Terminal UI\x1b[0m")
+    lines.append(f"")
 
-    status_text = reactive("Ready")
-    status_class = reactive("status-idle")
-    running = reactive(False)
-
-    # ── Screen setup ────────────────────────────────────────────────────────
-
-    def compose(self) -> ComposeResult:
-        # Banner
-        yield Static("", id="banner-spacer-top")
-        yield Static(TUI_BANNER_RAW, id="banner")
-        yield Static("", id="banner-spacer-bottom")
-        yield Static(f"  {TOOL_NAME} v{VERSION}  —  Terminal UI", id="title-bar")
-
-        # Main area: buttons + options + output
-        with Container(id="main-area"):
-            # Button grid
-            with Horizontal(id="button-grid"):
-                yield Button("[S] Status", id="btn-status", variant="primary")
-                yield Button("[I] Install", id="btn-install", variant="primary")
-                yield Button("[D] Deploy", id="btn-deploy", variant="primary")
-                yield Button("[U] Update", id="btn-update", variant="primary")
-                yield Button("[X] Uninstall", id="btn-uninstall", variant="error")
-                yield Button("[C] Check Deps", id="btn-check", variant="default")
-                yield Button("[B] Backup", id="btn-backup", variant="default")
-                yield Button("[R] Restore", id="btn-restore", variant="default")
-                yield Button("[G] Diagnose", id="btn-diagnose", variant="default")
-                yield Button("[L] Logs", id="btn-logs", variant="default")
-                yield Button("[Q] Exit", id="btn-exit", variant="error")
-
-            # Output panel
-            with Container(id="output-panel"):
-                yield Label(" Output")
-                yield RichLog(id="command-output", highlight=True, markup=True, wrap=True)
-
-        # Footer
-        yield Static(id="status-bar")
-
-    def on_mount(self) -> None:
-        """Set up initial state."""
-        self._update_status("Ready — press a button to start", "status-idle")
-        self.query_one("#command-output", RichLog).write(
-            "[dim]Welcome to E3CNC UI Manager[/]\n"
-            "[dim]Use arrow keys to navigate buttons.[/]\n"
-            "[dim]Press Enter to run the focused action.[/]\n"
-        )
-        self.action_focus_button_grid()
-
-    # ── Helpers ─────────────────────────────────────────────────────────────
-
-    def _get_remote(self) -> Optional[str]:
-        return None
-
-    def _get_check_mode(self) -> bool:
-        return False
-
-    def _get_verbose(self) -> bool:
-        return False
-
-    def _get_log_lines(self) -> int:
-        return 50
-
-    def _update_status(self, text: str, css_class: str = "status-idle") -> None:
-        self.status_text = text
-        self.status_class = css_class
-        try:
-            bar = self.query_one("#status-bar", Static)
-            bar.update(f"[{css_class}]{text}[/]")
-        except NoMatches:
-            pass
-
-    def _get_output(self) -> RichLog:
-        return self.query_one("#command-output", RichLog)
-
-    def _output_callback(self, line: str) -> None:
-        """Called by command functions for each line of output."""
-        self.call_from_thread(self._get_output().write, line)
-
-    def _disable_buttons(self, disabled: bool = True) -> None:
-        """Enable/disable all command buttons."""
-        for row in self.BUTTON_ROWS:
-            for btn_id in row:
-                try:
-                    self.query_one(f"#{btn_id}", Button).disabled = disabled
-                except NoMatches:
-                    pass
-
-    def _focused_button_id(self) -> Optional[str]:
-        focused = self.focused
-        if isinstance(focused, Button):
-            return focused.id
-        return None
-
-    def _focus_button(self, button_id: str) -> None:
-        try:
-            self.query_one(f"#{button_id}", Button).focus()
-        except NoMatches:
-            pass
-
-    def _find_button_position(self, button_id: str) -> Optional[tuple[int, int]]:
-        for row_index, row in enumerate(self.BUTTON_ROWS):
-            for col_index, current_id in enumerate(row):
-                if current_id == button_id:
-                    return row_index, col_index
-        return None
-
-    def _move_focus(self, row_delta: int = 0, col_delta: int = 0) -> None:
-        if self.running:
-            return
-
-        button_id = self._focused_button_id()
-        if button_id is None:
-            self.action_focus_button_grid()
-            return
-
-        pos = self._find_button_position(button_id)
-        if pos is None:
-            self.action_focus_button_grid()
-            return
-
-        row_index, col_index = pos
-        target_row_index = max(0, min(len(self.BUTTON_ROWS) - 1, row_index + row_delta))
-
-        if row_delta != 0:
-            target_row = self.BUTTON_ROWS[target_row_index]
-            target_col_index = max(0, min(len(target_row) - 1, col_index))
+    for i, (label, cmd) in enumerate(ITEMS):
+        prefix = "  "
+        if cmd is None:
+            lines.append("")
+            continue
+        if i == selected:
+            lines.append(f"  \x1b[42m\x1b[30m{label}\x1b[0m")
         else:
-            target_row = self.BUTTON_ROWS[row_index]
-            target_row_index = row_index
-            target_col_index = max(0, min(len(target_row) - 1, col_index + col_delta))
+            lines.append(f"  {label}")
 
-        self._focus_button(self.BUTTON_ROWS[target_row_index][target_col_index])
+    lines.append(f"")
+    lines.append(f"  \x1b[90m↑↓ navigate · Enter run · q quit\x1b[0m")
 
-    # ── Action: Refresh Status ──────────────────────────────────────────────
+    # Write from top of screen
+    sys.stdout.write("\x1b[H" + "\n".join(lines))
+    sys.stdout.flush()
 
-    @work(thread=True)
-    def action_refresh_status(self) -> None:
-        """Quick status check (bound to F5)."""
-        self.call_from_thread(self._update_status, "Checking status...", "status-idle")
-        self.call_from_thread(self._get_output().clear)
-        remote = self._get_remote()
-        ok_count, total, lines = check_status(remote)
+
+# ── Command runner ─────────────────────────────────────────────────────────
+
+def _run_command(cmd: str) -> None:
+    """Run a command, printing output inline."""
+    label = LABELS.get(cmd, cmd)
+
+    # Exit alternate screen / clear the TUI
+    sys.stdout.write("\x1b[?1049l\x1b[2J\x1b[H")
+    sys.stdout.flush()
+
+    print()
+    print_banner()
+    print(f"\n  \x1b[36m>> Running {label}...\x1b[0m\n")
+
+    if cmd == "status":
+        _, _, lines = check_status()
         for line in lines:
-            self._output_callback(line + "\n")
-        if ok_count == total:
-            self.call_from_thread(self._update_status,
-                                  f"✓ All {total} components installed", "status-ok")
-        else:
-            self.call_from_thread(self._update_status,
-                                  f"⚠ {ok_count}/{total} components installed", "status-warn")
-
-    # ── Command dispatcher ──────────────────────────────────────────────────
-
-    def _run_command(self, command_name: str, label: str) -> None:
-        """Run a command asynchronously with button disabling."""
-        if self.running:
-            return
-
-        self.running = True
-        self._disable_buttons(True)
-        self._get_output().clear()
-        self._update_status(f"Running {label}...", "status-idle")
-
-        # Dispatch to the right handler
-        dispatch = {
-            "status": self._cmd_status,
-            "install": self._cmd_install,
-            "deploy": self._cmd_deploy,
-            "update": self._cmd_update,
-            "uninstall": self._cmd_uninstall,
-            "check": self._cmd_check,
-            "backup": self._cmd_backup,
-            "restore": self._cmd_restore,
-            "diagnose": self._cmd_diagnose,
-            "logs": self._cmd_logs,
-        }
-        handler = dispatch.get(command_name)
-        if handler:
-            handler()
-        else:
-            self._get_output().write(f"[red]Unknown command: {command_name}[/]")
-            self._finish_command(False, label)
-
-    def _finish_command(self, success: bool, label: str) -> None:
-        """Re-enable buttons and update status after a command finishes."""
-        self.running = False
-        self._disable_buttons(False)
-        if success:
-            self._update_status(f"✓ {label} completed", "status-ok")
-        else:
-            self._update_status(f"✗ {label} failed — see output above", "status-err")
-
-    # ── Individual command implementations ──────────────────────────────────
-
-    @work(thread=True)
-    def _cmd_status(self) -> None:
-        remote = self._get_remote()
-        ok_count, total, lines = check_status(remote)
+            print(line)
+    elif cmd == "check":
+        _, lines = check_dependencies()
         for line in lines:
-            self._output_callback(line + "\n")
-        success = ok_count == total
-        self.call_from_thread(self._finish_command, success, "Status")
+            print(line)
+    elif cmd == "backup":
+        result = run_backup(None)
+        print(result.output)
+    elif cmd == "diagnose":
+        result = run_diagnose(None)
+        print(result.output)
+    elif cmd == "logs":
+        result = run_logs(None, 20)
+        print(result.output)
+    elif cmd == "restore":
+        print("  \x1b[33mUse: e3cnc-cli restore <backup-dir>\x1b[0m")
+    elif cmd in ("install", "deploy", "update", "uninstall"):
+        playbook = {
+            "install": INSTALL_PLAYBOOK,
+            "deploy": DEPLOY_PLAYBOOK,
+            "update": REDEPLOY_PLAYBOOK,
+            "uninstall": UNINSTALL_PLAYBOOK,
+        }[cmd]
+        result = run_ansible_playbook(playbook, None, False, False, label)
+        icon = "✓" if result.success else "✗"
+        print(f"\n  \x1b[{'32' if result.success else '31'}m{icon} {label} completed\x1b[0m")
 
-    @work(thread=True)
-    def _cmd_install(self) -> None:
-        result = run_ansible_playbook(
-            INSTALL_PLAYBOOK, self._get_remote(),
-            self._get_check_mode(), self._get_verbose(),
-            "Install", output_callback=self._output_callback,
-        )
-        self.call_from_thread(self._finish_command, result.success, "Install")
-
-    @work(thread=True)
-    def _cmd_deploy(self) -> None:
-        result = run_ansible_playbook(
-            DEPLOY_PLAYBOOK, self._get_remote(),
-            self._get_check_mode(), self._get_verbose(),
-            "Deploy", output_callback=self._output_callback,
-        )
-        self.call_from_thread(self._finish_command, result.success, "Deploy")
-
-    @work(thread=True)
-    def _cmd_update(self) -> None:
-        result = run_ansible_playbook(
-            REDEPLOY_PLAYBOOK, self._get_remote(),
-            self._get_check_mode(), self._get_verbose(),
-            "Update", output_callback=self._output_callback,
-        )
-        self.call_from_thread(self._finish_command, result.success, "Update")
-
-    @work(thread=True)
-    def _cmd_uninstall(self) -> None:
-        result = run_ansible_playbook(
-            UNINSTALL_PLAYBOOK, self._get_remote(),
-            self._get_check_mode(), self._get_verbose(),
-            "Uninstall", output_callback=self._output_callback,
-        )
-        self.call_from_thread(self._finish_command, result.success, "Uninstall")
-
-    @work(thread=True)
-    def _cmd_check(self) -> None:
-        all_ok, _ = check_dependencies(output_callback=self._output_callback)
-        self.call_from_thread(self._finish_command, all_ok, "Check")
-
-    @work(thread=True)
-    def _cmd_backup(self) -> None:
-        result = run_backup(self._get_remote(), output_callback=self._output_callback)
-        self.call_from_thread(self._finish_command, result.success, "Backup")
-
-    @work(thread=True)
-    def _cmd_restore(self) -> None:
-        # Grab backup dir from the output area / a prompt
-        # For now, re-use a simple approach: prompt via input
-        # Since Textual doesn't have a built-in prompt, we show instructions
-        self._output_callback(
-            "[yellow]To restore, run: e3cnc-cli restore <backup-dir>[/]\n"
-            "[yellow]Or type the backup directory name below and press Restore again.[/]\n"
-        )
-        # Fallback: use the shared function with empty dir — will fail gracefully
-        result = run_restore(
-            "", self._get_remote(), True,
-            output_callback=self._output_callback,
-        )
-        self.call_from_thread(self._finish_command, result.success, "Restore")
-
-    @work(thread=True)
-    def _cmd_diagnose(self) -> None:
-        result = run_diagnose(self._get_remote(), output_callback=self._output_callback)
-        self.call_from_thread(self._finish_command, result.success, "Diagnose")
-
-    @work(thread=True)
-    def _cmd_logs(self) -> None:
-        result = run_logs(self._get_remote(), self._get_log_lines(),
-                          output_callback=self._output_callback)
-        self.call_from_thread(self._finish_command, result.success, "Logs")
-
-    # ── Event handlers ──────────────────────────────────────────────────────
-
-    def on_button_pressed(self, event: Button.Pressed) -> None:
-        """Handle button presses."""
-        btn_id = event.button.id or ""
-        command_map = {
-            "btn-status": "status",
-            "btn-install": "install",
-            "btn-deploy": "deploy",
-            "btn-update": "update",
-            "btn-uninstall": "uninstall",
-            "btn-check": "check",
-            "btn-backup": "backup",
-            "btn-restore": "restore",
-            "btn-diagnose": "diagnose",
-            "btn-logs": "logs",
-            "btn-exit": "exit",
-        }
-        command = command_map.get(btn_id)
-        if command == "exit":
-            self.exit()
-        elif command:
-            label_map = {
-                "status": "Status Check", "install": "Install",
-                "deploy": "Deploy", "update": "Update",
-                "uninstall": "Uninstall", "check": "Dependency Check",
-                "backup": "Backup", "restore": "Restore",
-                "diagnose": "Diagnostics", "logs": "Logs",
-            }
-            self._run_command(command, label_map.get(command, command))
-
-    def action_focus_button_grid(self) -> None:
-        """Focus the first button (bound to Escape)."""
-        self._focus_button("btn-status")
-
-    def action_move_up(self) -> None:
-        self._move_focus(row_delta=-1)
-
-    def action_move_down(self) -> None:
-        self._move_focus(row_delta=1)
-
-    def action_move_left(self) -> None:
-        self._move_focus(col_delta=-1)
-
-    def action_move_right(self) -> None:
-        self._move_focus(col_delta=1)
-
-    def action_run_status(self) -> None:
-        self._run_command("status", "Status Check")
-
-    def action_run_install(self) -> None:
-        self._run_command("install", "Install")
-
-    def action_run_deploy(self) -> None:
-        self._run_command("deploy", "Deploy")
-
-    def action_run_update(self) -> None:
-        self._run_command("update", "Update")
-
-    def action_run_uninstall(self) -> None:
-        self._run_command("uninstall", "Uninstall")
-
-    def action_run_check(self) -> None:
-        self._run_command("check", "Dependency Check")
-
-    def action_run_backup(self) -> None:
-        self._run_command("backup", "Backup")
-
-    def action_run_restore(self) -> None:
-        self._run_command("restore", "Restore")
-
-    def action_run_diagnose(self) -> None:
-        self._run_command("diagnose", "Diagnostics")
-
-    def action_run_logs(self) -> None:
-        self._run_command("logs", "Logs")
-
-    def action_run_exit(self) -> None:
-        self.exit()
-
-    def watch_status_text(self, text: str) -> None:
-        """Reactively update the status bar."""
-        pass  # Handled in _update_status
-
-    def watch_status_class(self, cls: str) -> None:
-        """Reactively update the status bar class."""
-        pass  # Handled in _update_status
+    print()
+    input("  \x1b[90mPress Enter to return to menu...\x1b[0m")
 
 
-# ── Entry point ─────────────────────────────────────────────────────────────
+# ── Main loop ──────────────────────────────────────────────────────────────
 
 def main() -> None:
-    app = E3cncTui()
-    app.run()
+    selected = 0
+
+    # Enter alternate screen
+    sys.stdout.write("\x1b[?1049h")
+    _clear()
+
+    try:
+        while True:
+            _render(selected)
+            key = _getch()
+
+            if key == "\x1b[A":  # Up
+                selected = (selected - 1) % len(ITEMS)
+                while ITEMS[selected][1] is None:  # skip spacers
+                    selected = (selected - 1) % len(ITEMS)
+            elif key == "\x1b[B":  # Down
+                selected = (selected + 1) % len(ITEMS)
+                while ITEMS[selected][1] is None:  # skip spacers
+                    selected = (selected + 1) % len(ITEMS)
+            elif key in ("\r", "\n"):  # Enter
+                _, cmd = ITEMS[selected]
+                if cmd is None:
+                    continue
+                if cmd == "quit":
+                    break
+
+                # Exit alternate screen before running command
+                sys.stdout.write("\x1b[?1049l")
+                sys.stdout.flush()
+
+                _run_command(cmd)
+
+                # Re-enter alternate screen
+                sys.stdout.write("\x1b[?1049h")
+                _clear()
+
+            elif key == "q":
+                break
+
+    finally:
+        sys.stdout.write("\x1b[?1049l\x1b[2J\x1b[H")
+        sys.stdout.flush()
 
 
 if __name__ == "__main__":

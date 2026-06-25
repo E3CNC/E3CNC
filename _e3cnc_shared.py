@@ -305,7 +305,7 @@ def run_backup(remote_host: Optional[str] = None, output_callback=None) -> CmdRe
     _o("Backing up frontend (mainsail)...")
     mainsail_dir = Path.home() / "mainsail"
     if mainsail_dir.is_dir():
-        shutil.copytree(mainsail_dir, backup_dir / "frontend", ignore=shutil.ignore_patterns(*BACKUP_EXCLUDES))
+        shutil.copytree(mainsail_dir, backup_dir / "frontend", ignore=shutil.ignore_patterns(*BACKUP_EXCLUDES), symlinks=True)
         _o(f"  ✓ Frontend backed up ({_dir_size(mainsail_dir)} MB)")
     else:
         _o("  ⚠ No frontend directory found")
@@ -313,7 +313,7 @@ def run_backup(remote_host: Optional[str] = None, output_callback=None) -> CmdRe
     _o("Backing up printer config...")
     config_dir = Path.home() / "printer_data" / "config"
     if config_dir.is_dir():
-        shutil.copytree(config_dir, backup_dir / "config", ignore=shutil.ignore_patterns(*BACKUP_EXCLUDES))
+        shutil.copytree(config_dir, backup_dir / "config", ignore=shutil.ignore_patterns(*BACKUP_EXCLUDES), symlinks=True)
         _o("  ✓ Printer config backed up")
     else:
         _o("  ⚠ No config directory found")
