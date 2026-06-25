@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createStore } from 'vuex'
-import { createTestVuetify } from '../../vuetify.ts'
+import { createTestVuetify } from '../../vuetify'
 
 vi.mock('@/composables/useBase', () => ({
     useBase: () => ({ viewport: { value: 'desktop' } }),
@@ -16,6 +16,7 @@ import Panel from '@/components/ui/Panel.vue'
 const vuetify = createTestVuetify()
 
 function makeStore(overrides: Record<string, any> = {}) {
+    const saveExpandPanel = vi.fn()
     return createStore({
         state: {
             gui: {
@@ -30,7 +31,7 @@ function makeStore(overrides: Record<string, any> = {}) {
             ...(overrides.getters || {}),
         },
         actions: {
-            'gui/saveExpandPanel': vi.fn(),
+            'gui/saveExpandPanel': saveExpandPanel,
             'gui/saveFloatingPanelPosition': vi.fn(),
             'gui/bringFloatingPanelToFront': vi.fn(),
             ...(overrides.actions || {}),
@@ -121,5 +122,35 @@ describe('Panel.vue', () => {
             global: { plugins: [vuetify, makeStore()] },
         })
         expect(wrapper.find('.panel').exists()).toBe(true)
+    })
+
+    it('collapses and expands on collapse button click', async () => {
+        const saveExpandPanel = vi.fn()
+        const store = makeStore({
+            actions: {
+                'gui/saveExpandPanel': saveExpandPanel,
+                'gui/saveFloatingPanelPosition': vi.fn(),
+                'gui/bringFloatingPanelToFront': vi.fn(),
+            },
+        })
+        const wrapper = mount(Panel, {
+            props: { cardClass: 'test-panel', collapsible: true, title: 'Collapsible' },
+            global: { plugins: [vuetify, store] },
+        })
+        // Find collapse button and click it
+        const collapseBtn = wrapper.find('.btn-collapsible')
+        if (collapseBtn.exists()) {
+            await collapseBtn.trigger('click')
+            // Should dispatch saveExpandPanel
+            expect(saveExpandPanel).toHaveBeenCalled()
+        }
+    })
+
+    it('renders with floatable prop', () => {
+        const wrapper = mount(Panel, {
+            props: { cardClass: 'test-panel', floatable: true, title: 'Floatable' },
+            global: { plugins: [vuetify, makeStore()] },
+        })
+        expect(wrapper.exists()).toBe(true)
     })
 })

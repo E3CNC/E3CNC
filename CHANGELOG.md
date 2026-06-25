@@ -5,6 +5,7 @@
 - No more `community.general` dependency — replaced `ini_file` with `lineinfile`
 - No more `bun`/`node` required on target — frontend is pre-built
 - Auto-install missing deps (pip, ansible, curl, unzip) with PEP 668 fix
+- Frontend download uses direct GitHub URL — no `node` needed for release lookup
 - Add Docker test containers for fresh-install and multi-instance testing
 
 ## v0.7.8 (2026-06-25)
