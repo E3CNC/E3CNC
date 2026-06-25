@@ -79,4 +79,19 @@ describe('useHistory', () => {
             },
         ])
     })
+
+    it('handles null/undefined state gracefully', () => {
+        store = createStore({
+            state: {
+                server: { history: {}, config: {} },
+                gui: { view: { history: {} } },
+            },
+        })
+        const history = mountComposable()
+        expect(history.hidePrintStatus.value).toEqual([])
+        expect(history.allJobs.value).toEqual([])
+        expect(history.jobs.value).toEqual([])
+        expect(history.selectedJobs.value).toEqual([])
+        expect(history.moonrakerHistoryFields.value).toEqual([])
+    })
 })

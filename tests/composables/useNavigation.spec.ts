@@ -141,4 +141,11 @@ describe('useNavigation', () => {
         const nav = mountComposable()
         expect(nav.showInNavi({ title: 'Special', showInNavi: true, path: '/special', icon: 'sp', position: 5, klipperComponent: 'nonexistent' })).toBe(false)
     })
+
+    it('checks if webcam navi should be shown based on webcams and setting', () => {
+        mockStore.getters['gui/webcams/getWebcams'] = () => [{ name: 'cam1' }]
+        mockStore.state.gui.uiSettings.boolWebcamNavi = true
+        const nav = mountComposable()
+        expect(nav.boolNaviWebcam.value).toBe(true)
+    })
 })
