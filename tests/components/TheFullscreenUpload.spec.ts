@@ -103,6 +103,8 @@ describe('TheFullscreenUpload.vue', () => {
     it('handles drop event with files', async () => {
         const store = makeStore()
         const wrapper = mount(TheFullscreenUpload, { global: { plugins: [store, i18n] } })
+        // Mock $toast on the global proxy
+        ;(wrapper.vm as any).$.proxy!.$toast = { success: vi.fn() }
         const dropEvent = new Event('drop')
         const file = new File(['content'], 'test.gcode', { type: 'text/plain' })
         Object.defineProperty(dropEvent, 'dataTransfer', { value: { files: [file] }, writable: true })
