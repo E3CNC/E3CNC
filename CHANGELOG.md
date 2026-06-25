@@ -1,12 +1,23 @@
 # Changelog
 
+## v0.7.9 (2026-06-25)
+- Multi-instance support — separate `moonraker_dir`/`klipper_dir` per instance in Ansible vars
+- No more `community.general` dependency — replaced `ini_file` with `lineinfile`
+- No more `bun`/`node` required on target — frontend is pre-built
+- Auto-install missing deps (pip, ansible, curl, unzip) with PEP 668 fix
+- Add Docker test containers for fresh-install and multi-instance testing
+
 ## v0.7.8 (2026-06-25)
 - Cleanup Vuetify 2 class leftovers across 20+ files
 - Replace Vue 2 `vue-load-image` package with local Vue 3 component
 - Fix TimelapseFilesPanel `sortBy` prop for Vuetify 3 data-table
-- Fix Ansible `stdout_callback` for community.general v12+ compatibility
-- Auto-install missing dependencies (pip, ansible, bun, community.general) during install
-- Add Docker test container for fresh-install verification
+- **Auto-install missing dependencies** — pip, ansible, curl, unzip installed automatically
+- **No more community.general dependency** — replaced `ini_file` module with `lineinfile`
+- **No more `bun`/`node` required** on target machine — frontend is pre-built
+- **Multi-instance support** — separate `moonraker_dir`/`klipper_dir` per instance in Ansible vars
+- **Ansible stdout_callback fixed** — uses `result_format=yaml` (compatible with community.general v12+)
+- **PEP 668 handled** — `--break-system-packages` for Ubuntu 24.04+
+- Add Docker test containers: `Dockerfile.fresh-install`, `Dockerfile.multi-instance`
 
 ## v0.7.7 (2026-06-25)
 - Version compatibility check between `e3cnc-cli` and `_e3cnc_shared.py`
