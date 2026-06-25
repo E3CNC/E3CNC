@@ -89,4 +89,14 @@ describe('useGcodeFiles', () => {
 
         expect(store._actions['gui/saveSetting']).toBeTruthy()
     })
+
+    it('handles headers not in orderMetadataColumns', () => {
+        // When a header's value isn't in orderMetadataColumns, pos becomes
+        // orderMetadataColumns.length + unknownPos (sorted to end)
+        store.state.gui.view.gcodefiles.orderMetadataColumns = ['size']
+        const files = mountComposable()
+        const configurableHeaders = files.configurableHeaders.value
+        // 'slicer' header should not be in orderMetadataColumns
+        expect(configurableHeaders.some((h: any) => h.value === 'slicer')).toBe(true)
+    })
 })

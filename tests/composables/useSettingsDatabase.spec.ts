@@ -60,6 +60,34 @@ describe('useSettingsDatabase', () => {
         expect(sorted[0].value).toBe('general')
     })
 
+    it('sortNamespaces places general first even when it is second arg', () => {
+        const db = mountComposable()
+        const sorted = [
+            { value: 'general', label: 'General' },
+            { value: 'webcams', label: 'Webcams' },
+        ].sort(db.sortNamespaces)
+
+        expect(sorted[0].value).toBe('general')
+    })
+
+    it('sortNamespaces returns 0 for equal labels', () => {
+        const db = mountComposable()
+        const result = db.sortNamespaces(
+            { value: 'a', label: 'test' },
+            { value: 'b', label: 'test' }
+        )
+        expect(result).toBe(0)
+    })
+
+    it('sortNamespaces returns -1 when a < b', () => {
+        const db = mountComposable()
+        const result = db.sortNamespaces(
+            { value: 'a', label: 'apple' },
+            { value: 'b', label: 'banana' }
+        )
+        expect(result).toBe(-1)
+    })
+
     it('loads backupable namespaces from the API', async () => {
         const fetchMock = vi
             .fn()
