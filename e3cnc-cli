@@ -895,10 +895,17 @@ def _require_ansible() -> None:
 
     pip_cmd = "pip3" if shutil.which("pip3") else "pip"
     info("Installing Ansible via pip...")
+    # Try pip install --user first
     result = subprocess.run(
         [pip_cmd, "install", "--user", "ansible"],
         capture_output=True, text=True,
     )
+    if result.returncode != 0:
+        # PEP 668 (externally-managed-environment) — retry with --break-system-packages
+        result = subprocess.run(
+            [pip_cmd, "install", "--user", "--break-system-packages", "ansible"],
+            capture_output=True, text=True,
+        )
     if result.returncode != 0:
         fail(f"Ansible installation failed: {result.stderr}")
 
