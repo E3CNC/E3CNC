@@ -223,7 +223,7 @@ function clearTimers() {
     background: rgba(0, 0, 0, 0.8);
 }
 
-html.theme--light .webcamFpsOutput {
+html.v-theme--light .webcamFpsOutput {
     background: rgba(var(--v-theme-on-surface), 0.7);
 }
 </style>

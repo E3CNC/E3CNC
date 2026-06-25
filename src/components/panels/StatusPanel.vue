@@ -300,7 +300,7 @@ function btnReprintJob() {
     border-bottom-right-radius: inherit;
 }
 
-.theme--dark.v-tabs > .v-tabs-bar .v-tab:not(.v-tab--active) > .v-badge > .v-icon {
+.v-theme--dark.v-tabs .v-tab:not(.v-tab--active) > .v-badge > .v-icon {
     color: rgba(var(--v-theme-on-surface), 0.6);
 }
 </style>

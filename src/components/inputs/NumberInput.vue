@@ -156,7 +156,7 @@ const inputErrors = computed(() => {
     margin-bottom: -6px;
 }
 
-.v-input--has-state {
+.v-input--error {
     margin-bottom: -18px !important;
 }
 </style>

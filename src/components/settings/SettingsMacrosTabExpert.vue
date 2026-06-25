@@ -417,7 +417,7 @@
     padding-bottom: 24px;
 }
 
-html.theme--light .macrogroup-edit-header {
+html.v-theme--light .macrogroup-edit-header {
     border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.12);
 }
 

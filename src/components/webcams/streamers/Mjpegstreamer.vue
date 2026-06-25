@@ -330,7 +330,7 @@ function onload() {
     border-top-left-radius: 5px;
 }
 
-html.theme--light .webcamFpsOutput {
+html.v-theme--light .webcamFpsOutput {
     background: rgba(var(--v-theme-on-surface), 0.7);
 }
 

@@ -124,7 +124,7 @@ const eta = computed(() => {
     border-top: 1px solid rgba(var(--v-theme-on-surface), 0.12);
 }
 
-.theme--light .jobqueue-entry-sum {
+.v-theme--light .jobqueue-entry-sum {
     border-top: 1px solid rgba(var(--v-theme-on-surface), 0.12);
 }
 </style>

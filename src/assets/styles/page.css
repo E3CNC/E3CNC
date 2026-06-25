@@ -147,27 +147,27 @@ body {
 }
 
 /* Light theme */
-html.theme--light {
+html.v-theme--light {
     scrollbar-color: rgba(var(--v-theme-on-surface), 0.55) rgb(var(--v-theme-surface));
 }
 
-html.theme--light body {
+html.v-theme--light body {
     background: rgb(var(--v-theme-background));
 }
 
-html.theme--light ::-webkit-scrollbar {
+html.v-theme--light ::-webkit-scrollbar {
     background-color: rgb(var(--v-theme-surface));
 }
 
-html.theme--light ::-webkit-scrollbar-thumb {
+html.v-theme--light ::-webkit-scrollbar-thumb {
     background-color: rgba(var(--v-theme-on-surface), 0.4);
     border-color: rgb(var(--v-theme-surface));
 }
 
-html.theme--light .os-theme-light > .os-scrollbar > .os-scrollbar-track > .os-scrollbar-handle {
+html.v-theme--light .os-theme-light > .os-scrollbar > .os-scrollbar-track > .os-scrollbar-handle {
     background: rgba(var(--v-theme-on-surface), 0.4) !important;
 }
 
-html.theme--light .os-theme-light > .os-scrollbar > .os-scrollbar-track > .os-scrollbar-handle:hover {
+html.v-theme--light .os-theme-light > .os-scrollbar > .os-scrollbar-track > .os-scrollbar-handle:hover {
     background: rgba(var(--v-theme-on-surface), 0.55) !important;
 }

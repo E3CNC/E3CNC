@@ -89,8 +89,7 @@
                 class="files-table"
                 :headers="headers"
                 :custom-sort="sortFiles"
-                :sort-by="sortBy"
-                :sort-desc="sortDesc"
+                :sort-by="v3SortBy"
                 :items-per-page="countPerPage"
                 :footer-props="{
                     itemsPerPageText: $t('Timelapse.Files'),
@@ -103,7 +102,6 @@
                 mobile-breakpoint="0"
                 show-select
                 @update:sort-by="setSortBy"
-                @update:sort-desc="setSortDesc"
                 @update:items-per-page="setCountPerPage">
                 <template #items>
                     <td v-for="header in headers" :key="header.value">{{ header.text }}</td>
@@ -505,17 +503,16 @@ const directoryPermissions = computed(() => directory.value?.permissions ?? 'r')
 const files = computed(() => [...(directory.value?.childrens ?? [])])
 
 const sortBy = computed(() => store.state.gui.view.timelapse.sortBy ?? 'modified')
-
-function setSortBy(newVal: string) {
-    if (newVal === undefined) newVal = 'modified'
-    store.dispatch('gui/saveSetting', { name: 'view.timelapse.sortBy', value: newVal })
-}
-
 const sortDesc = computed(() => store.state.gui.view.timelapse.sortDesc ?? true)
 
-function setSortDesc(newVal: boolean) {
-    if (newVal === undefined) newVal = false
-    store.dispatch('gui/saveSetting', { name: 'view.timelapse.sortDesc', value: newVal })
+// Vuetify 3 expects sort-by as array of { key, order } objects
+const v3SortBy = computed(() => [{ key: sortBy.value, order: sortDesc.value ? 'desc' : 'asc' }])
+
+function setSortBy(newVal: { key: string; order?: 'asc' | 'desc' }[]) {
+    if (!newVal || !newVal.length) return
+    const { key, order } = newVal[0]
+    store.dispatch('gui/saveSetting', { name: 'view.timelapse.sortBy', value: key })
+    store.dispatch('gui/saveSetting', { name: 'view.timelapse.sortDesc', value: order === 'desc' })
 }
 
 const countPerPage = computed(() => store.state.gui.view.timelapse?.countPerPage ?? 10)
@@ -806,7 +803,7 @@ function deleteSelectedFiles() {
 </script>
 
 <style scoped>
-.v-data-table .v-data-table-header__icon {
+.v-data-table .v-data-table-header__sort-icon {
     margin-left: 7px;
 }
 

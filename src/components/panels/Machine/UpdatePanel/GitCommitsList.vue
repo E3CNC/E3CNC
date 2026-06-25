@@ -137,13 +137,13 @@ function closeDialog() {
     padding-bottom: 0;
 }
 
-:deep(.git-commit-list-day .v-timeline-item__dot--small) {
+:deep(.git-commit-list-day .v-timeline-divider__dot--size-small) {
     width: 18px;
     height: 15px;
     margin-top: 2px;
 }
 
-:deep(.git-commit-list-day .v-timeline-item__dot--small:before) {
+:deep(.git-commit-list-day .v-timeline-divider__dot--size-small:before) {
     display: block;
     content: ' ';
     position: relative;
@@ -154,7 +154,7 @@ function closeDialog() {
     z-index: 1;
 }
 
-:deep(.git-commit-list-day .v-timeline-item__inner-dot) {
+:deep(.git-commit-list-day .v-timeline-divider__inner-dot) {
     background-color: rgb(var(--v-theme-surface));
     border: 2px solid rgba(var(--v-theme-on-surface), 0.5);
     width: 8px;
@@ -165,7 +165,7 @@ function closeDialog() {
     margin-top: 2px;
 }
 
-:deep(.git-commit-list-day.git-commit-list-warning .v-timeline-item__dot--small) {
+:deep(.git-commit-list-day.git-commit-list-warning .v-timeline-divider__dot--size-small) {
     margin-top: 10px;
 }
 
@@ -178,7 +178,7 @@ function closeDialog() {
         max-width: calc(100% - 41px);
     }
 
-    .v-timeline-item__divider {
+    .v-timeline-divider {
         min-width: 41px;
     }
 }

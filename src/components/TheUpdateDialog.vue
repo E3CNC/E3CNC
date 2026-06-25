@@ -174,7 +174,7 @@ watch(messages, () => {
     vertical-align: top;
 }
 
-.updaterLog.v-data-table > .v-data-table__wrapper > table > tbody > tr > td {
+.updaterLog.v-data-table > .v-table__wrapper > table > tbody > tr > td {
     height: auto;
 }
 </style>

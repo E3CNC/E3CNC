@@ -224,7 +224,8 @@ watch(mode, (newVal: string): void => {
     const dark = newVal !== 'light'
     vuetifyTheme.global.name.value = dark ? 'dark' : 'light'
     const doc = document.documentElement
-    doc.className = dark ? 'theme--dark' : 'theme--light'
+    doc.classList.remove('theme--dark', 'theme--light', 'v-theme--dark', 'v-theme--light')
+    doc.classList.add(dark ? 'v-theme--dark' : 'v-theme--light')
 })
 
 async function drawFavicon(val: number): Promise<void> {

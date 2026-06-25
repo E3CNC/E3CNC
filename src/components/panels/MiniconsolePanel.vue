@@ -164,7 +164,7 @@ function scrollTo(position: number) {
     border-top: 1px solid rgba(var(--v-theme-on-surface), 0.12);
 }
 
-html.theme--light .consoleTable {
+html.v-theme--light .consoleTable {
     border-top: 1px solid rgba(var(--v-theme-on-surface), 0.12);
 }
 </style>
