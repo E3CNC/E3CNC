@@ -72,12 +72,19 @@ from textual.widgets import (
 
 # Import shared command logic
 from _e3cnc_shared import (
-    VERSION, TOOL_NAME, HERE, BANNER_RAW,
+    VERSION, TOOL_NAME, HERE,
     check_dependencies, check_status,
     run_backup, run_restore, run_diagnose, run_logs,
     run_ansible_playbook,
     INSTALL_PLAYBOOK, DEPLOY_PLAYBOOK, UNINSTALL_PLAYBOOK, REDEPLOY_PLAYBOOK,
 )
+
+TUI_BANNER_RAW = """ ███████╗ ██████╗   ██████╗ ███╗   ██╗  ██████╗
+ ██╔════╝ ╚════██╗ ██╔════╝ ████╗  ██║ ██╔════╝
+ █████╗    █████╔╝ ██║      ██╔██╗ ██║ ██║
+ ██╔══╝    ╚═══██╗ ██║      ██║╚██╗██║ ██║
+ ███████╗ ██████╔╝ ╚██████╗ ██║ ╚████║ ╚██████╗
+ ╚══════╝ ╚═════╝   ╚═════╝ ╚═╝  ╚═══╝  ╚═════╝"""
 
 # ── CSS ─────────────────────────────────────────────────────────────────────
 
@@ -117,6 +124,7 @@ E3cncTui {
     height: 3;
     background: #2f2f2f;
     color: #dddddd;
+    border: solid #00FF00;
 }
 
 #button-grid Button:focus {
@@ -203,7 +211,9 @@ class E3cncTui(App):
 
     def compose(self) -> ComposeResult:
         # Banner
-        yield Static(BANNER_RAW, id="banner")
+        yield Static("", id="banner-spacer-top")
+        yield Static(TUI_BANNER_RAW, id="banner")
+        yield Static("", id="banner-spacer-bottom")
         yield Static(f"  {TOOL_NAME} v{VERSION}  —  Terminal UI", id="title-bar")
 
         # Main area: buttons + options + output
