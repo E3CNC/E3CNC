@@ -111,4 +111,58 @@ describe('useTheme', () => {
         expect(theme.mainBgImage.value).toBeNull()
         expect(theme.themeCss.value).toBeNull()
     })
+
+    it('returns light sidebar backgrounds in light mode', () => {
+        isDark = false
+        store = createStore({
+            state: {
+                gui: {
+                    uiSettings: { mode: 'light' },
+                },
+            },
+            getters: {
+                'gui/theme': () => 'other',
+                'gui/getTheme': () => ({
+                    sidebarBackground: { show: true, light: true },
+                    logo: { show: true, light: true },
+                    mainBackground: { show: true, light: true },
+                    css: true,
+                }),
+                'files/getSidebarLogo': () => '',
+                'files/getMainBackground': () => '',
+            },
+        })
+        const theme = mountComposable()
+        expect(theme.sidebarBgImage.value).toContain('-light.png')
+        expect(theme.sidebarLogo.value).toContain('-light.svg')
+        expect(theme.mainBgImage.value).toContain('-light.png')
+    })
+
+    it('returns sidebar logo from store when url is set', () => {
+        store = createStore({
+            state: { gui: { uiSettings: { mode: 'dark' } } },
+            getters: {
+                'gui/theme': () => 'mainsail',
+                'gui/getTheme': () => ({}),
+                'files/getSidebarLogo': () => '/custom/logo.svg',
+                'files/getMainBackground': () => null,
+            },
+        })
+        const theme = mountComposable()
+        expect(theme.sidebarLogo.value).toBe('/custom/logo.svg')
+    })
+
+    it('returns main background from store when url is set and not mainsail theme', () => {
+        store = createStore({
+            state: { gui: { uiSettings: { mode: 'dark' } } },
+            getters: {
+                'gui/theme': () => 'other',
+                'gui/getTheme': () => ({}),
+                'files/getSidebarLogo': () => '',
+                'files/getMainBackground': () => '/custom/bg.png',
+            },
+        })
+        const theme = mountComposable()
+        expect(theme.mainBgImage.value).toBe('/custom/bg.png')
+    })
 })

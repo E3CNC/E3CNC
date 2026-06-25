@@ -2,757 +2,129 @@
 """
 e3cnc-cli — Unified CLI for installing, deploying, and managing E3CNC UI.
 
-This tool wraps the project's Ansible playbooks and utility scripts into a
-single, user-friendly command-line interface. It runs on both the CNC host
-(Klipper/Moonraker) and development machines.
+Wraps the command logic in _e3cnc_shared.py with an argparse interface.
 
-Quick start:
-    e3cnc-cli check             # verify dependencies
-    e3cnc-cli install           # full install (agent, frontend, plugins)
-    e3cnc-cli deploy            # deploy frontend only
-    e3cnc-cli update            # re-vendor agent, rebuild frontend, restart
-    e3cnc-cli status            # check installation status
-    e3cnc-cli uninstall         # remove all E3CNC components
-    e3cnc-cli backup            # create a timestamped backup
-    e3cnc-cli restore BACKUP_DIR  # restore from a backup
+Usage:
+    e3cnc-cli <command> [options]
 
-Use --check for dry-run mode, --remote for remote hosts, and --verbose for
-detailed output.
+See --help for full command list.
 """
 
 import argparse
-import json
-import os
-import shutil
-import subprocess
 import sys
-import time
-from datetime import datetime, timezone
 from pathlib import Path
-from typing import NoReturn
 
-# ── Metadata ────────────────────────────────────────────────────────────────
-
-VERSION = "0.7.4"
-TOOL_NAME = "e3cnc-cli"
-
-# ── Paths (relative to this script's location) ─────────────────────────────
-
-HERE = Path(__file__).resolve().parent
-ANSIBLE_DIR = HERE / "ansible"
-PLAYBOOKS_DIR = ANSIBLE_DIR / "playbooks"
-SCRIPTS_DIR = HERE / "scripts"
-
-INSTALL_PLAYBOOK = PLAYBOOKS_DIR / "install.yml"
-DEPLOY_PLAYBOOK = PLAYBOOKS_DIR / "deploy.yml"
-UNINSTALL_PLAYBOOK = PLAYBOOKS_DIR / "uninstall.yml"
-REDEPLOY_PLAYBOOK = PLAYBOOKS_DIR / "redeploy.yml"
-LOCAL_INVENTORY = ANSIBLE_DIR / "inventory" / "local.yml"
-
-DOWNLOAD_FRONTEND_SCRIPT = SCRIPTS_DIR / "download_frontend.sh"
-BACKUP_SCRIPT = SCRIPTS_DIR / "restore_backup.sh"  # not used, we implement inline
-
-DEFAULT_REMOTE_INVENTORY = ANSIBLE_DIR / "inventory" / "remote.yml"
-
-# ── Colors / Styling ────────────────────────────────────────────────────────
-
-def _style_enabled():
-    return sys.stdout.isatty() and os.name != "nt"
-
-
-_STYLE = _style_enabled()
-
-
-def _sc(code: str) -> str:
-    return f"\033[{code}m" if _STYLE else ""
-
-
-class Style:
-    """Minimal terminal styling — degrades gracefully when piped or on Windows."""
-    GREEN = _sc("32")
-    CYAN = _sc("36")
-    YELLOW = _sc("33")
-    RED = _sc("31")
-    BOLD = _sc("1")
-    DIM = _sc("2")
-    RESET = _sc("0")
-
-
-def ok(msg: str) -> None:
-    print(f"  {Style.GREEN}✓{Style.RESET} {msg}")
-
-
-def info(msg: str) -> None:
-    print(f"  {Style.CYAN}→{Style.RESET} {msg}")
-
-
-def warn(msg: str) -> None:
-    print(f"  {Style.YELLOW}⚠{Style.RESET} {msg}", file=sys.stderr)
-
-
-def fail(msg: str, code: int = 1) -> NoReturn:
-    print(f"\n  {Style.RED}✗{Style.RESET} {msg}", file=sys.stderr)
-    sys.exit(code)
-
-
-def step(num: int, total: int, label: str) -> None:
-    print(f"\n  {Style.BOLD}[{num}/{total}]{Style.RESET} {label}")
-
-
-def header(title: str) -> None:
-    print(f"\n  {Style.BOLD}{Style.GREEN}{TOOL_NAME}{Style.RESET} — {title}\n")
-    print(f"  {Style.DIM}Repository root: {HERE}{Style.RESET}")
-
-
-# ── Ansible helpers ─────────────────────────────────────────────────────────
-
-def _build_ansible_cmd(
-    playbook: Path,
-    inventory: Path,
-    *,
-    check: bool = False,
-    verbose: bool = False,
-    extra_vars: list[str] | None = None,
-) -> list[str]:
-    """Build an ansible-playbook command with common flags."""
-    cmd = ["ansible-playbook"]
-    cmd.extend(["-i", str(inventory)])
-    cmd.append(str(playbook))
-    if check:
-        cmd.append("--check")
-    if verbose:
-        cmd.append("-v")
-    if extra_vars:
-        for ev in extra_vars:
-            cmd.extend(["-e", ev])
-    return cmd
-
-
-def run_ansible(
-    playbook: Path,
-    inventory: Path,
-    *,
-    check: bool = False,
-    verbose: bool = False,
-    extra_vars: list[str] | None = None,
-) -> int:
-    """Run an Ansible playbook and stream output."""
-    cmd = _build_ansible_cmd(
-        playbook, inventory, check=check, verbose=verbose, extra_vars=extra_vars
-    )
-    print(f"\n  {Style.DIM}$ {' '.join(cmd)}{Style.RESET}\n")
-    result = subprocess.run(cmd, cwd=ANSIBLE_DIR)
-    return result.returncode
-
-
-# ── Dependency checks ───────────────────────────────────────────────────────
-
-def _check_command(name: str, hint: str = "") -> bool:
-    """Return True if `name` is found on PATH."""
-    found = shutil.which(name) is not None
-    if found:
-        ok(f"{name} found")
-    else:
-        missing_hint = f"  {hint}" if hint else ""
-        warn(f"{name} not found" + (f"\n{missing_hint}" if missing_hint else ""))
-    return found
-
-
-def _check_python_module(module: str) -> bool:
-    """Return True if a Python module can be imported."""
-    try:
-        __import__(module)
-        ok(f"Python module: {module}")
-        return True
-    except ImportError:
-        warn(f"Python module: {module} not found")
-        return False
+# Import shared logic
+from _e3cnc_shared import (
+    VERSION, TOOL_NAME, HERE, Style,
+    print_banner, ok, info, warn, fail, step, header,
+    INSTALL_PLAYBOOK, DEPLOY_PLAYBOOK, UNINSTALL_PLAYBOOK, REDEPLOY_PLAYBOOK,
+    run_ansible_playbook, check_dependencies, check_status,
+    run_backup, run_restore, run_diagnose, run_logs,
+    _ensure_remote_inventory, LOCAL_INVENTORY,
+)
 
 
 def cmd_check(args: argparse.Namespace) -> None:
-    """Check that all required dependencies are available."""
+    """Check dependencies and print results."""
     header("Dependency Check")
+    print(f"  {Style.DIM}Repository root: {HERE}{Style.RESET}")
+    all_ok, _ = check_dependencies(output_callback=lambda line: print(line, end=""))
+    if not all_ok:
+        sys.exit(1)
 
-    all_ok = True
-
-    print(f"\n  {Style.BOLD}Core tools{Style.RESET}")
-    all_ok &= _check_command("git")
-    all_ok &= _check_command("python3", hint="Install Python 3: sudo apt install python3")
-    all_ok &= _check_command("curl")
-    all_ok &= _check_command("unzip")
-    all_ok &= _check_command("rsync")
-
-    print(f"\n  {Style.BOLD}Ansible{Style.RESET}")
-    has_ansible = _check_command(
-        "ansible-playbook",
-        hint="Install: pip3 install ansible --user",
-    )
-    if has_ansible:
-        ansible_ver = subprocess.run(
-            ["ansible-playbook", "--version"], capture_output=True, text=True
-        ).stdout.splitlines()[0]
-        info(f"ansible-playbook version: {ansible_ver.strip()}")
-
-        # Check community.general collection
-        result = subprocess.run(
-            [sys.executable, "-c", "import ansible_collections.community.general"],
-            capture_output=True,
-            text=True,
-        )
-        if result.returncode == 0:
-            ok("Ansible collection: community.general")
-        else:
-            warn("Ansible collection: community.general not found — install with: ansible-galaxy collection install community.general")
-            all_ok = False
-
-    print(f"\n  {Style.BOLD}Node.js / Frontend{Style.RESET}")
-    has_bun = _check_command("bun", hint="Install: curl -fsSL https://bun.sh/install | bash")
-    has_node = _check_command("node", hint="Install via nvm: nvm install 20")
-    all_ok &= has_bun or has_node  # at least one is needed
-
-    print(f"\n  {Style.BOLD}Project structure{Style.RESET}")
-    if PLAYBOOKS_DIR.is_dir():
-        ok(f"Ansible playbooks at {PLAYBOOKS_DIR}")
-    else:
-        warn(f"Ansible playbooks directory not found at {PLAYBOOKS_DIR}")
-        all_ok = False
-
-    print()
-    if all_ok:
-        ok(f"{Style.BOLD}All dependencies satisfied{Style.RESET}")
-    else:
-        fail("Some dependencies are missing — see warnings above")
-
-
-# ── Install ─────────────────────────────────────────────────────────────────
 
 def cmd_install(args: argparse.Namespace) -> None:
     """Full installation: agent, frontend, plugins, macros."""
     header("Install E3CNC UI")
+    result = run_ansible_playbook(
+        INSTALL_PLAYBOOK, args.remote, args.check, args.verbose,
+        "Install", output_callback=lambda line: print(line, end=""),
+    )
+    if not result.success:
+        sys.exit(1)
 
-    if args.remote:
-        inventory = _ensure_remote_inventory(args.remote)
-    else:
-        inventory = LOCAL_INVENTORY
-
-    step(1, 1, "Running install playbook (agent + frontend + plugins + macros)")
-    rc = run_ansible(INSTALL_PLAYBOOK, inventory, check=args.check, verbose=args.verbose)
-
-    if rc == 0:
-        ok("Install complete — refresh your browser or restart nginx")
-    else:
-        fail(f"Install failed (exit code {rc})")
-
-
-# ── Deploy ──────────────────────────────────────────────────────────────────
 
 def cmd_deploy(args: argparse.Namespace) -> None:
-    """Deploy frontend only: build or download, copy to web root, reload nginx."""
+    """Deploy frontend only."""
     header("Deploy Frontend")
+    result = run_ansible_playbook(
+        DEPLOY_PLAYBOOK, args.remote, args.check, args.verbose,
+        "Deploy", output_callback=lambda line: print(line, end=""),
+    )
+    if not result.success:
+        sys.exit(1)
 
-    if args.remote:
-        inventory = _ensure_remote_inventory(args.remote)
-    else:
-        inventory = LOCAL_INVENTORY
-
-    step(1, 1, "Running deploy playbook (frontend build + copy + reload)")
-    rc = run_ansible(DEPLOY_PLAYBOOK, inventory, check=args.check, verbose=args.verbose)
-
-    if rc == 0:
-        ok("Frontend deployed — refresh your browser")
-    else:
-        fail(f"Deploy failed (exit code {rc})")
-
-
-# ── Update / Redeploy ──────────────────────────────────────────────────────
 
 def cmd_update(args: argparse.Namespace) -> None:
     """Re-vendor agent, rebuild frontend, re-deploy plugins, restart."""
     header("Update / Redeploy")
+    result = run_ansible_playbook(
+        REDEPLOY_PLAYBOOK, args.remote, args.check, args.verbose,
+        "Update", output_callback=lambda line: print(line, end=""),
+    )
+    if not result.success:
+        sys.exit(1)
 
-    if args.remote:
-        inventory = _ensure_remote_inventory(args.remote)
-    else:
-        inventory = LOCAL_INVENTORY
-
-    step(1, 1, "Running redeploy playbook (agent + frontend + plugins + restart)")
-    rc = run_ansible(REDEPLOY_PLAYBOOK, inventory, check=args.check, verbose=args.verbose)
-
-    if rc == 0:
-        ok("Update complete — Moonraker restarted")
-    else:
-        fail(f"Update failed (exit code {rc})")
-
-
-# ── Uninstall ───────────────────────────────────────────────────────────────
 
 def cmd_uninstall(args: argparse.Namespace) -> None:
-    """Remove all E3CNC components from the system."""
+    """Remove all E3CNC components."""
     header("Uninstall E3CNC UI")
+    result = run_ansible_playbook(
+        UNINSTALL_PLAYBOOK, args.remote, args.check, args.verbose,
+        "Uninstall", output_callback=lambda line: print(line, end=""),
+    )
+    if not result.success:
+        sys.exit(1)
+    info("The ~/E3CNC_UI repo checkout was NOT deleted.")
+    info("To restore stock Mainsail, see: https://github.com/mainsail-crew/mainsail")
 
-    if args.remote:
-        inventory = _ensure_remote_inventory(args.remote)
-    else:
-        inventory = LOCAL_INVENTORY
-
-    step(1, 1, "Running uninstall playbook")
-    rc = run_ansible(UNINSTALL_PLAYBOOK, inventory, check=args.check, verbose=args.verbose)
-
-    if rc == 0:
-        ok("Uninstall complete — all E3CNC components removed")
-        info("The ~/E3CNC_UI repo checkout was NOT deleted.")
-        info("To restore stock Mainsail, see: https://github.com/mainsail-crew/mainsail")
-    else:
-        fail(f"Uninstall failed (exit code {rc})")
-
-
-# ── Status ──────────────────────────────────────────────────────────────────
 
 def cmd_status(args: argparse.Namespace) -> None:
-    """Check the installation status of each component."""
+    """Check installation status."""
     header("Installation Status")
-
-    if args.remote:
-        remote_home = _get_remote_home(args.remote)
-        _run_remote = lambda cmd: _ssh_run(args.remote, cmd)  # noqa: E731
-    else:
-        remote_home = Path.home()
-        _run_remote = lambda cmd: subprocess.run(  # noqa: E731
-            cmd, capture_output=True, text=True, shell=True
-        )
-
-    total_checks = 9
-    ok_count = 0
-
-    def _check(label: str, cmd: str, success_hint: str) -> bool:
-        nonlocal ok_count
-        result = _run_remote(cmd)
-        if result.returncode == 0 and success_hint in result.stdout:
-            ok(f"{label}")
-            ok_count += 1
-            return True
-        else:
-            warn(f"{label} — not found")
-            return False
-
-    # 1) Repo checkout
-    repo_dir = f"{remote_home}/E3CNC_UI"
-    _check(
-        "Repository checkout",
-        f"test -d '{repo_dir}/.git' && echo 'found' || true",
-        "found",
-    )
-
-    # 2) CNC agent component
-    _check(
-        "Moonraker cnc_agent component",
-        f"test -f '{remote_home}/moonraker/moonraker/components/cnc_agent/cnc_agent.py' && echo 'found' || true",
-        "found",
-    )
-
-    # 3) CNC metadata component
-    _check(
-        "Moonraker cnc_metadata component",
-        f"test -f '{remote_home}/moonraker/moonraker/components/cnc_metadata/cnc_metadata.py' && echo 'found' || true",
-        "found",
-    )
-
-    # 4) Metadata extractor
-    _check(
-        "Metadata extractor script",
-        f"test -x '{remote_home}/printer_data/scripts/cnc_metadata_extractor.py' && echo 'found' || true",
-        "found",
-    )
-
-    # 5) Moonraker config sections
-    _check(
-        "Moonraker config [cnc_agent] section",
-        f"grep -qE '^\\[cnc_agent\\]' '{remote_home}/printer_data/config/moonraker.conf' 2>/dev/null && echo 'found' || true",
-        "found",
-    )
-
-    # 6) Moonraker config update manager
-    _check(
-        "Moonraker config [update_manager E3CNC_UI] section",
-        f"grep -qE '^\\[update_manager E3CNC_UI\\]' '{remote_home}/printer_data/config/moonraker.conf' 2>/dev/null && echo 'found' || true",
-        "found",
-    )
-
-    # 7) WCS Klipper plugin
-    _check(
-        "Klipper WCS plugin",
-        f"test -f '{remote_home}/klipper/klippy/extras/work_coordinate_systems.py' && echo 'found' || true",
-        "found",
-    )
-
-    # 8) Macros
-    _check(
-        "E3CNC macros directory",
-        f"test -d '{remote_home}/printer_data/config/E3CNC/macros' && echo 'found' || true",
-        "found",
-    )
-
-    # 9) Frontend deployed
-    _check(
-        "Frontend deployed",
-        f"test -f '{remote_home}/mainsail/index.html' && echo 'found' || true",
-        "found",
-    )
-
-    print()
-    if ok_count == total_checks:
-        ok(f"{Style.BOLD}All {total_checks} components installed{Style.RESET}")
-    else:
-        warn(f"{ok_count}/{total_checks} components installed ({total_checks - ok_count} missing)")
-
-
-# ── Backup ──────────────────────────────────────────────────────────────────
-
-BACKUP_EXCLUDES = ("node_modules", ".git", ".venv", "__pycache__", "*.pyc")
+    print(f"  {Style.DIM}Repository root: {HERE}{Style.RESET}")
+    check_status(args.remote, output_callback=lambda line: print(line, end=""))
 
 
 def cmd_backup(args: argparse.Namespace) -> None:
-    """Create a timestamped backup of configs, frontend, and WCS offsets."""
+    """Create a timestamped backup."""
     header("Backup")
+    result = run_backup(args.remote, output_callback=lambda line: print(line, end=""))
+    if not result.success:
+        sys.exit(1)
 
-    if args.remote:
-        _cmd_remote_backup(args)
-        return
-
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
-    backup_dir = HERE / f"e3cnc-backup-{timestamp}"
-    backup_dir.mkdir(parents=True, exist_ok=True)
-
-    step(1, 4, "Backing up frontend (mainsail)")
-    mainsail_dir = Path.home() / "mainsail"
-    if mainsail_dir.is_dir():
-        shutil.copytree(mainsail_dir, backup_dir / "frontend", ignore=shutil.ignore_patterns(*BACKUP_EXCLUDES))
-        ok(f"Frontend backed up ({_dir_size(mainsail_dir)} MB)")
-
-    step(2, 4, "Backing up printer config")
-    config_dir = Path.home() / "printer_data" / "config"
-    if config_dir.is_dir():
-        shutil.copytree(config_dir, backup_dir / "config", ignore=shutil.ignore_patterns(*BACKUP_EXCLUDES))
-        ok("Printer config backed up")
-
-    step(3, 4, "Backing up WCS offsets")
-    wcs_file = Path.home() / "wcs_offsets.json"
-    if wcs_file.is_file():
-        shutil.copy2(wcs_file, backup_dir / "wcs_offsets.json")
-        ok("WCS offsets backed up")
-
-    step(4, 4, "Writing backup manifest")
-    _write_manifest(backup_dir)
-
-    print(f"\n  {Style.GREEN}>>>  BACKUP SAVED  >>>{Style.RESET}")
-    print(f"  {Style.GREEN}>>>{Style.RESET}  {Style.BOLD}{backup_dir}{Style.RESET}")
-    print()
-    info(f"To restore: {TOOL_NAME} restore {backup_dir.name}")
-
-
-def _cmd_remote_backup(args: argparse.Namespace) -> None:
-    """Run backup over SSH."""
-    host = args.remote
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
-    backup_name = f"e3cnc-backup-{timestamp}"
-
-    step(1, 1, f"Creating backup on remote host {host}")
-    cmds = "; ".join([
-        f"mkdir -p ~/{backup_name}",
-        # frontend
-        f"if [ -d ~/mainsail ]; then cp -a ~/mainsail ~/{backup_name}/frontend; fi",
-        # config
-        f"if [ -d ~/printer_data/config ]; then cp -a ~/printer_data/config ~/{backup_name}/config; fi",
-        # WCS offsets
-        "if [ -f ~/wcs_offsets.json ]; then cp -a ~/wcs_offsets.json ~/{backup_name}/; fi",
-        # manifest
-        f"echo '{{\"createdAt\":\"{datetime.now(timezone.utc).isoformat()}\",\"tool\":\"{TOOL_NAME}\",\"version\":\"{VERSION}\"}}' > ~/{backup_name}/manifest.json",
-        f"echo '{backup_name}'",
-    ])
-    result = _ssh_run(host, cmds)
-    if result.returncode == 0:
-        ok(f"Remote backup created at ~/{backup_name} on {host}")
-        info(f"To restore: {TOOL_NAME} restore {backup_name} --remote {host}")
-    else:
-        fail(f"Remote backup failed: {result.stderr}")
-
-
-# ── Restore ─────────────────────────────────────────────────────────────────
 
 def cmd_restore(args: argparse.Namespace) -> None:
-    """Restore from a backup directory."""
+    """Restore from a backup."""
     header("Restore")
+    result = run_restore(
+        args.backup_dir, args.remote, args.yes,
+        output_callback=lambda line: print(line, end=""),
+    )
+    if not result.success:
+        sys.exit(1)
 
-    if args.remote:
-        _cmd_remote_restore(args)
-        return
-
-    backup_path = Path(args.backup_dir)
-    if not backup_path.is_absolute():
-        # Try as relative to repo root, then cwd
-        candidates = [
-            HERE / args.backup_dir,
-            Path.cwd() / args.backup_dir,
-        ]
-        for c in candidates:
-            if c.is_dir():
-                backup_path = c
-                break
-        else:
-            fail(f"Backup directory not found: {args.backup_dir} (searched: {', '.join(str(c) for c in candidates)})")
-
-    if not backup_path.is_dir():
-        fail(f"Backup directory not found: {backup_path}")
-
-    # Verify manifest
-    manifest = backup_path / "manifest.json"
-    if manifest.is_file():
-        try:
-            meta = json.loads(manifest.read_text())
-            info(f"Backup created: {meta.get('createdAt', 'unknown')}")
-        except (json.JSONDecodeError, OSError):
-            warn("Could not read backup manifest")
-
-    total_steps = 0
-    restorables = []
-    if (backup_path / "frontend").is_dir():
-        restorables.append("frontend")
-    if (backup_path / "config").is_dir():
-        restorables.append("config")
-    if (backup_path / "wcs_offsets.json").is_file():
-        restorables.append("WCS offsets")
-    if (backup_path / "version.json").is_file():
-        restorables.append("version")
-
-    if not restorables:
-        fail("No restorable components found in backup")
-
-    total_steps = len(restorables) + 1  # +1 for confirmation
-    step_i = 1
-
-    if not args.yes:
-        print(f"  {Style.YELLOW}The following will be RESTORED:{Style.RESET}")
-        for comp in restorables:
-            print(f"    • {comp}")
-        print(f"\n  {Style.YELLOW}This will overwrite current files.{Style.RESET}")
-        try:
-            confirm = input(f"\n  {Style.BOLD}Continue? [y/N] {Style.RESET}").strip().lower()
-        except (EOFError, KeyboardInterrupt):
-            confirm = "n"
-        if confirm != "y":
-            info("Restore cancelled")
-            return
-
-    # Restore frontend
-    fe_src = backup_path / "frontend"
-    if fe_src.is_dir():
-        step(step_i, total_steps, "Restoring frontend")
-        step_i += 1
-        fe_dest = Path.home() / "mainsail"
-        if fe_dest.is_dir():
-            shutil.rmtree(fe_dest)
-        shutil.copytree(fe_src, fe_dest)
-        ok("Frontend restored")
-
-    # Restore config
-    cfg_src = backup_path / "config"
-    if cfg_src.is_dir():
-        step(step_i, total_steps, "Restoring printer config")
-        step_i += 1
-        cfg_dest = Path.home() / "printer_data" / "config"
-        if cfg_dest.is_dir():
-            # Copy files into existing config directory, overwriting
-            for item in cfg_src.iterdir():
-                dest = cfg_dest / item.name
-                if item.is_dir():
-                    shutil.copytree(item, dest, dirs_exist_ok=True)
-                else:
-                    shutil.copy2(item, dest)
-        else:
-            shutil.copytree(cfg_src, cfg_dest)
-        ok("Printer config restored")
-
-    # Restore WCS offsets
-    wcs_src = backup_path / "wcs_offsets.json"
-    if wcs_src.is_file():
-        step(step_i, total_steps, "Restoring WCS offsets")
-        step_i += 1
-        shutil.copy2(wcs_src, Path.home() / "wcs_offsets.json")
-        ok("WCS offsets restored")
-
-    ok("Restore complete")
-
-    # Suggest restart
-    print()
-    info("You may need to restart Moonraker:")
-    info(f"  sudo systemctl restart moonraker")
-    info("Then refresh your browser.")
-
-
-def _cmd_remote_restore(args: argparse.Namespace) -> None:
-    """Restore from a backup on a remote host."""
-    host = args.remote
-    backup_name = args.backup_dir
-
-    step(1, 1, f"Restoring from ~/{backup_name} on {host}")
-    cmds = "; ".join([
-        f"if [ -d ~/{backup_name}/frontend ]; then rm -rf ~/mainsail && cp -a ~/{backup_name}/frontend ~/mainsail; fi",
-        f"if [ -d ~/{backup_name}/config ]; then cp -a ~/{backup_name}/config/* ~/printer_data/config/; fi",
-        f"if [ -f ~/{backup_name}/wcs_offsets.json ]; then cp -a ~/{backup_name}/wcs_offsets.json ~/wcs_offsets.json; fi",
-        "sudo systemctl restart moonraker",
-    ])
-    result = _ssh_run(host, cmds)
-    if result.returncode == 0:
-        ok("Remote restore complete — Moonraker restarted")
-    else:
-        fail(f"Remote restore failed: {result.stderr}")
-
-
-# ── Diagnostics (doctor mode) ──────────────────────────────────────────────
 
 def cmd_diagnose(args: argparse.Namespace) -> None:
-    """Run comprehensive diagnostics on the CNC host."""
+    """Run diagnostics."""
     header("Diagnostics")
+    result = run_diagnose(args.remote, output_callback=lambda line: print(line, end=""))
+    if not result.success:
+        sys.exit(1)
 
-    if args.remote:
-        _run_remote = lambda cmd: _ssh_run(args.remote, cmd)  # noqa: E731
-        runner_label = f"remote host {args.remote}"
-    else:
-        _run_remote = lambda cmd: subprocess.run(  # noqa: E731
-            cmd, capture_output=True, text=True, shell=True
-        )
-        runner_label = "localhost"
-
-    info(f"Running diagnostics on {runner_label}...")
-
-    checks = [
-        ("Moonraker API", "curl -sf http://127.0.0.1:7125/printer/info 2>/dev/null"),
-        ("Klippy state", 'curl -sf http://127.0.0.1:7125/printer/info 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get(\'result\',{}).get(\'state\',\'unknown\'))" 2>/dev/null'),
-        ("Agent loaded", "curl -sf http://127.0.0.1:7125/server/info 2>/dev/null | python3 -c \"import sys,json; d=json.load(sys.stdin); print('yes' if 'cnc_agent' in str(d.get('result',{})) else 'no')\" 2>/dev/null || echo 'no'"),
-        ("Metadata loaded", "curl -sf http://127.0.0.1:7125/server/info 2>/dev/null | python3 -c \"import sys,json; d=json.load(sys.stdin); print('yes' if 'cnc_metadata' in str(d.get('result',{})) else 'no')\" 2>/dev/null || echo 'no'"),
-        ("Nginx serving", "curl -sf -o /dev/null -w '%{http_code}' http://127.0.0.1/ 2>/dev/null || echo 'unreachable'"),
-    ]
-
-    for label, cmd in checks:
-        result = _run_remote(cmd)
-        status = result.stdout.strip() if result.returncode == 0 else "error"
-        if status and status not in ("error", "unreachable", "no"):
-            ok(f"{label}: {status}")
-        else:
-            warn(f"{label}: {status}")
-
-    print()
-    info("For detailed logs:")
-    if args.remote:
-        print(f"  {TOOL_NAME} logs --remote {args.remote}")
-    else:
-        print(f"  {TOOL_NAME} logs")
-
-
-# ── Logs ────────────────────────────────────────────────────────────────────
 
 def cmd_logs(args: argparse.Namespace) -> None:
-    """Tail Moonraker and nginx logs on the CNC host."""
+    """Tail logs."""
     header("Logs")
-
-    if args.remote:
-        tail_cmd = f"ssh {args.remote}"
-    else:
-        tail_cmd = ""
-
-    lines = args.lines
-
-    print(f"\n  {Style.BOLD}Moonraker log (last {lines} lines):{Style.RESET}\n")
-    subprocess.run(
-        f'{tail_cmd} sudo journalctl -u moonraker -n {lines} --no-pager 2>/dev/null || '
-        f'{tail_cmd} tail -{lines} ~/printer_data/logs/moonraker.log 2>/dev/null || '
-        f'echo "  (no moonraker logs found)"',
-        shell=True,
-    )
-
-    print(f"\n  {Style.BOLD}Nginx access log (last {lines} lines):{Style.RESET}\n")
-    subprocess.run(
-        f'{tail_cmd} sudo tail -{lines} /var/log/nginx/access.log 2>/dev/null || '
-        f'echo "  (no nginx access log found)"',
-        shell=True,
-    )
-
-    print(f"\n  {Style.BOLD}Nginx error log (last {lines} lines):{Style.RESET}\n")
-    subprocess.run(
-        f'{tail_cmd} sudo tail -{lines} /var/log/nginx/error.log 2>/dev/null || '
-        f'echo "  (no nginx error log found)"',
-        shell=True,
-    )
+    result = run_logs(args.remote, args.lines, output_callback=lambda line: print(line, end=""))
+    if not result.success:
+        sys.exit(1)
 
 
-# ── Utility functions ──────────────────────────────────────────────────────
-
-def _dir_size(path: Path) -> str:
-    """Return the size of a directory in MB (approximate)."""
-    total = sum(f.stat().st_size for f in path.rglob("*") if f.is_file())
-    return f"{total / (1024 * 1024):.1f}"
-
-
-def _write_manifest(backup_dir: Path) -> None:
-    """Write backup manifest JSON."""
-    manifest = {
-        "createdAt": datetime.now(timezone.utc).isoformat(),
-        "tool": TOOL_NAME,
-        "version": VERSION,
-        "hostname": os.uname().nodename,
-    }
-    (backup_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
-    ok("Backup manifest written")
-
-
-def _ensure_remote_inventory(host: str) -> Path:
-    """Create a temporary Ansible inventory for a remote host."""
-    inventory_path = ANSIBLE_DIR / "inventory" / ".e3cnc-cli-remote.yml"
-    inventory_path.parent.mkdir(parents=True, exist_ok=True)
-    # Parse host[:port] and user@host patterns
-    user_part = ""
-    host_part = host
-    port_part = ""
-
-    if "@" in host:
-        user_part, host_part = host.rsplit("@", 1)
-
-    if ":" in host_part:
-        host_part, port_part = host_part.split(":", 1)
-
-    content = ["all:", "  hosts:", "    cnc:"]
-    if host_part:
-        content.append(f"      ansible_host: {host_part}")
-    if user_part:
-        content.append(f"      ansible_user: {user_part}")
-    if port_part:
-        content.append(f"      ansible_port: {port_part}")
-
-    inventory_path.write_text("\n".join(content) + "\n")
-    info(f"Using remote inventory for {host}")
-    return inventory_path
-
-
-def _get_remote_home(host: str) -> str:
-    """Get the home directory of a remote host via SSH."""
-    result = _ssh_run(host, "echo $HOME")
-    if result.returncode != 0:
-        fail(f"Cannot connect to {host}: {result.stderr}")
-    return result.stdout.strip()
-
-
-def _ssh_run(host: str, cmd: str) -> subprocess.CompletedProcess:
-    """Run a command on a remote host via SSH."""
-    return subprocess.run(
-        ["ssh", "-o", "BatchMode=yes", host, cmd],
-        capture_output=True, text=True,
-    )
-
-
-# ── CLI entry point ─────────────────────────────────────────────────────────
+# ── Parser ──────────────────────────────────────────────────────────────────
 
 def build_parser() -> argparse.ArgumentParser:
-    """Build and return the argument parser."""
     parser = argparse.ArgumentParser(
         prog=TOOL_NAME,
         description=f"{TOOL_NAME} — Unified CLI for installing, deploying, and managing E3CNC UI.",
@@ -776,127 +148,43 @@ Examples:
 """,
     )
 
-    parser.add_argument(
-        "--version",
-        action="version",
-        version=f"%(prog)s {VERSION}",
-        help="Show version and exit",
-    )
+    parser.add_argument("--version", action="version", version=f"%(prog)s {VERSION}")
+    parser.add_argument("--verbose", "-v", action="store_true")
 
-    parser.add_argument(
-        "--verbose", "-v",
-        action="store_true",
-        help="Enable verbose output",
-    )
-
-    subparsers = parser.add_subparsers(
-        dest="command",
-        title="Commands",
-        description="Use %(prog)s <command> --help for command-specific options",
-    )
-
-    # Shared parent for remote/check options
     shared_remote = argparse.ArgumentParser(add_help=False)
-    shared_remote.add_argument(
-        "--remote",
-        metavar="HOST",
-        default=None,
-        help="Remote SSH target (e.g., pi@192.168.1.100, cnc)",
-    )
+    shared_remote.add_argument("--remote", metavar="HOST", default=None)
 
     shared_check = argparse.ArgumentParser(add_help=False)
-    shared_check.add_argument(
-        "--check", "-n",
-        action="store_true",
-        help="Dry-run mode (Ansible check mode)",
-    )
+    shared_check.add_argument("--check", "-n", action="store_true")
 
-    # install
-    p = subparsers.add_parser(
-        "install", parents=[shared_remote, shared_check],
-        help="Full installation: agent, frontend, plugins, macros",
-        description="Install or reinstall all E3CNC UI components on the CNC host.",
-    )
+    p = subparsers = parser.add_subparsers(dest="command", title="Commands")
 
-    # deploy
-    p = subparsers.add_parser(
-        "deploy", parents=[shared_remote, shared_check],
-        help="Deploy frontend only (build + copy + reload nginx)",
-        description="Build or download the frontend, copy it to the web root, and reload nginx.",
-    )
+    p.add_parser("install", parents=[shared_remote, shared_check],
+                 help="Full installation: agent, frontend, plugins, macros")
+    p.add_parser("deploy", parents=[shared_remote, shared_check],
+                 help="Deploy frontend only (build + copy + reload nginx)")
+    p.add_parser("update", parents=[shared_remote, shared_check], aliases=["redeploy"],
+                 help="Re-vendor agent, rebuild frontend, re-deploy plugins, restart")
+    p.add_parser("uninstall", parents=[shared_remote, shared_check],
+                 help="Remove all E3CNC components")
+    p.add_parser("status", parents=[shared_remote],
+                 help="Check installation status of all components")
+    p.add_parser("check", help="Check dependencies")
 
-    # update
-    p = subparsers.add_parser(
-        "update", parents=[shared_remote, shared_check],
-        aliases=["redeploy"],
-        help="Re-vendor agent, rebuild frontend, re-deploy plugins, restart",
-        description="Redeploy all components: re-vendor the CNC agent, rebuild the frontend, re-deploy plugins, and restart Moonraker.",
-    )
+    bp = p.add_parser("backup", parents=[shared_remote],
+                       help="Create a timestamped backup")
 
-    # uninstall
-    p = subparsers.add_parser(
-        "uninstall", parents=[shared_remote, shared_check],
-        help="Remove all E3CNC components",
-        description="Uninstall all E3CNC UI components from the system. Does NOT delete the ~/E3CNC_UI repo checkout.",
-    )
+    rp = p.add_parser("restore", parents=[shared_remote],
+                       help="Restore from a backup")
+    rp.add_argument("backup_dir", help="Backup directory name or path")
+    rp.add_argument("--yes", "-y", action="store_true")
 
-    # status
-    p = subparsers.add_parser(
-        "status", parents=[shared_remote],
-        help="Check installation status of all components",
-        description="Check which E3CNC UI components are installed and report their status.",
-    )
+    p.add_parser("diagnose", parents=[shared_remote], aliases=["diag", "doctor"],
+                 help="Run comprehensive diagnostics")
 
-    # check
-    p = subparsers.add_parser(
-        "check",
-        help="Check dependencies",
-        description="Verify that all required dependencies (git, ansible, node, etc.) are available.",
-    )
-
-    # backup
-    p = subparsers.add_parser(
-        "backup", parents=[shared_remote],
-        help="Create a timestamped backup",
-        description="Create a timestamped backup of configs, frontend, and WCS offsets.",
-    )
-
-    # restore
-    p = subparsers.add_parser(
-        "restore", parents=[shared_remote],
-        help="Restore from a backup",
-        description="Restore frontend, config, and WCS offsets from a backup directory.",
-    )
-    p.add_argument(
-        "backup_dir",
-        help="Backup directory name or path (e.g., e3cnc-backup-20250301-120000)",
-    )
-    p.add_argument(
-        "--yes", "-y",
-        action="store_true",
-        help="Skip confirmation prompt",
-    )
-
-    # diagnose
-    p = subparsers.add_parser(
-        "diagnose", parents=[shared_remote],
-        aliases=["diag", "doctor"],
-        help="Run comprehensive diagnostics",
-        description="Check Moonraker API health, Klippy state, agent status, nginx, and more.",
-    )
-
-    # logs
-    p = subparsers.add_parser(
-        "logs", parents=[shared_remote],
-        help="Tail Moonraker and nginx logs",
-        description="Display the last N lines of Moonraker, nginx access, and nginx error logs.",
-    )
-    p.add_argument(
-        "--lines", "-n",
-        type=int,
-        default=50,
-        help="Number of log lines to show (default: 50)",
-    )
+    lp = p.add_parser("logs", parents=[shared_remote],
+                       help="Tail Moonraker and nginx logs")
+    lp.add_argument("--lines", "-n", type=int, default=50)
 
     return parser
 
@@ -909,7 +197,8 @@ def main() -> None:
         parser.print_help()
         sys.exit(0)
 
-    # Dispatch
+    print_banner()
+
     dispatch = {
         "check": cmd_check,
         "install": cmd_install,
@@ -932,7 +221,6 @@ def main() -> None:
             handler(args)
         except KeyboardInterrupt:
             print()
-            info("Interrupted by user")
             sys.exit(130)
     else:
         parser.print_help()

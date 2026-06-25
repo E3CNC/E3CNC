@@ -12,7 +12,7 @@ A modern, responsive CNC controller interface for Klipper-based machines — for
 
 ```bash
 git clone https://github.com/E3CNC/E3CNC_UI.git ~/E3CNC_UI && cd ~/E3CNC_UI
-ansible-playbook ansible/playbooks/install.yml   # idempotent full install
+./e3cnc-cli install   # idempotent full install (wraps Ansible)
 ```
 
 ## Features
@@ -45,10 +45,18 @@ ansible-playbook ansible/playbooks/install.yml   # idempotent full install
 | Method | Command |
 |--------|---------|
 | **Install (existing Mainsail user)** | Add `[update_manager E3CNC_UI]` block to `moonraker.conf`, restart Klipper via UI, then update |
-| **Install (full)** | `ansible-playbook ansible/playbooks/install.yml` |
-| **Deploy** | `ansible-playbook ansible/playbooks/deploy.yml` |
-| **Uninstall** | `ansible-playbook ansible/playbooks/uninstall.yml` |
-| **Legacy install** | `bash scripts/install_to_moonraker.sh` |
+| **Install (full)** | `./e3cnc-cli install` |
+| **Deploy** | `./e3cnc-cli deploy` |
+| **Update / Redeploy** | `./e3cnc-cli update` |
+| **Uninstall** | `./e3cnc-cli uninstall` |
+| **Status** | `./e3cnc-cli status` |
+| **Diagnostics** | `./e3cnc-cli diagnose` |
+| **Backup** | `./e3cnc-cli backup` |
+| **Restore** | `./e3cnc-cli restore <backup>` |
+| **Check deps** | `./e3cnc-cli check` |
+| **Remote install** | `./e3cnc-cli install --remote pi@cnc` |
+| **Dry-run install** | `./e3cnc-cli install --check` |
+| **Logs** | `./e3cnc-cli logs` |
 
 ## Documentation
 
