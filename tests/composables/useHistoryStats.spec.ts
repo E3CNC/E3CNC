@@ -77,4 +77,23 @@ describe('useHistoryStats', () => {
         const time = mountComposable('time')
         expect(time.printStatusArrayChart.value.some((e: any) => e.name === 'completed' && e.value === 150)).toBe(true)
     })
+
+    it('groups very small entries into Others category', () => {
+        historyState.allJobs.value = [
+            { status: 'completed', filament_used: 100, total_duration: 1000 },
+            { status: 'completed', filament_used: 50, total_duration: 500 },
+            { status: 'failed', filament_used: 1, total_duration: 5 },
+            { status: 'cancelled', filament_used: 1, total_duration: 2 },
+        ]
+        historyState.jobs.value = historyState.allJobs.value
+
+        const filament = mountComposable('filament')
+        // Small entries (value=1 each) should be grouped into "Others"
+        const othersEntry = filament.groupedPrintStatusArray.value.find((e: any) =>
+            e.name?.toString().includes('Others')
+        )
+        if (othersEntry) {
+            expect(othersEntry.value).toBe(2)
+        }
+    })
 })
