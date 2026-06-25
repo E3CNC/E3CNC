@@ -38,15 +38,4 @@ WORKDIR /home/testbed
 # Clone the repo
 RUN git clone https://github.com/E3CNC/E3CNC_UI.git /home/testbed/E3CNC_UI
 
-# Print summary
-RUN echo "=== Fresh install test environment ===" && \
-    echo "Python: $(python3 --version 2>&1)" && \
-    echo "Git:    $(git --version 2>&1)" && \
-    echo "Curl:   $(curl --version 2>&1 | head -1)" && \
-    echo "--- Missing (expected) ---" && \
-    (pip3 --version 2>&1 || echo "pip:     NOT INSTALLED") && \
-    (ansible-playbook --version 2>&1 | head -1 || echo "ansible: NOT INSTALLED") && \
-    (bun --version 2>&1 || echo "bun:     NOT INSTALLED") && \
-    echo "==========================="
-
 CMD ["bash"]

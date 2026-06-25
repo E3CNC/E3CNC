@@ -871,15 +871,15 @@ def _require_ansible() -> None:
     print(f"  {Style.CYAN}→{Style.RESET} Installing Ansible...")
 
     def _install_pip() -> bool:
-        # Try ensurepip first (works on most Python installs)
         result = subprocess.run(
             [sys.executable, "-m", "ensurepip", "--upgrade"],
             capture_output=True, text=True,
         )
         if result.returncode == 0 and (shutil.which("pip3") or shutil.which("pip")):
             return True
-        # Fall back to apt
+        # Fall back to apt (refresh cache first)
         info("Installing python3-pip via apt...")
+        subprocess.run(["sudo", "apt-get", "update"], capture_output=True)
         result = subprocess.run(
             ["sudo", "apt-get", "install", "-y", "python3-pip"],
             capture_output=True, text=True,
