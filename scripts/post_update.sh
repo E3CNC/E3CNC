@@ -19,7 +19,7 @@
 set -euo pipefail
 
 # Ensure local install paths are on PATH (bun, ansible, etc.)
-export PATH="$HOME/.local/bin:$HOME/.bun/bin:/usr/local/bin:/usr/bin:/bin"
+export PATH="$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -52,7 +52,7 @@ echo ""
 step 1 "Checking dependencies…"
 
 MISSING=""
-for cmd in git python3 curl unzip rsync node; do
+for cmd in git python3 curl unzip; do
     command -v "$cmd" &>/dev/null || MISSING="$MISSING $cmd"
 done
 command -v pip3 &>/dev/null || command -v pip &>/dev/null || MISSING="$MISSING pip3"

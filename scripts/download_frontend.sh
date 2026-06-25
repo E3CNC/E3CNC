@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
 # Download pre-built frontend from GitHub nightly release.
-# Falls back to local build if the download fails or bun is available.
+#
+# This script downloads a pre-built frontend zip from GitHub releases.
+# It does NOT build locally — building on-device (especially 32-bit ARM)
+# is unreliable and OOMs. If the download fails, the user is told how to
+# download manually.
 #
 # Usage: ./scripts/download_frontend.sh [web_root]
 #   web_root: target directory (default: ~/mainsail)
 
 set -euo pipefail
 
-# Ensure local install paths are on PATH
-export PATH="$HOME/.local/bin:$HOME/.bun/bin:/usr/local/bin:/usr/bin:/bin"
+export PATH="$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin"
 
 WEB_ROOT="${1:-$HOME/mainsail}"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -17,7 +20,6 @@ REPO="E3CNC_UI"
 
 echo "=== Downloading pre-built frontend ==="
 
-# Try to download from the latest nightly-main release asset first
 TMP_DIR=$(mktemp -d)
 trap 'rm -rf "$TMP_DIR"' EXIT
 
@@ -28,7 +30,6 @@ if [[ -n "$TAG_VER" ]]; then
 elif command -v node &>/dev/null; then
     RELEASE_VER="v$(node -p "require('$REPO_ROOT/package.json').version")"
 else
-    # Fallback: grep version from package.json without node
     RELEASE_VER="v$(grep -oP '"version"\s*:\s*"\K[^"]+' "$REPO_ROOT/package.json" || echo '0.0.0')"
 fi
 ASSET_NAME="E3CNC_UI-${RELEASE_VER}.zip"
@@ -58,7 +59,7 @@ process.stdin.on('end', () => {
 });
 ")
 else
-    echo "    WARNING: node not found — skipping nightly release lookup, will fall back to local build" >&2
+    echo "    WARNING: node not found — skipping release lookup" >&2
     ZIP_URL=""
 fi
 
@@ -86,51 +87,15 @@ if [[ -n "$ZIP_URL" ]] && curl -sfL "$ZIP_URL" -o "$ZIP_FILE" && [[ -s "$ZIP_FIL
 
     echo "=== Frontend updated via nightly release ==="
 else
-    ARCH=$(uname -m)
-    echo "    WARNING: could not download nightly build" >&2
-    echo "    Falling back to local build..." >&2
-
-    cd "$REPO_ROOT"
-
-    if [[ "$ARCH" == "armv7l" ]]; then
-        # 32-bit ARM — Bun is not available; use npm
-        if ! command -v npm &>/dev/null; then
-            echo "    ERROR: npm not found on 32-bit ARM. Install Node.js via nvm." >&2
-            exit 1
-        fi
-        echo "    (32-bit ARM detected, using npm instead of bun)" >&2
-        npm install --legacy-peer-deps
-        npm run build
-    else
-        export PATH="${HOME}/.bun/bin:${PATH}"
-        if command -v bun &>/dev/null; then
-            bun install --frozen-lockfile
-            bun run build
-        else
-            echo "    WARNING: bun not found, trying npm..." >&2
-            if ! command -v npm &>/dev/null; then
-                echo "    ERROR: neither bun nor npm found" >&2
-                exit 1
-            fi
-            npm install --legacy-peer-deps
-            npm run build
-        fi
-    fi
-
-    mkdir -p "$WEB_ROOT"
-    find "$WEB_ROOT" -type f -not -name 'config.json' -delete 2>/dev/null || true
-    find "$WEB_ROOT" -mindepth 1 -type d -empty -delete 2>/dev/null || true
-    cp -a "$REPO_ROOT/dist/"* "$WEB_ROOT/"
-    cp "$REPO_ROOT"/dist/.* "$WEB_ROOT/" 2>/dev/null || true
-    echo "{\"buildTime\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"commit\":\"$(git -C "$REPO_ROOT" rev-parse --short HEAD 2>/dev/null || echo unknown)\"}" > "$WEB_ROOT/version.json"
-
-    echo "    local build deployed to $WEB_ROOT"
-
-    if command -v sudo &>/dev/null; then
-        sudo systemctl reload nginx 2>/dev/null || true
-    elif command -v systemctl &>/dev/null; then
-        systemctl reload nginx 2>/dev/null || true
-    fi
-
-    echo "=== Frontend built locally ==="
+    echo "    ERROR: could not download nightly build from GitHub releases." >&2
+    echo "" >&2
+    echo "    The frontend is distributed as a pre-built release and must be" >&2
+    echo "    downloaded from: https://github.com/${OWNER}/${REPO}/releases" >&2
+    echo "" >&2
+    echo "    To download and deploy manually:" >&2
+    echo "      1. Find the release for ${RELEASE_VER} on GitHub" >&2
+    echo "      2. Download ${ASSET_NAME}" >&2
+    echo "      3. Run: unzip -o ${ASSET_NAME} -d ${WEB_ROOT}" >&2
+    echo "      4. Run: sudo systemctl reload nginx" >&2
+    exit 1
 fi
