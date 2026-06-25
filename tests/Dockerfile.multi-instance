@@ -1,0 +1,59 @@
+# Dockerfile.multi-instance
+# Simulates a machine with two Klipper/Moonraker instances
+# to test the CLI's multi-instance detection (detect_instances()).
+#
+# Build:
+#   docker build -t e3cnc-multi -f tests/Dockerfile.multi-instance .
+#
+# Test instance detection:
+#   docker run --rm e3cnc-multi bash -c 'cd ~/E3CNC_UI && export PATH="$HOME/.local/bin:$PATH" && echo y | ./e3cnc-cli install'
+#
+# Test instance switching:
+#   docker run --rm -it e3cnc-multi bash -c 'cd ~/E3CNC_UI && export PATH="$HOME/.local/bin:$PATH" && ./e3cnc-cli'
+#
+# Test --instance flag:
+#   docker run --rm e3cnc-multi bash -c 'cd ~/E3CNC_UI && export PATH="$HOME/.local/bin:$PATH" && ./e3cnc-cli status --instance cnc_2'
+
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+
+# Install bare minimum
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    curl \
+    python3 \
+    sudo \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN useradd -m -s /bin/bash testbed && echo "testbed ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+USER testbed
+WORKDIR /home/testbed
+
+# Clone the repo
+RUN git clone https://github.com/E3CNC/E3CNC_UI.git /home/testbed/E3CNC_UI
+
+# ── Create Instance 1 (default cnc) ──────────────────────────────────────
+RUN mkdir -p /home/testbed/printer_data/config/E3CNC/macros \
+             /home/testbed/printer_data/scripts \
+             /home/testbed/printer_data/logs \
+             /home/testbed/moonraker/moonraker/components \
+             /home/testbed/klipper/klippy/extras \
+             /home/testbed/mainsail \
+    && touch /home/testbed/printer_data/config/moonraker.conf \
+    && touch /home/testbed/printer_data/config/printer.cfg
+
+# ── Create Instance 2 (cnc_2) ────────────────────────────────────────────
+RUN mkdir -p /home/testbed/printer_data_2/config/E3CNC/macros \
+             /home/testbed/printer_data_2/scripts \
+             /home/testbed/printer_data_2/logs \
+             /home/testbed/moonraker_2/moonraker/components \
+             /home/testbed/klipper_2/klippy/extras \
+             /home/testbed/mainsail-cnc_2 \
+    && touch /home/testbed/printer_data_2/config/moonraker.conf \
+    && touch /home/testbed/printer_data_2/config/printer.cfg
+
+CMD ["bash"]

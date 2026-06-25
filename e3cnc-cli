@@ -333,15 +333,18 @@ class Instance:
 
     @classmethod
     def from_printer_data(cls, base: str, web_root: str = "") -> "Instance":
-        """Create an Instance from a printer_data directory path."""
+        """Create an Instance from a printer_data directory path.
+
+        Derives moonraker_dir and klipper_dir from the instance suffix.
+        E.g. printer_data_2 → moonraker_2, klipper_2, mainsail-cnc_2.
+        """
         config = f"{base}/config"
+        home = str(Path.home())
+        # Derive instance name: printer_data → cnc, printer_data_2 → cnc_2
         name = Path(base).name.replace("printer_data", "cnc")
-        if name == "cnc":
-            name = "cnc"
+        suffix = name.replace("cnc", "", 1)  # "" or "_2"
         if not web_root:
-            web_root = f"{Path.home()}/mainsail"
-            if name != "cnc":
-                web_root = f"{Path.home()}/mainsail-{name.replace('cnc', '')}"
+            web_root = f"{home}/mainsail{suffix}" if suffix else f"{home}/mainsail"
         return cls(
             name=name,
             printer_data_dir=base,
@@ -355,6 +358,18 @@ class Instance:
             web_root=web_root,
             is_running=Path(f"{config}/moonraker.conf").exists(),
         )
+
+    @property
+    def moonraker_dir(self) -> str:
+        """Derive moonraker directory from printer_data directory."""
+        suffix = Path(self.printer_data_dir).name.replace("printer_data", "")
+        return f"{Path(self.printer_data_dir).parent}/moonraker{suffix}"
+
+    @property
+    def klipper_dir(self) -> str:
+        """Derive klipper directory from printer_data directory."""
+        suffix = Path(self.printer_data_dir).name.replace("printer_data", "")
+        return f"{Path(self.printer_data_dir).parent}/klipper{suffix}"
 
 
 _active_instance: Optional[Instance] = None
@@ -423,16 +438,17 @@ def set_active_instance(inst: Instance) -> None:
 
 
 def instance_extra_vars(inst: Instance) -> List[str]:
-    """Generate Ansible extra vars for a specific instance."""
+    """Generate Ansible extra vars for a specific instance.
+
+    These override vars/main.yml defaults for multi-instance support.
+    Each instance has its own printer_data, moonraker, and klipper dirs.
+    """
     return [
         f"printer_data_dir={inst.printer_data_dir}",
-        f"printer_data__config_dir={inst.config_dir}",
-        f"printer_data__E3CNC_dir={inst.E3CNC_dir}",
-        f"printer_data__scripts_dir={inst.scripts_dir}",
-        f"printer_data__macros_dir={inst.macros_dir}",
-        f"printer_data__printer_cfg={inst.printer_cfg}",
+        f"moonraker_dir={inst.moonraker_dir}",
+        f"klipper_dir={inst.klipper_dir}",
         f"moonraker_conf={inst.moonraker_conf}",
-        f"frontend__web_root={inst.web_root}",
+        f"frontend_web_root={inst.web_root}",
     ]
 
 

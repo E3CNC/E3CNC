@@ -4,21 +4,28 @@ repo:
   dest: '{{ ansible_env.HOME }}/E3CNC_UI'
   branch: main
 
+# Instance-specific paths — overridden via CLI extra_vars for multi-instance.
+# Default to standard single-instance paths for a default install.
+printer_data_dir: '{{ ansible_env.HOME }}/printer_data'
+moonraker_dir: '{{ ansible_env.HOME }}/moonraker'
+klipper_dir: '{{ ansible_env.HOME }}/klipper'
+frontend_web_root: '{{ ansible_env.HOME }}/mainsail'
+
 frontend:
-  web_root: '{{ ansible_env.HOME }}/mainsail'
+  web_root: '{{ frontend_web_root }}'
 
 agent:
-  vender_dir: '{{ ansible_env.HOME }}/moonraker/moonraker/components'
+  vender_dir: '{{ moonraker_dir }}/moonraker/components'
   source_dir: '{{ repo.dest }}/E3CNC/moonraker-mcp/src/moonraker_mcp'
 
 klipper:
-  extras_dir: '{{ ansible_env.HOME }}/klipper/klippy/extras'
+  extras_dir: '{{ klipper_dir }}/klippy/extras'
 
 printer_data:
-  config_dir: '{{ ansible_env.HOME }}/printer_data/config'
-  E3CNC_dir: '{{ ansible_env.HOME }}/printer_data/config/E3CNC'
-  scripts_dir: '{{ ansible_env.HOME }}/printer_data/scripts'
-  macros_dir: '{{ ansible_env.HOME }}/printer_data/config/macros'
-  printer_cfg: '{{ ansible_env.HOME }}/printer_data/config/printer.cfg'
+  config_dir: '{{ printer_data_dir }}/config'
+  E3CNC_dir: '{{ printer_data_dir }}/config/E3CNC'
+  scripts_dir: '{{ printer_data_dir }}/scripts'
+  macros_dir: '{{ printer_data_dir }}/config/macros'
+  printer_cfg: '{{ printer_data_dir }}/config/printer.cfg'
 
-moonraker_conf: '{{ ansible_env.HOME }}/printer_data/config/moonraker.conf'
+moonraker_conf: '{{ printer_data_dir }}/config/moonraker.conf'
