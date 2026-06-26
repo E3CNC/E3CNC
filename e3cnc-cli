@@ -1172,6 +1172,9 @@ def cmd_update(args: argparse.Namespace) -> None:
     """Full-stack update: download stack artifact, activate, verify."""
     header("Stack Update")
 
+    if args.remote:
+        warn("Remote update not yet supported — running locally")
+
     inst = _get_instance(args) if not args.remote else None
 
     # Ensure the releases directory exists

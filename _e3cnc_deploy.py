@@ -948,6 +948,14 @@ def update_systemd_paths(inst: Optional[Instance] = None, dry_run: bool = False)
             warn(f"Failed to update systemd for {service_name}: {e}")
             all_ok = False
 
+    # Reload systemd to pick up drop-in changes
+    if all_ok and not dry_run and shutil.which("systemctl"):
+        try:
+            subprocess.run(["sudo", "systemctl", "daemon-reload"], capture_output=True, timeout=15)
+            info("Systemd daemon reloaded")
+        except (OSError, subprocess.CalledProcessError, ValueError) as e:
+            warn(f"Failed to reload systemd: {e}")
+
     return all_ok
 
 
@@ -961,6 +969,10 @@ def restart_services(inst: Optional[Instance] = None, dry_run: bool = False) -> 
     if not shutil.which("systemctl"):
         warn("systemctl not available — cannot restart services")
         return False
+
+    # Ensure sudo access before attempting restarts
+    from _e3cnc_shared import _ensure_local_sudo_access
+    _ensure_local_sudo_access("restarting Moonraker and Klipper services")
 
     order = [active_inst.moonraker_service, active_inst.klipper_service]
     all_ok = True
