@@ -1,5 +1,5 @@
 {
-  "name": "E3CNC_UI",
+  "name": "E3CNC",
   "version": "0.7.11",
   "private": true,
   "type": "module",
@@ -9,16 +9,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/E3CNC/E3CNC_UI.git"
+    "url": "git+https://github.com/E3CNC/E3CNC.git"
   },
   "bugs": {
-    "url": "https://github.com/E3CNC/E3CNC_UI/issues"
+    "url": "https://github.com/E3CNC/E3CNC/issues"
   },
-  "homepage": "https://github.com/E3CNC/E3CNC_UI",
+  "homepage": "https://github.com/E3CNC/E3CNC",
   "license": "GPL-3.0",
   "scripts": {
     "serve": "vite serve",
-    "dev": "tmux has-session -t E3CNC_UI 2>/dev/null || tmux new-session -d -s E3CNC_UI 'vite'",
+    "dev": "tmux has-session -t E3CNC 2>/dev/null || tmux new-session -d -s E3CNC 'vite'",
     "build": "vite build",
     "format": "bun run format:base -- --write",
     "format:base": "prettier .",

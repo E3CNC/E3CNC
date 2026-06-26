@@ -62,7 +62,7 @@ jobs:
       - name: Create dist archive
         run: |
           cp ./remote/* ./dist/ 2>/dev/null || true
-          cd dist && zip -r ../E3CNC_UI-${{ steps.version.outputs.VERSION }}.zip . && cd ..
+          cd dist && zip -r ../E3CNC-${{ steps.version.outputs.VERSION }}.zip . && cd ..
 
       - name: Upload dist artifact
         uses: actions/upload-artifact@v5
@@ -84,14 +84,14 @@ jobs:
           echo "### What's Changed" >> release-notes.md
           echo "" >> release-notes.md
           python3 scripts/_get_changelog_entry.py "$VERSION" >> release-notes.md 2>/dev/null \
-            || echo "  See the [CHANGELOG](https://github.com/E3CNC/E3CNC_UI/blob/main/CHANGELOG.md) for details." >> release-notes.md
+            || echo "  See the [CHANGELOG](https://github.com/E3CNC/E3CNC/blob/main/CHANGELOG.md) for details." >> release-notes.md
 
       - name: Publish release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION='${{ steps.version.outputs.VERSION }}'
-          ASSET="E3CNC_UI-${VERSION}.zip"
+          ASSET="E3CNC-${VERSION}.zip"
 
           if gh release view "$VERSION" >/dev/null 2>&1; then
             echo "Updating existing release: $VERSION"

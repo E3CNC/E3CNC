@@ -16,7 +16,7 @@ export PATH="$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin"
 WEB_ROOT="${1:-$HOME/mainsail}"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OWNER="E3CNC"
-REPO="E3CNC_UI"
+REPO="E3CNC"
 
 echo "=== Downloading pre-built frontend ==="
 
@@ -32,7 +32,7 @@ elif command -v node &>/dev/null; then
 else
     RELEASE_VER="v$(grep -oP '"version"\s*:\s*"\K[^"]+' "$REPO_ROOT/package.json" || echo '0.0.0')"
 fi
-ASSET_NAME="E3CNC_UI-${RELEASE_VER}.zip"
+ASSET_NAME="E3CNC-${RELEASE_VER}.zip"
 ZIP_FILE="$TMP_DIR/$ASSET_NAME"
 
 echo "    target release asset: $ASSET_NAME"

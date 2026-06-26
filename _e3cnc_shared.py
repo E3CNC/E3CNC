@@ -329,13 +329,13 @@ def check_status(remote_host: Optional[str] = None, output_callback=None, inst: 
         lines.append(f"  ⚠ {label} — not found")
         return False
 
-    repo_dir = f"{remote_home}/E3CNC_UI"
+    repo_dir = f"{remote_home}/E3CNC"
     _check("Repository checkout", f"test -d '{repo_dir}/.git' && echo 'found' || true", "found")
     _check("Moonraker cnc_agent component", f"test -f '{active_inst.moonraker_dir}/moonraker/components/cnc_agent/cnc_agent.py' && echo 'found' || true", "found")
     _check("Moonraker cnc_metadata component", f"test -f '{active_inst.moonraker_dir}/moonraker/components/cnc_metadata/cnc_metadata.py' && echo 'found' || true", "found")
     _check("Metadata extractor script", f"test -x '{active_inst.scripts_dir}/cnc_metadata_extractor.py' && echo 'found' || true", "found")
     _check("Moonraker config [cnc_agent] section", f"grep -qE '^\\[cnc_agent\\]' '{active_inst.moonraker_conf}' 2>/dev/null && echo 'found' || true", "found")
-    _check("Moonraker config [update_manager E3CNC_UI] section", f"grep -qE '^\\[update_manager E3CNC_UI\\]' '{active_inst.moonraker_conf}' 2>/dev/null && echo 'found' || true", "found")
+    _check("Moonraker config [update_manager E3CNC] section", f"grep -qE '^\\[update_manager E3CNC\\]' '{active_inst.moonraker_conf}' 2>/dev/null && echo 'found' || true", "found")
     _check("Klipper WCS plugin", f"test -f '{active_inst.klipper_dir}/klippy/extras/work_coordinate_systems.py' && echo 'found' || true", "found")
     _check("E3CNC macros directory", f"test -d '{active_inst.E3CNC_dir}/macros' && echo 'found' || true", "found")
     _check("Frontend deployed", f"test -f '{active_inst.web_root}/index.html' && echo 'found' || true", "found")

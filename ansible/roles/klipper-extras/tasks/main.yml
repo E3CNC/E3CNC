@@ -1,7 +1,7 @@
 ---
 - name: Deploy work_coordinate_systems.py to klippy/extras/
   ansible.builtin.copy:
-    src: '{{ repo.dest }}/E3CNC/extras/work_coordinate_systems.py'
+    src: '{{ repo.dest }}/extras/work_coordinate_systems.py'
     dest: '{{ klipper.extras_dir }}/work_coordinate_systems.py'
     mode: '0644'
     remote_src: true

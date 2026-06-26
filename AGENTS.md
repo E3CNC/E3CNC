@@ -87,9 +87,9 @@ with Ansible playbooks for idempotent deployment.
 Plus fixes discovered during rollout:
 
 - **Nightly CI releases**: `.github/workflows/build-frontend.yml` builds on every
-  push to `main` and publishes `E3CNC_UI-<version>.zip` (semver) as a `nightly-main-<YYYYMMDD>-<run_id>` GitHub release.
+  push to `main` and publishes `E3CNC-<version>.zip` (semver) as a `nightly-main-<YYYYMMDD>-<run_id>` GitHub release.
   Low-RAM devices (32-bit ARM) download the pre-built zip instead of running `vite build`.
-- **`post_update_script`**: Moonraker update manager runs `scripts/post_update.sh`
+- **`post_update_script`**: Moonraker update manager runs `build-scripts/post_update.sh`
   after every `git pull`, which downloads the nightly release, re-vendors the agent,
   re-deploys plugins, and restarts Moonraker automatically. Repo must be cloned
   manually first — Moonraker does not clone from scratch.
@@ -100,7 +100,7 @@ Plus fixes discovered during rollout:
 
 ```text
 dbdf554a docs: update for pre-built nightly releases and automatic post_update_script
-2c071436 chore: rename nightly release asset from mainsail.zip to E3CNC_UI.zip
+2c071436 chore: rename nightly release asset from mainsail.zip to E3CNC.zip
 cb3dcb81 fix: embed version.json in nightly release zip
 629e4cc5 chore: update bun.lock after adding vue-load-image dependency
 3f4b9c0c fix: add missing vue-load-image dependency to package.json
@@ -119,7 +119,7 @@ a9144473 spec: add Ansible migration plan
 - **Dev Server**: Run within `tmux`; check for existing sessions first. HMR is active.
 - **CLI**: `./e3cnc-cli` — unified CLI wrapping Ansible playbooks with install, deploy, update, uninstall, status, backup, restore, diagnose, and check commands.
 - **Ansible**: Playbooks at `ansible/playbooks/`. Run `./e3cnc-cli install` for full install.
-- **Wiki**: The project wiki is available at `~/repos/E3CNC_UI.wiki/` (cloned from `https://github.com/E3CNC/E3CNC_UI.wiki.git`). Update `Home.md` and `Changelog.md` when shipping significant changes.
+- **Wiki**: The project wiki is available at `~/repos/E3CNC.wiki/` (cloned from `https://github.com/E3CNC/E3CNC.wiki.git`). Update `Home.md` and `Changelog.md` when shipping significant changes.
 - **CI**: Releases are triggered manually via GitHub Actions (`workflow_dispatch`). Check status with `gh run list`.
 
 ## Operational Guidelines
@@ -132,6 +132,6 @@ a9144473 spec: add Ansible migration plan
 - **Store layer**: Store migration is complete — all Vue 2 patterns (`Vue.set`, `Vue.$socket`, `Vue.$toast`, `import Vue`) removed.
 - **`@vue/compat`**: Fully removed — app runs on pure Vue 3.5 + Vuetify 3.
 - **Runtime fixes applied**: `i18n.global.t`, `useDisplay()`, `boolMenu`, removed `const mdiXxx = mdiXxx` TDZ bugs across 100+ files.
-- **32-bit ARM builds**: Do NOT run `bun run build` on 32-bit ARM — it OOMs. Use `scripts/download_frontend.sh` or CI nightly releases instead.
-- **Moonraker update manager**: Has `post_update_script: ~/E3CNC_UI/scripts/post_update.sh` which auto-updates frontend + agent on git pull. Repo must be cloned manually first (Moonraker does not clone from scratch).
+- **32-bit ARM builds**: Do NOT run `bun run build` on 32-bit ARM — it OOMs. Use `build-scripts/download_frontend.sh` or CI nightly releases instead.
+- **Moonraker update manager**: Has `post_update_script: ~/E3CNC/build-scripts/post_update.sh` which auto-updates frontend + agent on git pull. Repo must be cloned manually first (Moonraker does not clone from scratch).
 - **Ask before pushing**: Never push to remote without asking the user first.

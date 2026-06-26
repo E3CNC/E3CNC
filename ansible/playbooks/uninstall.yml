@@ -1,5 +1,5 @@
 ---
-- name: Uninstall E3CNC_UI — reverse of install.yml
+- name: Uninstall E3CNC — reverse of install.yml
   hosts: cnc
   gather_facts: true
   vars_files:
@@ -38,10 +38,10 @@
         regexp: '^timeout:'
         state: absent
 
-    - name: Remove [update_manager E3CNC_UI] block from moonraker.conf
+    - name: Remove [update_manager E3CNC] block from moonraker.conf
       ansible.builtin.blockinfile:
         path: '{{ moonraker_conf }}'
-        marker: '# {mark} ANSIBLE MANAGED BLOCK - update_manager E3CNC_UI'
+        marker: '# {mark} ANSIBLE MANAGED BLOCK - update_manager E3CNC'
         state: absent
 
     - name: Remove work_coordinate_systems.py from klippy/extras/

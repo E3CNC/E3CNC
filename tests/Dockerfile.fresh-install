@@ -8,11 +8,11 @@
 #   docker run -it --rm e3cnc-test
 #
 # Run (auto-check deps):
-#   docker run --rm e3cnc-test bash -c 'cd ~/E3CNC_UI && ./e3cnc-cli check'
+#   docker run --rm e3cnc-test bash -c 'cd ~/E3CNC && ./e3cnc-cli check'
 #
 # Run (full install — will fail at Moonraker-dependent steps but proves
 #        ansible + bun auto-install works):
-#   docker run --rm e3cnc-test bash -c 'cd ~/E3CNC_UI && echo y | ./e3cnc-cli install'
+#   docker run --rm e3cnc-test bash -c 'cd ~/E3CNC && echo y | ./e3cnc-cli install'
 
 FROM ubuntu:24.04
 
@@ -36,7 +36,7 @@ USER testbed
 WORKDIR /home/testbed
 
 # Copy the current working tree into the container
-COPY --chown=testbed:testbed . /home/testbed/E3CNC_UI
+COPY --chown=testbed:testbed . /home/testbed/E3CNC
 
 # Create directory structure expected by Klipper + Moonraker install
 RUN mkdir -p /home/testbed/printer_data/config/E3CNC/macros \

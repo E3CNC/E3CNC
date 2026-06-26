@@ -1,7 +1,7 @@
 ---
 repo:
-  url: https://github.com/E3CNC/E3CNC_UI.git
-  dest: '{{ ansible_env.HOME }}/E3CNC_UI'
+  url: https://github.com/E3CNC/E3CNC.git
+  dest: '{{ ansible_env.HOME }}/E3CNC'
   branch: main
 
 # Instance-specific paths — overridden via CLI extra_vars for multi-instance.
@@ -19,7 +19,7 @@ frontend:
 
 agent:
   vender_dir: '{{ moonraker_dir }}/moonraker/components'
-  source_dir: '{{ repo.dest }}/E3CNC/moonraker-mcp/src/moonraker_mcp'
+  source_dir: '{{ repo.dest }}/moonraker'
 
 klipper:
   extras_dir: '{{ klipper_dir }}/klippy/extras'

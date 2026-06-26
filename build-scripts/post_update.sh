@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Post-update hook for Moonraker's update_manager.
-# Runs after `git pull` on the E3CNC_UI monorepo.
+# Runs after `git pull` on the E3CNC monorepo.
 #
 # Delegates to the Ansible redeploy playbook, which handles:
 #   - Frontend rebuild + deploy
@@ -13,8 +13,8 @@
 #   ./scripts/post_update.sh
 #
 # Add to moonraker.conf:
-#   [update_manager E3CNC_UI]
-#   post_update_script: ~/E3CNC_UI/scripts/post_update.sh
+#   [update_manager E3CNC]
+#   post_update_script: ~/E3CNC/build-scripts/post_update.sh
 
 set -euo pipefail
 
@@ -25,11 +25,11 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # Guard: the repo must be cloned before this script can do anything useful.
 if [[ ! -d "$REPO_ROOT/.git" ]]; then
-    echo "[E3CNC] ERROR: This script must be run from inside a cloned E3CNC_UI repository." >&2
+    echo "[E3CNC] ERROR: This script must be run from inside a cloned E3CNC repository." >&2
     echo "[E3CNC]" >&2
     echo "[E3CNC]   Clone the repo first:" >&2
-    echo "[E3CNC]     cd ~ && git clone https://github.com/E3CNC/E3CNC_UI.git" >&2
-    echo "[E3CNC]     cd E3CNC_UI && ./scripts/post_update.sh" >&2
+    echo "[E3CNC]     cd ~ && git clone https://github.com/E3CNC/E3CNC.git" >&2
+    echo "[E3CNC]     cd E3CNC && ./build-scripts/post_update.sh" >&2
     echo "[E3CNC]" >&2
     exit 1
 fi
@@ -40,7 +40,7 @@ fail() { echo "[E3CNC] ✗ $1"; exit 1; }
 
 TOTAL_STEPS=5
 
-echo "[E3CNC] Starting E3CNC_UI update…"
+echo "[E3CNC] Starting E3CNC update…"
 echo ""
 echo "[E3CNC]   [ ] 1/5  Checking dependencies"
 echo "[E3CNC]   [ ] 2/5  Checking Ansible"
@@ -134,4 +134,4 @@ ansible-playbook \
 step 5 "Finalizing…"
 # ------------------------------------------------------------------
 
-ok "E3CNC_UI update complete — refresh your browser to see the changes"
+ok "E3CNC update complete — refresh your browser to see the changes"

@@ -2,7 +2,7 @@
 # Tab completion for e3cnc-cli and e3cnc-tui
 #
 # Source this file in your ~/.bashrc or ~/.zshrc:
-#   source ~/E3CNC_UI/scripts/e3cnc-completion.sh
+#   source ~/E3CNC/build-scripts/e3cnc-completion.sh
 
 _e3cnc_cli_completions() {
     local cur prev words cword

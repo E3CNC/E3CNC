@@ -6,10 +6,11 @@ import tempfile
 import unittest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SRC = os.path.abspath(os.path.join(HERE, "..", "src"))
+# cnc_agent/ is now at repo-root/moonraker/cnc_agent/
+SRC = os.path.abspath(os.path.join(HERE, "..", "..", "moonraker"))
 sys.path.insert(0, SRC)
 
-from moonraker_mcp.cnc_agent import CncAgent
+from cnc_agent.cnc_agent import CncAgent
 
 
 def resolve(value):

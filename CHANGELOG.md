@@ -1,7 +1,7 @@
 # Changelog
 
 ## v0.7.11 (2026-06-25)
-- Comment out an existing `[update_manager mainsail]` block in `moonraker.conf` during install to avoid conflicts with `E3CNC_UI`
+- Comment out an existing `[update_manager mainsail]` block in `moonraker.conf` during install to avoid conflicts with `E3CNC`
 
 ## v0.7.10 (2026-06-25)
 - Multi-instance detection now supports KIAUH-style layouts like `~/printer_test1_data`
