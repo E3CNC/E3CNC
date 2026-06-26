@@ -1,5 +1,5 @@
 ---
-- name: Deploy E3CNC_UI frontend — build, copy, reload nginx
+- name: Deploy E3CNC frontend — build, copy, reload nginx
   hosts: cnc
   gather_facts: true
   vars_files:

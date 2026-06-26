@@ -62,7 +62,78 @@ jobs:
       - name: Create dist archive
         run: |
           cp ./remote/* ./dist/ 2>/dev/null || true
-          cd dist && zip -r ../E3CNC_UI-${{ steps.version.outputs.VERSION }}.zip . && cd ..
+          cd dist && zip -r ../E3CNC-${{ steps.version.outputs.VERSION }}.zip . && cd ..
+
+      - name: Install zstd
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq zstd
+
+      - name: Build stack artifact
+        shell: bash
+        run: |
+          VERSION='${{ steps.version.outputs.VERSION }}'
+          STACK_DIR="e3cnc-stack-${VERSION}"
+          mkdir -p "${STACK_DIR}/frontend" \
+                   "${STACK_DIR}/moonraker/cnc_agent" \
+                   "${STACK_DIR}/moonraker/cnc_metadata" \
+                   "${STACK_DIR}/moonraker/mcp" \
+                   "${STACK_DIR}/klipper/extras" \
+                   "${STACK_DIR}/config/macros" \
+                   "${STACK_DIR}/scripts" \
+                   "${STACK_DIR}/migrations"
+
+          # Frontend (built assets)
+          cp -r dist/* "${STACK_DIR}/frontend/"
+
+          # Moonraker components
+          cp moonraker/cnc_agent/cnc_agent.py "${STACK_DIR}/moonraker/cnc_agent/"
+          cp moonraker/cnc_metadata/cnc_metadata.py "${STACK_DIR}/moonraker/cnc_metadata/"
+          cp moonraker/mcp/mcp_server.py "${STACK_DIR}/moonraker/mcp/"
+          cp moonraker/mcp/__init__.py "${STACK_DIR}/moonraker/mcp/"
+          cp moonraker/requirements.txt "${STACK_DIR}/moonraker/"
+
+          # Klipper extras
+          cp extras/work_coordinate_systems.py "${STACK_DIR}/klipper/extras/"
+
+          # Macros (merge macros/ + post_processors/klipper/macros/)
+          cp macros/*.cfg "${STACK_DIR}/config/macros/"
+          cp -r post_processors/klipper/macros/* "${STACK_DIR}/config/macros/"
+
+          # Scripts
+          cp scripts/cnc_metadata_extractor.py "${STACK_DIR}/scripts/"
+
+          # Theme
+          cp theme.json "${STACK_DIR}/"
+
+          # Manifest (use python for valid JSON)
+          python3 -c "
+import json
+manifest = {
+    'e3cnc_version': '$VERSION',
+    'moonraker_component_version': '$VERSION',
+    'klipper_extras_version': '1',
+    'config_schema': 1,
+    'klipper_requires': '>=0.12.0',
+    'python_requires': '>=3.11',
+}
+with open('${STACK_DIR}/manifest.json', 'w') as f:
+    json.dump(manifest, f, indent=2)
+    f.write('\n')
+"
+
+          # Create compressed archive
+          tar --zstd -cf "e3cnc-stack-${VERSION}.tar.zst" "${STACK_DIR}"
+
+          # Checksum
+          sha256sum "e3cnc-stack-${VERSION}.tar.zst" > "e3cnc-stack-${VERSION}.tar.zst.sha256"
+
+          echo "Stack artifact built: e3cnc-stack-${VERSION}.tar.zst ($(du -h "e3cnc-stack-${VERSION}.tar.zst" | cut -f1))"
+
+      - name: Upload stack artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: stack-artifact
+          path: e3cnc-stack-*.tar.zst*
+          retention-days: 90
 
       - name: Upload dist artifact
         uses: actions/upload-artifact@v5
@@ -83,28 +154,33 @@ jobs:
           echo "---" >> release-notes.md
           echo "### What's Changed" >> release-notes.md
           echo "" >> release-notes.md
-          python3 scripts/_get_changelog_entry.py "$VERSION" >> release-notes.md 2>/dev/null \
-            || echo "  See the [CHANGELOG](https://github.com/E3CNC/E3CNC_UI/blob/main/CHANGELOG.md) for details." >> release-notes.md
+          python3 build-scripts/_get_changelog_entry.py "$VERSION" >> release-notes.md 2>/dev/null \
+            || echo "  See the [CHANGELOG](https://github.com/E3CNC/E3CNC/blob/main/CHANGELOG.md) for details." >> release-notes.md
 
       - name: Publish release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION='${{ steps.version.outputs.VERSION }}'
-          ASSET="E3CNC_UI-${VERSION}.zip"
+          ASSET="E3CNC-${VERSION}.zip"
+          STACK_ARTIFACT="e3cnc-stack-${VERSION}.tar.zst"
+          STACK_CHECKSUM="e3cnc-stack-${VERSION}.tar.zst.sha256"
+
+          RELEASE_ARGS=(
+            --title "${VERSION} (${{ steps.commit.outputs.SHA_SHORT }})"
+            --notes-file release-notes.md
+            --target main
+          )
 
           if gh release view "$VERSION" >/dev/null 2>&1; then
             echo "Updating existing release: $VERSION"
-            gh release upload "$VERSION" "$ASSET" --clobber
-            gh release edit "$VERSION" \
-              --title "${VERSION} (${{ steps.commit.outputs.SHA_SHORT }})" \
-              --notes-file release-notes.md \
-              --target main
+            gh release upload "$VERSION" "$ASSET" "$STACK_ARTIFACT" "$STACK_CHECKSUM" --clobber
+            gh release edit "$VERSION" "${RELEASE_ARGS[@]}"
           else
             echo "Creating release: $VERSION"
             gh release create "$VERSION" \
-              --title "${VERSION} (${{ steps.commit.outputs.SHA_SHORT }})" \
-              --notes-file release-notes.md \
-              --target main \
-              "$ASSET"
+              "${RELEASE_ARGS[@]}" \
+              "$ASSET" \
+              "$STACK_ARTIFACT" \
+              "$STACK_CHECKSUM"
           fi

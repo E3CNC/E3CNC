@@ -27,15 +27,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/E3CNC/E3CNC_UI"
-Repository = "https://github.com/E3CNC/E3CNC_UI"
-"Issues" = "https://github.com/E3CNC/E3CNC_UI/issues"
+Homepage = "https://github.com/E3CNC/E3CNC"
+Repository = "https://github.com/E3CNC/E3CNC"
+"Issues" = "https://github.com/E3CNC/E3CNC/issues"
 
 [project.scripts]
-moonraker-mcp = "moonraker_mcp.mcp_server:main"
-
-[tool.setuptools]
-package-dir = {"" = "src"}
-
-[tool.setuptools.packages.find]
-where = ["src"]
+moonraker-mcp = "moonraker.mcp.mcp_server:main"

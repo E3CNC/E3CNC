@@ -4,14 +4,14 @@
 
 # E3CNC UI
 
-[![Release](https://img.shields.io/github/v/release/E3CNC/E3CNC_UI?style=flat&label=Release&color=00FF00)](https://github.com/E3CNC/E3CNC_UI/releases)
-[![Build Frontend](https://github.com/E3CNC/E3CNC_UI/actions/workflows/build-frontend.yml/badge.svg?branch=main)](https://github.com/E3CNC/E3CNC_UI/actions/workflows/build-frontend.yml)
-[![License](https://img.shields.io/github/license/E3CNC/E3CNC_UI?style=flat&label=License&color=00FF00)](https://github.com/E3CNC/E3CNC_UI/blob/main/LICENSE)
+[![Release](https://img.shields.io/github/v/release/E3CNC/E3CNC?style=flat&label=Release&color=00FF00)](https://github.com/E3CNC/E3CNC/releases)
+[![Build Frontend](https://github.com/E3CNC/E3CNC/actions/workflows/build-frontend.yml/badge.svg?branch=main)](https://github.com/E3CNC/E3CNC/actions/workflows/build-frontend.yml)
+[![License](https://img.shields.io/github/license/E3CNC/E3CNC?style=flat&label=License&color=00FF00)](https://github.com/E3CNC/E3CNC/blob/main/LICENSE)
 
 A modern, responsive CNC controller interface for Klipper-based machines — forked from [Mainsail](https://github.com/mainsail-crew/mainsail) and retargeted from 3D printing to CNC machine control. Built with **Vue 3.5** and **Vuetify 3**.
 
 ```bash
-git clone https://github.com/E3CNC/E3CNC_UI.git ~/E3CNC_UI && cd ~/E3CNC_UI
+git clone https://github.com/E3CNC/E3CNC.git ~/E3CNC && cd ~/E3CNC
 ./e3cnc-cli install   # idempotent full install (wraps Ansible)
 ```
 
@@ -44,7 +44,7 @@ git clone https://github.com/E3CNC/E3CNC_UI.git ~/E3CNC_UI && cd ~/E3CNC_UI
 
 | Method | Command |
 |--------|---------|
-| **Install (existing Mainsail user)** | Add `[update_manager E3CNC_UI]` block to `moonraker.conf`, restart Klipper via UI, then update |
+| **Install (existing Mainsail user)** | Add `[update_manager E3CNC]` block to `moonraker.conf`, restart Klipper via UI, then update |
 | **Install (full)** | `./e3cnc-cli install` |
 | **Interactive menu** | `./e3cnc-cli` (with auto-loop after each command) |
 | **Deploy** | `./e3cnc-cli deploy` |
@@ -63,14 +63,14 @@ git clone https://github.com/E3CNC/E3CNC_UI.git ~/E3CNC_UI && cd ~/E3CNC_UI
 
 ## Documentation
 
-Full docs on the [wiki](https://github.com/E3CNC/E3CNC_UI/wiki):
+Full docs on the [wiki](https://github.com/E3CNC/E3CNC/wiki):
 
-- [Installation](https://github.com/E3CNC/E3CNC_UI/wiki/Installation)
-- [Architecture](https://github.com/E3CNC/E3CNC_UI/wiki/Architecture)
-- [API Reference](https://github.com/E3CNC/E3CNC_UI/wiki/API)
-- [Features](https://github.com/E3CNC/E3CNC_UI/wiki/Features)
-- [Changelog](https://github.com/E3CNC/E3CNC_UI/wiki/Changelog)
-- [Contributing](https://github.com/E3CNC/E3CNC_UI/wiki/Contributing)
+- [Installation](https://github.com/E3CNC/E3CNC/wiki/Installation)
+- [Architecture](https://github.com/E3CNC/E3CNC/wiki/Architecture)
+- [API Reference](https://github.com/E3CNC/E3CNC/wiki/API)
+- [Features](https://github.com/E3CNC/E3CNC/wiki/Features)
+- [Changelog](https://github.com/E3CNC/E3CNC/wiki/Changelog)
+- [Contributing](https://github.com/E3CNC/E3CNC/wiki/Contributing)
 
 ## Repository Structure
 

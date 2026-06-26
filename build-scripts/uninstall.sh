@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Uninstall E3CNC_UI: remove agents, config sections, plugins, and macros.
+# Uninstall E3CNC: remove agents, config sections, plugins, and macros.
 #
 # Usage:
 #   ./scripts/uninstall.sh                         # uninstall locally
 #   CNC_HOST=myprinter ./scripts/uninstall.sh       # uninstall remote via SSH
 #
 # This reverses every step in install_to_moonraker.sh. It does NOT:
-#   - delete the ~/E3CNC_UI repo checkout
+#   - delete the ~/E3CNC repo checkout
 #   - delete your printer.cfg or g-code files
 #   - restore stock Mainsail (reinstall via KIAUH or your backup after running this)
 
@@ -38,7 +38,7 @@ REMOTE_MACROS_DIR="$REMOTE_HOME/printer_data/config/macros"
 REMOTE_E3CNC_DIR="$REMOTE_HOME/printer_data/config/E3CNC"
 REMOTE_DEPLOY_DIR="$REMOTE_HOME/mainsail"
 
-echo "=== E3CNC_UI uninstall ==="
+echo "=== E3CNC uninstall ==="
 echo "  Target: $CNC_HOST"
 echo ""
 
@@ -67,10 +67,10 @@ run_on_target "
 "
 
 # ---------------------------------------------------------------------------
-# 3) Remove [cnc_agent], [cnc_metadata], and [update_manager E3CNC_UI]
+# 3) Remove [cnc_agent], [cnc_metadata], and [update_manager E3CNC]
 #    from moonraker.conf
 # ---------------------------------------------------------------------------
-echo "==> [4/6] remove [cnc_agent], [cnc_metadata], [update_manager E3CNC_UI] from moonraker.conf"
+echo "==> [4/6] remove [cnc_agent], [cnc_metadata], [update_manager E3CNC] from moonraker.conf"
 # Read the remote conf, filter it locally, write it back.
 # This avoids quoting nightmares with inline Python over SSH/eval.
 REMOTE_CONF_CONTENT=$(run_on_target "cat '$REMOTE_CONF'" 2>/dev/null || echo "")
@@ -83,7 +83,7 @@ if [[ -n "$REMOTE_CONF_CONTENT" ]]; then
         /^\[/ { in_section = 0 }
         /^\[cnc_agent\]/ { in_section = 1; next }
         /^\[cnc_metadata\]/ { in_section = 1; next }
-        /^\[update_manager E3CNC_UI\]/ { in_section = 1; next }
+        /^\[update_manager E3CNC\]/ { in_section = 1; next }
         !in_section
     ')
 

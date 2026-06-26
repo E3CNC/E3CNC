@@ -24,7 +24,7 @@ trusted_clients: 127.0.0.1'
             /^\[/ { in_section = 0 }
             /^\[cnc_agent\]/ { in_section = 1; next }
             /^\[cnc_metadata\]/ { in_section = 1; next }
-            /^\[update_manager E3CNC_UI\]/ { in_section = 1; next }
+            /^\[update_manager E3CNC\]/ { in_section = 1; next }
             !in_section
         '
     "
@@ -50,7 +50,7 @@ timeout: 30.0
             /^\[/ { in_section = 0 }
             /^\[cnc_agent\]/ { in_section = 1; next }
             /^\[cnc_metadata\]/ { in_section = 1; next }
-            /^\[update_manager E3CNC_UI\]/ { in_section = 1; next }
+            /^\[update_manager E3CNC\]/ { in_section = 1; next }
             !in_section
         '
     "
@@ -58,13 +58,13 @@ timeout: 30.0
     assert_output "$expected"
 }
 
-@test "awk filter removes [update_manager E3CNC_UI] section" {
+@test "awk filter removes [update_manager E3CNC] section" {
     input='[server]
 
-[update_manager E3CNC_UI]
+[update_manager E3CNC]
 type: git_repo
 channel: dev
-path: ~/E3CNC_UI
+path: ~/E3CNC
 
 [authorization]'
 
@@ -77,7 +77,7 @@ path: ~/E3CNC_UI
             /^\[/ { in_section = 0 }
             /^\[cnc_agent\]/ { in_section = 1; next }
             /^\[cnc_metadata\]/ { in_section = 1; next }
-            /^\[update_manager E3CNC_UI\]/ { in_section = 1; next }
+            /^\[update_manager E3CNC\]/ { in_section = 1; next }
             !in_section
         '
     "
@@ -95,8 +95,8 @@ verbose: true
 [cnc_metadata]
 enabled: yes
 
-[update_manager E3CNC_UI]
-path: ~/E3CNC_UI
+[update_manager E3CNC]
+path: ~/E3CNC
 
 [authorization]
 trusted_clients: 127.0.0.1'
@@ -112,7 +112,7 @@ trusted_clients: 127.0.0.1'
             /^\[/ { in_section = 0 }
             /^\[cnc_agent\]/ { in_section = 1; next }
             /^\[cnc_metadata\]/ { in_section = 1; next }
-            /^\[update_manager E3CNC_UI\]/ { in_section = 1; next }
+            /^\[update_manager E3CNC\]/ { in_section = 1; next }
             !in_section
         '
     "
@@ -131,14 +131,14 @@ key = val
             /^\[/ { in_section = 0 }
             /^\[cnc_agent\]/ { in_section = 1; next }
             /^\[cnc_metadata\]/ { in_section = 1; next }
-            /^\[update_manager E3CNC_UI\]/ { in_section = 1; next }
+            /^\[update_manager E3CNC\]/ { in_section = 1; next }
             !in_section
         ')
         echo \"\$filtered\" | awk '
             /^\[/ { in_section = 0 }
             /^\[cnc_agent\]/ { in_section = 1; next }
             /^\[cnc_metadata\]/ { in_section = 1; next }
-            /^\[update_manager E3CNC_UI\]/ { in_section = 1; next }
+            /^\[update_manager E3CNC\]/ { in_section = 1; next }
             !in_section
         '
     "
@@ -159,7 +159,7 @@ trusted_clients: 127.0.0.1'
             /^\[/ { in_section = 0 }
             /^\[cnc_agent\]/ { in_section = 1; next }
             /^\[cnc_metadata\]/ { in_section = 1; next }
-            /^\[update_manager E3CNC_UI\]/ { in_section = 1; next }
+            /^\[update_manager E3CNC\]/ { in_section = 1; next }
             !in_section
         '
     "

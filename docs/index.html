@@ -297,19 +297,19 @@
                 </h1>
                 <p>A modern, responsive CNC controller interface for Klipper-based machines.</p>
                 <div class="badge-row">
-                    <a href="https://github.com/E3CNC/E3CNC_UI/releases">
+                    <a href="https://github.com/E3CNC/E3CNC/releases">
                         <img
-                            src="https://img.shields.io/github/v/release/E3CNC/E3CNC_UI?style=flat&label=Release&color=00FF00"
+                            src="https://img.shields.io/github/v/release/E3CNC/E3CNC?style=flat&label=Release&color=00FF00"
                             alt="Release" />
                     </a>
-                    <a href="https://github.com/E3CNC/E3CNC_UI">
+                    <a href="https://github.com/E3CNC/E3CNC">
                         <img
-                            src="https://img.shields.io/github/stars/E3CNC/E3CNC_UI?style=flat&label=Stars&color=00FF00"
+                            src="https://img.shields.io/github/stars/E3CNC/E3CNC?style=flat&label=Stars&color=00FF00"
                             alt="Stars" />
                     </a>
-                    <a href="https://github.com/E3CNC/E3CNC_UI/blob/main/LICENSE">
+                    <a href="https://github.com/E3CNC/E3CNC/blob/main/LICENSE">
                         <img
-                            src="https://img.shields.io/github/license/E3CNC/E3CNC_UI?style=flat&label=License&color=00FF00"
+                            src="https://img.shields.io/github/license/E3CNC/E3CNC?style=flat&label=License&color=00FF00"
                             alt="License" />
                     </a>
                 </div>
@@ -717,8 +717,8 @@
                     plugin deployment, and service restarts — in a single command.
                 </p>
 
-                <pre class="install-config"><code>git clone https://github.com/E3CNC/E3CNC_UI.git ~/E3CNC_UI
-cd ~/E3CNC_UI
+                <pre class="install-config"><code>git clone https://github.com/E3CNC/E3CNC.git ~/E3CNC
+cd ~/E3CNC
 ./e3cnc-cli install</code></pre>
 
                 <p class="install-note">
@@ -726,9 +726,9 @@ cd ~/E3CNC_UI
                     that loops after each command. Use <code>[W]</code> to switch between
                     multiple Klipper/Moonraker instances on the same machine.
                     Tab completion available via
-                    <code>source ~/E3CNC_UI/scripts/e3cnc-completion.sh</code>.
+                    <code>source ~/E3CNC/scripts/e3cnc-completion.sh</code>.
                     See the
-                    <a href="https://github.com/E3CNC/E3CNC_UI/wiki/Installation">wiki</a>
+                    <a href="https://github.com/E3CNC/E3CNC/wiki/Installation">wiki</a>
                     for details and other install methods.
                 </p>
 
@@ -740,25 +740,25 @@ cd ~/E3CNC_UI
                     then click <strong>Update</strong> in <strong>Machine &rarr; Update Manager</strong>.
                 </p>
 
-                <pre class="install-config"><code>[update_manager E3CNC_UI]
+                <pre class="install-config"><code>[update_manager E3CNC]
 type: git_repo
 channel: dev
-path: ~/E3CNC_UI
-origin: https://github.com/E3CNC/E3CNC_UI.git
+path: ~/E3CNC
+origin: https://github.com/E3CNC/E3CNC.git
 primary_branch: main
 enable_node_updates: False
 is_system_service: False
-post_update_script: ~/E3CNC_UI/scripts/post_update.sh
+post_update_script: ~/E3CNC/scripts/post_update.sh
 info_tags:
     desc=E3CNC UI
 managed_services: klipper moonraker
 refresh_interval: 24</code></pre>
 
                 <p class="install-note">
-                    Replace <code>~/E3CNC_UI</code> with an absolute path if needed (e.g. <code>/home/pi/E3CNC_UI</code>). The script
+                    Replace <code>~/E3CNC</code> with an absolute path if needed (e.g. <code>/home/pi/E3CNC</code>). The script
                     auto-installs Ansible, creates a backup before every update, and preserves
                     the 3 most recent backups. See the
-                    <a href="https://github.com/E3CNC/E3CNC_UI/wiki/Installation-Update-Manager">wiki</a>
+                    <a href="https://github.com/E3CNC/E3CNC/wiki/Installation-Update-Manager">wiki</a>
                     for details.
                 </p>
             </section>
@@ -766,23 +766,23 @@ refresh_interval: 24</code></pre>
             <section>
                 <h2>Getting Started</h2>
                 <div class="links-list">
-                    <a href="https://github.com/E3CNC/E3CNC_UI">
+                    <a href="https://github.com/E3CNC/E3CNC">
                         GitHub Repository
                         <span class="arrow"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
                     </a>
-                    <a href="https://github.com/E3CNC/E3CNC_UI/wiki">
+                    <a href="https://github.com/E3CNC/E3CNC/wiki">
                         Wiki & Documentation
                         <span class="arrow"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
                     </a>
-                    <a href="https://github.com/E3CNC/E3CNC_UI/wiki/Installation">
+                    <a href="https://github.com/E3CNC/E3CNC/wiki/Installation">
                         Installation Guide
                         <span class="arrow"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
                     </a>
-                    <a href="https://github.com/E3CNC/E3CNC_UI/wiki/Installation-Update-Manager">
+                    <a href="https://github.com/E3CNC/E3CNC/wiki/Installation-Update-Manager">
                         Update Manager Install
                         <span class="arrow"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
                     </a>
-                    <a href="https://github.com/E3CNC/E3CNC_UI/releases">
+                    <a href="https://github.com/E3CNC/E3CNC/releases">
                         Releases
                         <span class="arrow"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
                     </a>

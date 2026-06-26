@@ -230,7 +230,7 @@ Once connected, an AI agent can use the tools. Some examples:
 ### Ansible playbook (recommended)
 
 ```sh
-cd ~/E3CNC_UI
+cd ~/E3CNC
 ansible-playbook ansible/playbooks/install.yml
 ```
 
@@ -239,22 +239,22 @@ This vendors the CNC agent into Moonraker, configures `[cnc_agent]` and `[cnc_me
 ### Legacy bash script
 
 ```sh
-cd ~/E3CNC_UI
+cd ~/E3CNC
 ./scripts/install_to_moonraker.sh
 ```
 
 ## Updating via Moonraker Update Manager
 
-> **Important:** Moonraker only *manages* an existing repo — it does not clone one from scratch. Before adding the `[update_manager E3CNC_UI]` section to `moonraker.conf`, you must clone the repo manually:
+> **Important:** Moonraker only *manages* an existing repo — it does not clone one from scratch. Before adding the `[update_manager E3CNC]` section to `moonraker.conf`, you must clone the repo manually:
 >
 > ```sh
 > cd ~
-> git clone https://github.com/E3CNC/E3CNC_UI.git
-> cd E3CNC_UI
+> git clone https://github.com/E3CNC/E3CNC.git
+> cd E3CNC
 > ./scripts/post_update.sh
 > ```
 
-The Ansible install and bash script both register an `[update_manager E3CNC_UI]` entry in `moonraker.conf`. After a git pull, the `post_update_script` automatically:
+The Ansible install and bash script both register an `[update_manager E3CNC]` entry in `moonraker.conf`. After a git pull, the `post_update_script` automatically:
 
 1. Downloads the latest pre-built frontend (avoids running `vite build` on the printer)
 2. Re-vendors the CNC agent files into `moonraker/components/`

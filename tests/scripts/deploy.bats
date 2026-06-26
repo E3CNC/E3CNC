@@ -71,7 +71,7 @@ teardown() {
 
 @test "--live build and deploy" {
     PATH="$TEST_TEMP:$PATH" \
-    E3CNC_UI_DIR="$SOURCE_DIR" \
+    E3CNC_DIR="$SOURCE_DIR" \
     MAINSAIL_DEPLOY_DIR="$HOME/mainsail" \
     run "$DEPLOY_SCRIPT" --live
 
@@ -84,7 +84,7 @@ teardown() {
 
 @test "--live copies hidden files (e.g. .htaccess)" {
     PATH="$TEST_TEMP:$PATH" \
-    E3CNC_UI_DIR="$SOURCE_DIR" \
+    E3CNC_DIR="$SOURCE_DIR" \
     MAINSAIL_DEPLOY_DIR="$HOME/mainsail" \
     run "$DEPLOY_SCRIPT" --live
 
@@ -97,7 +97,7 @@ teardown() {
     echo "my-config" > "$HOME/mainsail/config.json"
 
     PATH="$TEST_TEMP:$PATH" \
-    E3CNC_UI_DIR="$SOURCE_DIR" \
+    E3CNC_DIR="$SOURCE_DIR" \
     MAINSAIL_DEPLOY_DIR="$HOME/mainsail" \
     run "$DEPLOY_SCRIPT" --live
 
@@ -109,7 +109,7 @@ teardown() {
 
 @test "--live fails with helpful message when bun is missing" {
     PATH="" \
-    E3CNC_UI_DIR="$SOURCE_DIR" \
+    E3CNC_DIR="$SOURCE_DIR" \
     MAINSAIL_DEPLOY_DIR="$HOME/mainsail" \
     run "$DEPLOY_SCRIPT" --live
 
@@ -119,7 +119,7 @@ teardown() {
 
 @test "creates target directory if it doesn't exist" {
     PATH="$TEST_TEMP:$PATH" \
-    E3CNC_UI_DIR="$SOURCE_DIR" \
+    E3CNC_DIR="$SOURCE_DIR" \
     MAINSAIL_DEPLOY_DIR="$HOME/mainsail-new" \
     run "$DEPLOY_SCRIPT" --live
 

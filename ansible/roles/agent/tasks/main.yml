@@ -7,7 +7,7 @@
 
 - name: Vendor cnc_agent.py
   ansible.builtin.copy:
-    src: '{{ agent.source_dir }}/cnc_agent.py'
+    src: '{{ agent.source_dir }}/cnc_agent/cnc_agent.py'
     dest: '{{ agent.vender_dir }}/cnc_agent/cnc_agent.py'
     mode: '0644'
     remote_src: true
@@ -28,7 +28,7 @@
 
 - name: Vendor cnc_metadata.py
   ansible.builtin.copy:
-    src: '{{ agent.source_dir }}/cnc_metadata.py'
+    src: '{{ agent.source_dir }}/cnc_metadata/cnc_metadata.py'
     dest: '{{ agent.vender_dir }}/cnc_metadata/cnc_metadata.py'
     mode: '0644'
     remote_src: true

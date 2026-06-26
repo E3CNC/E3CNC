@@ -65,7 +65,7 @@ def test_only_comments_target_section_and_stops_at_next_section(tmp_path):
         "[update_manager mainsail]\n"
         "type: web\n"
         "path: /home/user/mainsail\n"
-        "[update_manager E3CNC_UI]\n"
+        "[update_manager E3CNC]\n"
         "type: git_repo\n"
     )
 
@@ -76,5 +76,5 @@ def test_only_comments_target_section_and_stops_at_next_section(tmp_path):
     assert "# [update_manager mainsail]" in text
     assert "# type: web" in text
     assert "# path: /home/user/mainsail" in text
-    assert "[update_manager E3CNC_UI]" in text
-    assert "# [update_manager E3CNC_UI]" not in text
+    assert "[update_manager E3CNC]" in text
+    assert "# [update_manager E3CNC]" not in text

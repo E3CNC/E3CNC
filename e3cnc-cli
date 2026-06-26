@@ -31,12 +31,29 @@ from _e3cnc_shared import (
     _ssh_run,
 )
 
+# Import single-deploy infrastructure
+from _e3cnc_deploy import (
+    get_releases, get_current_release, get_active_release_version,
+    Release, Journal,
+    find_stack_artifact_asset, download_artifact, verify_checksum,
+    extract_artifact, run_pre_flight_checks,
+    activate_release, deactivate_release,
+    sync_runtime_files, update_systemd_paths, restart_services,
+    install_pip_deps, run_migrations,
+    run_health_checks, HealthCheckResult,
+    rollback_to, rollback_previous, auto_rollback,
+    prune_releases, format_release_list,
+    backup_deployment_state, migrate_layout, detect_old_layout,
+    E3CNC_DIR, RELEASES_DIR, CURRENT_SYMLINK, JOURNAL_PATH,
+    DEFAULT_KEEP_RELEASES,
+)
+
 # Version compatibility check
 if VERSION != _CLI_VERSION:
     print()
     warn(f"Version mismatch: e3cnc-cli v{_CLI_VERSION} requires"
           f" _e3cnc_shared.py v{_CLI_VERSION} but found v{VERSION}")
-    warn(f"Run: cd ~/E3CNC_UI && git pull")
+    warn(f"Run: cd ~/E3CNC && git pull")
     print()
 
 
@@ -367,13 +384,13 @@ def check_status(remote_host: Optional[str] = None, output_callback=None, inst: 
         lines.append(f"  ⚠ {label} — not found")
         return False
 
-    repo_dir = f"{remote_home}/E3CNC_UI"
+    repo_dir = f"{remote_home}/E3CNC"
     _check("Repository checkout", f"test -d '{repo_dir}/.git' && echo 'found' || true", "found")
     _check("Moonraker cnc_agent component", f"test -f '{active_inst.moonraker_dir}/moonraker/components/cnc_agent/cnc_agent.py' && echo 'found' || true", "found")
     _check("Moonraker cnc_metadata component", f"test -f '{active_inst.moonraker_dir}/moonraker/components/cnc_metadata/cnc_metadata.py' && echo 'found' || true", "found")
     _check("Metadata extractor script", f"test -x '{active_inst.scripts_dir}/cnc_metadata_extractor.py' && echo 'found' || true", "found")
     _check("Moonraker config [cnc_agent] section", f"grep -qE '^\\[cnc_agent\\]' '{active_inst.moonraker_conf}' 2>/dev/null && echo 'found' || true", "found")
-    _check("Moonraker config [update_manager E3CNC_UI] section", f"grep -qE '^\\[update_manager E3CNC_UI\\]' '{active_inst.moonraker_conf}' 2>/dev/null && echo 'found' || true", "found")
+    _check("Moonraker config [update_manager E3CNC] section", f"grep -qE '^\\[update_manager E3CNC\\]' '{active_inst.moonraker_conf}' 2>/dev/null && echo 'found' || true", "found")
     _check("Klipper WCS plugin", f"test -f '{active_inst.klipper_dir}/klippy/extras/work_coordinate_systems.py' && echo 'found' || true", "found")
     _check("E3CNC macros directory", f"test -d '{active_inst.E3CNC_dir}/macros' && echo 'found' || true", "found")
     _check("Frontend deployed", f"test -f '{active_inst.web_root}/index.html' && echo 'found' || true", "found")
@@ -1152,14 +1169,187 @@ def cmd_deploy(args: argparse.Namespace) -> None:
 
 
 def cmd_update(args: argparse.Namespace) -> None:
-    """Re-vendor agent, rebuild frontend, re-deploy plugins, restart."""
-    _run_ansible_cmd(REDEPLOY_PLAYBOOK, args, "Update")
+    """Full-stack update: download stack artifact, activate, verify."""
+    header("Stack Update")
+
+    if args.remote:
+        warn("Remote update not yet supported — running locally")
+
+    inst = _get_instance(args) if not args.remote else None
+
+    # Ensure the releases directory exists
+    RELEASES_DIR.mkdir(parents=True, exist_ok=True)
+
+    step(1, 14, "Finding latest release")
+    asset = find_stack_artifact_asset()
+    if not asset:
+        fail("No stack artifact found. Create a release on GitHub first, or use the legacy update.")
+    version = asset.get("name", "").replace("e3cnc-stack-", "").replace(".tar.zst", "")
+    info(f"Found stack artifact: {asset.get('name', 'unknown')}")
+
+    step(2, 14, "Downloading artifact")
+    download_dir = Path("/tmp") / "e3cnc-download"
+    download_dir.mkdir(parents=True, exist_ok=True)
+    artifact_path = download_artifact(asset, download_dir)
+    if not artifact_path:
+        fail("Download failed")
+
+    step(3, 14, "Verifying checksum")
+    if not verify_checksum(artifact_path):
+        if args.yes:
+            warn("Checksum mismatch — continuing (--yes set)")
+        else:
+            reply = input(f"  {Style.YELLOW}Checksum mismatch. Continue anyway? [y/N] {Style.RESET}").strip().lower()
+            if reply != "y":
+                fail("Update cancelled")
+
+    step(4, 14, "Running pre-flight checks")
+    import json as _json
+    try:
+        manifest = _json.loads(artifact_path.with_name("manifest.json").read_text()) if (
+            artifact_path.with_name("manifest.json").exists()
+        ) else {}
+    except (OSError, _json.JSONDecodeError):
+        manifest = {}
+    if not run_pre_flight_checks(manifest):
+        if not args.yes:
+            reply = input(f"  {Style.YELLOW}Pre-flight checks failed. Continue? [y/N] {Style.RESET}").strip().lower()
+            if reply != "y":
+                fail("Update cancelled")
+
+    step(5, 14, "Backing up current state")
+    backup_path = backup_deployment_state(inst)
+
+    step(6, 14, "Extracting release")
+    release_dir = extract_artifact(artifact_path, RELEASES_DIR, version)
+    if not release_dir:
+        fail("Extraction failed")
+
+    step(7, 14, "Activating new release")
+    journal = Journal.load()
+    if not activate_release(version, release_dir, journal):
+        fail("Activation failed")
+
+    step(8, 14, "Installing pip dependencies")
+    install_pip_deps(release_dir)
+
+    step(9, 14, "Running config/schema migrations")
+    run_migrations(release_dir, direction="up")
+
+    step(10, 14, "Syncing runtime files to live paths")
+    if not sync_runtime_files(inst):
+        warn("Runtime file sync had issues — continuing")
+
+    step(11, 14, "Updating systemd paths")
+    update_systemd_paths(inst)
+
+    step(12, 14, "Restarting services")
+    restart_services(inst)
+
+    step(13, 14, "Running health checks")
+    results = run_health_checks(inst)
+    all_passed = all(r.passed for r in results)
+    for r in results:
+        if r.passed:
+            ok(f"{r.name}: {r.detail}")
+        else:
+            warn(f"{r.name}: {r.detail}")
+
+    step(14, 14, "Finalizing")
+    if all_passed:
+        journal.last_known_good = version
+        journal.save()
+        ok(f"Update to {version} complete")
+        prune_releases(DEFAULT_KEEP_RELEASES)
+    else:
+        warn(f"Health checks failed — rolling back to {journal.previous}")
+        auto_rollback(journal)
+        fail("Update rolled back due to health check failures")
+
+
+def cmd_releases(args: argparse.Namespace) -> None:
+    """List installed releases."""
+    header("Releases")
+    releases = get_releases()
+    if not releases:
+        info("No releases installed")
+        info(f"Run 'e3cnc-cli update' to install the latest release")
+        return
+    print(format_release_list(releases))
+
+
+def cmd_rollback(args: argparse.Namespace) -> None:
+    """Roll back to a previous release."""
+    header("Rollback")
+    inst = _get_instance(args) if not args.remote else None
+
+    if args.version:
+        success = rollback_to(args.version)
+    else:
+        success = rollback_previous()
+    if not success:
+        fail("Rollback failed")
+
+    info("Syncing runtime files from rolled-back release...")
+    sync_runtime_files(inst)
+
+    info("Updating systemd paths...")
+    update_systemd_paths(inst)
+
+    info("Restarting services...")
+    restart_services(inst)
+
+    info("Running health checks after rollback...")
+    results = run_health_checks(inst)
+    all_passed = all(r.passed for r in results)
+    for r in results:
+        if r.passed:
+            ok(f"{r.name}: {r.detail}")
+        else:
+            warn(f"{r.name}: {r.detail}")
+    if all_passed:
+        ok("Rollback complete — system healthy")
+    else:
+        warn("Rollback complete — some checks failed (pre-existing condition?)")
+
+
+def cmd_migrate(args: argparse.Namespace) -> None:
+    """Migrate from old layout to single-deploy layout."""
+    header("Layout Migration")
+    if args.remote:
+        warn("Remote migration not yet supported — run on the target machine directly")
+        return
+
+    if not detect_old_layout():
+        if E3CNC_DIR.exists():
+            info("Already using new single-deploy layout — nothing to migrate")
+            return
+        info("No old layout detected. Use 'e3cnc-cli install' for a fresh install.")
+        return
+
+    if not args.yes:
+        reply = input(f"  {Style.YELLOW}This will migrate your installation to the new layout (~/e3cnc/releases/). Continue? [y/N] {Style.RESET}").strip().lower()
+        if reply != "y":
+            fail("Migration cancelled")
+
+    success = migrate_layout(version=args.from_version)
+    if success:
+        ok("Migration complete")
+        info("Run 'e3cnc-cli update' for future updates")
+    else:
+        fail("Migration failed — see errors above")
+
+
+def cmd_prune(args: argparse.Namespace) -> None:
+    """Prune old releases."""
+    header("Prune Releases")
+    prune_releases(keep=args.keep, dry_run=args.dry_run)
 
 
 def cmd_uninstall(args: argparse.Namespace) -> None:
     """Remove all E3CNC components."""
     _run_ansible_cmd(UNINSTALL_PLAYBOOK, args, "Uninstall")
-    info("The ~/E3CNC_UI repo checkout was NOT deleted.")
+    info("The ~/E3CNC repo checkout was NOT deleted.")
     info("To restore stock Mainsail, see: https://github.com/mainsail-crew/mainsail")
 
 
@@ -1267,12 +1457,34 @@ Examples:
                  help="Deploy frontend only (build + copy + reload nginx)")
     p.add_parser("update", parents=[shared_remote, shared_check, shared_yes, shared_instance],
                  aliases=["redeploy"],
-                 help="Re-vendor agent, rebuild frontend, re-deploy plugins, restart")
+                 help="Full-stack update: download stack artifact, activate, verify")
     p.add_parser("uninstall", parents=[shared_remote, shared_check, shared_yes, shared_instance],
                  help="Remove all E3CNC components")
     p.add_parser("status", parents=[shared_remote, shared_instance],
                  help="Check installation status of all components")
     p.add_parser("check", help="Check dependencies")
+
+    # Single-deploy commands
+    p.add_parser("releases", aliases=["rel"],
+                 help="List installed releases")
+
+    rlb = p.add_parser("rollback", parents=[shared_instance],
+                       help="Roll back to a previous release")
+    rlb.add_argument("version", nargs="?", default=None,
+                     help="Specific version to roll back to (default: previous)")
+
+    prn = p.add_parser("prune",
+                       help="Remove old releases")
+    prn.add_argument("--keep", type=int, default=DEFAULT_KEEP_RELEASES,
+                     help=f"Number of releases to keep (default: {DEFAULT_KEEP_RELEASES})")
+    prn.add_argument("--dry-run", "-n", action="store_true",
+                     help="Show what would be pruned without deleting")
+
+    mig = p.add_parser("migrate", aliases=["migrate-layout"],
+                       parents=[shared_remote, shared_yes, shared_instance],
+                       help="Migrate from old layout to single-deploy layout")
+    mig.add_argument("--from-version", metavar="VER", default=None,
+                     help="Specific version to migrate to (default: latest release)")
 
     bp = p.add_parser("backup", parents=[shared_remote, shared_instance],
                        help="Create a timestamped backup")
@@ -1355,6 +1567,12 @@ def _run_menu_command(cmd: str) -> None:
         "diag": cmd_diagnose,
         "doctor": cmd_diagnose,
         "logs": cmd_logs,
+        "releases": cmd_releases,
+        "rel": cmd_releases,
+        "rollback": cmd_rollback,
+        "prune": cmd_prune,
+        "migrate": cmd_migrate,
+        "migrate-layout": cmd_migrate,
     }
     handler = dispatch.get(cmd)
     if handler:
@@ -1409,9 +1627,13 @@ def _interactive_menu() -> None:
         ("[D] Deploy",      "deploy"),
         ("[U] Update",      "update"),
         ("[X] Uninstall",   "uninstall"),
+        ("",                ""),
+        ("[Rl] Releases",   "releases"),
+        ("[Rb] Rollback",   "rollback"),
+        ("[P] Prune",       "prune"),
         ("[C] Check Deps",  "check"),
         ("[B] Backup",      "backup"),
-        ("[R] Restore",     "restore"),
+        ("[Rr] Restore",    "restore"),
         ("[G] Diagnose",    "diagnose"),
         ("[L] Logs",        "logs"),
         ("",                ""),

@@ -1,0 +1,4 @@
+# Moonraker MCP dependencies
+# Pinned for reproducible deployments — update via `pip freeze` after testing
+httpx>=0.27
+mcp>=1.0.0

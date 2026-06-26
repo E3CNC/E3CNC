@@ -1,5 +1,5 @@
 ---
-- name: Redeploy E3CNC_UI — re-vendor agent, rebuild frontend, restart
+- name: Redeploy E3CNC — re-vendor agent, rebuild frontend, restart
   hosts: cnc
   gather_facts: true
   vars_files:

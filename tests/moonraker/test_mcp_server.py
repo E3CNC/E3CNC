@@ -5,7 +5,15 @@ import json
 
 import httpx
 
-from moonraker_mcp import mcp_server
+import os
+import sys
+
+# mcp_server is at repo-root/moonraker/mcp/mcp_server.py
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_SRC = os.path.abspath(os.path.join(_HERE, "..", "..", "moonraker"))
+sys.path.insert(0, _SRC)
+
+from mcp import mcp_server
 
 
 def test_request_unwraps_result_and_sets_api_key_header():

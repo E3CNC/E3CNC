@@ -51,7 +51,7 @@ timeout: 30.0
 # E3CNC UI update manager entry
 # ---------------------------------------------------------------------------
 # The agent, Mainsail fork, and Klipper macros all live in the
-# E3CNC_UI monorepo. A single [update_manager] entry pointing at
+# E3CNC monorepo. A single [update_manager] entry pointing at
 # the monorepo root covers all three — they version together, and a
 # real git clone (not a synthetic subpath) avoids the "ahead 1, behind
 # N, is_valid=false" state that happens when individual subdirs are
@@ -74,15 +74,15 @@ timeout: 30.0
 #      klipper-macros/ snippets.
 # ---------------------------------------------------------------------------
 
-[update_manager E3CNC_UI]
+[update_manager E3CNC]
 type: git_repo
 channel: dev
-path: ~/E3CNC_UI
-origin: https://github.com/E3CNC/E3CNC_UI.git
+path: ~/E3CNC
+origin: https://github.com/E3CNC/E3CNC.git
 primary_branch: main
 enable_node_updates: False
 is_system_service: False
-post_update_script: ~/E3CNC_UI/scripts/post_update.sh
+post_update_script: ~/E3CNC/scripts/post_update.sh
 info_tags:
     desc=E3CNC UI
 managed_services: klipper moonraker

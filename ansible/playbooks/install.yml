@@ -1,5 +1,5 @@
 ---
-- name: Install E3CNC_UI — agent, frontend, plugins
+- name: Install E3CNC — agent, frontend, plugins
   hosts: cnc
   gather_facts: true
   vars_files:

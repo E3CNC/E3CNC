@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Restore E3CNC_UI from a previous backup.
+# Restore E3CNC from a previous backup.
 #
 # Lists all e3cnc-backup-* directories in ~/printer_data/config/
 # and lets you restore frontend, config, or both.

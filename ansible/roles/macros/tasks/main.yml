@@ -7,28 +7,28 @@
 
 - name: Deploy wcs_macros.cfg
   ansible.builtin.copy:
-    src: '{{ repo.dest }}/E3CNC/macros/wcs_macros.cfg'
+    src: '{{ repo.dest }}/macros/wcs_macros.cfg'
     dest: '{{ printer_data.E3CNC_dir }}/macros/wcs_macros.cfg'
     mode: '0644'
     remote_src: true
 
 - name: Deploy e3cnc_macros.cfg
   ansible.builtin.copy:
-    src: '{{ repo.dest }}/E3CNC/macros/e3cnc_macros.cfg'
+    src: '{{ repo.dest }}/macros/e3cnc_macros.cfg'
     dest: '{{ printer_data.E3CNC_dir }}/macros/e3cnc_macros.cfg'
     mode: '0644'
     remote_src: true
 
 - name: Deploy theme.json
   ansible.builtin.copy:
-    src: '{{ repo.dest }}/E3CNC/theme.json'
+    src: '{{ repo.dest }}/theme.json'
     dest: '{{ printer_data.E3CNC_dir }}/theme.json'
     mode: '0644'
     remote_src: true
 
 - name: Deploy cnc_base.cfg
   ansible.builtin.copy:
-    src: '{{ repo.dest }}/E3CNC/macros/cnc_base.cfg'
+    src: '{{ repo.dest }}/macros/cnc_base.cfg'
     dest: '{{ printer_data.E3CNC_dir }}/macros/cnc_base.cfg'
     mode: '0644'
     remote_src: true
