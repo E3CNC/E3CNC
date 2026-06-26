@@ -513,7 +513,7 @@ def _check_cnc_agent(port: int) -> HealthCheckResult:
     """Check if E3CNC cnc_agent component is loaded."""
     import urllib.request as urllib_req
     try:
-        with urllib_req.urlopen(f"http://localhost:{port}/machine/cnc_agent/info", timeout=5) as resp:
+        with urllib_req.urlopen(f"http://localhost:{port}/server/cnc/state", timeout=5) as resp:
             if resp.status == 200:
                 return HealthCheckResult(
                     name="E3CNC cnc_agent component",
