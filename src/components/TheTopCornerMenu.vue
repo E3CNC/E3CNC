@@ -166,6 +166,7 @@ import { useI18n } from 'vue-i18n'
 import { useBase } from '@/composables/useBase'
 import { useServices } from '@/composables/useServices'
 import { useSocket } from '@/composables/useSocket'
+import { useToast } from 'vue-toast-notification'
 import { ServerPowerStateDevice } from '@/store/server/power/types'
 import {
     mdiPowerStandby,
@@ -200,6 +201,7 @@ const socket = useSocket()
 const showMenu = ref(false)
 const instanceInfo = ref<instanceInfo | null>(null)
 const e3cncUpdating = ref(false)
+const $toast = useToast()
 
 async function e3cncFetchInfo() {
     const url = apiUrl.value + '/machine/e3cnc/info'
@@ -224,9 +226,12 @@ async function e3cncUpdate() {
         const data = await response.json()
         if (data?.result?.ok) {
             await e3cncFetchInfo()
+            $toast.success('E3CNC stack updated successfully')
+        } else {
+            $toast.error('Update failed' + (data?.result?.output ? ': see logs' : ''))
         }
     } catch {
-        // Ignore
+        $toast.error('Update request failed')
     }
     e3cncUpdating.value = false
     showMenu.value = false
@@ -234,10 +239,16 @@ async function e3cncUpdate() {
 
 async function e3cncRollback() {
     try {
-        await fetch(apiUrl.value + '/machine/e3cnc/rollback', { method: 'POST' })
-        await e3cncFetchInfo()
+        const response = await fetch(apiUrl.value + '/machine/e3cnc/rollback', { method: 'POST' })
+        const data = await response.json()
+        if (data?.result?.ok) {
+            await e3cncFetchInfo()
+            $toast.success('Rollback successful')
+        } else {
+            $toast.error('Rollback failed')
+        }
     } catch {
-        // Ignore
+        $toast.error('Rollback request failed')
     }
     showMenu.value = false
 }
