@@ -88,7 +88,7 @@
                 <!-- E3CNC Stack Control -->
                 <v-divider class="mt-0"></v-divider>
                 <v-list-subheader class="pt-2" style="height: auto">
-                    E3CNC
+                    E3CNC <span v-if="instanceInfo?.current_version" class="text-caption text-disabled">{{ instanceInfo.current_version }}</span>
                 </v-list-subheader>
                 <v-list-item
                     class="minHeight30 pr-2"
