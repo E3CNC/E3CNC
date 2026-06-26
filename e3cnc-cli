@@ -1355,15 +1355,15 @@ def cmd_instances(args: argparse.Namespace) -> None:
         info("No instances detected")
         return
     print(f"  {'Name':<12} {'Port':<8} {'Web Root':<30} {'Frontend URL'}")
-    print(f"  {'-'*12} {'-'*8} {'-'*30} {'-'*30}")
-    for inst in insts:
+    print(f"  {'-'*12} {'-'*8} {'-'*30} {'-'*40}")
+    for i, inst in enumerate(insts):
         dot = "\033[32m\u25cf\033[0m" if inst.is_running else "\033[31m\u25cf\033[0m"
         port = inst.moonraker_port
-        # Guess frontend URL — port 80 if web root matches mainsail, else 8080+offset
-        if inst.web_root.endswith("/mainsail"):
-            fe_url = f"http://<host>"
+        # Frontend URL: default instance on port 80, others on 8080 + index
+        if i == 0:
+            fe_url = "http://<host>"
         else:
-            fe_url = f"http://<host>:80{str(port)[-1]}" if port != 7125 else "http://<host>"
+            fe_url = f"http://<host>:{8080 + i}"
         print(f"  {dot} {inst.name:<10} {port:<8} {Path(inst.web_root).name:<30} {fe_url}")
     print()
     info("Run 'e3cnc-cli status --instance <name>' for component details")
