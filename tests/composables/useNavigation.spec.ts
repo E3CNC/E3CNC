@@ -67,7 +67,7 @@ describe('useNavigation', () => {
         mockStore = {
             getters: {
                 'farm/countPrinters': 2,
-                'files/getCustomNaviPoints': null,
+                'files/getCustomNaviPoints': [],
                 'gui/webcams/getWebcams': [],
             },
             state: {
