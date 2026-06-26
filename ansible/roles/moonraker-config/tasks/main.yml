@@ -38,5 +38,5 @@
       post_update_script: {{ repo.dest }}/scripts/post_update.sh
       info_tags:
           desc=E3CNC UI
-      managed_services: klipper moonraker
+      managed_services: {{ klipper_service }} {{ moonraker_service }}
       refresh_interval: 24

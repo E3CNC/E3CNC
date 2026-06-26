@@ -57,7 +57,7 @@
 
     - name: Restart moonraker
       ansible.builtin.systemd:
-        name: moonraker
+        name: '{{ moonraker_service }}'
         state: restarted
       become: true
       tags:

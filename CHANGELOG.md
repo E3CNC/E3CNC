@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.7.10 (2026-06-25)
+- Multi-instance detection now supports KIAUH-style layouts like `~/printer_test1_data`
+- Use shared `~/moonraker`, `~/klipper`, and shared `~/mainsail` by default instead of inventing per-instance dirs
+- Derive per-instance `moonraker_service`, `klipper_service`, and `moonraker_port` from instance metadata/config
+- Make install/redeploy/uninstall health checks and restarts use the selected instance service and port
+- Make status, diagnose, logs, backup, and restore instance-aware
+- Prompt for local `sudo` credentials before non-interactive privileged steps
+- Docker multi-instance test now models real shared-dir + per-service KIAUH setups
+
 ## v0.7.9 (2026-06-25)
 - Multi-instance support — separate `moonraker_dir`/`klipper_dir` per instance in Ansible vars
 - No more `community.general` dependency — replaced `ini_file` with `lineinfile`

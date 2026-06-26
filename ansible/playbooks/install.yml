@@ -28,7 +28,7 @@
   post_tasks:
     - name: Restart moonraker
       ansible.builtin.systemd:
-        name: moonraker
+        name: '{{ moonraker_service }}'
         state: restarted
       become: true
       tags:
@@ -36,7 +36,7 @@
 
     - name: Wait for moonraker API to respond
       ansible.builtin.uri:
-        url: 'http://127.0.0.1:7125/printer/info'
+        url: 'http://127.0.0.1:{{ moonraker_port }}/printer/info'
         method: GET
       register: moonraker_api
       retries: 30
@@ -47,7 +47,7 @@
 
     - name: Verify Klippy reports ready
       ansible.builtin.uri:
-        url: 'http://127.0.0.1:7125/printer/info'
+        url: 'http://127.0.0.1:{{ moonraker_port }}/printer/info'
         method: GET
       register: klippy_info
       retries: 20
@@ -59,7 +59,7 @@
     - name: Verify CncAgent loaded in moonraker logs
       ansible.builtin.shell:
         cmd: |
-          journalctl -u moonraker --since "2 minutes ago" --no-pager 2>/dev/null \
+          journalctl -u {{ moonraker_service }} --since "2 minutes ago" --no-pager 2>/dev/null \
             || tail -200 {{ printer_data.config_dir }}/../logs/moonraker.log 2>/dev/null \
             || true
         warn: false

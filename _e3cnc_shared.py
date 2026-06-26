@@ -21,7 +21,7 @@ from typing import List, NoReturn, Optional, Tuple
 
 # ── Metadata ────────────────────────────────────────────────────────────────
 
-VERSION = "0.7.9"
+VERSION = "0.7.10"
 TOOL_NAME = "e3cnc-cli"
 
 # ── Paths (relative to this script's location) ─────────────────────────────
@@ -507,28 +507,47 @@ def instance_extra_vars(inst: Instance) -> List[str]:
     ]
 
 
-def run_backup(remote_host: Optional[str] = None, output_callback=None) -> CmdResult:
+_SUDO_READY = False
+
+
+def _ensure_local_sudo_access(reason: str = "this operation") -> None:
+    """Prompt once for sudo so non-interactive subprocesses can reuse it."""
+    global _SUDO_READY
+    if _SUDO_READY or os.geteuid() == 0 or not shutil.which("sudo"):
+        return
+    if subprocess.run(["sudo", "-n", "true"], capture_output=True).returncode == 0:
+        _SUDO_READY = True
+        return
+    print(f"\n  sudo access required for {reason}.")
+    if subprocess.run(["sudo", "-v"]).returncode != 0:
+        fail("sudo authentication failed")
+    _SUDO_READY = True
+
+
+def run_backup(remote_host: Optional[str] = None, output_callback=None, inst: Optional[Instance] = None) -> CmdResult:
     """Create a timestamped backup. Returns CmdResult."""
     out: List[str] = []
     _o = lambda m: (out.append(m), output_callback(m + "\n") if output_callback else None)
 
     if remote_host:
-        return _run_remote_backup(remote_host, output_callback)
+        return _run_remote_backup(remote_host, output_callback, inst)
 
+    active_inst = inst or get_active_instance() or _default_instance(str(Path.home()))
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
-    backup_dir = HERE / f"e3cnc-backup-{timestamp}"
+    prefix = f"e3cnc-backup-{active_inst.name}-" if active_inst.name != "cnc" else "e3cnc-backup-"
+    backup_dir = HERE / f"{prefix}{timestamp}"
     backup_dir.mkdir(parents=True, exist_ok=True)
 
-    _o("Backing up frontend (mainsail)...")
-    mainsail_dir = Path.home() / "mainsail"
-    if mainsail_dir.is_dir():
-        subprocess.run(["cp", "-a", str(mainsail_dir), str(backup_dir / "frontend")], capture_output=True)
-        _o(f"  ✓ Frontend backed up ({_dir_size(mainsail_dir)} MB)")
+    _o(f"Backing up frontend ({active_inst.web_root})...")
+    web_root = Path(active_inst.web_root)
+    if web_root.is_dir():
+        subprocess.run(["cp", "-a", str(web_root), str(backup_dir / "frontend")], capture_output=True)
+        _o(f"  ✓ Frontend backed up ({_dir_size(web_root)} MB)")
     else:
         _o("  ⚠ No frontend directory found")
 
-    _o("Backing up printer config...")
-    config_dir = Path.home() / "printer_data" / "config"
+    _o(f"Backing up printer config ({active_inst.config_dir})...")
+    config_dir = Path(active_inst.config_dir)
     if config_dir.is_dir():
         subprocess.run(["cp", "-a", str(config_dir), str(backup_dir / "config")], capture_output=True)
         _o("  ✓ Printer config backed up")
@@ -543,38 +562,40 @@ def run_backup(remote_host: Optional[str] = None, output_callback=None) -> CmdRe
     else:
         _o("  ⚠ No WCS offsets found")
 
-    # Write manifest
     manifest = {
         "createdAt": datetime.now(timezone.utc).isoformat(),
         "tool": TOOL_NAME,
         "version": VERSION,
         "hostname": os.uname().nodename,
+        "instance": active_inst.name,
+        "printer_data_dir": active_inst.printer_data_dir,
+        "web_root": active_inst.web_root,
+        "moonraker_service": active_inst.moonraker_service,
     }
     (backup_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
     _o("  ✓ Backup manifest written")
-
     _o(f"\n  >>> BACKUP SAVED >>>")
     _o(f"  >>> {backup_dir}")
     _o(f"  To restore: e3cnc-cli restore {backup_dir.name}")
-
     return CmdResult(True, "\n".join(out), "Backup")
 
 
-def _run_remote_backup(host: str, output_callback=None) -> CmdResult:
+def _run_remote_backup(host: str, output_callback=None, inst: Optional[Instance] = None) -> CmdResult:
     """Run backup over SSH."""
     out: List[str] = []
     _o = lambda m: (out.append(m), output_callback(m + "\n") if output_callback else None)
 
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
     backup_name = f"e3cnc-backup-{timestamp}"
+    active_inst = inst or _default_instance(_get_remote_home(host))
 
     _o(f"Creating backup on remote host {host}...")
     cmds = "; ".join([
         f"mkdir -p ~/{backup_name}",
-        f"if [ -d ~/mainsail ]; then cp -a ~/mainsail ~/{backup_name}/frontend; fi",
-        f"if [ -d ~/printer_data/config ]; then cp -a ~/printer_data/config ~/{backup_name}/config; fi",
+        f"if [ -d '{active_inst.web_root}' ]; then cp -a '{active_inst.web_root}' ~/{backup_name}/frontend; fi",
+        f"if [ -d '{active_inst.config_dir}' ]; then cp -a '{active_inst.config_dir}' ~/{backup_name}/config; fi",
         "if [ -f ~/wcs_offsets.json ]; then cp -a ~/wcs_offsets.json ~/{backup_name}/; fi",
-        f"echo '{{\"createdAt\":\"{datetime.now(timezone.utc).isoformat()}\",\"tool\":\"{TOOL_NAME}\",\"version\":\"{VERSION}\"}}' > ~/{backup_name}/manifest.json",
+        f"echo '{{\"createdAt\":\"{datetime.now(timezone.utc).isoformat()}\",\"tool\":\"{TOOL_NAME}\",\"version\":\"{VERSION}\",\"instance\":\"{active_inst.name}\"}}' > ~/{backup_name}/manifest.json",
         f"echo '{backup_name}'",
     ])
     result = _ssh_run(host, cmds)
@@ -582,21 +603,21 @@ def _run_remote_backup(host: str, output_callback=None) -> CmdResult:
         _o(f"  ✓ Remote backup created at ~/{backup_name} on {host}")
         _o(f"  To restore: e3cnc-cli restore {backup_name} --remote {host}")
         return CmdResult(True, "\n".join(out), "Remote Backup")
-    else:
-        _o(f"  ✗ Remote backup failed: {result.stderr}")
-        return CmdResult(False, "\n".join(out), "Remote Backup")
+    _o(f"  ✗ Remote backup failed: {result.stderr}")
+    return CmdResult(False, "\n".join(out), "Remote Backup")
 
 
 # ── Restore ─────────────────────────────────────────────────────────────────
 
-def run_restore(backup_dir_name: str, remote_host: Optional[str] = None, auto_yes: bool = False, output_callback=None) -> CmdResult:
+def run_restore(backup_dir_name: str, remote_host: Optional[str] = None, auto_yes: bool = False, output_callback=None, inst: Optional[Instance] = None) -> CmdResult:
     """Restore from a backup directory. Returns CmdResult."""
     out: List[str] = []
     _o = lambda m: (out.append(m), output_callback(m + "\n") if output_callback else None)
 
     if remote_host:
-        return _run_remote_restore(remote_host, backup_dir_name, output_callback)
+        return _run_remote_restore(remote_host, backup_dir_name, output_callback, inst)
 
+    active_inst = inst or get_active_instance() or _default_instance(str(Path.home()))
     backup_path = Path(backup_dir_name)
     if not backup_path.is_absolute():
         candidates = [HERE / backup_dir_name, Path.cwd() / backup_dir_name]
@@ -617,6 +638,8 @@ def run_restore(backup_dir_name: str, remote_host: Optional[str] = None, auto_ye
         try:
             meta = json.loads(manifest.read_text())
             _o(f"Backup created: {meta.get('createdAt', 'unknown')}")
+            if meta.get("instance"):
+                _o(f"Backup instance: {meta['instance']}")
         except (json.JSONDecodeError, OSError):
             _o("Could not read backup manifest")
 
@@ -627,7 +650,6 @@ def run_restore(backup_dir_name: str, remote_host: Optional[str] = None, auto_ye
         restorables.append("config")
     if (backup_path / "wcs_offsets.json").is_file():
         restorables.append("WCS offsets")
-
     if not restorables:
         _o("No restorable components found in backup")
         return CmdResult(False, "\n".join(out), "Restore")
@@ -636,21 +658,19 @@ def run_restore(backup_dir_name: str, remote_host: Optional[str] = None, auto_ye
     for comp in restorables:
         _o(f"  • {comp}")
 
-    # Restore frontend
     fe_src = backup_path / "frontend"
     if fe_src.is_dir():
         _o("Restoring frontend...")
-        fe_dest = Path.home() / "mainsail"
+        fe_dest = Path(active_inst.web_root)
         if fe_dest.is_dir():
             shutil.rmtree(fe_dest)
         shutil.copytree(fe_src, fe_dest)
         _o("  ✓ Frontend restored")
 
-    # Restore config
     cfg_src = backup_path / "config"
     if cfg_src.is_dir():
         _o("Restoring printer config...")
-        cfg_dest = Path.home() / "printer_data" / "config"
+        cfg_dest = Path(active_inst.config_dir)
         if cfg_dest.is_dir():
             for item in cfg_src.iterdir():
                 dest = cfg_dest / item.name
@@ -662,7 +682,6 @@ def run_restore(backup_dir_name: str, remote_host: Optional[str] = None, auto_ye
             shutil.copytree(cfg_src, cfg_dest)
         _o("  ✓ Printer config restored")
 
-    # Restore WCS offsets
     wcs_src = backup_path / "wcs_offsets.json"
     if wcs_src.is_file():
         _o("Restoring WCS offsets...")
@@ -672,35 +691,34 @@ def run_restore(backup_dir_name: str, remote_host: Optional[str] = None, auto_ye
     _o("")
     _o("  ✓ Restore complete")
     _o("  You may need to restart Moonraker:")
-    _o("    sudo systemctl restart moonraker")
-
+    _o(f"    sudo systemctl restart {active_inst.moonraker_service}")
     return CmdResult(True, "\n".join(out), "Restore")
 
 
-def _run_remote_restore(host: str, backup_name: str, output_callback=None) -> CmdResult:
+def _run_remote_restore(host: str, backup_name: str, output_callback=None, inst: Optional[Instance] = None) -> CmdResult:
     """Restore from a backup on a remote host."""
     out: List[str] = []
     _o = lambda m: (out.append(m), output_callback(m + "\n") if output_callback else None)
 
+    active_inst = inst or _default_instance(_get_remote_home(host))
     _o(f"Restoring from ~/{backup_name} on {host}...")
     cmds = "; ".join([
-        f"if [ -d ~/{backup_name}/frontend ]; then rm -rf ~/mainsail && cp -a ~/{backup_name}/frontend ~/mainsail; fi",
-        f"if [ -d ~/{backup_name}/config ]; then cp -a ~/{backup_name}/config/* ~/printer_data/config/; fi",
+        f"if [ -d ~/{backup_name}/frontend ]; then rm -rf '{active_inst.web_root}' && cp -a ~/{backup_name}/frontend '{active_inst.web_root}'; fi",
+        f"if [ -d ~/{backup_name}/config ]; then cp -a ~/{backup_name}/config/* '{active_inst.config_dir}/'; fi",
         f"if [ -f ~/{backup_name}/wcs_offsets.json ]; then cp -a ~/{backup_name}/wcs_offsets.json ~/wcs_offsets.json; fi",
-        "sudo systemctl restart moonraker",
+        f"sudo systemctl restart {active_inst.moonraker_service}",
     ])
     result = _ssh_run(host, cmds)
     if result.returncode == 0:
         _o("  ✓ Remote restore complete — Moonraker restarted")
         return CmdResult(True, "\n".join(out), "Remote Restore")
-    else:
-        _o(f"  ✗ Remote restore failed: {result.stderr}")
-        return CmdResult(False, "\n".join(out), "Remote Restore")
+    _o(f"  ✗ Remote restore failed: {result.stderr}")
+    return CmdResult(False, "\n".join(out), "Remote Restore")
 
 
 # ── Diagnose ────────────────────────────────────────────────────────────────
 
-def run_diagnose(remote_host: Optional[str] = None, output_callback=None) -> CmdResult:
+def run_diagnose(remote_host: Optional[str] = None, output_callback=None, inst: Optional[Instance] = None) -> CmdResult:
     """Run diagnostics on the CNC host."""
     out: List[str] = []
     _o = lambda m: (out.append(m), output_callback(m + "\n") if output_callback else None)
@@ -708,65 +726,68 @@ def run_diagnose(remote_host: Optional[str] = None, output_callback=None) -> Cmd
     if remote_host:
         runner = lambda cmd: _ssh_run(remote_host, cmd)
         label = f"remote host {remote_host}"
+        active_inst = inst or _default_instance(_get_remote_home(remote_host))
     else:
         runner = lambda cmd: subprocess.run(cmd, capture_output=True, text=True, shell=True)
         label = "localhost"
+        active_inst = inst or get_active_instance() or _default_instance(str(Path.home()))
 
     _o(f"Running diagnostics on {label}...")
-
+    api_base = f"http://127.0.0.1:{active_inst.moonraker_port}"
     checks = [
-        ("Moonraker API", '''curl -sf http://127.0.0.1:7125/printer/info 2>/dev/null | python3 -c "
+        ("Moonraker API", f'''curl -sf {api_base}/printer/info 2>/dev/null | python3 -c "
 import sys, json
-d = json.load(sys.stdin).get('result', {})
+d = json.load(sys.stdin).get('result', {{}})
 print(d.get('state', 'unknown'))
 host = d.get('hostname', '?')
 ver = d.get('software_version', '?')
 cpu = d.get('cpu_info', '?')
-klipper = d.get('klipper_path', '?')
-print(f'Host: {host}')
-print(f'Version: {ver}')
-print(f'CPU: {cpu}')
+print(f'Host: {{host}}')
+print(f'Version: {{ver}}')
+print(f'CPU: {{cpu}}')
 " 2>/dev/null'''),
-        ("Klippy state", 'curl -sf http://127.0.0.1:7125/printer/info 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get(\'result\',{}).get(\'state\',\'unknown\'))" 2>/dev/null'),
-        ("Agent loaded", "curl -sf http://127.0.0.1:7125/server/info 2>/dev/null | python3 -c \"import sys,json; d=json.load(sys.stdin); print('yes' if 'cnc_agent' in str(d.get('result',{})) else 'no')\" 2>/dev/null || echo 'no'"),
-        ("Metadata loaded", "curl -sf http://127.0.0.1:7125/server/info 2>/dev/null | python3 -c \"import sys,json; d=json.load(sys.stdin); print('yes' if 'cnc_metadata' in str(d.get('result',{})) else 'no')\" 2>/dev/null || echo 'no'"),
+        ("Klippy state", f"curl -sf {api_base}/printer/info 2>/dev/null | python3 -c \"import sys,json; d=json.load(sys.stdin); print(d.get('result',{{}}).get('state','unknown'))\" 2>/dev/null"),
+        ("Agent loaded", f"curl -sf {api_base}/server/info 2>/dev/null | python3 -c \"import sys,json; d=json.load(sys.stdin); print('yes' if 'cnc_agent' in str(d.get('result',{{}})) else 'no')\" 2>/dev/null || echo 'no'"),
+        ("Metadata loaded", f"curl -sf {api_base}/server/info 2>/dev/null | python3 -c \"import sys,json; d=json.load(sys.stdin); print('yes' if 'cnc_metadata' in str(d.get('result',{{}})) else 'no')\" 2>/dev/null || echo 'no'"),
         ("Nginx serving", "curl -sf -o /dev/null -w '%{http_code}' http://127.0.0.1/ 2>/dev/null || echo 'unreachable'"),
     ]
 
-    for label, cmd in checks:
+    for check_label, cmd in checks:
         result = runner(cmd)
         status = result.stdout.strip() if result.returncode == 0 else "error"
         if not status or status in ("error", "unreachable", "no"):
-            _o(f"  ⚠ {label}: {status}")
+            _o(f"  ⚠ {check_label}: {status}")
             continue
-
         lines = status.split("\n")
-        main_status = lines[0].strip()
-        _o(f"  ✓ {label}: {main_status}")
+        _o(f"  ✓ {check_label}: {lines[0].strip()}")
         for extra in lines[1:]:
-            extra = extra.strip()
-            if extra:
-                _o(f"      {extra}")
+            if extra.strip():
+                _o(f"      {extra.strip()}")
 
     _o("")
     _o("  For detailed logs: e3cnc-cli logs" + (f" --remote {remote_host}" if remote_host else ""))
-
     return CmdResult(True, "\n".join(out), "Diagnostics")
 
 
 # ── Logs ────────────────────────────────────────────────────────────────────
 
-def run_logs(remote_host: Optional[str] = None, lines: int = 50, output_callback=None) -> CmdResult:
+def run_logs(remote_host: Optional[str] = None, lines: int = 50, output_callback=None, inst: Optional[Instance] = None) -> CmdResult:
     """Fetch and display logs."""
     out: List[str] = []
     _o = lambda m: (out.append(m), output_callback(m + "\n") if output_callback else None)
 
-    prefix = f"ssh {remote_host} " if remote_host else ""
+    if remote_host:
+        active_inst = inst or _default_instance(_get_remote_home(remote_host))
+        prefix = f"ssh {remote_host} "
+    else:
+        active_inst = inst or get_active_instance() or _default_instance(str(Path.home()))
+        prefix = ""
+        _ensure_local_sudo_access("viewing logs")
 
     _o(f"  Moonraker log (last {lines} lines):")
     result = subprocess.run(
-        f'{prefix} sudo journalctl -u moonraker -n {lines} --no-pager 2>/dev/null || '
-        f'{prefix} tail -{lines} ~/printer_data/logs/moonraker.log 2>/dev/null || '
+        f'{prefix} sudo journalctl -u {active_inst.moonraker_service} -n {lines} --no-pager 2>/dev/null || '
+        f'{prefix} tail -{lines} {shlex.quote(active_inst.moonraker_log)} 2>/dev/null || '
         f'echo "  (no moonraker logs found)"',
         capture_output=True, text=True, shell=True,
     )
@@ -868,6 +889,9 @@ def run_ansible_playbook(
 
     if extra_vars:
         _o(f"  Instance: {'  '.join(extra_vars)}")
+
+    if not remote_host:
+        _ensure_local_sudo_access(f"{label.lower()} (Ansible become tasks)")
 
     _o("")
 

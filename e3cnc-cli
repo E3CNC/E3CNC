@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Optional
 
 # Hardcoded CLI version for compatibility check
-_CLI_VERSION = "0.7.9"
+_CLI_VERSION = "0.7.10"
 
 # Import shared logic
 from _e3cnc_shared import (
@@ -47,6 +47,8 @@ _DESTRUCTIVE = ("install", "update", "uninstall")
 
 import json
 import os
+import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -57,7 +59,7 @@ from typing import List, NoReturn, Optional, Tuple
 
 # ── Metadata ────────────────────────────────────────────────────────────────
 
-VERSION = "0.7.9"
+VERSION = "0.7.10"
 TOOL_NAME = "e3cnc-cli"
 
 # ── Paths (relative to this script's location) ─────────────────────────────
@@ -258,18 +260,99 @@ def check_dependencies(output_callback=None) -> Tuple[bool, List[str]]:
 
 # ── Status ──────────────────────────────────────────────────────────────────
 
-def check_status(remote_host: Optional[str] = None, output_callback=None) -> Tuple[int, int, List[str]]:
+def _instance_name_from_printer_data(path: Path) -> str:
+    name = path.name
+    if name == "printer_data":
+        return "cnc"
+    match = re.fullmatch(r"printer_data_(.+)", name)
+    if match:
+        return f"cnc_{match.group(1)}"
+    match = re.fullmatch(r"printer_(.+)_data", name)
+    if match:
+        return match.group(1)
+    return name
+
+
+def _default_service_name(kind: str, instance_name: str) -> str:
+    if instance_name == "cnc":
+        return kind
+    legacy = re.fullmatch(r"cnc_(.+)", instance_name)
+    suffix = legacy.group(1) if legacy else instance_name
+    return f"{kind}-{suffix}"
+
+
+def _read_text(path: Path) -> str:
+    try:
+        return path.read_text().strip()
+    except OSError:
+        return ""
+
+
+def _read_service_name(printer_data_path: Path, kind: str, instance_name: str) -> str:
+    raw = _read_text(printer_data_path / f"{kind}.asvc")
+    if raw:
+        raw = raw.removesuffix(".service")
+        if raw.startswith(kind):
+            return raw
+        return f"{kind}-{raw}"
+    return _default_service_name(kind, instance_name)
+
+
+def _read_python_service_dir(env_path: Path, env_key: str, script_name: str, fallback: str) -> str:
+    text = _read_text(env_path)
+    match = re.search(rf"^{env_key}=\"?(.*?)\"?$", text, re.MULTILINE)
+    if match:
+        try:
+            args = shlex.split(match.group(1))
+            for token in args:
+                if token.endswith(f"/{script_name}"):
+                    return str(Path(token).parent.parent)
+        except ValueError:
+            pass
+    return fallback
+
+
+def _read_moonraker_port(conf_path: Path, default: int = 7125) -> int:
+    text = _read_text(conf_path)
+    match = re.search(r"(?m)^port:\s*(\d+)\s*$", text)
+    if match:
+        return int(match.group(1))
+    return default
+
+
+def _default_web_root(home: str, instance_name: str) -> str:
+    home_path = Path(home)
+    candidates: List[Path] = []
+    if instance_name != "cnc":
+        legacy = re.fullmatch(r"cnc_(.+)", instance_name)
+        if legacy:
+            candidates.append(home_path / f"mainsail-{legacy.group(1)}")
+        candidates.append(home_path / f"mainsail-{instance_name}")
+    candidates.append(home_path / "mainsail")
+    for candidate in candidates:
+        if candidate.exists():
+            return str(candidate)
+    return str(candidates[-1])
+
+
+def _default_instance(home: str) -> "Instance":
+    return Instance.from_printer_data(f"{home}/printer_data", home=home)
+
+
+def check_status(remote_host: Optional[str] = None, output_callback=None, inst: Optional["Instance"] = None) -> Tuple[int, int, List[str]]:
     """Check installation status. Returns (ok_count, total_checks, output_lines)."""
     lines: List[str] = []
 
     if remote_host:
         remote_home = _get_remote_home(remote_host)
         _run_remote = lambda cmd: _ssh_run(remote_host, cmd)
+        active_inst = inst or _default_instance(remote_home)
     else:
-        remote_home = Path.home()
+        remote_home = str(Path.home())
         _run_remote = lambda cmd: subprocess.run(
             cmd, capture_output=True, text=True, shell=True
         )
+        active_inst = inst or _default_instance(remote_home)
 
     total_checks = 9
     ok_count = 0
@@ -281,20 +364,19 @@ def check_status(remote_host: Optional[str] = None, output_callback=None) -> Tup
             lines.append(f"  ✓ {label}")
             ok_count += 1
             return True
-        else:
-            lines.append(f"  ⚠ {label} — not found")
-            return False
+        lines.append(f"  ⚠ {label} — not found")
+        return False
 
     repo_dir = f"{remote_home}/E3CNC_UI"
     _check("Repository checkout", f"test -d '{repo_dir}/.git' && echo 'found' || true", "found")
-    _check("Moonraker cnc_agent component", f"test -f '{remote_home}/moonraker/moonraker/components/cnc_agent/cnc_agent.py' && echo 'found' || true", "found")
-    _check("Moonraker cnc_metadata component", f"test -f '{remote_home}/moonraker/moonraker/components/cnc_metadata/cnc_metadata.py' && echo 'found' || true", "found")
-    _check("Metadata extractor script", f"test -x '{remote_home}/printer_data/scripts/cnc_metadata_extractor.py' && echo 'found' || true", "found")
-    _check("Moonraker config [cnc_agent] section", f"grep -qE '^\\[cnc_agent\\]' '{remote_home}/printer_data/config/moonraker.conf' 2>/dev/null && echo 'found' || true", "found")
-    _check("Moonraker config [update_manager E3CNC_UI] section", f"grep -qE '^\\[update_manager E3CNC_UI\\]' '{remote_home}/printer_data/config/moonraker.conf' 2>/dev/null && echo 'found' || true", "found")
-    _check("Klipper WCS plugin", f"test -f '{remote_home}/klipper/klippy/extras/work_coordinate_systems.py' && echo 'found' || true", "found")
-    _check("E3CNC macros directory", f"test -d '{remote_home}/printer_data/config/E3CNC/macros' && echo 'found' || true", "found")
-    _check("Frontend deployed", f"test -f '{remote_home}/mainsail/index.html' && echo 'found' || true", "found")
+    _check("Moonraker cnc_agent component", f"test -f '{active_inst.moonraker_dir}/moonraker/components/cnc_agent/cnc_agent.py' && echo 'found' || true", "found")
+    _check("Moonraker cnc_metadata component", f"test -f '{active_inst.moonraker_dir}/moonraker/components/cnc_metadata/cnc_metadata.py' && echo 'found' || true", "found")
+    _check("Metadata extractor script", f"test -x '{active_inst.scripts_dir}/cnc_metadata_extractor.py' && echo 'found' || true", "found")
+    _check("Moonraker config [cnc_agent] section", f"grep -qE '^\\[cnc_agent\\]' '{active_inst.moonraker_conf}' 2>/dev/null && echo 'found' || true", "found")
+    _check("Moonraker config [update_manager E3CNC_UI] section", f"grep -qE '^\\[update_manager E3CNC_UI\\]' '{active_inst.moonraker_conf}' 2>/dev/null && echo 'found' || true", "found")
+    _check("Klipper WCS plugin", f"test -f '{active_inst.klipper_dir}/klippy/extras/work_coordinate_systems.py' && echo 'found' || true", "found")
+    _check("E3CNC macros directory", f"test -d '{active_inst.E3CNC_dir}/macros' && echo 'found' || true", "found")
+    _check("Frontend deployed", f"test -f '{active_inst.web_root}/index.html' && echo 'found' || true", "found")
 
     lines.append("")
     if ok_count == total_checks:
@@ -329,24 +411,38 @@ class Instance:
     E3CNC_dir: str
     printer_cfg: str
     web_root: str
+    moonraker_dir: str = ""
+    klipper_dir: str = ""
+    moonraker_service: str = "moonraker"
+    klipper_service: str = "klipper"
+    moonraker_port: int = 7125
     is_running: bool = False
 
     @classmethod
-    def from_printer_data(cls, base: str, web_root: str = "") -> "Instance":
-        """Create an Instance from a printer_data directory path.
-
-        Derives moonraker_dir and klipper_dir from the instance suffix.
-        E.g. printer_data_2 → moonraker_2, klipper_2, mainsail-cnc_2.
-        """
+    def from_printer_data(cls, base: str, web_root: str = "", home: str = "") -> "Instance":
+        """Create an Instance from a printer_data directory path."""
+        printer_data_path = Path(base)
         config = f"{base}/config"
-        home = str(Path.home())
-        # Derive instance name: printer_data → cnc, printer_data_2 → cnc_2
-        name = Path(base).name.replace("printer_data", "cnc")
-        suffix = name.replace("cnc", "", 1)  # "" or "_2"
+        home = home or str(Path.home())
+        instance_name = _instance_name_from_printer_data(printer_data_path)
+        conf_path = printer_data_path / "config" / "moonraker.conf"
+        systemd_dir = printer_data_path / "systemd"
+        moonraker_dir = _read_python_service_dir(
+            systemd_dir / "moonraker.env",
+            "MOONRAKER_ARGS",
+            "moonraker.py",
+            f"{home}/moonraker",
+        )
+        klipper_dir = _read_python_service_dir(
+            systemd_dir / "klipper.env",
+            "KLIPPER_ARGS",
+            "klippy.py",
+            f"{home}/klipper",
+        )
         if not web_root:
-            web_root = f"{home}/mainsail{suffix}" if suffix else f"{home}/mainsail"
+            web_root = _default_web_root(home, instance_name)
         return cls(
-            name=name,
+            name=instance_name,
             printer_data_dir=base,
             config_dir=config,
             moonraker_conf=f"{config}/moonraker.conf",
@@ -356,20 +452,13 @@ class Instance:
             E3CNC_dir=f"{config}/E3CNC",
             printer_cfg=f"{config}/printer.cfg",
             web_root=web_root,
-            is_running=Path(f"{config}/moonraker.conf").exists(),
+            moonraker_dir=moonraker_dir,
+            klipper_dir=klipper_dir,
+            moonraker_service=_read_service_name(printer_data_path, "moonraker", instance_name),
+            klipper_service=_default_service_name("klipper", instance_name),
+            moonraker_port=_read_moonraker_port(conf_path),
+            is_running=conf_path.exists(),
         )
-
-    @property
-    def moonraker_dir(self) -> str:
-        """Derive moonraker directory from printer_data directory."""
-        suffix = Path(self.printer_data_dir).name.replace("printer_data", "")
-        return f"{Path(self.printer_data_dir).parent}/moonraker{suffix}"
-
-    @property
-    def klipper_dir(self) -> str:
-        """Derive klipper directory from printer_data directory."""
-        suffix = Path(self.printer_data_dir).name.replace("printer_data", "")
-        return f"{Path(self.printer_data_dir).parent}/klipper{suffix}"
 
 
 _active_instance: Optional[Instance] = None
@@ -379,12 +468,16 @@ def detect_instances() -> List[Instance]:
     """Scan for Klipper/Moonraker instances on this machine."""
     instances: List[Instance] = []
     home = str(Path.home())
+    seen = set()
 
-    for candidate in sorted(Path(home).glob("printer_data*")):
-        if candidate.is_dir():
+    for pattern in ("printer_data", "printer_data_*", "printer_*_data"):
+        for candidate in sorted(Path(home).glob(pattern)):
+            if candidate in seen or not candidate.is_dir():
+                continue
+            seen.add(candidate)
             conf = candidate / "config" / "moonraker.conf"
             if conf.exists():
-                instances.append(Instance.from_printer_data(str(candidate)))
+                instances.append(Instance.from_printer_data(str(candidate), home=home))
 
     return instances
 
@@ -403,6 +496,7 @@ def select_instance(instances: List[Instance]) -> Optional[Instance]:
         dot = "\x1b[32m●\x1b[0m" if inst.is_running else "\x1b[90m○\x1b[0m"
         print(f"  {i + 1:>2}) {dot} {Style.BOLD}{inst.name}{Style.RESET}")
         print(f"      Config: {inst.config_dir}")
+        print(f"      Service: {inst.moonraker_service}  Port: {inst.moonraker_port}")
         print()
 
     try:
@@ -431,49 +525,67 @@ def get_active_instance() -> Optional[Instance]:
     return _active_instance
 
 
-def set_active_instance(inst: Instance) -> None:
+def set_active_instance(inst: Optional[Instance]) -> None:
     """Set the globally active instance."""
     global _active_instance
     _active_instance = inst
 
 
 def instance_extra_vars(inst: Instance) -> List[str]:
-    """Generate Ansible extra vars for a specific instance.
-
-    These override vars/main.yml defaults for multi-instance support.
-    Each instance has its own printer_data, moonraker, and klipper dirs.
-    """
+    """Generate Ansible extra vars for a specific instance."""
     return [
         f"printer_data_dir={inst.printer_data_dir}",
         f"moonraker_dir={inst.moonraker_dir}",
         f"klipper_dir={inst.klipper_dir}",
         f"moonraker_conf={inst.moonraker_conf}",
         f"frontend_web_root={inst.web_root}",
+        f"moonraker_service={inst.moonraker_service}",
+        f"klipper_service={inst.klipper_service}",
+        f"moonraker_port={inst.moonraker_port}",
     ]
 
 
-def run_backup(remote_host: Optional[str] = None, output_callback=None) -> CmdResult:
+_SUDO_READY = False
+
+
+def _ensure_local_sudo_access(reason: str = "this operation") -> None:
+    """Prompt once for sudo so non-interactive subprocesses can reuse it."""
+    global _SUDO_READY
+    if _SUDO_READY or os.geteuid() == 0 or not shutil.which("sudo"):
+        return
+    if subprocess.run(["sudo", "-n", "true"], capture_output=True).returncode == 0:
+        _SUDO_READY = True
+        return
+    print(f"\n  sudo access required for {reason}.")
+    if subprocess.run(["sudo", "-v"]).returncode != 0:
+        fail("sudo authentication failed")
+    _SUDO_READY = True
+
+
+def run_backup(remote_host: Optional[str] = None, output_callback=None, inst: Optional[Instance] = None) -> CmdResult:
     """Create a timestamped backup. Returns CmdResult."""
     out: List[str] = []
     _o = lambda m: (out.append(m), output_callback(m + "\n") if output_callback else None)
 
     if remote_host:
-        return _run_remote_backup(remote_host, output_callback)
+        return _run_remote_backup(remote_host, output_callback, inst)
 
+    active_inst = inst or get_active_instance() or _default_instance(str(Path.home()))
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
-    backup_dir = HERE / f"e3cnc-backup-{timestamp}"
+    prefix = f"e3cnc-backup-{active_inst.name}-" if active_inst.name != "cnc" else "e3cnc-backup-"
+    backup_dir = HERE / f"{prefix}{timestamp}"
     backup_dir.mkdir(parents=True, exist_ok=True)
 
-    _o("Backing up frontend (mainsail)...")
-    mainsail_dir = Path.home() / "mainsail"
-    if mainsail_dir.is_dir():
-        subprocess.run(["cp", "-a", str(mainsail_dir), str(backup_dir / "frontend")], capture_output=True)
-        _o(f"  ✓ Frontend backed up ({_dir_size(mainsail_dir)} MB)")
+    _o(f"Backing up frontend ({active_inst.web_root})...")
+    web_root = Path(active_inst.web_root)
+    if web_root.is_dir():
+        subprocess.run(["cp", "-a", str(web_root), str(backup_dir / "frontend")], capture_output=True)
+        _o(f"  ✓ Frontend backed up ({_dir_size(web_root)} MB)")
     else:
         _o("  ⚠ No frontend directory found")
 
-    _o("Backing up printer config...")
-    config_dir = Path.home() / "printer_data" / "config"
+    _o(f"Backing up printer config ({active_inst.config_dir})...")
+    config_dir = Path(active_inst.config_dir)
     if config_dir.is_dir():
         subprocess.run(["cp", "-a", str(config_dir), str(backup_dir / "config")], capture_output=True)
         _o("  ✓ Printer config backed up")
@@ -488,38 +600,40 @@ def run_backup(remote_host: Optional[str] = None, output_callback=None) -> CmdRe
     else:
         _o("  ⚠ No WCS offsets found")
 
-    # Write manifest
     manifest = {
         "createdAt": datetime.now(timezone.utc).isoformat(),
         "tool": TOOL_NAME,
         "version": VERSION,
         "hostname": os.uname().nodename,
+        "instance": active_inst.name,
+        "printer_data_dir": active_inst.printer_data_dir,
+        "web_root": active_inst.web_root,
+        "moonraker_service": active_inst.moonraker_service,
     }
     (backup_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
     _o("  ✓ Backup manifest written")
-
     _o(f"\n  >>> BACKUP SAVED >>>")
     _o(f"  >>> {backup_dir}")
     _o(f"  To restore: e3cnc-cli restore {backup_dir.name}")
-
     return CmdResult(True, "\n".join(out), "Backup")
 
 
-def _run_remote_backup(host: str, output_callback=None) -> CmdResult:
+def _run_remote_backup(host: str, output_callback=None, inst: Optional[Instance] = None) -> CmdResult:
     """Run backup over SSH."""
     out: List[str] = []
     _o = lambda m: (out.append(m), output_callback(m + "\n") if output_callback else None)
 
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
     backup_name = f"e3cnc-backup-{timestamp}"
+    active_inst = inst or _default_instance(_get_remote_home(host))
 
     _o(f"Creating backup on remote host {host}...")
     cmds = "; ".join([
         f"mkdir -p ~/{backup_name}",
-        f"if [ -d ~/mainsail ]; then cp -a ~/mainsail ~/{backup_name}/frontend; fi",
-        f"if [ -d ~/printer_data/config ]; then cp -a ~/printer_data/config ~/{backup_name}/config; fi",
+        f"if [ -d '{active_inst.web_root}' ]; then cp -a '{active_inst.web_root}' ~/{backup_name}/frontend; fi",
+        f"if [ -d '{active_inst.config_dir}' ]; then cp -a '{active_inst.config_dir}' ~/{backup_name}/config; fi",
         "if [ -f ~/wcs_offsets.json ]; then cp -a ~/wcs_offsets.json ~/{backup_name}/; fi",
-        f"echo '{{\"createdAt\":\"{datetime.now(timezone.utc).isoformat()}\",\"tool\":\"{TOOL_NAME}\",\"version\":\"{VERSION}\"}}' > ~/{backup_name}/manifest.json",
+        f"echo '{{\"createdAt\":\"{datetime.now(timezone.utc).isoformat()}\",\"tool\":\"{TOOL_NAME}\",\"version\":\"{VERSION}\",\"instance\":\"{active_inst.name}\"}}' > ~/{backup_name}/manifest.json",
         f"echo '{backup_name}'",
     ])
     result = _ssh_run(host, cmds)
@@ -527,21 +641,21 @@ def _run_remote_backup(host: str, output_callback=None) -> CmdResult:
         _o(f"  ✓ Remote backup created at ~/{backup_name} on {host}")
         _o(f"  To restore: e3cnc-cli restore {backup_name} --remote {host}")
         return CmdResult(True, "\n".join(out), "Remote Backup")
-    else:
-        _o(f"  ✗ Remote backup failed: {result.stderr}")
-        return CmdResult(False, "\n".join(out), "Remote Backup")
+    _o(f"  ✗ Remote backup failed: {result.stderr}")
+    return CmdResult(False, "\n".join(out), "Remote Backup")
 
 
 # ── Restore ─────────────────────────────────────────────────────────────────
 
-def run_restore(backup_dir_name: str, remote_host: Optional[str] = None, auto_yes: bool = False, output_callback=None) -> CmdResult:
+def run_restore(backup_dir_name: str, remote_host: Optional[str] = None, auto_yes: bool = False, output_callback=None, inst: Optional[Instance] = None) -> CmdResult:
     """Restore from a backup directory. Returns CmdResult."""
     out: List[str] = []
     _o = lambda m: (out.append(m), output_callback(m + "\n") if output_callback else None)
 
     if remote_host:
-        return _run_remote_restore(remote_host, backup_dir_name, output_callback)
+        return _run_remote_restore(remote_host, backup_dir_name, output_callback, inst)
 
+    active_inst = inst or get_active_instance() or _default_instance(str(Path.home()))
     backup_path = Path(backup_dir_name)
     if not backup_path.is_absolute():
         candidates = [HERE / backup_dir_name, Path.cwd() / backup_dir_name]
@@ -562,6 +676,8 @@ def run_restore(backup_dir_name: str, remote_host: Optional[str] = None, auto_ye
         try:
             meta = json.loads(manifest.read_text())
             _o(f"Backup created: {meta.get('createdAt', 'unknown')}")
+            if meta.get("instance"):
+                _o(f"Backup instance: {meta['instance']}")
         except (json.JSONDecodeError, OSError):
             _o("Could not read backup manifest")
 
@@ -572,7 +688,6 @@ def run_restore(backup_dir_name: str, remote_host: Optional[str] = None, auto_ye
         restorables.append("config")
     if (backup_path / "wcs_offsets.json").is_file():
         restorables.append("WCS offsets")
-
     if not restorables:
         _o("No restorable components found in backup")
         return CmdResult(False, "\n".join(out), "Restore")
@@ -581,21 +696,19 @@ def run_restore(backup_dir_name: str, remote_host: Optional[str] = None, auto_ye
     for comp in restorables:
         _o(f"  • {comp}")
 
-    # Restore frontend
     fe_src = backup_path / "frontend"
     if fe_src.is_dir():
         _o("Restoring frontend...")
-        fe_dest = Path.home() / "mainsail"
+        fe_dest = Path(active_inst.web_root)
         if fe_dest.is_dir():
             shutil.rmtree(fe_dest)
         shutil.copytree(fe_src, fe_dest)
         _o("  ✓ Frontend restored")
 
-    # Restore config
     cfg_src = backup_path / "config"
     if cfg_src.is_dir():
         _o("Restoring printer config...")
-        cfg_dest = Path.home() / "printer_data" / "config"
+        cfg_dest = Path(active_inst.config_dir)
         if cfg_dest.is_dir():
             for item in cfg_src.iterdir():
                 dest = cfg_dest / item.name
@@ -607,7 +720,6 @@ def run_restore(backup_dir_name: str, remote_host: Optional[str] = None, auto_ye
             shutil.copytree(cfg_src, cfg_dest)
         _o("  ✓ Printer config restored")
 
-    # Restore WCS offsets
     wcs_src = backup_path / "wcs_offsets.json"
     if wcs_src.is_file():
         _o("Restoring WCS offsets...")
@@ -617,35 +729,34 @@ def run_restore(backup_dir_name: str, remote_host: Optional[str] = None, auto_ye
     _o("")
     _o("  ✓ Restore complete")
     _o("  You may need to restart Moonraker:")
-    _o("    sudo systemctl restart moonraker")
-
+    _o(f"    sudo systemctl restart {active_inst.moonraker_service}")
     return CmdResult(True, "\n".join(out), "Restore")
 
 
-def _run_remote_restore(host: str, backup_name: str, output_callback=None) -> CmdResult:
+def _run_remote_restore(host: str, backup_name: str, output_callback=None, inst: Optional[Instance] = None) -> CmdResult:
     """Restore from a backup on a remote host."""
     out: List[str] = []
     _o = lambda m: (out.append(m), output_callback(m + "\n") if output_callback else None)
 
+    active_inst = inst or _default_instance(_get_remote_home(host))
     _o(f"Restoring from ~/{backup_name} on {host}...")
     cmds = "; ".join([
-        f"if [ -d ~/{backup_name}/frontend ]; then rm -rf ~/mainsail && cp -a ~/{backup_name}/frontend ~/mainsail; fi",
-        f"if [ -d ~/{backup_name}/config ]; then cp -a ~/{backup_name}/config/* ~/printer_data/config/; fi",
+        f"if [ -d ~/{backup_name}/frontend ]; then rm -rf '{active_inst.web_root}' && cp -a ~/{backup_name}/frontend '{active_inst.web_root}'; fi",
+        f"if [ -d ~/{backup_name}/config ]; then cp -a ~/{backup_name}/config/* '{active_inst.config_dir}/'; fi",
         f"if [ -f ~/{backup_name}/wcs_offsets.json ]; then cp -a ~/{backup_name}/wcs_offsets.json ~/wcs_offsets.json; fi",
-        "sudo systemctl restart moonraker",
+        f"sudo systemctl restart {active_inst.moonraker_service}",
     ])
     result = _ssh_run(host, cmds)
     if result.returncode == 0:
         _o("  ✓ Remote restore complete — Moonraker restarted")
         return CmdResult(True, "\n".join(out), "Remote Restore")
-    else:
-        _o(f"  ✗ Remote restore failed: {result.stderr}")
-        return CmdResult(False, "\n".join(out), "Remote Restore")
+    _o(f"  ✗ Remote restore failed: {result.stderr}")
+    return CmdResult(False, "\n".join(out), "Remote Restore")
 
 
 # ── Diagnose ────────────────────────────────────────────────────────────────
 
-def run_diagnose(remote_host: Optional[str] = None, output_callback=None) -> CmdResult:
+def run_diagnose(remote_host: Optional[str] = None, output_callback=None, inst: Optional[Instance] = None) -> CmdResult:
     """Run diagnostics on the CNC host."""
     out: List[str] = []
     _o = lambda m: (out.append(m), output_callback(m + "\n") if output_callback else None)
@@ -653,65 +764,68 @@ def run_diagnose(remote_host: Optional[str] = None, output_callback=None) -> Cmd
     if remote_host:
         runner = lambda cmd: _ssh_run(remote_host, cmd)
         label = f"remote host {remote_host}"
+        active_inst = inst or _default_instance(_get_remote_home(remote_host))
     else:
         runner = lambda cmd: subprocess.run(cmd, capture_output=True, text=True, shell=True)
         label = "localhost"
+        active_inst = inst or get_active_instance() or _default_instance(str(Path.home()))
 
     _o(f"Running diagnostics on {label}...")
-
+    api_base = f"http://127.0.0.1:{active_inst.moonraker_port}"
     checks = [
-        ("Moonraker API", '''curl -sf http://127.0.0.1:7125/printer/info 2>/dev/null | python3 -c "
+        ("Moonraker API", f'''curl -sf {api_base}/printer/info 2>/dev/null | python3 -c "
 import sys, json
-d = json.load(sys.stdin).get('result', {})
+d = json.load(sys.stdin).get('result', {{}})
 print(d.get('state', 'unknown'))
 host = d.get('hostname', '?')
 ver = d.get('software_version', '?')
 cpu = d.get('cpu_info', '?')
-klipper = d.get('klipper_path', '?')
-print(f'Host: {host}')
-print(f'Version: {ver}')
-print(f'CPU: {cpu}')
+print(f'Host: {{host}}')
+print(f'Version: {{ver}}')
+print(f'CPU: {{cpu}}')
 " 2>/dev/null'''),
-        ("Klippy state", 'curl -sf http://127.0.0.1:7125/printer/info 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get(\'result\',{}).get(\'state\',\'unknown\'))" 2>/dev/null'),
-        ("Agent loaded", "curl -sf http://127.0.0.1:7125/server/info 2>/dev/null | python3 -c \"import sys,json; d=json.load(sys.stdin); print('yes' if 'cnc_agent' in str(d.get('result',{})) else 'no')\" 2>/dev/null || echo 'no'"),
-        ("Metadata loaded", "curl -sf http://127.0.0.1:7125/server/info 2>/dev/null | python3 -c \"import sys,json; d=json.load(sys.stdin); print('yes' if 'cnc_metadata' in str(d.get('result',{})) else 'no')\" 2>/dev/null || echo 'no'"),
+        ("Klippy state", f"curl -sf {api_base}/printer/info 2>/dev/null | python3 -c \"import sys,json; d=json.load(sys.stdin); print(d.get('result',{{}}).get('state','unknown'))\" 2>/dev/null"),
+        ("Agent loaded", f"curl -sf {api_base}/server/info 2>/dev/null | python3 -c \"import sys,json; d=json.load(sys.stdin); print('yes' if 'cnc_agent' in str(d.get('result',{{}})) else 'no')\" 2>/dev/null || echo 'no'"),
+        ("Metadata loaded", f"curl -sf {api_base}/server/info 2>/dev/null | python3 -c \"import sys,json; d=json.load(sys.stdin); print('yes' if 'cnc_metadata' in str(d.get('result',{{}})) else 'no')\" 2>/dev/null || echo 'no'"),
         ("Nginx serving", "curl -sf -o /dev/null -w '%{http_code}' http://127.0.0.1/ 2>/dev/null || echo 'unreachable'"),
     ]
 
-    for label, cmd in checks:
+    for check_label, cmd in checks:
         result = runner(cmd)
         status = result.stdout.strip() if result.returncode == 0 else "error"
         if not status or status in ("error", "unreachable", "no"):
-            _o(f"  ⚠ {label}: {status}")
+            _o(f"  ⚠ {check_label}: {status}")
             continue
-
         lines = status.split("\n")
-        main_status = lines[0].strip()
-        _o(f"  ✓ {label}: {main_status}")
+        _o(f"  ✓ {check_label}: {lines[0].strip()}")
         for extra in lines[1:]:
-            extra = extra.strip()
-            if extra:
-                _o(f"      {extra}")
+            if extra.strip():
+                _o(f"      {extra.strip()}")
 
     _o("")
     _o("  For detailed logs: e3cnc-cli logs" + (f" --remote {remote_host}" if remote_host else ""))
-
     return CmdResult(True, "\n".join(out), "Diagnostics")
 
 
 # ── Logs ────────────────────────────────────────────────────────────────────
 
-def run_logs(remote_host: Optional[str] = None, lines: int = 50, output_callback=None) -> CmdResult:
+def run_logs(remote_host: Optional[str] = None, lines: int = 50, output_callback=None, inst: Optional[Instance] = None) -> CmdResult:
     """Fetch and display logs."""
     out: List[str] = []
     _o = lambda m: (out.append(m), output_callback(m + "\n") if output_callback else None)
 
-    prefix = f"ssh {remote_host} " if remote_host else ""
+    if remote_host:
+        active_inst = inst or _default_instance(_get_remote_home(remote_host))
+        prefix = f"ssh {remote_host} "
+    else:
+        active_inst = inst or get_active_instance() or _default_instance(str(Path.home()))
+        prefix = ""
+        _ensure_local_sudo_access("viewing logs")
 
     _o(f"  Moonraker log (last {lines} lines):")
     result = subprocess.run(
-        f'{prefix} sudo journalctl -u moonraker -n {lines} --no-pager 2>/dev/null || '
-        f'{prefix} tail -{lines} ~/printer_data/logs/moonraker.log 2>/dev/null || '
+        f'{prefix} sudo journalctl -u {active_inst.moonraker_service} -n {lines} --no-pager 2>/dev/null || '
+        f'{prefix} tail -{lines} {shlex.quote(active_inst.moonraker_log)} 2>/dev/null || '
         f'echo "  (no moonraker logs found)"',
         capture_output=True, text=True, shell=True,
     )
@@ -814,6 +928,9 @@ def run_ansible_playbook(
     if extra_vars:
         _o(f"  Instance: {'  '.join(extra_vars)}")
 
+    if not remote_host:
+        _ensure_local_sudo_access(f"{label.lower()} (Ansible become tasks)")
+
     _o("")
 
     rc = run_ansible(
@@ -879,10 +996,11 @@ def _require_ansible() -> None:
             return True
         # Fall back to apt (refresh cache first)
         info("Installing python3-pip via apt...")
-        subprocess.run(["sudo", "apt-get", "update"], capture_output=True)
+        _ensure_local_sudo_access("installing python3-pip")
+        subprocess.run(["sudo", "apt-get", "update"])
         result = subprocess.run(
             ["sudo", "apt-get", "install", "-y", "python3-pip"],
-            capture_output=True, text=True,
+            text=True,
         )
         return result.returncode == 0 and (shutil.which("pip3") or shutil.which("pip"))
 
@@ -923,8 +1041,17 @@ def _get_instance(args: argparse.Namespace) -> Optional[Instance]:
     """Resolve the active instance from --instance flag or auto-detect."""
     if args.instance:
         instances = detect_instances()
+        if args.instance.isdigit():
+            idx = int(args.instance) - 1
+            if 0 <= idx < len(instances):
+                set_active_instance(instances[idx])
+                return instances[idx]
         for inst in instances:
-            if inst.name == args.instance or inst.name.replace("cnc_", "") == args.instance:
+            if inst.name == args.instance:
+                set_active_instance(inst)
+                return inst
+            legacy = re.fullmatch(r"cnc_(.+)", inst.name)
+            if legacy and legacy.group(1) == args.instance:
                 set_active_instance(inst)
                 return inst
         warn(f"Instance '{args.instance}' not found. Available: {[i.name for i in instances]}")
@@ -995,10 +1122,11 @@ def _ensure_system_packages() -> None:
     if not missing:
         return
     info(f"Installing system packages: {' '.join(missing)}...")
-    subprocess.run(["sudo", "apt-get", "update"], capture_output=True)
+    _ensure_local_sudo_access(f"installing system packages: {' '.join(missing)}")
+    subprocess.run(["sudo", "apt-get", "update"])
     result = subprocess.run(
         ["sudo", "apt-get", "install", "-y"] + missing,
-        capture_output=True, text=True,
+        text=True,
     )
     if result.returncode == 0:
         ok(f"Installed: {' '.join(missing)}")
@@ -1037,19 +1165,21 @@ def cmd_uninstall(args: argparse.Namespace) -> None:
 
 def cmd_status(args: argparse.Namespace) -> None:
     """Check installation status."""
+    inst = None
     if not args.remote:
         inst = _get_instance(args)
         if inst and inst.name != "cnc":
             info(f"Using instance: {Style.BOLD}{inst.name}{Style.RESET}")
     header("Installation Status")
     print(f"  {Style.DIM}Repository root: {HERE}{Style.RESET}")
-    check_status(args.remote, output_callback=lambda line: print(line, end=""))
+    check_status(args.remote, output_callback=lambda line: print(line, end=""), inst=inst)
 
 
 def cmd_backup(args: argparse.Namespace) -> None:
     """Create a timestamped backup."""
     header("Backup")
-    result = run_backup(args.remote, output_callback=lambda line: print(line, end=""))
+    inst = None if args.remote else _get_instance(args)
+    result = run_backup(args.remote, output_callback=lambda line: print(line, end=""), inst=inst)
     if not result.success:
         sys.exit(1)
 
@@ -1057,9 +1187,10 @@ def cmd_backup(args: argparse.Namespace) -> None:
 def cmd_restore(args: argparse.Namespace) -> None:
     """Restore from a backup."""
     header("Restore")
+    inst = None if args.remote else _get_instance(args)
     result = run_restore(
         args.backup_dir, args.remote, args.yes,
-        output_callback=lambda line: print(line, end=""),
+        output_callback=lambda line: print(line, end=""), inst=inst,
     )
     if not result.success:
         sys.exit(1)
@@ -1068,7 +1199,8 @@ def cmd_restore(args: argparse.Namespace) -> None:
 def cmd_diagnose(args: argparse.Namespace) -> None:
     """Run diagnostics."""
     header("Diagnostics")
-    result = run_diagnose(args.remote, output_callback=lambda line: print(line, end=""))
+    inst = None if args.remote else _get_instance(args)
+    result = run_diagnose(args.remote, output_callback=lambda line: print(line, end=""), inst=inst)
     if not result.success:
         sys.exit(1)
 
@@ -1076,7 +1208,8 @@ def cmd_diagnose(args: argparse.Namespace) -> None:
 def cmd_logs(args: argparse.Namespace) -> None:
     """Tail logs."""
     header("Logs")
-    result = run_logs(args.remote, args.lines, output_callback=lambda line: print(line, end=""))
+    inst = None if args.remote else _get_instance(args)
+    result = run_logs(args.remote, args.lines, output_callback=lambda line: print(line, end=""), inst=inst)
     if not result.success:
         sys.exit(1)
 
@@ -1124,7 +1257,7 @@ Examples:
 
     shared_instance = argparse.ArgumentParser(add_help=False)
     shared_instance.add_argument("--instance", "-p", metavar="NAME", default=None,
-                                 help="CNC instance name (e.g., 'cnc_2' or just '2')")
+                                 help="CNC instance name (e.g., 'test2', 'cnc_2', or just '2')")
 
     p = subparsers = parser.add_subparsers(dest="command", title="Commands")
 

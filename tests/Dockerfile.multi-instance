@@ -12,7 +12,7 @@
 #   docker run --rm -it e3cnc-multi bash -c 'cd ~/E3CNC_UI && export PATH="$HOME/.local/bin:$PATH" && ./e3cnc-cli'
 #
 # Test --instance flag:
-#   docker run --rm e3cnc-multi bash -c 'cd ~/E3CNC_UI && export PATH="$HOME/.local/bin:$PATH" && ./e3cnc-cli status --instance cnc_2'
+#   docker run --rm e3cnc-multi bash -c 'cd ~/E3CNC_UI && export PATH="$HOME/.local/bin:$PATH" && ./e3cnc-cli status --instance test2'
 
 FROM ubuntu:24.04
 
@@ -33,27 +33,34 @@ RUN useradd -m -s /bin/bash testbed && echo "testbed ALL=(ALL) NOPASSWD:ALL" >> 
 USER testbed
 WORKDIR /home/testbed
 
-# Clone the repo
-RUN git clone https://github.com/E3CNC/E3CNC_UI.git /home/testbed/E3CNC_UI
+# Copy the current working tree into the container
+COPY --chown=testbed:testbed . /home/testbed/E3CNC_UI
 
-# ── Create Instance 1 (default cnc) ──────────────────────────────────────
-RUN mkdir -p /home/testbed/printer_data/config/E3CNC/macros \
-             /home/testbed/printer_data/scripts \
-             /home/testbed/printer_data/logs \
-             /home/testbed/moonraker/moonraker/components \
+# Shared Klipper + Moonraker source trees, shared frontend
+RUN mkdir -p /home/testbed/moonraker/moonraker/components \
              /home/testbed/klipper/klippy/extras \
-             /home/testbed/mainsail \
-    && touch /home/testbed/printer_data/config/moonraker.conf \
-    && touch /home/testbed/printer_data/config/printer.cfg
+             /home/testbed/mainsail
 
-# ── Create Instance 2 (cnc_2) ────────────────────────────────────────────
-RUN mkdir -p /home/testbed/printer_data_2/config/E3CNC/macros \
-             /home/testbed/printer_data_2/scripts \
-             /home/testbed/printer_data_2/logs \
-             /home/testbed/moonraker_2/moonraker/components \
-             /home/testbed/klipper_2/klippy/extras \
-             /home/testbed/mainsail-cnc_2 \
-    && touch /home/testbed/printer_data_2/config/moonraker.conf \
-    && touch /home/testbed/printer_data_2/config/printer.cfg
+# ── Create Instance 1 (KIAUH-style test1) ────────────────────────────────
+RUN mkdir -p /home/testbed/printer_test1_data/config/E3CNC/macros \
+             /home/testbed/printer_test1_data/scripts \
+             /home/testbed/printer_test1_data/logs \
+             /home/testbed/printer_test1_data/systemd \
+    && printf '[server]\nport: 7125\n' > /home/testbed/printer_test1_data/config/moonraker.conf \
+    && touch /home/testbed/printer_test1_data/config/printer.cfg \
+    && printf 'MOONRAKER_ARGS="/home/testbed/moonraker/moonraker/moonraker.py -d /home/testbed/printer_test1_data"\n' > /home/testbed/printer_test1_data/systemd/moonraker.env \
+    && printf 'KLIPPER_ARGS="/home/testbed/klipper/klippy/klippy.py /home/testbed/printer_test1_data/config/printer.cfg -I /home/testbed/printer_test1_data/comms/klippy.serial -l /home/testbed/printer_test1_data/logs/klippy.log -a /home/testbed/printer_test1_data/comms/klippy.sock"\n' > /home/testbed/printer_test1_data/systemd/klipper.env \
+    && printf 'test1\n' > /home/testbed/printer_test1_data/moonraker.asvc
+
+# ── Create Instance 2 (KIAUH-style test2) ────────────────────────────────
+RUN mkdir -p /home/testbed/printer_test2_data/config/E3CNC/macros \
+             /home/testbed/printer_test2_data/scripts \
+             /home/testbed/printer_test2_data/logs \
+             /home/testbed/printer_test2_data/systemd \
+    && printf '[server]\nport: 7126\n' > /home/testbed/printer_test2_data/config/moonraker.conf \
+    && touch /home/testbed/printer_test2_data/config/printer.cfg \
+    && printf 'MOONRAKER_ARGS="/home/testbed/moonraker/moonraker/moonraker.py -d /home/testbed/printer_test2_data"\n' > /home/testbed/printer_test2_data/systemd/moonraker.env \
+    && printf 'KLIPPER_ARGS="/home/testbed/klipper/klippy/klippy.py /home/testbed/printer_test2_data/config/printer.cfg -I /home/testbed/printer_test2_data/comms/klippy.serial -l /home/testbed/printer_test2_data/logs/klippy.log -a /home/testbed/printer_test2_data/comms/klippy.sock"\n' > /home/testbed/printer_test2_data/systemd/klipper.env \
+    && printf 'test2\n' > /home/testbed/printer_test2_data/moonraker.asvc
 
 CMD ["bash"]

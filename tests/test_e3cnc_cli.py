@@ -481,7 +481,7 @@ class TestInstance:
         """Instance.from_printer_data with a standard printer_data dir."""
         base = tmp_path / "printer_data"
         base.mkdir()
-        inst = Instance.from_printer_data(str(base))
+        inst = Instance.from_printer_data(str(base), home=str(tmp_path))
         assert inst.name == "cnc"
         assert inst.printer_data_dir == str(base)
         assert inst.config_dir == str(base / "config")
@@ -491,21 +491,44 @@ class TestInstance:
         assert inst.macros_dir == str(base / "config" / "macros")
         assert inst.E3CNC_dir == str(base / "config" / "E3CNC")
         assert inst.printer_cfg == str(base / "config" / "printer.cfg")
+        assert inst.moonraker_dir == str(tmp_path / "moonraker")
+        assert inst.klipper_dir == str(tmp_path / "klipper")
+        assert inst.web_root == str(tmp_path / "mainsail")
+        assert inst.moonraker_service == "moonraker"
+        assert inst.klipper_service == "klipper"
+        assert inst.moonraker_port == 7125
+
+    def test_instance_from_kiauh_style_printer_data(self, tmp_path):
+        """KIAUH-style printer_<name>_data should derive shared dirs and service names."""
+        base = tmp_path / "printer_test1_data"
+        (base / "config").mkdir(parents=True)
+        (base / "systemd").mkdir(parents=True)
+        (base / "config" / "moonraker.conf").write_text("[server]\nport: 7126\n")
+        (base / "systemd" / "moonraker.env").write_text(
+            f'MOONRAKER_ARGS="{tmp_path}/moonraker/moonraker/moonraker.py -d {base}"\n'
+        )
+        (base / "systemd" / "klipper.env").write_text(
+            f'KLIPPER_ARGS="{tmp_path}/klipper/klippy/klippy.py {base}/config/printer.cfg -I {base}/comms/klippy.serial -l {base}/logs/klippy.log -a {base}/comms/klippy.sock"\n'
+        )
+        (base / "moonraker.asvc").write_text("test1\n")
+
+        inst = Instance.from_printer_data(str(base), home=str(tmp_path))
+        assert inst.name == "test1"
+        assert inst.moonraker_dir == str(tmp_path / "moonraker")
+        assert inst.klipper_dir == str(tmp_path / "klipper")
+        assert inst.web_root == str(tmp_path / "mainsail")
+        assert inst.moonraker_service == "moonraker-test1"
+        assert inst.klipper_service == "klipper-test1"
+        assert inst.moonraker_port == 7126
 
     def test_instance_from_printer_data_second(self, tmp_path):
-        """Instance.from_printer_data with printer_data_2 naming."""
+        """Legacy printer_data_2 naming still works."""
         base = tmp_path / "printer_data_2"
         base.mkdir()
-        inst = Instance.from_printer_data(str(base))
+        inst = Instance.from_printer_data(str(base), home=str(tmp_path))
         assert inst.name == "cnc_2"
-
-    def test_instance_web_root_naming(self, tmp_path):
-        """Web root should include instance suffix for non-default instances."""
-        base = tmp_path / "printer_data"
-        base.mkdir()
-        inst = Instance.from_printer_data(str(base))
-        # Web root uses Path.home() so we can't test exact value without mocking
-        assert isinstance(inst.web_root, str)
+        assert inst.moonraker_service == "moonraker-2"
+        assert inst.klipper_service == "klipper-2"
 
     def test_detect_instances_single(self, tmp_path):
         """detect_instances with a single printer_data dir."""
@@ -520,8 +543,8 @@ class TestInstance:
             assert instances[0].name == "cnc"
 
     def test_detect_instances_multiple(self, tmp_path):
-        """detect_instances with multiple printer_data dirs."""
-        for name in ["printer_data", "printer_data_2", "printer_data_3"]:
+        """detect_instances should support default, legacy, and KIAUH-style dirs."""
+        for name in ["printer_data", "printer_data_2", "printer_test1_data"]:
             base = tmp_path / name
             (base / "config").mkdir(parents=True)
             (base / "config" / "moonraker.conf").write_text("[server]\n")
@@ -530,9 +553,7 @@ class TestInstance:
             mock_home.return_value = tmp_path
             instances = detect_instances()
             assert len(instances) == 3
-            assert instances[0].name == "cnc"
-            assert instances[1].name == "cnc_2"
-            assert instances[2].name == "cnc_3"
+            assert [inst.name for inst in instances] == ["cnc", "cnc_2", "test1"]
 
     def test_detect_instances_none(self, tmp_path):
         """detect_instances with no printer_data dirs."""
@@ -542,16 +563,16 @@ class TestInstance:
             assert len(instances) == 0
 
     def test_detect_instances_skips_missing_config(self, tmp_path):
-        """Skip printer_data dirs that don't have a moonraker.conf."""
-        (tmp_path / "printer_data").mkdir()  # no config/moonraker.conf
-        (tmp_path / "printer_data_2" / "config").mkdir(parents=True)
-        (tmp_path / "printer_data_2" / "config" / "moonraker.conf").write_text("[server]")
+        """Skip instance dirs that don't have a moonraker.conf."""
+        (tmp_path / "printer_test1_data").mkdir()
+        (tmp_path / "printer_test2_data" / "config").mkdir(parents=True)
+        (tmp_path / "printer_test2_data" / "config" / "moonraker.conf").write_text("[server]")
 
         with patch("_e3cnc_shared.Path.home") as mock_home:
             mock_home.return_value = tmp_path
             instances = detect_instances()
             assert len(instances) == 1
-            assert instances[0].name == "cnc_2"
+            assert instances[0].name == "test2"
 
     def test_select_instance_single(self):
         """Single instance should be auto-selected without prompt."""
@@ -619,26 +640,31 @@ class TestInstance:
     def test_instance_extra_vars(self):
         """instance_extra_vars should generate correct Ansible vars."""
         inst = Instance(
-            name="printer_2",
-            printer_data_dir="/home/user/printer_data_2",
-            config_dir="/home/user/printer_data_2/config",
-            moonraker_conf="/home/user/printer_data_2/config/moonraker.conf",
-            moonraker_log="/home/user/printer_data_2/logs/moonraker.log",
-            scripts_dir="/home/user/printer_data_2/scripts",
-            macros_dir="/home/user/printer_data_2/config/macros",
-            E3CNC_dir="/home/user/printer_data_2/config/E3CNC",
-            printer_cfg="/home/user/printer_data_2/config/printer.cfg",
-            web_root="/home/user/mainsail-2",
+            name="test2",
+            printer_data_dir="/home/user/printer_test2_data",
+            config_dir="/home/user/printer_test2_data/config",
+            moonraker_conf="/home/user/printer_test2_data/config/moonraker.conf",
+            moonraker_log="/home/user/printer_test2_data/logs/moonraker.log",
+            scripts_dir="/home/user/printer_test2_data/scripts",
+            macros_dir="/home/user/printer_test2_data/config/macros",
+            E3CNC_dir="/home/user/printer_test2_data/config/E3CNC",
+            printer_cfg="/home/user/printer_test2_data/config/printer.cfg",
+            web_root="/home/user/mainsail",
+            moonraker_dir="/home/user/moonraker",
+            klipper_dir="/home/user/klipper",
+            moonraker_service="moonraker-test2",
+            klipper_service="klipper-test2",
+            moonraker_port=7127,
         )
         vars = instance_extra_vars(inst)
         assert f"printer_data_dir={inst.printer_data_dir}" in vars
-        assert f"printer_data__config_dir={inst.config_dir}" in vars
-        assert f"printer_data__E3CNC_dir={inst.E3CNC_dir}" in vars
-        assert f"printer_data__scripts_dir={inst.scripts_dir}" in vars
-        assert f"printer_data__macros_dir={inst.macros_dir}" in vars
-        assert f"printer_data__printer_cfg={inst.printer_cfg}" in vars
+        assert f"moonraker_dir={inst.moonraker_dir}" in vars
+        assert f"klipper_dir={inst.klipper_dir}" in vars
         assert f"moonraker_conf={inst.moonraker_conf}" in vars
-        assert f"frontend__web_root={inst.web_root}" in vars
+        assert f"frontend_web_root={inst.web_root}" in vars
+        assert f"moonraker_service={inst.moonraker_service}" in vars
+        assert f"klipper_service={inst.klipper_service}" in vars
+        assert f"moonraker_port={inst.moonraker_port}" in vars
 
     def test_instance_is_running(self, tmp_path):
         """is_running should be True when moonraker.conf exists."""
