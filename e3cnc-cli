@@ -1074,12 +1074,21 @@ def _get_instance(args: argparse.Namespace) -> Optional[Instance]:
         warn(f"Instance '{args.instance}' not found. Available: {[i.name for i in instances]}")
         return None
 
-    # Auto-select if only one instance, otherwise delegate to interactive prompt
+    # Auto-select first running instance, or first instance if none running
     instances = detect_instances()
+    if len(instances) == 0:
+        return None
     if len(instances) == 1:
         set_active_instance(instances[0])
         return instances[0]
-    return get_active_instance()
+    # Multiple instances: pick the first running one
+    for inst in instances:
+        if inst.is_running:
+            set_active_instance(inst)
+            return inst
+    # Fallback to first instance
+    set_active_instance(instances[0])
+    return instances[0]
 
 
 def _run_ansible_cmd(
@@ -1236,8 +1245,9 @@ def cmd_update(args: argparse.Namespace) -> None:
     if not activate_release(version, release_dir, journal):
         fail("Activation failed")
 
-    step(8, 14, "Installing pip dependencies")
-    install_pip_deps(release_dir)
+    info("Installing pip dependencies (optional)...")
+    if not install_pip_deps(release_dir):
+        info("Pip dependencies skipped — continuing")
 
     step(9, 14, "Running config/schema migrations")
     run_migrations(release_dir, direction="up")
