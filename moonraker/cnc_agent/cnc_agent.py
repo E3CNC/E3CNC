@@ -1,8 +1,11 @@
+import asyncio
 import copy
 import json
 import logging
 import os
-from typing import Any, Dict, Iterable, Mapping, Optional
+import sys
+from pathlib import Path
+from typing import Any, Dict, Iterable, List, Mapping, Optional
 
 try:
     import yaml
@@ -106,6 +109,133 @@ class CncAgent:
             else:
                 handler = self._make_dispatcher(handlers)
             register_endpoint(path, methods, handler)
+
+        # E3CNC deploy/update endpoints
+        self._register_e3cnc_endpoints(register_endpoint)
+
+    # ── E3CNC deploy API handlers ───────────────────────────────────────────
+
+    def _register_e3cnc_endpoints(self, register_endpoint):
+        e3cnc_endpoints = {
+            "/machine/e3cnc/info": {"GET": self.handle_e3cnc_info},
+            "/machine/e3cnc/update": {"POST": self.handle_e3cnc_update},
+            "/machine/e3cnc/rollback": {"POST": self.handle_e3cnc_rollback},
+            "/machine/e3cnc/releases": {"GET": self.handle_e3cnc_releases},
+        }
+        for path, handlers in e3cnc_endpoints.items():
+            methods = list(handlers.keys())
+            register_endpoint(path, methods, next(iter(handlers.values())))
+        self.logger.info("CncAgent: registered E3CNC deploy endpoints")
+
+    def _e3cnc_repo_path(self) -> Optional[Path]:
+        """Find the E3CNC repo directory."""
+        candidates = [Path.home() / "E3CNC", Path.home() / "E3CNC_UI"]
+        for c in candidates:
+            if (c / "e3cnc-cli").exists():
+                return c
+        return None
+
+    async def _run_e3cnc_cli(self, args: List[str]) -> Dict[str, Any]:
+        """Run e3cnc-cli with the given args and return stdout + returncode."""
+        repo = self._e3cnc_repo_path()
+        if not repo:
+            return {"ok": False, "error": "E3CNC repo not found (checked ~/E3CNC, ~/E3CNC_UI)"}
+        cli = repo / "e3cnc-cli"
+        if not cli.exists():
+            return {"ok": False, "error": f"e3cnc-cli not found at {cli}"}
+        try:
+            proc = await asyncio.create_subprocess_exec(
+                sys.executable, str(cli), *args,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.STDOUT,
+                cwd=str(repo),
+            )
+            stdout, _ = await proc.communicate()
+            output = stdout.decode("utf-8", errors="replace") if stdout else ""
+            return {
+                "ok": proc.returncode == 0,
+                "returncode": proc.returncode,
+                "output": output,
+            }
+        except (OSError, ValueError) as e:
+            return {"ok": False, "error": str(e)}
+
+    async def _import_e3cnc_deploy(self):
+        """Lazy-import _e3cnc_deploy functions for read-only queries."""
+        repo = self._e3cnc_repo_path()
+        if repo and str(repo) not in sys.path:
+            sys.path.insert(0, str(repo))
+        try:
+            import _e3cnc_deploy as d
+            return d
+        except ImportError:
+            return None
+
+    async def handle_e3cnc_info(self, request: Any = None) -> Dict[str, Any]:
+        """GET /machine/e3cnc/info — report version, releases, instance."""
+        result = {"ok": True}
+        deploy = await self._import_e3cnc_deploy()
+        if deploy:
+            try:
+                result["current_version"] = deploy.get_active_release_version()
+                releases = deploy.get_releases()
+                result["installed_releases"] = [
+                    {"version": r.version, "size_bytes": r.size_bytes}
+                    for r in releases
+                ]
+                from _e3cnc_shared import detect_instances
+                insts = detect_instances()
+                result["instances"] = [
+                    {
+                        "name": i.name,
+                        "port": i.moonraker_port,
+                        "web_root": i.web_root,
+                        "running": i.is_running,
+                    }
+                    for i in insts
+                ]
+            except Exception as e:
+                self.logger.warning("e3cnc info error: %s", e)
+                result["error"] = str(e)
+        else:
+            result["current_version"] = "unknown"
+            result["installed_releases"] = []
+            result["instances"] = []
+        return result
+
+    async def handle_e3cnc_update(self, request: Any = None) -> Dict[str, Any]:
+        """POST /machine/e3cnc/update — trigger full stack update."""
+        self.logger.info("E3CNC update triggered via API")
+        result = await self._run_e3cnc_cli(["update", "--yes"])
+        return result
+
+    async def handle_e3cnc_rollback(self, request: Any = None) -> Dict[str, Any]:
+        """POST /machine/e3cnc/rollback — roll back to previous release."""
+        self.logger.info("E3CNC rollback triggered via API")
+        result = await self._run_e3cnc_cli(["rollback"])
+        return result
+
+    async def handle_e3cnc_releases(self, request: Any = None) -> Dict[str, Any]:
+        """GET /machine/e3cnc/releases — list installed releases."""
+        deploy = await self._import_e3cnc_deploy()
+        if not deploy:
+            return {"ok": False, "error": "E3CNC deploy module not found"}
+        try:
+            releases = deploy.get_releases()
+            return {
+                "ok": True,
+                "releases": [
+                    {
+                        "version": r.version,
+                        "size_bytes": r.size_bytes,
+                        "created_at": r.created_at,
+                        "is_active": r.is_active,
+                    }
+                    for r in releases
+                ],
+            }
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
 
     @staticmethod
     def _make_dispatcher(handlers):
