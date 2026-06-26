@@ -31,6 +31,21 @@ from _e3cnc_shared import (
     _ssh_run,
 )
 
+# Import single-deploy infrastructure
+from _e3cnc_deploy import (
+    get_releases, get_current_release, get_active_release_version,
+    Release, Journal,
+    find_stack_artifact_asset, download_artifact, verify_checksum,
+    extract_artifact, run_pre_flight_checks,
+    activate_release, deactivate_release,
+    run_health_checks, HealthCheckResult,
+    rollback_to, rollback_previous, auto_rollback,
+    prune_releases, format_release_list,
+    backup_deployment_state, migrate_layout,
+    E3CNC_DIR, RELEASES_DIR, CURRENT_SYMLINK, JOURNAL_PATH,
+    DEFAULT_KEEP_RELEASES,
+)
+
 # Version compatibility check
 if VERSION != _CLI_VERSION:
     print()
@@ -1152,8 +1167,124 @@ def cmd_deploy(args: argparse.Namespace) -> None:
 
 
 def cmd_update(args: argparse.Namespace) -> None:
-    """Re-vendor agent, rebuild frontend, re-deploy plugins, restart."""
-    _run_ansible_cmd(REDEPLOY_PLAYBOOK, args, "Update")
+    """Full-stack update: download stack artifact, activate, verify."""
+    header("Stack Update")
+
+    # Ensure the releases directory exists
+    RELEASES_DIR.mkdir(parents=True, exist_ok=True)
+
+    step(1, 10, "Finding latest release")
+    asset = find_stack_artifact_asset()
+    if not asset:
+        fail("No stack artifact found. Create a release on GitHub first, or use the legacy update.")
+    version = asset.get("name", "").replace("e3cnc-stack-", "").replace(".tar.zst", "")
+    info(f"Found stack artifact: {asset.get('name', 'unknown')}")
+
+    step(2, 10, "Downloading artifact")
+    download_dir = Path("/tmp") / "e3cnc-download"
+    download_dir.mkdir(parents=True, exist_ok=True)
+    artifact_path = download_artifact(asset, download_dir)
+    if not artifact_path:
+        fail("Download failed")
+
+    step(3, 10, "Verifying checksum")
+    if not verify_checksum(artifact_path):
+        if args.yes:
+            warn("Checksum mismatch — continuing (--yes set)")
+        else:
+            reply = input(f"  {Style.YELLOW}Checksum mismatch. Continue anyway? [y/N] {Style.RESET}").strip().lower()
+            if reply != "y":
+                fail("Update cancelled")
+
+    step(4, 10, "Running pre-flight checks")
+    import json as _json
+    try:
+        manifest = _json.loads(artifact_path.with_name("manifest.json").read_text()) if (
+            artifact_path.with_name("manifest.json").exists()
+        ) else {}
+    except (OSError, _json.JSONDecodeError):
+        manifest = {}
+    if not run_pre_flight_checks(manifest):
+        if not args.yes:
+            reply = input(f"  {Style.YELLOW}Pre-flight checks failed. Continue? [y/N] {Style.RESET}").strip().lower()
+            if reply != "y":
+                fail("Update cancelled")
+
+    step(5, 10, "Backing up current state")
+    inst = _get_instance(args) if not args.remote else None
+    backup_path = backup_deployment_state(inst)
+
+    step(6, 10, "Extracting release")
+    release_dir = extract_artifact(artifact_path, RELEASES_DIR, version)
+    if not release_dir:
+        fail("Extraction failed")
+
+    step(7, 10, "Activating new release")
+    journal = Journal.load()
+    if not activate_release(version, release_dir, journal):
+        fail("Activation failed")
+
+    step(8, 10, "Running health checks")
+    results = run_health_checks(inst)
+    all_passed = all(r.passed for r in results)
+    for r in results:
+        if r.passed:
+            ok(f"{r.name}: {r.detail}")
+        else:
+            warn(f"{r.name}: {r.detail}")
+
+    step(9, 10, "Finalizing")
+    if all_passed:
+        journal.last_known_good = version
+        journal.save()
+        ok(f"Update to {version} complete")
+    else:
+        warn(f"Health checks failed — rolling back to {journal.previous}")
+        auto_rollback(journal)
+        fail("Update rolled back due to health check failures")
+
+    step(10, 10, "Pruning old releases")
+    prune_releases(DEFAULT_KEEP_RELEASES)
+
+
+def cmd_releases(args: argparse.Namespace) -> None:
+    """List installed releases."""
+    header("Releases")
+    releases = get_releases()
+    if not releases:
+        info("No releases installed")
+        info(f"Run 'e3cnc-cli update' to install the latest release")
+        return
+    print(format_release_list(releases))
+
+
+def cmd_rollback(args: argparse.Namespace) -> None:
+    """Roll back to a previous release."""
+    header("Rollback")
+    if args.version:
+        success = rollback_to(args.version)
+    else:
+        success = rollback_previous()
+    if not success:
+        fail("Rollback failed")
+    info("Running health checks after rollback...")
+    results = run_health_checks()
+    all_passed = all(r.passed for r in results)
+    for r in results:
+        if r.passed:
+            ok(f"{r.name}: {r.detail}")
+        else:
+            warn(f"{r.name}: {r.detail}")
+    if all_passed:
+        ok("Rollback complete — system healthy")
+    else:
+        warn("Rollback complete — some checks failed (pre-existing condition?)")
+
+
+def cmd_prune(args: argparse.Namespace) -> None:
+    """Prune old releases."""
+    header("Prune Releases")
+    prune_releases(keep=args.keep, dry_run=args.dry_run)
 
 
 def cmd_uninstall(args: argparse.Namespace) -> None:
@@ -1267,12 +1398,28 @@ Examples:
                  help="Deploy frontend only (build + copy + reload nginx)")
     p.add_parser("update", parents=[shared_remote, shared_check, shared_yes, shared_instance],
                  aliases=["redeploy"],
-                 help="Re-vendor agent, rebuild frontend, re-deploy plugins, restart")
+                 help="Full-stack update: download stack artifact, activate, verify")
     p.add_parser("uninstall", parents=[shared_remote, shared_check, shared_yes, shared_instance],
                  help="Remove all E3CNC components")
     p.add_parser("status", parents=[shared_remote, shared_instance],
                  help="Check installation status of all components")
     p.add_parser("check", help="Check dependencies")
+
+    # Single-deploy commands
+    p.add_parser("releases", aliases=["rel"],
+                 help="List installed releases")
+
+    rlb = p.add_parser("rollback", parents=[shared_instance],
+                       help="Roll back to a previous release")
+    rlb.add_argument("version", nargs="?", default=None,
+                     help="Specific version to roll back to (default: previous)")
+
+    prn = p.add_parser("prune",
+                       help="Remove old releases")
+    prn.add_argument("--keep", type=int, default=DEFAULT_KEEP_RELEASES,
+                     help=f"Number of releases to keep (default: {DEFAULT_KEEP_RELEASES})")
+    prn.add_argument("--dry-run", "-n", action="store_true",
+                     help="Show what would be pruned without deleting")
 
     bp = p.add_parser("backup", parents=[shared_remote, shared_instance],
                        help="Create a timestamped backup")
@@ -1355,6 +1502,10 @@ def _run_menu_command(cmd: str) -> None:
         "diag": cmd_diagnose,
         "doctor": cmd_diagnose,
         "logs": cmd_logs,
+        "releases": cmd_releases,
+        "rel": cmd_releases,
+        "rollback": cmd_rollback,
+        "prune": cmd_prune,
     }
     handler = dispatch.get(cmd)
     if handler:
@@ -1409,9 +1560,13 @@ def _interactive_menu() -> None:
         ("[D] Deploy",      "deploy"),
         ("[U] Update",      "update"),
         ("[X] Uninstall",   "uninstall"),
+        ("",                ""),
+        ("[Rl] Releases",   "releases"),
+        ("[Rb] Rollback",   "rollback"),
+        ("[P] Prune",       "prune"),
         ("[C] Check Deps",  "check"),
         ("[B] Backup",      "backup"),
-        ("[R] Restore",     "restore"),
+        ("[Rr] Restore",    "restore"),
         ("[G] Diagnose",    "diagnose"),
         ("[L] Logs",        "logs"),
         ("",                ""),
