@@ -1491,7 +1491,7 @@ Examples:
     p.add_parser("releases", aliases=["rel"],
                  help="List installed releases")
 
-    rlb = p.add_parser("rollback", parents=[shared_instance],
+    rlb = p.add_parser("rollback", parents=[shared_remote, shared_instance],
                        help="Roll back to a previous release")
     rlb.add_argument("version", nargs="?", default=None,
                      help="Specific version to roll back to (default: previous)")
