@@ -51,12 +51,12 @@ vi.mock('@/components/inputs/LedEffectButton.vue', () => ({
 vi.mock('vuetify/components', () => ({
     VTooltip: {
         name: 'VTooltip',
-        template: '<div class="v-tooltip"><slot name="activator" :props=\"{}\" /><slot /></div>',
+        template: '<div class="v-tooltip"><slot name="activator" /><slot /></div>',
     },
     VBtn: {
         name: 'VBtn',
         props: ['icon', 'rounded', 'loading', 'disabled'],
-        template: '<button class="v-btn" :disabled="disabled" @click="$emit(\'click\')"><slot /></button>',
+        template: '<button class="v-btn" :disabled="disabled" @click="$emit(\'click\', $event)"><slot /></button>',
     },
     VIcon: { name: 'VIcon', props: ['icon'], template: '<i class="v-icon"><slot /></i>' },
     VCardText: { name: 'VCardText', template: '<div class="v-card-text"><slot /></div>' },
@@ -209,5 +209,19 @@ describe('LedEffectsPanel.vue', () => {
         })
         expect(wrapper.find('.panel').exists()).toBe(true)
         expect(wrapper.findAllComponents({ name: 'LedEffectButton' }).length).toBe(0)
+    })
+
+    it('does not throw when stop button is clicked', async () => {
+        const wrapper = mount(LedEffectsPanel, {
+            global: {
+                plugins: [store],
+                mocks: { $t: (key: string) => key },
+            },
+        })
+        // Click via wrapper HTML
+        const btnHtml = wrapper.find('.v-btn')
+        if (btnHtml.exists()) {
+            await btnHtml.trigger('click')
+        }
     })
 })

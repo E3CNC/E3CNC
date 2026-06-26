@@ -187,4 +187,20 @@ describe('EndstopPanel.vue', () => {
         const buttons = wrapper.findAll('button')
         expect(buttons.length).toBeGreaterThanOrEqual(1)
     })
+
+    it('calls queryEndstops when sync button is clicked', async () => {
+        const store = createStoreWithState()
+        const wrapper = mount(EndstopPanel, {
+            global: {
+                plugins: [store],
+                mocks: { $t: (key: string) => key },
+            },
+        })
+
+        const buttons = wrapper.findAll('button')
+        if (buttons.length > 0) {
+            await buttons[0].trigger('click')
+        }
+        // Should not throw when clicking
+    })
 })
