@@ -408,13 +408,14 @@ def run_health_checks(inst: Optional[Instance] = None) -> List[HealthCheckResult
     moonraker_port = active_inst.moonraker_port
     web_root = active_inst.web_root
 
-    # 1. Moonraker process
-    r = _check_service(moonraker_service)
-    results.append(r)
+    # 1. Moonraker HTTP API (primary — proves Moonraker is running)
+    api_check = _check_http_api(moonraker_port)
+    results.append(api_check)
 
-    # 2. Moonraker HTTP API
-    r = _check_http_api(moonraker_port)
-    results.append(r)
+    # 2. Moonraker service (skip if API already confirmed Moonraker is up)
+    if not api_check.passed:
+        r = _check_service(moonraker_service)
+        results.append(r)
 
     # 3. Klippy connected
     r = _check_klippy_connected(moonraker_port)
