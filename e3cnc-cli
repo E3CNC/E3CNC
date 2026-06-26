@@ -1346,6 +1346,29 @@ def cmd_prune(args: argparse.Namespace) -> None:
     prune_releases(keep=args.keep, dry_run=args.dry_run)
 
 
+def cmd_instances(args: argparse.Namespace) -> None:
+    """List detected instances with ports, web roots, and frontend URLs."""
+    header("Instances")
+    from _e3cnc_shared import detect_instances
+    insts = detect_instances()
+    if not insts:
+        info("No instances detected")
+        return
+    print(f"  {'Name':<12} {'Port':<8} {'Web Root':<30} {'Frontend URL'}")
+    print(f"  {'-'*12} {'-'*8} {'-'*30} {'-'*30}")
+    for inst in insts:
+        dot = "\033[32m\u25cf\033[0m" if inst.is_running else "\033[31m\u25cf\033[0m"
+        port = inst.moonraker_port
+        # Guess frontend URL — port 80 if web root matches mainsail, else 8080+offset
+        if inst.web_root.endswith("/mainsail"):
+            fe_url = f"http://<host>"
+        else:
+            fe_url = f"http://<host>:80{str(port)[-1]}" if port != 7125 else "http://<host>"
+        print(f"  {dot} {inst.name:<10} {port:<8} {Path(inst.web_root).name:<30} {fe_url}")
+    print()
+    info("Run 'e3cnc-cli status --instance <name>' for component details")
+
+
 def cmd_uninstall(args: argparse.Namespace) -> None:
     """Remove all E3CNC components."""
     _run_ansible_cmd(UNINSTALL_PLAYBOOK, args, "Uninstall")
@@ -1480,6 +1503,9 @@ Examples:
     prn.add_argument("--dry-run", "-n", action="store_true",
                      help="Show what would be pruned without deleting")
 
+    p.add_parser("instances", aliases=["inst", "list"],
+                 help="List detected instances with ports and frontend URLs")
+
     mig = p.add_parser("migrate", aliases=["migrate-layout"],
                        parents=[shared_remote, shared_yes, shared_instance],
                        help="Migrate from old layout to single-deploy layout")
@@ -1573,6 +1599,9 @@ def _run_menu_command(cmd: str) -> None:
         "prune": cmd_prune,
         "migrate": cmd_migrate,
         "migrate-layout": cmd_migrate,
+        "instances": cmd_instances,
+        "inst": cmd_instances,
+        "list": cmd_instances,
     }
     handler = dispatch.get(cmd)
     if handler:
@@ -1631,6 +1660,8 @@ def _interactive_menu() -> None:
         ("[Rl] Releases",   "releases"),
         ("[Rb] Rollback",   "rollback"),
         ("[P] Prune",       "prune"),
+        ("",                ""),
+        ("[N] Instances",   "instances"),
         ("[C] Check Deps",  "check"),
         ("[B] Backup",      "backup"),
         ("[Rr] Restore",    "restore"),
@@ -1736,6 +1767,9 @@ def main() -> None:
         "prune": cmd_prune,
         "migrate": cmd_migrate,
         "migrate-layout": cmd_migrate,
+        "instances": cmd_instances,
+        "inst": cmd_instances,
+        "list": cmd_instances,
     }
 
     handler = dispatch.get(args.command)
