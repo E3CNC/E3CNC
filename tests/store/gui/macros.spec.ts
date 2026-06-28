@@ -90,7 +90,16 @@ describe('gui macros store', () => {
                 showInStandby: true,
                 showInPrinting: true,
                 showInPause: true,
-                macros: [{ pos: 3, name: 'M1', color: 'group', showInStandby: true, showInPrinting: true, showInPause: true }],
+                macros: [
+                    {
+                        pos: 3,
+                        name: 'M1',
+                        color: 'group',
+                        showInStandby: true,
+                        showInPrinting: true,
+                        showInPause: true,
+                    },
+                ],
             }
             mutations.addMacroToMacrogroup(state, { id: 'g1', macro: 'G28' })
             expect(state.macrogroups['g1'].macros).toHaveLength(2)
@@ -106,7 +115,16 @@ describe('gui macros store', () => {
                 showInStandby: true,
                 showInPrinting: true,
                 showInPause: true,
-                macros: [{ pos: 1, name: 'G28', color: 'group', showInStandby: true, showInPrinting: true, showInPause: true }],
+                macros: [
+                    {
+                        pos: 1,
+                        name: 'G28',
+                        color: 'group',
+                        showInStandby: true,
+                        showInPrinting: true,
+                        showInPause: true,
+                    },
+                ],
             }
 
             mutations.updateMacroFromMacrogroup(state, { id: 'g1', macro: 'Missing', option: 'name', value: 'NewName' })

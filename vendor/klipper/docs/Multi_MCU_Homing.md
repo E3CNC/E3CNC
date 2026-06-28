@@ -20,7 +20,7 @@ messages and check that corresponding status messages are received
 within 25ms.)
 
 So, for example, if homing at 10mm/s then it is possible for an
-overshoot of up to 0.250mm (10mm/s * .025s == 0.250mm). Care should be
+overshoot of up to 0.250mm (10mm/s \* .025s == 0.250mm). Care should be
 taken when configuring multi-mcu homing to account for this type of
 overshoot. Using slower homing or probing speeds can reduce the
 overshoot.

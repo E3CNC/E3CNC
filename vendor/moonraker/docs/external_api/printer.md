@@ -23,6 +23,7 @@ GET /printer/info
 ```
 
 //// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "state": "ready",
@@ -39,33 +40,35 @@ GET /printer/info
     "cpu_info": "4 core ?"
 }
 ```
+
 ////
 
 /// api-response-spec
-    open: True
-| Field              |  Type  | Description                                           |
+open: True
+| Field | Type | Description |
 | ------------------ | :----: | ----------------------------------------------------- |
-| `state`            | string | Klippy's current [state](#klippy-state-desc).         |
-| `state_message`    | string | A message describing Klippy's current state.          |
-| `hostname`         | string | Hostname of the machine running Klippy.               |
-| `klipper_path`     | string | Path on disk to the Klipper application.              |
-| `python_path`      | string | Path on disk to the Python executable running Klippy. |
-| `process_id`       |  int   | The PID of the current Klippy process.                |
-| `user_id`          |  int   | The UID of the user the Klippy process belongs to.    |
-| `group_id`         |  int   | The GID of the group the Klippy process belongs to.   |
-| `log_file`         | string | Path on disk to Klipper's log file.                   |
-| `configfile`       | string | Path on disk to Klipper's configuration file.         |
+| `state` | string | Klippy's current [state](#klippy-state-desc). |
+| `state_message` | string | A message describing Klippy's current state. |
+| `hostname` | string | Hostname of the machine running Klippy. |
+| `klipper_path` | string | Path on disk to the Klipper application. |
+| `python_path` | string | Path on disk to the Python executable running Klippy. |
+| `process_id` | int | The PID of the current Klippy process. |
+| `user_id` | int | The UID of the user the Klippy process belongs to. |
+| `group_id` | int | The GID of the group the Klippy process belongs to. |
+| `log_file` | string | Path on disk to Klipper's log file. |
+| `configfile` | string | Path on disk to Klipper's configuration file. |
 | `software_version` | string | Version of the currently running instance of Klipper. |
-| `cpu_info`         | string | A brief description of the host machine's CPU.        |
+| `cpu_info` | string | A brief description of the host machine's CPU. |
 
-| State      | Description                                             |
-| ---------- | ------------------------------------------------------- |
-| `ready`    | Klippy has initialized and is ready for commands.       |
-| `startup`  | Klippy is currently in its startup phase.               |
-| `error`    | Klippy encountered an error during startup.             |
-| `shutdown` | Klippy is in the shutdown state.  This can be initiated |
-|            | by the user via an emergency stop, or by the software   |^
-|            | if it encounters a critical error during operation.     |^
+| State      | Description                                            |
+| ---------- | ------------------------------------------------------ | --- |
+| `ready`    | Klippy has initialized and is ready for commands.      |
+| `startup`  | Klippy is currently in its startup phase.              |
+| `error`    | Klippy encountered an error during startup.            |
+| `shutdown` | Klippy is in the shutdown state. This can be initiated |
+|            | by the user via an emergency stop, or by the software  | ^   |
+|            | if it encounters a critical error during operation.    | ^   |
+
 { #klippy-state-desc } Klippy State
 ///
 
@@ -85,10 +88,9 @@ POST /printer/emergency_stop
 
 /// Note
 This endpoint will immediately halt the printer and put it in a "shutdown"
-state.  It should be used to implement an "emergency stop" button and
+state. It should be used to implement an "emergency stop" button and
 also used if a user enters `M112`(emergency stop) via a console.
 ///
-
 
 ```{.text .apiresponse title="Response"}
 "ok"
@@ -96,8 +98,8 @@ also used if a user enters `M112`(emergency stop) via a console.
 
 ## Host Restart
 
-Requests a Klipper "soft" restart.  This will reload the Klippy application
-and configuration.  Connected MCUs will not be reset.
+Requests a Klipper "soft" restart. This will reload the Klippy application
+and configuration. Connected MCUs will not be reset.
 
 ```{.http .apirequest title="HTTP Request"}
 POST /printer/restart
@@ -117,7 +119,7 @@ POST /printer/restart
 
 ## Firmware Restart
 
-Requests a complete Klipper restart.  Both the Klippy Application and connected
+Requests a complete Klipper restart. Both the Klippy Application and connected
 MCUs will be reset.
 
 ```{.http .apirequest title="HTTP Request"}
@@ -157,6 +159,7 @@ GET /printer/objects/list
 ```
 
 //// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "objects": [
@@ -204,11 +207,12 @@ GET /printer/objects/list
     ]
 }
 ```
+
 ////
 
 /// api-response-spec
-    open: True
-| Field     |   Type   | Description                                      |
+open: True
+| Field | Type | Description |
 | --------- | :------: | ------------------------------------------------ |
 | `objects` | [string] | A list Klipper printer objects currently loaded. |
 ///
@@ -235,7 +239,7 @@ Content-Type: application/json
 ```
 
 /// details | Using the Query String
-The HTTP Request may also be performed using the query string.  It is
+The HTTP Request may also be performed using the query string. It is
 recommended to send the request in the body unless otherwise not possible.
 
 ```{.http .apirequest title="HTTP Request"}
@@ -243,10 +247,9 @@ GET /printer/objects/query?gcode_move&toolhead&extruder=target,temperature
 ```
 
 The above will request a status update for all `gcode_move` and `toolhead`
-attributes.  Only the `temperature` and `target` attributes are requested
+attributes. Only the `temperature` and `target` attributes are requested
 for the `extruder`.
 ///
-
 
 ```{.json .apirequest title="JSON-RPC Request"}
 {
@@ -263,28 +266,30 @@ for the `extruder`.
 ```
 
 /// api-parameters
-    open: True
-| Name      |  Type  | Default      | Description                                            |
+open: True
+| Name | Type | Default | Description |
 | --------- | :----: | ------------ | ------------------------------------------------------ |
-| `objects` | object | **REQUIRED** | An object whose key, value pairs represent one or      |
-|           |        |              | more [Printer Object Requests](#printer-obj-req-desc). |^
+| `objects` | object | **REQUIRED** | An object whose key, value pairs represent one or |
+| | | | more [Printer Object Requests](#printer-obj-req-desc). |^
 
-| Key Description                 | Value Description                                           |
-| ------------------------------- | ----------------------------------------------------------- |
-| The `key`should be an available | The `value` specifies the attributes of the object that     |
-| Klipper printer object.         | should be returned.  If the value is `null`  all attributes |^
-| { width=40% }                   | will be returned.  Alternatively a list of strings          |^
-|                                 | specifying the desired attributes can be provided.          |^
+| Key Description                 | Value Description                                         |
+| ------------------------------- | --------------------------------------------------------- | --- |
+| The `key`should be an available | The `value` specifies the attributes of the object that   |
+| Klipper printer object.         | should be returned. If the value is `null` all attributes | ^   |
+| { width=40% }                   | will be returned. Alternatively a list of strings         | ^   |
+|                                 | specifying the desired attributes can be provided.        | ^   |
+
 { #printer-obj-req-desc } Printer Object Request
 
 //// Note
 If a requested printer object or attribute does not exist then the result
-will be omitted from the response.  No error is returned.
+will be omitted from the response. No error is returned.
 ////
 
 ///
 
 //// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "eventtime": 578243.57824499,
@@ -306,27 +311,28 @@ will be omitted from the response.  No error is returned.
     }
 }
 ```
+
 ////
 
 /// api-response-spec
-    open: True
-| Field       |  Type  | Description                                                    |
+open: True
+| Field | Type | Description |
 | ----------- | :----: | -------------------------------------------------------------- |
-| `eventtime` | float  | The time at which the status was received, according Klipper's |
-|             |        | monotonic clock.                                               |^
-| `status`    | object | An object containing the current state of the requested        |
-|             |        | printer objects.                                               |^
+| `eventtime` | float | The time at which the status was received, according Klipper's |
+| | | monotonic clock. |^
+| `status` | object | An object containing the current state of the requested |
+| | | printer objects. |^
 { #object-query-response-spec }
 ///
 
 ### Subscribe to printer object status updates
 
-Requests status updates for a set of printer objects.  A persistent
+Requests status updates for a set of printer objects. A persistent
 connection (Websocket or Unix Socket) is required to fulfill this
 request.
 
 Status updates for subscribed objects are sent asynchronously over the
-connection.  See the
+connection. See the
 [notify_status_update](./jsonrpc_notifications.md#subscription-updates)
 notification for details.
 
@@ -354,14 +360,15 @@ Not available
 ```
 
 /// api-parameters
-    open: True
+open: True
 Parameters are identical to the [query](#query-printer-object-status)
-status parameters.  A new request will override a previous request.
+status parameters. A new request will override a previous request.
 If `objects` is set to an empty object then the subscription will be
 cancelled.
 ///
 
 //// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "eventtime": 578243.57824499,
@@ -383,10 +390,11 @@ cancelled.
     }
 }
 ```
+
 ////
 
 /// api-response-spec
-    open: True
+open: True
 The response spec is identical to the [query response specification](#object-query-response-spec)
 The response may be used to initialize local state without performing a
 separate query.
@@ -407,6 +415,7 @@ GET /printer/query_endstops/status
 ```
 
 //// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "x": "TRIGGERED",
@@ -414,30 +423,31 @@ GET /printer/query_endstops/status
     "z": "open"
 }
 ```
+
 ////
 
 /// api-response-spec
-    open: True
-| Field      |  Type  | Description                                                 |
+open: True
+| Field | Type | Description |
 | ---------- | :----: | ----------------------------------------------------------- |
-| *variable* | string | The field is the name of the registered endstop.  The value |
-|            |        | will be `open` or `TRIGGERED`.                              |^
+| _variable_ | string | The field is the name of the registered endstop. The value |
+| | | will be `open` or `TRIGGERED`. |^
 ///
 
 ## GCode APIs
 
 ### Run a gcode command
 
-Executes a gcode command.  Multiple commands may be executed by separating
-them with a newline (`\n`).  The request returns when the command or series
+Executes a gcode command. Multiple commands may be executed by separating
+them with a newline (`\n`). The request returns when the command or series
 of commands have completed, or when the command results in an error.
 
 /// warning
 When `M112`(emergency stop) is requested via this endpoint it will not
 immediately stop the printer. `M112` will be placed on the gcode queue and
-executed after all previous gcodes are complete.  If a frontend detects
+executed after all previous gcodes are complete. If a frontend detects
 `M112` via user input (such as a console) it should request the
-`/printer/emergency_stop` endpoint to immediately halt the printer.  This
+`/printer/emergency_stop` endpoint to immediately halt the printer. This
 may be done in addition to sending the `M112` gcode if desired.
 ///
 
@@ -461,11 +471,11 @@ Content-Type: application/json
 ```
 
 /// api-parameters
-    open: True
-| Name     |  Type  | Default      | Description                                       |
+open: True
+| Name | Type | Default | Description |
 | -------- | :----: | ------------ | ------------------------------------------------- |
-| `script` | string | **REQUIRED** | A GCode Command to run.  Multiple commands may be |
-|          |        |              | specified, separated by a newline (`\n`).         |^
+| `script` | string | **REQUIRED** | A GCode Command to run. Multiple commands may be |
+| | | | specified, separated by a newline (`\n`). |^
 ///
 
 ```{.text .apiresponse title="Response"}
@@ -474,13 +484,14 @@ Content-Type: application/json
 
 ### Get GCode Help
 
-Retrieves a list of registered GCode Command Descriptions.  Not all registered
+Retrieves a list of registered GCode Command Descriptions. Not all registered
 GCode commands have a description, so this list should not be treated as an
 exhaustive list of all supported commands.
 
 ```{.http .apirequest title="HTTP Request"}
 GET /printer/gcode/help
 ```
+
 ```{.json .apirequest title="JSON-RPC Request"}
 {
     "jsonrpc": "2.0",
@@ -490,6 +501,7 @@ GET /printer/gcode/help
 ```
 
 //// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "RESTART": "Reload config file and restart host software",
@@ -567,17 +579,18 @@ GET /printer/gcode/help
     "TESTZ": "Move to new Z height"
 }
 ```
+
 ////
 
 /// api-response-spec
-    open: True
-| Field      |  Type  | Description                                                       |
+open: True
+| Field | Type | Description |
 | ---------- | :----: | ----------------------------------------------------------------- |
-| *variable* | string | The field is the name of the registered gcode command.  The value |
-|            |        | is a string containing the associated help descriptions.          |^
+| _variable_ | string | The field is the name of the registered gcode command. The value |
+| | | is a string containing the associated help descriptions. |^
 
 //// Note
-As mentioned previously, this list is not exhaustive.  Help strings are not
+As mentioned previously, this list is not exhaustive. Help strings are not
 available for default gcode handlers such as G1, G28, etc, nor are they
 available for extended handlers that failed to register a description in
 Klipper's python source.
@@ -588,9 +601,11 @@ Klipper's python source.
 ## Print Job Management
 
 ### Start a print job
+
 ```{.http .apirequest title="HTTP Request"}
 POST /printer/print/start?filename=test_print.gcode
 ```
+
 ```{.json .apirequest title="JSON-RPC Request"}
 {
     "jsonrpc": "2.0",
@@ -603,11 +618,11 @@ POST /printer/print/start?filename=test_print.gcode
 ```
 
 /// api-parameters
-    open: true
-| Name       |  Type  | Default      | Description                                         |
+open: true
+| Name | Type | Default | Description |
 | ---------- | :----: | ------------ | --------------------------------------------------- |
-| `filename` | string | **REQUIRED** | The name of the gcode file to print.  May be a path |
-|            |        |              | relative to the gcode folder.                       |^
+| `filename` | string | **REQUIRED** | The name of the gcode file to print. May be a path |
+| | | | relative to the gcode folder. |^
 ///
 
 ```{.text .apiresponse title="Response"}
@@ -615,9 +630,11 @@ POST /printer/print/start?filename=test_print.gcode
 ```
 
 ### Pause a print job
+
 ```{.http .apirequest title="HTTP Request"}
 POST /printer/print/pause
 ```
+
 ```{.json .apirequest title="JSON-RPC Request"}
 {
     "jsonrpc": "2.0",

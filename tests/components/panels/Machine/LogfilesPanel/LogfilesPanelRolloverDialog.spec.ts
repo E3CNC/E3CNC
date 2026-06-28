@@ -13,21 +13,34 @@ vi.mock('@mdi/js', () => ({
 }))
 
 vi.mock('vuetify/components', () => ({
-    VDialog: { name: 'VDialog', props: ['modelValue', 'width', 'fullscreen'], template: '<div class="v-dialog" v-if="$props.modelValue"><slot /></div>' },
+    VDialog: {
+        name: 'VDialog',
+        props: ['modelValue', 'width', 'fullscreen'],
+        template: '<div class="v-dialog" v-if="$props.modelValue"><slot /></div>',
+    },
     VCardText: { name: 'VCardText', template: '<div class="v-card-text"><slot /></div>' },
     VRow: { name: 'VRow', template: '<div class="v-row"><slot /></div>' },
     VCol: { name: 'VCol', template: '<div class="v-col"><slot /></div>' },
-    VCheckbox: { name: 'VCheckbox', props: ['modelValue', 'label', 'value', 'hideDetails'], template: '<label class="v-checkbox">{{ $props.label }}</label>' },
+    VCheckbox: {
+        name: 'VCheckbox',
+        props: ['modelValue', 'label', 'value', 'hideDetails'],
+        template: '<label class="v-checkbox">{{ $props.label }}</label>',
+    },
     VCardActions: { name: 'VCardActions', template: '<div class="v-card-actions"><slot /></div>' },
     VSpacer: { name: 'VSpacer', template: '<div class="v-spacer" />' },
-    VBtn: { name: 'VBtn', props: ['icon', 'variant', 'color', 'rounded'], template: '<button class="v-btn"><slot /></button>' },
+    VBtn: {
+        name: 'VBtn',
+        props: ['icon', 'variant', 'color', 'rounded'],
+        template: '<button class="v-btn"><slot /></button>',
+    },
 }))
 
 vi.mock('@/components/ui/Panel.vue', () => ({
     default: {
         name: 'Panel',
         props: { icon: String, title: [String, Object], cardClass: String, marginBottom: Boolean },
-        template: '<div class="panel" :class="cardClass"><slot name="buttons" /><slot /><span class="panel-title">{{ title }}</span></div>',
+        template:
+            '<div class="panel" :class="cardClass"><slot name="buttons" /><slot /><span class="panel-title">{{ title }}</span></div>',
     },
 }))
 

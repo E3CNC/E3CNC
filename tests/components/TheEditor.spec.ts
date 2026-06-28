@@ -20,9 +20,15 @@ const mockIsMobile = vi.hoisted(() => {
     class MockRef {
         _value: any
         __v_isRef = true
-        constructor(v: any) { this._value = v }
-        get value() { return this._value }
-        set value(v) { this._value = v }
+        constructor(v: any) {
+            this._value = v
+        }
+        get value() {
+            return this._value
+        }
+        set value(v) {
+            this._value = v
+        }
     }
     return new MockRef(false)
 })
@@ -130,7 +136,8 @@ vi.mock('vuetify/components', () => ({
     VTreeview: {
         name: 'VTreeview',
         props: ['items', 'active', 'open'],
-        template: '<div class="v-treeview"><slot name="title" :item="{ name: \'test\', line: 1, type: \'section\' }" /><slot name="append" :item="{ name: \'test\', type: \'section\' }" /></div>',
+        template:
+            '<div class="v-treeview"><slot name="title" :item="{ name: \'test\', line: 1, type: \'section\' }" /><slot name="append" :item="{ name: \'test\', type: \'section\' }" /></div>',
     },
     VSnackbar: {
         name: 'VSnackbar',
@@ -165,7 +172,8 @@ vi.mock('@/components/ui/Panel.vue', () => ({
             height: [String, Number],
             marginBottom: Boolean,
         },
-        template: '<div class="panel"><slot name="buttons" /><slot /><span class="panel-title">{{ title }}</span></div>',
+        template:
+            '<div class="panel"><slot name="buttons" /><slot /><span class="panel-title">{{ title }}</span></div>',
     },
 }))
 

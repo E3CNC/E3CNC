@@ -8,6 +8,7 @@ control the Klipper host software.
 
 In order to use the API server, the klippy.py host software must be
 started with the `-a` parameter. For example:
+
 ```
 ~/klippy-env/bin/python ~/klipper/klippy/klippy.py ~/printer.cfg -a /tmp/klippy_uds -l /tmp/klippy.log
 ```
@@ -24,12 +25,14 @@ Unix Domain Socket.
 
 Messages sent and received on the socket are JSON encoded strings
 terminated by an ASCII 0x03 character:
+
 ```
 <json_object_1><0x03><json_object_2><0x03>...
 ```
 
 Klipper contains a `scripts/whconsole.py` tool that can perform the
 above message framing. For example:
+
 ```
 ~/klipper/scripts/whconsole.py /tmp/klippy_uds
 ```
@@ -150,7 +153,7 @@ transition to a "shutdown" state. It behaves similarly to the G-Code
 ### register_remote_method
 
 This endpoint allows clients to register methods that can be called
-from klipper.  It will return an empty object upon success.
+from klipper. It will return an empty object upon success.
 
 For example:
 `{"id": 123, "method": "register_remote_method",
@@ -162,6 +165,7 @@ will return:
 The remote method `paneldue_beep` may now be called from Klipper. Note
 that if the method takes parameters they should be provided as keyword
 arguments. Below is an example of how it may called from a gcode_macro:
+
 ```
 [gcode_macro PANELDUE_BEEP]
 gcode:
@@ -391,6 +395,7 @@ A request may look like:
 and might return:
 `{"id": 123,"result":{"header":["probe_tap_event"]}}`
 and might later produce asynchronous messages such as:
+
 ```
 {"params":{"tap":'{
    "time": [118032.28039, 118032.2834, ...],
@@ -399,7 +404,8 @@ and might later produce asynchronous messages such as:
 ```
 
 This data can be used to render:
-* The time/force graph
+
+- The time/force graph
 
 ### pause_resume/cancel
 
@@ -562,6 +568,6 @@ The `dump_mesh` endpoint takes one optional parameter, `mesh_args`.
 This parameter must be an object, where the keys and values are
 parameters available to [BED_MESH_CALIBRATE](#bed_mesh_calibrate).
 This will update the mesh configuration and probe points using the
-supplied parameters prior to returning the result.   It is recommended
+supplied parameters prior to returning the result. It is recommended
 to omit mesh parameters unless it is desired to visualize the probe points
 and/or travel path before performing `BED_MESH_CALIBRATE`.

@@ -436,22 +436,31 @@ describe('gui actions', () => {
         const dispatch = vi.fn()
         const fetchMock = vi
             .fn()
-            .mockResolvedValueOnce({ json: vi.fn().mockResolvedValue({ general: { language: 'en' }, webcams: { cam1: { enabled: true } }, timelapse: { enabled: true } }) })
+            .mockResolvedValueOnce({
+                json: vi.fn().mockResolvedValue({
+                    general: { language: 'en' },
+                    webcams: { cam1: { enabled: true } },
+                    timelapse: { enabled: true },
+                }),
+            })
             .mockResolvedValue({ json: vi.fn().mockResolvedValue({}) })
         vi.stubGlobal('fetch', fetchMock)
 
-        await actions.initDb(
-            {
-                dispatch,
-                rootGetters: {
-                    'socket/getUrl': 'http://moonraker',
-                    getVersion: '0.7.2',
-                },
-            } as any
-        )
+        await actions.initDb({
+            dispatch,
+            rootGetters: {
+                'socket/getUrl': 'http://moonraker',
+                getVersion: '0.7.2',
+            },
+        } as any)
 
-        expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining('/server/files/config/.theme/default.json?time='))
-        expect(fetchMock).toHaveBeenCalledWith('http://moonraker/server/database/item', expect.objectContaining({ method: 'POST' }))
+        expect(fetchMock).toHaveBeenCalledWith(
+            expect.stringContaining('/server/files/config/.theme/default.json?time=')
+        )
+        expect(fetchMock).toHaveBeenCalledWith(
+            'http://moonraker/server/database/item',
+            expect.objectContaining({ method: 'POST' })
+        )
         expect(dispatch).toHaveBeenCalledWith('init')
     })
 })

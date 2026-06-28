@@ -6,10 +6,18 @@ import MiscellaneousLightNeopixelGroup from '@/components/panels/Miscellaneous/M
 // ── Mocks ──
 vi.mock('vuetify/components', () => ({
     VListSubheader: { name: 'VListSubheader', template: '<div class="v-list-subheader"><slot /></div>' },
-    VIcon: { name: 'VIcon', props: ['size'], template: '<i class="v-icon" @click="$emit(\'click\', $event)"><slot /></i>' },
+    VIcon: {
+        name: 'VIcon',
+        props: ['size'],
+        template: '<i class="v-icon" @click="$emit(\'click\', $event)"><slot /></i>',
+    },
     VBtn: { name: 'VBtn', template: '<button class="v-btn" @click="$emit(\'click\', $event)"><slot /></button>' },
     VSpacer: { name: 'VSpacer', template: '<span class="v-spacer" />' },
-    VDialog: { name: 'VDialog', props: ['modelValue'], template: '<div class="v-dialog" v-if="modelValue"><slot /></div>' },
+    VDialog: {
+        name: 'VDialog',
+        props: ['modelValue'],
+        template: '<div class="v-dialog" v-if="modelValue"><slot /></div>',
+    },
     VCard: { name: 'VCard', template: '<div class="v-card"><slot /></div>' },
     VCardTitle: { name: 'VCardTitle', template: '<div class="v-card-title"><slot /></div>' },
     VCardText: { name: 'VCardText', template: '<div class="v-card-text"><slot /></div>' },
@@ -57,7 +65,11 @@ function makeStore(overrides: Record<string, any> = {}) {
                     },
                 },
                 'neopixel my_strip': {
-                    color_data: [[1, 0.5, 0, 0], [0, 0, 0, 0], [0.3, 0.2, 0.1, 0]],
+                    color_data: [
+                        [1, 0.5, 0, 0],
+                        [0, 0, 0, 0],
+                        [0.3, 0.2, 0.1, 0],
+                    ],
                 },
                 ...(overrides.printer || {}),
             },

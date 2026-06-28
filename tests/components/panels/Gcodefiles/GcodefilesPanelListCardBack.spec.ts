@@ -17,7 +17,11 @@ vi.mock('@/composables/useGcodeFiles', () => ({
 vi.mock('@mdi/js', () => ({ mdiArrowLeft: 'M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z' }))
 
 vi.mock('vuetify/components', () => ({
-    VCard: { name: 'VCard', props: { class: String }, template: '<div class="v-card" @click="$emit(\'click\')"><slot /></div>' },
+    VCard: {
+        name: 'VCard',
+        props: { class: String },
+        template: '<div class="v-card" @click="$emit(\'click\')"><slot /></div>',
+    },
     VIcon: { name: 'VIcon', props: { size: [String, Number] }, template: '<i class="v-icon"><slot /></i>' },
 }))
 

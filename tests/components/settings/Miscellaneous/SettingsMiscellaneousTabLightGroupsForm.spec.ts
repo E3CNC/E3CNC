@@ -10,11 +10,19 @@ vi.mock('vue-i18n', () => ({
 vi.mock('vuetify/components', () => ({
     VForm: { name: 'VForm', props: ['modelValue'], template: '<div class="v-form"><slot /></div>' },
     VCardText: { name: 'VCardText', template: '<div class="v-card-text"><slot /></div>' },
-    VTextField: { name: 'VTextField', props: ['modelValue', 'hideDetails', 'rules', 'density', 'variant', 'type', 'step'], template: '<input class="v-text-field" />' },
+    VTextField: {
+        name: 'VTextField',
+        props: ['modelValue', 'hideDetails', 'rules', 'density', 'variant', 'type', 'step'],
+        template: '<input class="v-text-field" />',
+    },
     VDivider: { name: 'VDivider', template: '<hr class="v-divider" />' },
     VCardActions: { name: 'VCardActions', template: '<div class="v-card-actions"><slot /></div>' },
     VSpacer: { name: 'VSpacer', template: '<div class="v-spacer" />' },
-    VBtn: { name: 'VBtn', props: ['variant', 'color', 'disabled'], template: '<button class="v-btn" :disabled="disabled" @click="$emit(`click`, $event)"><slot /></button>' },
+    VBtn: {
+        name: 'VBtn',
+        props: ['variant', 'color', 'disabled'],
+        template: '<button class="v-btn" :disabled="disabled" @click="$emit(`click`, $event)"><slot /></button>',
+    },
 }))
 
 vi.mock('@/components/settings/SettingsRow.vue', () => ({
@@ -27,7 +35,9 @@ vi.mock('@/components/settings/SettingsRow.vue', () => ({
 
 vi.mock('@/plugins/helpers', () => ({
     caseInsensitiveSort: (arr: any[], key: string) =>
-        [...arr].sort((a: any, b: any) => String(a[key] ?? '').localeCompare(String(b[key] ?? ''), undefined, { sensitivity: 'base' })),
+        [...arr].sort((a: any, b: any) =>
+            String(a[key] ?? '').localeCompare(String(b[key] ?? ''), undefined, { sensitivity: 'base' })
+        ),
 }))
 
 function createMockStore(overrides: Record<string, any> = {}) {

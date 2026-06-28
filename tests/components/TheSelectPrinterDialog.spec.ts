@@ -52,15 +52,41 @@ const vuetifyComponentsMock = vi.hoisted(() => ({
     VCol: { name: 'VCol', props: { class: String }, template: '<div :class="class"><slot /></div>' },
     VBtn: {
         name: 'VBtn',
-        props: { icon: [String, Boolean], rounded: String, color: String, variant: String, disabled: Boolean, class: String, large: Boolean, type: String },
+        props: {
+            icon: [String, Boolean],
+            rounded: String,
+            color: String,
+            variant: String,
+            disabled: Boolean,
+            class: String,
+            large: Boolean,
+            type: String,
+        },
         template: '<button :disabled="disabled" @click="$emit(`click`, $event)"><slot /></button>',
     },
     VIcon: { name: 'VIcon', props: { color: String }, template: '<span><slot /></span>' },
     VForm: { name: 'VForm', template: '<form @submit.prevent="$emit(`submit`)"><slot /></form>' },
-    VTextField: { name: 'VTextField', props: ['modelValue', 'rules', 'label', 'required', 'variant', 'hideDetails', 'density'], template: '<input :value="modelValue" v-on:input="$emit(`update:modelValue`, $event.target.value)" />' },
-    VCheckbox: { name: 'VCheckbox', props: ['modelValue', 'onIcon', 'offIcon', 'trueValue', 'falseValue', 'class'], template: '<input type="checkbox" :checked="modelValue" v-on:change="$emit(`update:modelValue`, $event.target.checked)" />' },
-    VProgressCircular: { name: 'VProgressCircular', props: ['indeterminate', 'color', 'size', 'width'], template: '<span class="progress-circular" />' },
-    VProgressLinear: { name: 'VProgressLinear', props: ['color', 'indeterminate'], template: '<span class="progress-linear" />' },
+    VTextField: {
+        name: 'VTextField',
+        props: ['modelValue', 'rules', 'label', 'required', 'variant', 'hideDetails', 'density'],
+        template: '<input :value="modelValue" v-on:input="$emit(`update:modelValue`, $event.target.value)" />',
+    },
+    VCheckbox: {
+        name: 'VCheckbox',
+        props: ['modelValue', 'onIcon', 'offIcon', 'trueValue', 'falseValue', 'class'],
+        template:
+            '<input type="checkbox" :checked="modelValue" v-on:change="$emit(`update:modelValue`, $event.target.checked)" />',
+    },
+    VProgressCircular: {
+        name: 'VProgressCircular',
+        props: ['indeterminate', 'color', 'size', 'width'],
+        template: '<span class="progress-circular" />',
+    },
+    VProgressLinear: {
+        name: 'VProgressLinear',
+        props: ['color', 'indeterminate'],
+        template: '<span class="progress-linear" />',
+    },
     VSpacer: { name: 'VSpacer', template: '<span />' },
 }))
 
@@ -109,7 +135,10 @@ function createAppStore(overrides: Record<string, any> = {}) {
                     remoteprinters: {
                         namespaced: true,
                         state: { printers: [] },
-                        getters: { getRemoteprinters: () => overrides.getters?.['gui/remoteprinters/getRemoteprinters']?.() ?? [] as any[] },
+                        getters: {
+                            getRemoteprinters: () =>
+                                overrides.getters?.['gui/remoteprinters/getRemoteprinters']?.() ?? ([] as any[]),
+                        },
                     },
                 },
             },

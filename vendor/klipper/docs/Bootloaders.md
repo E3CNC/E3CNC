@@ -21,12 +21,11 @@ bootloader to flash an application where possible.
 
 This document attempts to describe common bootloaders, the steps
 needed to flash a bootloader, and the steps needed to flash an
-application.  This document is not an authoritative reference; it is
+application. This document is not an authoritative reference; it is
 intended as a collection of useful information that the Klipper
 developers have accumulated.
 
 ## AVR micro-controllers
-
 
 In general, the Arduino project is a good reference for bootloaders
 and flashing procedures on the 8-bit Atmel Atmega micro-controllers.
@@ -52,6 +51,7 @@ This chip is typically found in the "Arduino Mega" and is very common
 in 3d printer boards.
 
 To flash the bootloader itself use something like:
+
 ```
 wget 'https://github.com/arduino/Arduino/raw/1.8.5/hardware/arduino/avr/bootloaders/stk500v2/stk500boot_v2_mega2560.hex'
 
@@ -61,6 +61,7 @@ avrdude -cavrispv2 -patmega2560 -P/dev/ttyACM0 -b115200 -U lock:w:0x0F:m
 ```
 
 To flash an application use something like:
+
 ```
 avrdude -cwiring -patmega2560 -P/dev/ttyACM0 -b115200 -D -Uflash:w:out/klipper.elf.hex:i
 ```
@@ -71,6 +72,7 @@ This chip is typically found in earlier versions of the "Arduino
 Mega".
 
 To flash the bootloader itself use something like:
+
 ```
 wget 'https://github.com/arduino/Arduino/raw/1.8.5/hardware/arduino/avr/bootloaders/atmega/ATmegaBOOT_168_atmega1280.hex'
 
@@ -80,6 +82,7 @@ avrdude -cavrispv2 -patmega1280 -P/dev/ttyACM0 -b115200 -U lock:w:0x0F:m
 ```
 
 To flash an application use something like:
+
 ```
 avrdude -carduino -patmega1280 -P/dev/ttyACM0 -b57600 -D -Uflash:w:out/klipper.elf.hex:i
 ```
@@ -89,6 +92,7 @@ avrdude -carduino -patmega1280 -P/dev/ttyACM0 -b57600 -D -Uflash:w:out/klipper.e
 This chip is commonly found in "Melzi" style 3d printer boards.
 
 To flash the bootloader itself use something like:
+
 ```
 wget 'https://github.com/Lauszus/Sanguino/raw/1.0.2/bootloaders/optiboot/optiboot_atmega1284p.hex'
 
@@ -98,6 +102,7 @@ avrdude -cavrispv2 -patmega1284p -P/dev/ttyACM0 -b115200 -U lock:w:0x0F:m
 ```
 
 To flash an application use something like:
+
 ```
 avrdude -carduino -patmega1284p -P/dev/ttyACM0 -b115200 -D -Uflash:w:out/klipper.elf.hex:i
 ```
@@ -105,6 +110,7 @@ avrdude -carduino -patmega1284p -P/dev/ttyACM0 -b115200 -D -Uflash:w:out/klipper
 Note that a number of "Melzi" style boards come preloaded with a
 bootloader that uses a baud rate of 57600. In this case, to flash an
 application use something like this instead:
+
 ```
 avrdude -carduino -patmega1284p -P/dev/ttyACM0 -b57600 -D -Uflash:w:out/klipper.elf.hex:i
 ```
@@ -129,6 +135,7 @@ teensy_loader_cli --mcu=at90usb1286 out/klipper.elf.hex -v
 The atmega168 has limited flash space. If using a bootloader, it is
 recommended to use the Optiboot bootloader. To flash that bootloader
 use something like:
+
 ```
 wget 'https://github.com/arduino/Arduino/raw/1.8.5/hardware/arduino/avr/bootloaders/optiboot/optiboot_atmega168.hex'
 
@@ -139,6 +146,7 @@ avrdude -cavrispv2 -patmega168 -P/dev/ttyACM0 -b115200 -U lock:w:0x0F:m
 
 To flash an application via the Optiboot bootloader use something
 like:
+
 ```
 avrdude -carduino -patmega168 -P/dev/ttyACM0 -b115200 -D -Uflash:w:out/klipper.elf.hex:i
 ```
@@ -161,6 +169,7 @@ can be used to program the SAM3. It is recommended to use version 1.9
 or later.
 
 To flash an application use something like:
+
 ```
 bossac -U -p /dev/ttyACM0 -a -e -w out/klipper.bin -v -b
 bossac -U -p /dev/ttyACM0 -R
@@ -181,6 +190,7 @@ can be used to program the SAM4. It is necessary to use version
 `1.8.0` or higher.
 
 To flash an application use something like:
+
 ```
 bossac --port=/dev/ttyACM0 -b -U -e -w -v -R out/klipper.bin
 ```
@@ -196,6 +206,7 @@ When using OpenOCD with the SAMC21, extra steps must be taken to first
 put the chip into Cold Plugging mode if the board makes use of the
 SWD pins for other purposes. If using OpenOCD on a Raspberry Pi, this
 can be done by running the following commands before invoking OpenOCD.
+
 ```
 SWCLK=25
 SWDIO=24
@@ -218,11 +229,14 @@ echo $SRST > /sys/class/gpio/unexport
 ```
 
 To flash a program with OpenOCD use the following chip config:
+
 ```
 source [find target/at91samdXX.cfg]
 ```
+
 Obtain a program; for instance, klipper can be built for this chip.
 Flash with OpenOCD commands similar to:
+
 ```
 at91samd chip-erase
 at91samd bootloader 0
@@ -237,14 +251,19 @@ Alternatively, one can use a
 [Raspberry Pi with OpenOCD](#running-openocd-on-the-raspberry-pi).
 
 To flash a bootloader with OpenOCD use the following chip config:
+
 ```
 source [find target/at91samdXX.cfg]
 ```
+
 Obtain a bootloader - for example:
+
 ```
 wget 'https://github.com/arduino/ArduinoCore-samd/raw/1.8.3/bootloaders/zero/samd21_sam_ba.bin'
 ```
+
 Flash with OpenOCD commands similar to:
+
 ```
 at91samd bootloader 0
 program samd21_sam_ba.bin verify
@@ -255,6 +274,7 @@ The most common bootloader on the SAMD21 is the one found on the
 compiled with a start address of 8KiB). One can enter this bootloader
 by double clicking the reset button. To flash an application use
 something like:
+
 ```
 bossac -U -p /dev/ttyACM0 --offset=0x2000 -w out/klipper.bin -v -b -R
 ```
@@ -263,6 +283,7 @@ In contrast, the "Arduino M0" uses a 16KiB bootloader (the application
 must be compiled with a start address of 16KiB). To flash an
 application on this bootloader, reset the micro-controller and run the
 flash command within the first few seconds of boot - something like:
+
 ```
 avrdude -c stk500v2 -p atmega2560 -P /dev/ttyACM0 -u -Uflash:w:out/klipper.elf.hex:i
 ```
@@ -273,15 +294,20 @@ Like the SAMD21, the SAMD51 bootloader is flashed via the ARM Serial
 Wire Debug (SWD) interface. To flash a bootloader with
 [OpenOCD on a Raspberry Pi](#running-openocd-on-the-raspberry-pi) use
 the following chip config:
+
 ```
 source [find target/atsame5x.cfg]
 ```
+
 Obtain a bootloader - several bootloaders are available from
 [https://github.com/adafruit/uf2-samdx1/releases/latest](https://github.com/adafruit/uf2-samdx1/releases/latest). For example:
+
 ```
 wget 'https://github.com/adafruit/uf2-samdx1/releases/download/v3.7.0/bootloader-itsybitsy_m4-v3.7.0.bin'
 ```
+
 Flash with OpenOCD commands similar to:
+
 ```
 at91samd bootloader 0
 program bootloader-itsybitsy_m4-v3.7.0.bin verify
@@ -291,6 +317,7 @@ at91samd bootloader 16384
 The SAMD51 uses a 16KiB bootloader (the application must be compiled
 with a start address of 16KiB). To flash an application use something
 like:
+
 ```
 bossac -U -p /dev/ttyACM0 --offset=0x4000 -w out/klipper.bin -v -b -R
 ```
@@ -303,6 +330,7 @@ Rx) and PA9 (MCU Tx) pins to a 3.3V UART adapter. To access the ROM,
 one should connect the "boot 0" pin to high and "boot 1" pin to low,
 and then reset the device. The "stm32flash" package can then be used
 to flash the device using something like:
+
 ```
 stm32flash -w out/klipper.bin -v -g 0 /dev/ttyAMA0
 ```
@@ -322,6 +350,7 @@ The "stm32duino" project has a USB capable bootloader - see:
 [https://github.com/rogerclarkmelbourne/STM32duino-bootloader](https://github.com/rogerclarkmelbourne/STM32duino-bootloader)
 
 This bootloader can be flashed via 3.3V serial with something like:
+
 ```
 wget 'https://github.com/rogerclarkmelbourne/STM32duino-bootloader/raw/master/binaries/generic_boot20_pc13.bin'
 
@@ -331,6 +360,7 @@ stm32flash -w generic_boot20_pc13.bin -v -g 0 /dev/ttyAMA0
 This bootloader uses 8KiB of flash space (the application must be
 compiled with a start address of 8KiB). Flash an application with
 something like:
+
 ```
 dfu-util -d 1eaf:0003 -a 2 -R -D out/klipper.bin
 ```
@@ -345,8 +375,7 @@ while it is running). Alternatively, set the "boot 0" pin to low and
 
 The [HID bootloader](https://github.com/Serasidis/STM32_HID_Bootloader) is a
 compact, driverless bootloader capable of flashing over USB. Also available
-is a [fork with builds specific to the SKR Mini E3 1.2](
-  https://github.com/Arksine/STM32_HID_Bootloader/releases/latest).
+is a [fork with builds specific to the SKR Mini E3 1.2](https://github.com/Arksine/STM32_HID_Bootloader/releases/latest).
 
 For generic STM32F103 boards such as the blue pill it is possible to flash
 the bootloader via 3.3V serial using stm32flash as noted in the stm32duino
@@ -354,8 +383,8 @@ section above, substituting the file name for the desired hid bootloader binary
 (ie: hid_generic_pc13.bin for the blue pill).
 
 It is not possible to use stm32flash for the SKR Mini E3 as the boot0 pin is
-tied directly to ground and not broken out via header pins.  It is recommended
-to use a STLink V2 with STM32Cubeprogrammer to flash the bootloader.   If you
+tied directly to ground and not broken out via header pins. It is recommended
+to use a STLink V2 with STM32Cubeprogrammer to flash the bootloader. If you
 don't have access to a STLink it is also possible to use a
 [Raspberry Pi and OpenOCD](#running-openocd-on-the-raspberry-pi) with
 the following chip config:
@@ -363,24 +392,30 @@ the following chip config:
 ```
 source [find target/stm32f1x.cfg]
 ```
+
 If you wish you can make a backup of the current flash with the following
-command.  Note that it may take some time to complete:
+command. Note that it may take some time to complete:
+
 ```
 flash read_bank 0 btt_skr_mini_e3_backup.bin
 ```
+
 finally, you can flash with commands similar to:
+
 ```
 stm32f1x mass_erase 0
 program hid_btt_skr_mini_e3.bin verify 0x08000000
 ```
+
 NOTES:
-- The example above erases the chip then programs the bootloader.  Regardless
+
+- The example above erases the chip then programs the bootloader. Regardless
   of the method chosen to flash it is recommended to erase the chip prior to
   flashing.
 - Prior flashing the SKR Mini E3 with this bootloader you should be aware
   that you will no longer be able to update firmware via the sdcard.
 - You may need to hold down the reset button on the board while launching
-  OpenOCD.  It should display something like:
+  OpenOCD. It should display something like:
   ```
   Open On-Chip Debugger 0.10.0+dev-01204-gc60252ac-dirty (2020-04-27-16:00)
   Licensed under GNU GPL v2
@@ -398,12 +433,12 @@ NOTES:
   ```
   After which you can release the reset button.
 
-
 This bootloader requires 2KiB of flash space (the application
 must be compiled with a start address of 2KiB).
 
 The hid-flash program is used to upload a binary to the bootloader. You
 can install this software with the following commands:
+
 ```
 sudo apt install libusb-1.0
 cd ~/klipper/lib/hidflash
@@ -411,22 +446,27 @@ make
 ```
 
 If the bootloader is running you can flash with something like:
+
 ```
 ~/klipper/lib/hidflash/hid-flash ~/klipper/out/klipper.bin
 ```
+
 alternatively, you can use `make flash` to flash klipper directly:
+
 ```
 make flash FLASH_DEVICE=1209:BEBA
 ```
+
 OR if klipper has been previously flashed:
+
 ```
 make flash FLASH_DEVICE=/dev/ttyACM0
 ```
 
 It may be necessary to manually enter the bootloader, this can be done by
-setting "boot 0" low and "boot 1" high.  On the SKR Mini E3 "Boot 1" is
+setting "boot 0" low and "boot 1" high. On the SKR Mini E3 "Boot 1" is
 not available, so it may be done by setting pin PA2 low if you flashed
-"hid_btt_skr_mini_e3.bin".  This pin is labeled "TX0" on the TFT header in
+"hid_btt_skr_mini_e3.bin". This pin is labeled "TX0" on the TFT header in
 the SKR Mini E3's "PIN" document. There is a ground pin next to PA2
 which you can use to pull PA2 low.
 
@@ -455,36 +495,39 @@ onto which the klipper.bin file can be copied.
 ### STM32F103/STM32F0x2 with CanBoot bootloader
 
 The [CanBoot](https://github.com/Arksine/CanBoot) bootloader provides an option
-for uploading Klipper firmware over the CANBUS.  The bootloader itself is
-derived from Klipper's source code.  Currently CanBoot supports the STM32F103,
+for uploading Klipper firmware over the CANBUS. The bootloader itself is
+derived from Klipper's source code. Currently CanBoot supports the STM32F103,
 STM32F042, and STM32F072 models.
 
 It is recommended to use a ST-Link Programmer to flash CanBoot, however it
 should be possible to flash using `stm32flash` on STM32F103 devices, and
-`dfu-util` on STM32F042/STM32F072 devices.  See the previous sections in this
+`dfu-util` on STM32F042/STM32F072 devices. See the previous sections in this
 document for instructions on these flashing methods, substituting `canboot.bin`
-for the file name where appropriate.  The CanBoot repository linked above provides
+for the file name where appropriate. The CanBoot repository linked above provides
 instructions for building the bootloader.
 
 The first time CanBoot has been flashed it should detect that no application
-is present and enter the bootloader.  If this doesn't occur it is possible to
+is present and enter the bootloader. If this doesn't occur it is possible to
 enter the bootloader by pressing the reset button twice in succession.
 
 The `flashtool.py` utility supplied in the `lib/katapult` folder may be used to
-upload Klipper firmware.  The device UUID is necessary to flash.  If you do not
+upload Klipper firmware. The device UUID is necessary to flash. If you do not
 have a UUID it is possible to query nodes currently running the bootloader:
+
 ```
 python3 flash_can.py -q
 ```
+
 This will return UUIDs for all connected nodes not currently assigned a UUID.
 This should include all nodes currently in the bootloader.
 
 Once you have a UUID, you may upload firmware with following command:
+
 ```
 python3 flash_can.py -i can0 -f ~/klipper/out/klipper.bin -u aabbccddeeff
 ```
 
-Where `aabbccddeeff` is replaced by your UUID.  Note that the `-i` and `-f`
+Where `aabbccddeeff` is replaced by your UUID. Note that the `-i` and `-f`
 options may be omitted, they default to `can0` and `~/klipper/out/klipper.bin`
 respectively.
 
@@ -494,18 +537,18 @@ When building Klipper for use with CanBoot, select the 8 KiB Bootloader option.
 
 STM32F4 micro-controllers come equipped with a built-in system bootloader
 capable of flashing over USB (via DFU), 3.3V Serial, and various other
-methods (see STM Document AN2606 for more information).  Some
+methods (see STM Document AN2606 for more information). Some
 STM32F4 boards, such as the SKR Pro 1.1, are not able to enter the DFU
-bootloader.  The HID bootloader is available for STM32F405/407
+bootloader. The HID bootloader is available for STM32F405/407
 based boards should the user prefer flashing over USB over using the sdcard.
 Note that you may need to configure and build a version specific to your
-board, a [build for the SKR Pro 1.1 is available here](
-  https://github.com/Arksine/STM32_HID_Bootloader/releases/latest).
+board, a [build for the SKR Pro 1.1 is available here](https://github.com/Arksine/STM32_HID_Bootloader/releases/latest).
 
 Unless your board is DFU capable the most accessible flashing method
 is likely via 3.3V serial, which follows the same procedure as
 [flashing the STM32F103 using stm32flash](#stm32f103-micro-controllers-blue-pill-devices).
 For example:
+
 ```
 wget https://github.com/Arksine/STM32_HID_Bootloader/releases/download/v0.5-beta/hid_bootloader_SKR_PRO.bin
 
@@ -520,7 +563,7 @@ the MCU. See the instructions above for details on how to build and use
 hid-flash.
 
 It may be necessary to manually enter the bootloader, this can be done by
-setting "boot 0" low, "boot 1" high and plugging in the device.  After
+setting "boot 0" low, "boot 1" high and plugging in the device. After
 programming is complete unplug the device and set "boot 1" back to low
 so the application will be loaded.
 

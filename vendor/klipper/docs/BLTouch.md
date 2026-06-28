@@ -87,7 +87,7 @@ let it touch the bed as it should.
 Once the BL-Touch is in inconsistent state, it starts blinking red.
 You can force it to leave that state by issuing:
 
- BLTOUCH_DEBUG COMMAND=reset
+BLTOUCH_DEBUG COMMAND=reset
 
 This may happen if its calibration is interrupted by the probe being
 blocked from being extracted.
@@ -225,22 +225,21 @@ calibration steps.
 
 ## BL-Touch output mode
 
-* A BL-Touch V3.0 supports setting a 5V or OPEN-DRAIN output mode,
+- A BL-Touch V3.0 supports setting a 5V or OPEN-DRAIN output mode,
   a BL-Touch V3.1 supports this too, but can also store this in its
   internal EEPROM. If your controller board needs the fixed 5V high
   logic level of the 5V mode you may set the 'set_output_mode'
   parameter in the [bltouch] section of the printer config file to
   "5V".
 
-  *** Only use the 5V mode if your controller boards input line is
+  **_ Only use the 5V mode if your controller boards input line is
   5V tolerant. This is why the default configuration of these BL-Touch
   versions is OPEN-DRAIN mode. You could potentially damage your
-  controller boards CPU ***
+  controller boards CPU _**
 
   So therefore:
   If a controller board NEEDs 5V mode AND it is 5V tolerant on its
   input signal line AND if
-
   - you have a BL-Touch Smart V3.0, you need the use 'set_output_mode: 5V'
     parameter to ensure this setting at each startup, since the probe
     cannot remember the needed setting.

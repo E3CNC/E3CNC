@@ -9,7 +9,11 @@ vi.mock('vue-i18n', () => ({
 vi.mock('vuetify/components', () => ({
     VRow: { name: 'VRow', template: '<div class="v-row"><slot /></div>' },
     VCol: { name: 'VCol', template: '<div class="v-col"><slot /></div>' },
-    VChip: { name: 'VChip', props: ['size', 'label', 'color', 'textColor'], template: '<span class="v-chip" :class="\'v-chip--color-\' + $props.color"><slot /></span>' },
+    VChip: {
+        name: 'VChip',
+        props: ['size', 'label', 'color', 'textColor'],
+        template: '<span class="v-chip" :class="\'v-chip--color-\' + $props.color"><slot /></span>',
+    },
 }))
 
 vi.mock('@/plugins/helpers', () => ({

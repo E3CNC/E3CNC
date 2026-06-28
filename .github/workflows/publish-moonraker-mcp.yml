@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
-      id-token: write  # required for trusted publishing
+      id-token: write # required for trusted publishing
 
     steps:
       - name: Checkout

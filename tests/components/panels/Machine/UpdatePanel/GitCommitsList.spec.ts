@@ -12,9 +12,17 @@ vi.mock('@mdi/js', () => ({
 }))
 
 vi.mock('vuetify/components', () => ({
-    VDialog: { name: 'VDialog', props: ['modelValue', 'maxWidth', 'fullscreen'], template: '<div class="v-dialog" v-if="$props.modelValue"><slot /></div>' },
+    VDialog: {
+        name: 'VDialog',
+        props: ['modelValue', 'maxWidth', 'fullscreen'],
+        template: '<div class="v-dialog" v-if="$props.modelValue"><slot /></div>',
+    },
     VCardText: { name: 'VCardText', template: '<div class="v-card-text"><slot /></div>' },
-    VTimeline: { name: 'VTimeline', props: ['alignTop', 'density'], template: '<div class="v-timeline"><slot /></div>' },
+    VTimeline: {
+        name: 'VTimeline',
+        props: ['alignTop', 'density'],
+        template: '<div class="v-timeline"><slot /></div>',
+    },
     VTimelineItem: { name: 'VTimelineItem', props: ['size'], template: '<div class="v-timeline-item"><slot /></div>' },
     VRow: { name: 'VRow', template: '<div class="v-row"><slot /></div>' },
     VCol: { name: 'VCol', template: '<div class="v-col"><slot /></div>' },
@@ -26,7 +34,8 @@ vi.mock('@/components/ui/Panel.vue', () => ({
     default: {
         name: 'Panel',
         props: { icon: String, title: [String, Object], cardClass: String, marginBottom: Boolean },
-        template: '<div class="panel" :class="cardClass"><slot name="buttons" /><slot /><span class="panel-title">{{ title }}</span></div>',
+        template:
+            '<div class="panel" :class="cardClass"><slot name="buttons" /><slot /><span class="panel-title">{{ title }}</span></div>',
     },
 }))
 

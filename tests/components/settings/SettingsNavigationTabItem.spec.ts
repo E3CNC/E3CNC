@@ -6,7 +6,11 @@ import SettingsNavigationTabItem from '@/components/settings/SettingsNavigationT
 vi.mock('vuetify/components', () => ({
     VRow: { name: 'VRow', template: '<div class="v-row"><slot /></div>' },
     VCol: { name: 'VCol', template: '<div class="v-col"><slot /></div>' },
-    VIcon: { name: 'VIcon', props: ['icon', 'color'], template: '<i class="v-icon" @click="$emit(\'click\')"><slot /></i>' },
+    VIcon: {
+        name: 'VIcon',
+        props: ['icon', 'color'],
+        template: '<i class="v-icon" @click="$emit(\'click\')"><slot /></i>',
+    },
 }))
 
 vi.mock('@/composables/useTheme', () => ({
@@ -19,7 +23,8 @@ vi.mock('@/components/settings/SettingsRow.vue', () => ({
     default: {
         name: 'SettingsRow',
         props: ['title', 'subTitle', 'dynamicSlotWidth'],
-        template: '<div class="settings-row"><span class="row-title">{{ title }}</span><span class="row-subtitle">{{ subTitle }}</span><slot /></div>',
+        template:
+            '<div class="settings-row"><span class="row-title">{{ title }}</span><span class="row-subtitle">{{ subTitle }}</span><slot /></div>',
     },
 }))
 

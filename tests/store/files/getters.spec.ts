@@ -278,24 +278,22 @@ describe('files getters', () => {
     it('getGcodeFiles can hide completed files', () => {
         const state = baseState()
         const getDirectory = (getters as any).getDirectory(state)
-        const result = (getters as any).getGcodeFiles(
-            state,
-            { getDirectory },
-            rootState,
-            {
-                'server/history/getPrintJobsForGcodes': (name: string) =>
-                    name === 'test.gcode' ? [{ status: 'completed', start_time: 20, end_time: 30 }] : [],
-            }
-        )(null, false, false)
+        const result = (getters as any).getGcodeFiles(state, { getDirectory }, rootState, {
+            'server/history/getPrintJobsForGcodes': (name: string) =>
+                name === 'test.gcode' ? [{ status: 'completed', start_time: 20, end_time: 30 }] : [],
+        })(null, false, false)
 
         expect(result.some((file: any) => file.filename === 'test.gcode')).toBe(false)
         expect(result.some((file: any) => file.filename === 'other.gcode')).toBe(true)
     })
 
     it('getAllGcodes delegates to getGcodeFiles', () => {
-        const result = (getters as any).getAllGcodes({}, {
-            getGcodeFiles: vi.fn(() => ['a.gcode', 'b.gcode']),
-        })
+        const result = (getters as any).getAllGcodes(
+            {},
+            {
+                getGcodeFiles: vi.fn(() => ['a.gcode', 'b.gcode']),
+            }
+        )
         expect(result).toEqual(['a.gcode', 'b.gcode'])
     })
 
@@ -319,7 +317,11 @@ describe('files getters', () => {
     it('getDiskUsage normalizes leading slashes and nested paths', () => {
         const state = baseState()
         state.filetree = [makeDir('gcodes', [], { disk_usage: { total: 100, used: 50, free: 50 } })]
-        expect((getters as any).getDiskUsage(state)('/gcodes/folder/file.gcode')).toEqual({ total: 100, used: 50, free: 50 })
+        expect((getters as any).getDiskUsage(state)('/gcodes/folder/file.gcode')).toEqual({
+            total: 100,
+            used: 50,
+            free: 50,
+        })
     })
 
     it('getSmallThumbnail and getBigThumbnail build thumbnail URLs when matching sizes exist', () => {

@@ -30,16 +30,16 @@ on probe type commands (eg, a bare `PROBE` command).
 
 Advantages:
 
-* It is the most general purpose probing method. It provides good
+- It is the most general purpose probing method. It provides good
   precision with good flexibility.
-* Can be used in many starting toolhead positions. It is necessary to
+- Can be used in many starting toolhead positions. It is necessary to
   ensure that the toolhead XY position places the sensor over the
   metal bed, but otherwise there is flexibility in the exact starting
   height.
 
 Disadvantages:
 
-* The probe results are subject to thermal drift. Distances reported
+- The probe results are subject to thermal drift. Distances reported
   by the probe correlate to distances measured during initial
   calibration (via `PROBE_EDDY_CURRENT_CALIBRATE`) and the results may
   be impacted if probing is run at a different temperature. Changes to
@@ -67,17 +67,17 @@ entire bed can be scanned with only horizontal movements.
 
 Advantages:
 
-* The Z position does not change during probing and there is less
+- The Z position does not change during probing and there is less
   chance for Z stepper backlash (and similar) to impact measurements.
   This can be particularly useful when only relative Z height
   measurements are desired (eg, when using `zero_reference_position`
   with `BED_MESH_CALIBRATE`).
 
-* A full bed scan may take less time than the default method.
+- A full bed scan may take less time than the default method.
 
 Disadvantages:
 
-* The bed must be nearly parallel to the printer XY rails and there
+- The bed must be nearly parallel to the printer XY rails and there
   must not be any large deviations in bed height. For acceptable
   results the bed scanning must be run with a low `HORIZONTAL_MOVE_Z`
   so that the sensor remains close to the bed during the entire bed
@@ -87,7 +87,7 @@ Disadvantages:
   bed deviations could result in a nozzle/bed collision during
   horizontal movement.
 
-* The "scan" method has the same thermal drift disadvantages described
+- The "scan" method has the same thermal drift disadvantages described
   for the default method. For best results, it is recommended to run
   the calibration and subsequent probes at a consistent temperature.
 
@@ -114,17 +114,17 @@ are used to estimate the distance between sensor and bed.
 
 Advantages:
 
-* A "rapid_scan" full bed scan may be slightly faster than the "scan"
+- A "rapid_scan" full bed scan may be slightly faster than the "scan"
   method.
 
-* Otherwise, it has the same advantages as the "scan" method.
+- Otherwise, it has the same advantages as the "scan" method.
 
 Disadvantages:
 
-* The results of a "rapid_scan" may be less accurate than the "scan"
+- The results of a "rapid_scan" may be less accurate than the "scan"
   method.
 
-* Same disadvantages as "scan" probes (bed must be parallel and
+- Same disadvantages as "scan" probes (bed must be parallel and
   thermal drift).
 
 When to use:
@@ -150,40 +150,40 @@ determine the location where the nozzle breaks contact with the bed.
 
 Advantages:
 
-* The probe results are determined by the actual point of contact
+- The probe results are determined by the actual point of contact
   between nozzle and bed instead of indirect measurements between
   sensor and bed. This can be particularly useful if one changes
   nozzles frequently, as the results will take into account the
   geometry of the current nozzle.
 
-* A "tap" probe does not have the thermal drift issues associated with
+- A "tap" probe does not have the thermal drift issues associated with
   the other probing methods. The main probe calibration is not
   utilized during tap probes, and thus one does not need to track
   temperatures between initial calibration and subsequent probing.
 
-* Axis "twist" inaccuracies are less of an issue during tap probes as
+- Axis "twist" inaccuracies are less of an issue during tap probes as
   there is no XY probe offset to compensate for. However, one must
   still ensure the toolhead XY position places both the nozzle and
   sensor above the bed prior to tap probing.
 
 Disadvantages:
 
-* One must ensure both the nozzle and bed are clean prior to tap
+- One must ensure both the nozzle and bed are clean prior to tap
   probing. Any filament on the nozzle or debris on the bed may
   significantly skew the probe results.
 
-* One must ensure that the nozzle is around 3-20mm away from the bed
+- One must ensure that the nozzle is around 3-20mm away from the bed
   prior to starting each "tap" probe attempt. If the nozzle starts too
   close to the bed then contact may not be detected which could result
   in an uncontrolled nozzle/bed crash. If the nozzle starts very far
   from the bed then sensor measurements are not accurate and a tap
   attempt may fail or provide inaccurate results.
 
-* The printer hardware must allow the nozzle to fully make contact
+- The printer hardware must allow the nozzle to fully make contact
   with the bed. There must not be any limit switches or carriage stops
   that make contact prior to the nozzle contacting the bed.
 
-* One must ensure that the nozzle temperature is not too high for the
+- One must ensure that the nozzle temperature is not too high for the
   bed. A too high temperature could melt the PEI coatings on some
   beds, for example.
 
@@ -224,7 +224,7 @@ toolhead so that the sensor is near the center of the bed and is about
 CHIP=<config_name>` command. For example, if the config section was
 named `[probe_eddy_current my_eddy_probe]` then one would run
 `LDC_CALIBRATE_DRIVE_CURRENT CHIP=my_eddy_probe`. This command should
-complete in a few seconds.  After it completes, issue a `SAVE_CONFIG`
+complete in a few seconds. After it completes, issue a `SAVE_CONFIG`
 command to save the results to the printer.cfg and restart.
 
 ### Calibrating Z heights
@@ -241,6 +241,7 @@ then move the toolhead so that the sensor is above the point where the
 nozzle used to be and run a series of movements to correlate the
 sensor to Z positions. This will take a couple of minutes. After the
 tool completes it will output the sensor performance data:
+
 ```
 probe_eddy_current: noise 0.000642mm, MAD_Hz=11.314 in 2525 queries
 Total frequency range: 45000.012 Hz
@@ -250,6 +251,7 @@ z: 1.010 # noise 0.000400mm, MAD_Hz=14.000
 z: 2.010 # noise 0.000600mm, MAD_Hz=12.000
 z: 3.010 # noise 0.000700mm, MAD_Hz=9.000
 ```
+
 issue a `SAVE_CONFIG` command to save the results to
 the printer.cfg and restart.
 
@@ -414,12 +416,12 @@ available.
 ## Thermal Drift Calibration
 
 As with all inductive probes, eddy current probes are subject to
-significant thermal drift.  If the eddy probe has a temperature
+significant thermal drift. If the eddy probe has a temperature
 sensor on the coil it is possible to configure a `[temperature_probe]`
 to report coil temperature and enable software drift compensation. To
 link a temperature probe to an eddy current probe the
 `[temperature_probe]` section must share a name with the
-`[probe_eddy_current]` section.  For example:
+`[probe_eddy_current]` section. For example:
 
 ```
 [probe_eddy_current my_probe]
@@ -430,11 +432,11 @@ link a temperature probe to an eddy current probe the
 ```
 
 See the [configuration reference](Config_Reference.md#temperature_probe)
-for further details on how to configure a `temperature_probe`.  It is
+for further details on how to configure a `temperature_probe`. It is
 advised to configure the `calibration_position`,
 `calibration_extruder_temp`, `extruder_heating_z`, and
 `calibration_bed_temp` options, as doing so will automate some of the
-steps outlined below.  If the printer to be calibrated is enclosed, it
+steps outlined below. If the printer to be calibrated is enclosed, it
 is strongly recommended to set the `max_validation_temp` option to a value
 between 100 and 120.
 
@@ -445,9 +447,9 @@ your system, the `temperature_probe` module offers a manual calibration
 procedure via the `TEMPERATURE_PROBE_CALIBRATE` gcode command.
 
 Prior to performing calibration the user should have an idea of what the
-maximum attainable temperature probe coil temperature is.  This temperature
+maximum attainable temperature probe coil temperature is. This temperature
 should be used to set the `TARGET` parameter of the
-`TEMPERATURE_PROBE_CALIBRATE` command.  The goal is to calibrate across the
+`TEMPERATURE_PROBE_CALIBRATE` command. The goal is to calibrate across the
 widest temperature range possible, thus its desirable to start with the printer
 cold and finish with the coil at the maximum temperature it can reach.
 
@@ -455,7 +457,7 @@ Once a `[temperature_probe]` is configured, the following steps may be taken
 to perform thermal drift calibration:
 
 - The probe must be calibrated using `PROBE_EDDY_CURRENT_CALIBRATE`
-  when a `[temperature_probe]` is configured and linked.  This captures
+  when a `[temperature_probe]` is configured and linked. This captures
   the temperature during calibration which is necessary to perform
   thermal drift compensation.
 - Make sure the nozzle is free of debris and filament.
@@ -463,29 +465,29 @@ to perform thermal drift calibration:
 - The following steps are required if the `calibration_position`,
   `calibration_extruder_temp`, and `extruder_heating_z` options in
   `[temperature_probe]` are **NOT** configured:
-  - Move the tool to the center of the bed.  Z should be 30mm+ above the bed.
+  - Move the tool to the center of the bed. Z should be 30mm+ above the bed.
   - Heat the extruder to a temperature above the maximum safe bed temperature.
-    150-170C should be sufficient for most configurations.  The purpose of
+    150-170C should be sufficient for most configurations. The purpose of
     heating the extruder is to avoid nozzle expansion during calibration.
   - When the extruder temperature has settled, move the Z axis down to about 1mm
     above the bed.
-- Start drift calibration.  If the probe's name is `my_probe` and the maximum
+- Start drift calibration. If the probe's name is `my_probe` and the maximum
   probe temperature we can achieve is 80C, the appropriate gcode command is
-  `TEMPERATURE_PROBE_CALIBRATE PROBE=my_probe TARGET=80`.  If configured, the
+  `TEMPERATURE_PROBE_CALIBRATE PROBE=my_probe TARGET=80`. If configured, the
   tool will move to the X,Y coordinate specified by the `calibration_position`
-  and the Z value specified by `extruder_heating_z`.  After heating the extruder
+  and the Z value specified by `extruder_heating_z`. After heating the extruder
   to the specified temperature the tool will move to the Z value specified
   by the`calibration_position`.
-- The procedure will request a manual probe.  Perform the manual probe with
-  the paper test and `ACCEPT`.  The calibration procedure will take the first
+- The procedure will request a manual probe. Perform the manual probe with
+  the paper test and `ACCEPT`. The calibration procedure will take the first
   set of samples with the probe then park the probe in the heating position.
 - If the `calibration_bed_temp` is **NOT** configured turn on the bed heat
-  to the maximum safe temperature.  Otherwise this step will be performed
+  to the maximum safe temperature. Otherwise this step will be performed
   automatically.
 - By default the calibration procedure will request a manual probe every
-  2C between samples until the `TARGET` is reached.  The temperature delta
+  2C between samples until the `TARGET` is reached. The temperature delta
   between samples can be customized by setting the `STEP` parameter in
-  `TEMPERATURE_PROBE_CALIBRATE`.  Care should be taken when setting a custom
+  `TEMPERATURE_PROBE_CALIBRATE`. Care should be taken when setting a custom
   `STEP` value, a value too high may request too few samples resulting in
   a poor calibration.
 - The following additional gcode commands are available during drift
@@ -499,7 +501,7 @@ to perform thermal drift calibration:
   calibration.
 
 As one may conclude, the calibration process outlined above is more challenging
-and time consuming than most other procedures.  It may require practice and several attempts to achieve an optimal calibration.
+and time consuming than most other procedures. It may require practice and several attempts to achieve an optimal calibration.
 
 ## Errors description
 
@@ -514,6 +516,7 @@ Possible homing errors and actionables:
   - Same as I2C
 
 Possible sensor errors and actionables:
+
 - Frequency over valid hard range
   - Check frequency configuration
   - Hardware fault
@@ -523,6 +526,7 @@ Possible sensor errors and actionables:
   - Hardware fault
 
 Amplitude Low/High warning messages can mean:
+
 - Sensor close to the bed
 - Sensor far from the bed
 - Higher temperature than was at the current calibration

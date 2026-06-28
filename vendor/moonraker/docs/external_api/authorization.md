@@ -1,41 +1,41 @@
-
 # Authorization and Authentication
 
 The Authorization endpoints provide access to the various methods
-used to authorize connections to Moonraker.  This includes user
+used to authorize connections to Moonraker. This includes user
 authentication, API Key authentication, Temporary access via
 "oneshot tokens", and IP and/or domain based authentication
 ("ie: trusted clients).
 
 Untrusted clients must use either a JSON Web Token or an API key to access
-Moonraker's HTTP APIs.  JWTs should be included in the `Authorization`
-header as a `Bearer` type for each HTTP request.  If using an API Key it
+Moonraker's HTTP APIs. JWTs should be included in the `Authorization`
+header as a `Bearer` type for each HTTP request. If using an API Key it
 should be included in the `X-Api-Key` header for each HTTP Request.
 
 Websocket authentication can be achieved via the request itself or
-post connection.  Unlike HTTP requests it is not necessary to pass a
-token and/or API Key to each request.  The
+post connection. Unlike HTTP requests it is not necessary to pass a
+token and/or API Key to each request. The
 [identify connection](./server.md#identify-connection) endpoint takes optional
 `access_token` and `api_key` parameters that may be used to authenticate
 a user already logged in, otherwise the `login` API may be used for
-authentication.  Websocket connections will stay authenticated until
+authentication. Websocket connections will stay authenticated until
 the connection is closed or the user logs out.
 
-User authentication can be performed using a choice sources.  Moonraker
+User authentication can be performed using a choice sources. Moonraker
 currently supports the following authentication sources:
 
 | Source Name | Description                                                    |
-| ----------- | -------------------------------------------------------------- |
+| ----------- | -------------------------------------------------------------- | --- |
 | `moonraker` | Authentication is performed using credentials stored in        |
-|             | Moonraker's database.                                          |^
+|             | Moonraker's database.                                          | ^   |
 | `ldap`      | Authentication is performed through a connected LDAP provider. |
-|             | Requires a valid `[LDAP]` configuration.                       |^
+|             | Requires a valid `[LDAP]` configuration.                       | ^   |
+
 { #auth-source-desc } Authentication Source
 
 /// note
 ECMAScript imposes limitations on certain requests that prohibit the
 developer from modifying the HTTP headers (ie: Requests to open a
-websocket, "download" requests that open a user dialog).  In these cases
+websocket, "download" requests that open a user dialog). In these cases
 it is recommended for the developer to request a `oneshot_token`, then
 send the result via the `token` query string argument in the desired
 request.
@@ -47,6 +47,7 @@ passed in the request's body.
 ///
 
 ## Login User
+
 ```{.http .apirequest title="HTTP Request"}
 POST /access/login
 Content-Type: application/json
@@ -72,7 +73,7 @@ Content-Type: application/json
 ```
 
 /// api-parameters
-    open: True
+open: True
 
 | Name       |  Type  | Default              | Description                                         |
 | ---------- | :----: | -------------------- | --------------------------------------------------- |
@@ -83,6 +84,7 @@ Content-Type: application/json
 ///
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "username": "my_user",
@@ -92,29 +94,30 @@ Content-Type: application/json
     "source": "moonraker"
 }
 ```
+
 ///
 
 /// api-response-spec
-    open: True
+open: True
 
-| Field           |  Type  | Description                                                          |
-| --------------- | :----: | -------------------------------------------------------------------- |
-| `username`      | string | The name of the logged in user.                                      |
-| `token`         | string | A JSON Web Token (JWT) used to authenticate requests, also commonly  |
-|                 |        | referred to as an `access token`.  HTTP requests should include this |^
-|                 |        | token in the `Authorization` header as a `Bearer` type.  This token  |^
-|                 |        | expires after 1 hour.                                                |^
-| `refresh_token` | string | A JWT that should be used to generate new access tokens after they   |
-|                 |        | expire.  See the [refresh token section](#refresh-json-web-token)    |^
-|                 |        | for details.                                                         |^
-| `action`        | string | The action taken by the auth manager.  Will always be                |
-|                 |        | "user_logged_in".                                                    |^
-| `source`        | string | The [authentication source](#auth-source-desc) used.                 |
+| Field           |  Type  | Description                                                         |
+| --------------- | :----: | ------------------------------------------------------------------- | --- |
+| `username`      | string | The name of the logged in user.                                     |
+| `token`         | string | A JSON Web Token (JWT) used to authenticate requests, also commonly |
+|                 |        | referred to as an `access token`. HTTP requests should include this | ^   |
+|                 |        | token in the `Authorization` header as a `Bearer` type. This token  | ^   |
+|                 |        | expires after 1 hour.                                               | ^   |
+| `refresh_token` | string | A JWT that should be used to generate new access tokens after they  |
+|                 |        | expire. See the [refresh token section](#refresh-json-web-token)    | ^   |
+|                 |        | for details.                                                        | ^   |
+| `action`        | string | The action taken by the auth manager. Will always be                |
+|                 |        | "user_logged_in".                                                   | ^   |
+| `source`        | string | The [authentication source](#auth-source-desc) used.                |
 
 ///
 
 /// note
-This endpoint may be accessed without prior authentication.  A 401 will
+This endpoint may be accessed without prior authentication. A 401 will
 only be returned if the authentication fails.
 ///
 
@@ -133,22 +136,24 @@ POST /access/logout
 ```
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "username": "my_user",
     "action": "user_logged_out"
 }
 ```
+
 ///
 
 /// api-response-spec
-    open: True
+open: True
 
-| Field      |  Type  | Description                                           |
-| ---------- | :----: | ----------------------------------------------------- |
-| `username` | string | The name of the logged out user.                      |
-| `action`   | string | The action taken by the auth manager.  Will always be |
-|            |        | "user_logged_out".                                    |^
+| Field      |  Type  | Description                                          |
+| ---------- | :----: | ---------------------------------------------------- | --- |
+| `username` | string | The name of the logged out user.                     |
+| `action`   | string | The action taken by the auth manager. Will always be |
+|            |        | "user_logged_out".                                   | ^   |
 
 ///
 
@@ -169,6 +174,7 @@ GET /access/user
 Returns: An object containing the currently logged in user name, the source and
 the date on which the user was created (in unix time).
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "username": "my_user",
@@ -176,16 +182,17 @@ the date on which the user was created (in unix time).
     "created_on": 1618876783.8896716
 }
 ```
+
 ///
 
 /// api-response-spec
-    open: True
+open: True
 
 | Field        |  Type  | Description                                          |
-| ------------ | :----: | ---------------------------------------------------- |
+| ------------ | :----: | ---------------------------------------------------- | --- |
 | `username`   | string | The name of the logged in user.                      |
 | `source`     | string | The [source](#auth-source-desc) used to authenticate |
-|              |        | the user.                                            |^
+|              |        | the user.                                            | ^   |
 | `created_on` | float  | The date, in unix time, the user entry was created.  |
 
 ///
@@ -217,7 +224,7 @@ Content-Type: application/json
 ```
 
 /// api-parameters
-    open: True
+open: True
 
 | Name       |  Type  | Default      | Description          |
 | ---------- | :----: | ------------ | -------------------- |
@@ -226,8 +233,8 @@ Content-Type: application/json
 
 ///
 
-
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "username": "my_user",
@@ -237,28 +244,29 @@ Content-Type: application/json
     "action": "user_created"
 }
 ```
+
 ///
 
 /// api-response-spec
-    open: True
+open: True
 
-| Field           |  Type  | Description                                                           |
-| --------------- | :----: | --------------------------------------------------------------------- |
-| `username`      | string | The name of the created user.                                         |
-| `token`         | string | A JSON Web Token (JWT) used to authenticate requests, also commonly   |
-|                 |        | referred to as an `access token`.  HTTP requests should include this  |^
-|                 |        | token in the `Authorization` header as a `Bearer` type.  This token   |^
-|                 |        | expires after 1 hour.                                                 |^
-| `refresh_token` | string | A JWT that should be used to generate new access tokens after they    |
-|                 |        | expire.  See the [refresh token section](#refresh-json-web-token)     |^
-|                 |        | for details.                                                          |^
-| `action`        | string | The action taken by the auth manager.  Will always be "user_created". |
-| `source`        | string | The [authentication source](#auth-source-desc) used.                  |
+| Field           |  Type  | Description                                                          |
+| --------------- | :----: | -------------------------------------------------------------------- | --- |
+| `username`      | string | The name of the created user.                                        |
+| `token`         | string | A JSON Web Token (JWT) used to authenticate requests, also commonly  |
+|                 |        | referred to as an `access token`. HTTP requests should include this  | ^   |
+|                 |        | token in the `Authorization` header as a `Bearer` type. This token   | ^   |
+|                 |        | expires after 1 hour.                                                | ^   |
+| `refresh_token` | string | A JWT that should be used to generate new access tokens after they   |
+|                 |        | expire. See the [refresh token section](#refresh-json-web-token)     | ^   |
+|                 |        | for details.                                                         | ^   |
+| `action`        | string | The action taken by the auth manager. Will always be "user_created". |
+| `source`        | string | The [authentication source](#auth-source-desc) used.                 |
 
 ///
 
 /// note
-Unlike `/access/login`, `/access/user` is a protected endpoint.  To
+Unlike `/access/login`, `/access/user` is a protected endpoint. To
 create a new user a client must either be trusted, use the API Key,
 or be logged in as another user.
 ///
@@ -267,7 +275,7 @@ or be logged in as another user.
 
 /// note
 A request to delete a user MUST come from an authorized login
-other than the account to be deleted.  This can be a "trusted user",
+other than the account to be deleted. This can be a "trusted user",
 the "api key user", or any other user account.
 ///
 
@@ -292,7 +300,7 @@ Content-Type: application/json
 ```
 
 /// api-parameters
-    open: True
+open: True
 
 | Name       | Type | Default      | Description                          |
 | ---------- | :--: | ------------ | ------------------------------------ |
@@ -301,22 +309,24 @@ Content-Type: application/json
 ///
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "username": "my_user",
     "action": "user_deleted"
 }
 ```
+
 ///
 
 /// api-response-spec
-    open: True
+open: True
 
 | Field      |  Type  | Description                                       |
-| ---------- | :----: | ------------------------------------------------- |
+| ---------- | :----: | ------------------------------------------------- | --- |
 | `username` | string | The username of the deleted entry.                |
 | `action`   | string | The action taken by the auth manager. Will always |
-|            |        | be "user_deleted".                                |^
+|            |        | be "user_deleted".                                | ^   |
 
 ///
 
@@ -335,6 +345,7 @@ GET /access/users/list
 ```
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "users": [
@@ -351,22 +362,24 @@ GET /access/users/list
     ]
 }
 ```
+
 ///
 
 /// api-response-spec
-    open: True
+open: True
 
 | Field   |   Type   | Description                      |
-| ------- | :------: | -------------------------------- |
+| ------- | :------: | -------------------------------- | --- |
 | `users` | [object] | An array of `User Info` objects. |
-|         |          | #user-info-spec                  |+
+|         |          | #user-info-spec                  | +   |
 
 | Field        |  Type  | Description                                          |
-| ------------ | :----: | ---------------------------------------------------- |
+| ------------ | :----: | ---------------------------------------------------- | --- |
 | `username`   | string | The username of the entry.                           |
 | `source`     | string | The [source](#auth-source-desc) that must be used to |
-|              |        | authenticate the user.                               |^
+|              |        | authenticate the user.                               | ^   |
 | `created_on` | float  | The date, in unix time, the user entry was created.  |
+
 { #user-info-spec } User Info
 
 ///
@@ -396,7 +409,7 @@ Content-Type: application/json
 ```
 
 /// api-parameters
-    open: True
+open: True
 
 | Name           |  Type  | Default      | Description                  |
 | -------------- | :----: | ------------ | ---------------------------- |
@@ -405,29 +418,31 @@ Content-Type: application/json
 
 ///
 
-
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "username": "my_user",
     "action": "user_password_reset"
 }
 ```
+
 ///
 
 /// api-response-spec
-    open: True
+open: True
 
 | Field      |  Type  | Description                                         |
-| ---------- | :----: | --------------------------------------------------- |
+| ---------- | :----: | --------------------------------------------------- | --- |
 | `username` | string | The username of the entry whose password was reset. |
-| `action`   | string | Action taken by the Auth manager.  Will always be   |
-|            |        | "user_password_reset".                              |^
+| `action`   | string | Action taken by the Auth manager. Will always be    |
+|            |        | "user_password_reset".                              | ^   |
 
 ///
 
 ## Refresh JSON Web Token
-This endpoint can be used to refresh an expired access token.  If this
+
+This endpoint can be used to refresh an expired access token. If this
 request returns an error then the refresh token is no longer valid and
 the user must login with their credentials.
 
@@ -452,7 +467,7 @@ Content-Type: application/json
 ```
 
 /// api-parameters
-    open: True
+open: True
 
 | Name            |  Type  | Default      | Description                           |
 | --------------- | :----: | ------------ | ------------------------------------- |
@@ -460,8 +475,8 @@ Content-Type: application/json
 
 ///
 
-
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "username": "my_user",
@@ -470,26 +485,27 @@ Content-Type: application/json
     "action": "user_jwt_refresh"
 }
 ```
+
 ///
 
 /// api-response-spec
-    open: True
+open: True
 
-| Field      |  Type  | Description                                                          |
-| ---------- | :----: | -------------------------------------------------------------------- |
-| `username` | string | The username of the entry whose access token ws refreshed.           |
-| `token`    | string | A JSON Web Token (JWT) used to authenticate requests, also commonly  |
-|            |        | referred to as an `access token`.  HTTP requests should include this |^
-|            |        | token in the `Authorization` header as a `Bearer` type.  This token  |^
-|            |        | expires after 1 hour.                                                |^
-| `source`   | string | The [authentication source](#auth-source-desc) of the user entry.    |
-| `action`   | string | The action taken by the Auth Manager.  Will always be                |
-|            |        | "user_jwt_refresh".                                                  |^
+| Field      |  Type  | Description                                                         |
+| ---------- | :----: | ------------------------------------------------------------------- | --- |
+| `username` | string | The username of the entry whose access token ws refreshed.          |
+| `token`    | string | A JSON Web Token (JWT) used to authenticate requests, also commonly |
+|            |        | referred to as an `access token`. HTTP requests should include this | ^   |
+|            |        | token in the `Authorization` header as a `Bearer` type. This token  | ^   |
+|            |        | expires after 1 hour.                                               | ^   |
+| `source`   | string | The [authentication source](#auth-source-desc) of the user entry.   |
+| `action`   | string | The action taken by the Auth Manager. Will always be                |
+|            |        | "user_jwt_refresh".                                                 | ^   |
 
 ///
 
 /// note
-This endpoint may be accessed by unauthorized clients.  A 401 will
+This endpoint may be accessed by unauthorized clients. A 401 will
 only be returned if the refresh token is invalid.
 ///
 
@@ -497,8 +513,8 @@ only be returned if the refresh token is invalid.
 
 Javascript is not capable of modifying the headers for some HTTP requests
 (for example, the `websocket`), which is a requirement to apply JWT or API Key
-authorization.  To work around this clients may request a Oneshot Token and
-pass it via the query string for these requests.  Tokens expire in 5 seconds
+authorization. To work around this clients may request a Oneshot Token and
+pass it via the query string for these requests. Tokens expire in 5 seconds
 and may only be used once, making them relatively safe for inclusion in the
 query string.
 
@@ -519,10 +535,10 @@ GET /access/oneshot_token
 ```
 
 /// api-response-spec
-    open: True
+open: True
 
 The response is a string value containing the oneshot token. It may
-added to a request's query string for access to any API endpoint.  The query
+added to a request's query string for access to any API endpoint. The query
 string should be added in the form of:
 
 ```
@@ -546,6 +562,7 @@ GET /access/info
 ```
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "default_source": "moonraker",
@@ -557,20 +574,21 @@ GET /access/info
     "trusted": true
 }
 ```
+
 ///
 
 /// api-response-spec
-    open: True
+open: True
 
 | Field               |   Type   | Description                                          |
-| ------------------- | :------: | ---------------------------------------------------- |
+| ------------------- | :------: | ---------------------------------------------------- | --- |
 | `default_source`    |  string  | The configured default                               |
-|                     |          | [authentication source](#auth-source-desc).          |^
+|                     |          | [authentication source](#auth-source-desc).          | ^   |
 | `available_sources` | [string] | An array of available authentication sources.        |
 | `login_required`    |   bool   | Set to `true` when `force_logins` is enabled via the |
-|                     |          | configuration at least one user has been created.    |^
+|                     |          | configuration at least one user has been created.    | ^   |
 | `trusted`           |   bool   | Set to `true` when the connection making the info    |
-|                     |          | request is a trusted connection.                     |^
+|                     |          | request is a trusted connection.                     | ^   |
 
 ///
 
@@ -597,13 +615,14 @@ e514851f37b94c779d955212b6906f95
 ```
 
 /// api-response-spec
-    open: True
+open: True
 
 The response string value containing the current API key.
 
 ///
 
 ## Generate a New API Key
+
 ```{.http .apirequest title="HTTP Request"}
 POST /access/api_key
 ```
@@ -621,7 +640,7 @@ e514851f37b94c779d955212b6906f95
 ```
 
 /// api-response-spec
-    open: True
+open: True
 
 The response string value containing the new API key.
 

@@ -23,6 +23,7 @@ If you want to use the host as a secondary MCU the klipper_mcu process
 must run before the klippy process.
 
 After installing Klipper, install the script. run:
+
 ```
 cd ~/klipper/
 sudo cp ./scripts/klipper-mcu.service /etc/systemd/system/
@@ -33,6 +34,7 @@ sudo systemctl enable klipper-mcu.service
 
 To compile the Klipper micro-controller code, start by configuring it
 for the "Linux process":
+
 ```
 cd ~/klipper/
 make menuconfig
@@ -42,6 +44,7 @@ In the menu, set "Microcontroller Architecture" to "Linux process,"
 then save and exit.
 
 To build and install the new micro-controller code, run:
+
 ```
 sudo service klipper stop
 make flash
@@ -50,8 +53,9 @@ sudo service klipper start
 
 If klippy.log reports a "Permission denied" error when attempting to
 connect to `/tmp/klipper_host_mcu` then you need to add your user to
-the tty group.  The following command will add the "pi" user to the
+the tty group. The following command will add the "pi" user to the
 tty group:
+
 ```
 sudo usermod -a -G tty pi
 ```
@@ -90,16 +94,19 @@ _Linux GPIO character device_ to verify the configuration.
 
 To install the _Linux GPIO character device - binary_ on a debian
 based distro like octopi run:
+
 ```
 sudo apt-get install gpiod
 ```
 
 To check available gpiochip run:
+
 ```
 gpiodetect
 ```
 
 To check the pin number and the pin availability tun:
+
 ```
 gpioinfo
 ```
@@ -109,10 +116,11 @@ The chosen pin can thus be used within the configuration as
 `gpiodetect` command and **o** is the line number seen by the`
 gpioinfo` command.
 
-***Warning:*** only gpio marked as `unused` can be used. It is not
+**_Warning:_** only gpio marked as `unused` can be used. It is not
 possible for a _line_ to be used by multiple processes simultaneously.
 
 For example on a RPi 3B+ where klipper use the GPIO20 for a switch:
+
 ```
 $ gpiodetect
 gpiochip0 [pinctrl-bcm2835] (54 lines)
@@ -188,21 +196,25 @@ gpiochip1 - 8 lines:
 ## Optional: Hardware PWM
 
 Raspberry Pi's have two PWM channels (PWM0 and PWM1) which are exposed
-on the header or if not, can be routed to existing gpio pins.  The
+on the header or if not, can be routed to existing gpio pins. The
 Linux mcu daemon uses the pwmchip sysfs interface to control hardware
-pwm devices on Linux hosts.  The pwm sysfs interface is not exposed by
+pwm devices on Linux hosts. The pwm sysfs interface is not exposed by
 default on a Raspberry and can be activated by adding a line to
 `/boot/config.txt`:
+
 ```
 # Enable pwmchip sysfs interface
 dtoverlay=pwm,pin=12,func=4
 ```
+
 This example enables only PWM0 and routes it to gpio12. If both PWM
 channels need to be enabled you can use `pwm-2chan`:
+
 ```
 # Enable pwmchip sysfs interface
 dtoverlay=pwm-2chan,pin=12,func=4,pin2=13,func2=4
 ```
+
 This example additionally enables PWM1 and routes it to gpio13.
 
 The overlay does not expose the pwm line on sysfs on boot and needs to
@@ -210,11 +222,14 @@ be exported by echo'ing the number of the pwm channel to
 `/sys/class/pwm/pwmchip0/export`. This will create device `/sys/class/pwm/pwmchip0/pwm0` in the
 filesystem. The easiest way to do this is by adding this to
 `/etc/rc.local` before the `exit 0` line:
+
 ```
 # Enable pwmchip sysfs interface
 echo 0 > /sys/class/pwm/pwmchip0/export
 ```
+
 When using both PWM channels, the number of the second channel needs to be echo'd as well:
+
 ```
 # Enable pwmchip sysfs interface
 echo 0 > /sys/class/pwm/pwmchip0/export
@@ -223,6 +238,7 @@ echo 1 > /sys/class/pwm/pwmchip0/export
 
 With the sysfs in place, you can now use either the pwm channel(s) by
 adding the following piece of configuration to your `printer.cfg`:
+
 ```
 [output_pin caselight]
 pin: host:pwmchip0/pwm0
@@ -238,6 +254,7 @@ value: 0
 shutdown_value: 0
 cycle_time: 0.0005
 ```
+
 This will add hardware pwm control to gpio12 and gpio13 on the Pi (because the
 overlay was configured to route pwm0 to pin=12 and pwm1 to pin=13).
 
@@ -246,7 +263,7 @@ and gpio19:
 
 | PWM | gpio PIN | Func |
 | --- | -------- | ---- |
-|   0 |       12 |    4 |
-|   0 |       18 |    2 |
-|   1 |       13 |    4 |
-|   1 |       19 |    2 |
+| 0   | 12       | 4    |
+| 0   | 18       | 2    |
+| 1   | 13       | 4    |
+| 1   | 19       | 2    |

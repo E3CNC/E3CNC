@@ -11,10 +11,7 @@
         style="fill-rule: evenodd; clip-rule: evenodd; stroke-linejoin: round; stroke-miterlimit: 2">
         <g id="Mainsail" transform="matrix(1,0,0,1,10,0)">
             <g id="Mainsail_text" transform="matrix(1,0,0,1,-54.2745,6.1424)">
-                <text
-                    x="47.429px"
-                    y="60.749px"
-                    :style="'font-size:1rem;fill:rgb(' + colorMainsail + ');'">
+                <text x="47.429px" y="60.749px" :style="'font-size:1rem;fill:rgb(' + colorMainsail + ');'">
                     Mainsail
                 </text>
             </g>
@@ -63,10 +60,7 @@
         </g>
         <g id="Moonraker" transform="matrix(1,0,0,1,10,0)">
             <g id="Moonraker_text" transform="matrix(1,0,0,1,120.368,6.1424)">
-                <text
-                    x="45.429px"
-                    y="60.749px"
-                    :style="'fill:rgb(' + colorMoonraker + ');font-size:1rem;'">
+                <text x="45.429px" y="60.749px" :style="'fill:rgb(' + colorMoonraker + ');font-size:1rem;'">
                     Moonraker
                 </text>
             </g>
@@ -109,12 +103,7 @@
         </g>
         <g id="Klipper" transform="matrix(1,0,0,1,10,0)">
             <g id="Klipper_text" transform="matrix(1,0,0,1,317.036,6.1424)">
-                <text
-                    x="48.429px"
-                    y="60.749px"
-                    :style="'font-size:1rem;fill:rgb(' + colorKlipper + ');'">
-                    Klipper
-                </text>
+                <text x="48.429px" y="60.749px" :style="'font-size:1rem;fill:rgb(' + colorKlipper + ');'">Klipper</text>
             </g>
             <g id="Klipper_icon" transform="matrix(2,0,0,2,366,-3)">
                 <path

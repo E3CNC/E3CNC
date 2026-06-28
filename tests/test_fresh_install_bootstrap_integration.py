@@ -109,13 +109,16 @@ class TestFreshInstallBootstrap:
     # ── Verifiers ─────────────────────────────────────────────────────────
 
     def _file_check(self, path: str, label: str) -> bool:
-        out = self._exec(f"test -f '{path}' && echo 'FOUND' || echo 'MISSING'")
+        # Use $HOME + double-quotes for proper expansion in bash -lc
+        expanded = path.replace("~/", "$HOME/")
+        out = self._exec(f'test -f "{expanded}" && echo "FOUND" || echo "MISSING"')
         ok = "FOUND" in out
         print(f"  {'✓' if ok else '✗'} {label}")
         return ok
 
     def _grep_check(self, path: str, pattern: str, label: str) -> bool:
-        out = self._exec(f"grep -q '{pattern}' '{path}' 2>/dev/null && echo 'FOUND' || echo 'MISSING'")
+        expanded = path.replace("~/", "$HOME/")
+        out = self._exec(f'grep -q \'{pattern}\' "{expanded}" 2>/dev/null && echo "FOUND" || echo "MISSING"')
         ok = "FOUND" in out
         print(f"  {'✓' if ok else '✗'} {label}")
         return ok
@@ -131,7 +134,7 @@ class TestFreshInstallBootstrap:
         return ok
 
     def _deploy_frontend_to_container(self) -> str:
-        """Copy host's pre-built dist/ into the container and deploy to web root."""
+        """Copy host's pre-built dist/ directly into the container's nginx web root."""
         docker = shutil.which("docker")
         root = Path(__file__).resolve().parent.parent
         dist_path = root / "dist"
@@ -139,15 +142,21 @@ class TestFreshInstallBootstrap:
         if not dist_path.is_dir():
             return "MISSING: host dist/ not found — run 'bun run build' first"
 
+        # Ensure web root exists and is owned by testbed
+        self._exec("mkdir -p ~/e3cnc-web")
+
+        # Copy dist contents directly into web root
         subprocess.run(
-            [docker, "cp", str(dist_path) + "/.", f"{self.CONTAINER_NAME}:/home/testbed/dist"],
+            [docker, "cp", str(dist_path) + "/.", f"{self.CONTAINER_NAME}:/home/testbed/e3cnc-web/"],
             check=True, capture_output=True,
         )
 
+        # Fix permissions (docker cp copies as root, nginx needs read + traverse)
         out = self._exec(
-            "mkdir -p ~/e3cnc-web && "
-            "cp -r ~/dist/* ~/e3cnc-web/ && "
-            "sudo nginx -s reload 2>/dev/null || sudo nginx 2>/dev/null && "
+            "sudo chmod a+x $HOME && "
+            "sudo chmod -R 755 $HOME/e3cnc-web && "
+            "sudo nginx -t 2>/dev/null && "
+            "(sudo nginx -s reload 2>/dev/null || sudo nginx 2>/dev/null) && "
             "echo 'DEPLOYED'"
         )
         return out
@@ -155,13 +164,17 @@ class TestFreshInstallBootstrap:
     def _verify_frontend_response(self) -> tuple:
         """Curl the frontend and verify expected HTML content."""
         http = self._exec(
-            "curl -s -o /tmp/fe-response.txt -w '%{http_code}' http://localhost/ 2>/dev/null || echo 'no-connect'"
+            "curl -s -o /tmp/fe-body.txt -w '%{http_code}' http://localhost/ 2>/dev/null || echo 'no-connect'"
         )
         status_ok = http.strip() == "200"
-        html = self._exec("cat /tmp/fe-response.txt 2>/dev/null || echo ''")
+        html = self._exec("cat /tmp/fe-body.txt 2>/dev/null || echo ''")
         has_title = "<title>" in html
         has_root = 'id="app"' in html or 'id=\"app\"' in html
         has_pwa = "serviceWorker" in html
+        if http.strip() != "200":
+            err = self._exec("sudo tail -3 /var/log/nginx/error.log 2>/dev/null || true")
+            print(f"  ⚠ nginx log: {err}")
+            print(f"  ⚠ body start: {html[:150]}")
         return status_ok, has_title, has_root, has_pwa, http.strip()
 
     # ── Test: file-level verification ─────────────────────────────────────

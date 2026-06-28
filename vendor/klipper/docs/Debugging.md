@@ -9,6 +9,7 @@ series of regression tests. It can be useful to run some of these
 tests locally.
 
 The source code "whitespace check" can be run with:
+
 ```
 ./scripts/check_whitespace.sh
 ```
@@ -18,6 +19,7 @@ many platforms. The easiest way to obtain them is to
 [download them from github](https://github.com/Klipper3d/klipper/issues/1438).
 Once the data dictionaries are downloaded, use the following to run
 the regression suite:
+
 ```
 tar xfz klipper-dict-20??????.tar.gz
 ~/klippy-env/bin/python ~/klipper/scripts/test_klippy.py -d dict/ ~/klipper/test/klippy/*.test
@@ -89,6 +91,7 @@ later analyzed. To use this feature, Klipper must be started with the
 [API Server](API_Server.md) enabled.
 
 Data logging is enabled with the `data_logger.py` tool. For example:
+
 ```
 ~/klipper/scripts/motan/data_logger.py /tmp/klippy_uds mylog -s '*'
 ```
@@ -104,10 +107,12 @@ from the `data_logger.py` tool.
 The resulting files can be read and graphed using the `motan_graph.py`
 tool. To generate graphs on a Raspberry Pi, a one time step is
 necessary to install the "matplotlib" package:
+
 ```
 sudo apt-get update
 sudo apt-get install python-matplotlib
 ```
+
 However, it may be more convenient to copy the data files to a desktop
 class machine along with the Python code in the `scripts/motan/`
 directory. The motion analysis scripts should run on any machine with
@@ -115,27 +120,32 @@ a recent version of [Python](https://python.org) and
 [Matplotlib](https://matplotlib.org/) installed.
 
 Graphs can be generated with a command like the following:
+
 ```
 ~/klipper/scripts/motan/motan_graph.py mylog -o mygraph.png
 ```
 
 One can use the `-g` option to specify the datasets to graph (it takes
 a Python literal containing a list of lists). For example:
+
 ```
 ~/klipper/scripts/motan/motan_graph.py mylog -g '[["trapq(toolhead,velocity)"], ["trapq(toolhead,accel)"]]'
 ```
 
 The list of available datasets can be found using the `-l` option -
 for example:
+
 ```
 ~/klipper/scripts/motan/motan_graph.py -l
 ```
 
 It is also possible to specify matplotlib plot options for each
 dataset:
+
 ```
 ~/klipper/scripts/motan/motan_graph.py mylog -g '[["trapq(toolhead,velocity)?color=red&alpha=0.4"]]'
 ```
+
 Many matplotlib options are available; some examples are "color",
 "label", "alpha", and "linestyle".
 
@@ -211,18 +221,22 @@ cd simulavr
 make python
 make build
 ```
-Make sure a file like **./build/pysimulavr/_pysimulavr.*.so** is present
+
+Make sure a file like **./build/pysimulavr/\_pysimulavr.\*.so** is present
 after the above compilation:
+
 ```
 ls ./build/pysimulavr/_pysimulavr.*.so
 ```
+
 This command should report a specific file (e.g.
-**./build/pysimulavr/_pysimulavr.cpython-39-x86_64-linux-gnu.so**) and
+**./build/pysimulavr/\_pysimulavr.cpython-39-x86_64-linux-gnu.so**) and
 not an error.
 
 If you are on a Debian-based system (Debian, Ubuntu, etc.) you can
-install the following packages and generate *.deb files for system-wide
+install the following packages and generate \*.deb files for system-wide
 installation of simulavr:
+
 ```
 sudo apt update
 sudo apt install g++ make cmake swig rst2pdf help2man texinfo
@@ -244,8 +258,10 @@ Klipper (run `make`) and then start the simulation with:
 ```
 PYTHONPATH=/path/to/simulavr/build/pysimulavr/ ./scripts/avrsim.py out/klipper.elf
 ```
+
 Note that if you have installed python3-simulavr system-wide, you do
 not need to set `PYTHONPATH`, and can simply run the simulator as
+
 ```
 ./scripts/avrsim.py out/klipper.elf
 ```

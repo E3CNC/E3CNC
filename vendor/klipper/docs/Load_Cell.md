@@ -6,9 +6,9 @@ A calibrated force sensor is an important part of a load cell based probe.
 
 ## Related Documentation
 
-* [load_cell Config Reference](Config_Reference.md#load_cell)
-* [load_cell G-Code Commands](G-Codes.md#load_cell)
-* [load_cell Status Reference](Status_Reference.md#load_cell)
+- [load_cell Config Reference](Config_Reference.md#load_cell)
+- [load_cell G-Code Commands](G-Codes.md#load_cell)
+- [load_cell Status Reference](Status_Reference.md#load_cell)
 
 ## Using `LOAD_CELL_DIAGNOSTIC`
 
@@ -28,14 +28,14 @@ $ LOAD_CELL_DIAGNOSTIC
 
 Things you can check with this data:
 
-* The configured sample rate of the sensor should be close to the 'Measured
+- The configured sample rate of the sensor should be close to the 'Measured
   samples per second' value. If it is not you may have a configuration or wiring
   issue.
-* 'Saturated samples' should be 0. If you have saturated samples it means the
+- 'Saturated samples' should be 0. If you have saturated samples it means the
   load sell is seeing more force than it can measure.
-* 'Unique values' should be a large percentage of the 'Samples
+- 'Unique values' should be a large percentage of the 'Samples
   Collected' value. If 'Unique values' is 1 it is very likely a wiring issue.
-* Tap or push on the sensor while `LOAD_CELL_DIAGNOSTIC` runs. If
+- Tap or push on the sensor while `LOAD_CELL_DIAGNOSTIC` runs. If
   things are working correctly this should increase the 'Sample range'.
 
 ## Calibrating a Load Cell
@@ -89,6 +89,7 @@ critical for 32bit and 24bit sensors but is much more critical for low bit width
 sensors.
 
 ## Reading Force Data
+
 Force data can be read with a GCode command:
 
 ```
@@ -107,6 +108,7 @@ This provides an average force over the last 1 second, similar to how
 temperature sensors work.
 
 ## Taring a Load Cell
+
 Taring, sometimes called zeroing, sets the current weight reported by the
 load_cell to 0. This is useful for measuring relative to a known weight. e.g.
 when measuring a filament spool, using `LOAD_CELL_TARE` sets the weight to 0.
@@ -129,9 +131,9 @@ a macro:
 
 ## Related Documentation
 
-* [load_cell_probe Config Reference](Config_Reference.md#load_cell_probe)
-* [load_cell_probe G-Code Commands](G-Codes.md#load_cell_probe)
-* [load_cell_probe Statuc Reference](Status_Reference.md#load_cell_probe)
+- [load_cell_probe Config Reference](Config_Reference.md#load_cell_probe)
+- [load_cell_probe G-Code Commands](G-Codes.md#load_cell_probe)
+- [load_cell_probe Statuc Reference](Status_Reference.md#load_cell_probe)
 
 ## Load Cell Probe Safety
 
@@ -143,11 +145,13 @@ and how they work as you can defeat most of them with poorly chosen config
 values.
 
 #### Calibration Check
+
 Every time a homing move starts, load_cell_probe checks
 that the load_cell is calibrated. If not it will stop the move with an error:
 `!! Load Cell not calibrated`.
 
 #### `counts_per_gram`
+
 This setting is used to convert raw sensor counts into grams. All the safety
 limits are in gram units for your convenience. If the `counts_per_gram`
 setting is not accurate you can easily exceed the safe force on the toolhead.
@@ -155,6 +159,7 @@ You should never guess this value. Use `LOAD_CELL_CALIBRATE` to find your load
 cells actual `counts_per_gram`.
 
 #### `trigger_force`
+
 This is the force in grams that triggers the endstop to halt the homing move.
 When a homing move starts the endstop tares itself with the current reading
 from the load cell. `trigger_force` is measured from that tare value. There is
@@ -164,11 +169,13 @@ before the toolhead stops. This overshoot will increase with faster probing
 `speed`, a low ADC sample rate or [multi MCU homing](Multi_MCU_Homing.md).
 
 #### `reference_tare_counts`
+
 This is the baseline tare value that is set by `LOAD_CELL_CALIBRATE`.
 This value works with `force_safety_limit` to limit the maximum force on the
 toolhead.
 
 #### `force_safety_limit`
+
 This is the maximum absolute force, relative to `reference_tare_counts`,
 that the probe will allow while homing or probing. If the MCU sees this
 force exceeded it will shut down the printer with the error `!! Load cell
@@ -200,6 +207,7 @@ at ambient temperature vs operating temperature. In this case you may need
 to increase the `force_safety_limit` to allow for thermal changes.
 
 #### Load Cell Endstop Watchdog Task
+
 When homing the load_cell_endstop starts a task on the MCU to trac
 measurements arriving from the sensor. If the sensor fails to send
 measurements for 2 sample periods the watchdog will shut down the printer
@@ -305,6 +313,7 @@ the nozzle closer to the bed and negative values move it further away.
 Expect to have to move the nozzle further away as it gets longer when hot.
 
 #### Configure `[z_thermal_adjust]`
+
 Set up z_thermal_adjust to reference the `extruder` as the source of temperature
 data. E.g.:
 
@@ -353,15 +362,15 @@ detailed investigation with real captured data and FFTs.
 
 For those just trying to get a filter working follow these suggestions:
 
-* The only essential option is `drift_filter_cutoff_frequency`. A conservative
+- The only essential option is `drift_filter_cutoff_frequency`. A conservative
   starting value is `0.5`Hz. Prusa shipped the MK4 with a setting of `0.8`Hz and
   the XL with `11.2`Hz. This is probably a safe range to experiment with. This
   value should be increased only until normal drift due to bowden tube force is
   eliminated. Setting this value too high will result in slow triggering and
   excess force going through the toolhead.
-* Keep `trigger_force` low. The default is `75`g. The drift filter keeps the
+- Keep `trigger_force` low. The default is `75`g. The drift filter keeps the
   internal grams value very close to 0 so a large trigger force is not needed.
-* Keep `force_safety_limit` to a conservative value. The default value is 2Kg
+- Keep `force_safety_limit` to a conservative value. The default value is 2Kg
   and should keep your toolhead safe while experimenting. If you hit this limit
   the `drift_filter_cutoff_frequency` value may be too high.
 
@@ -374,18 +383,18 @@ to support [load_cell_probe]
 
 Ideally a sensor would meet these criteria:
 
-* At least 24 bits wide
-* Use SPI communications
-* Has a pin can be used to indicate sample ready without SPI communications.
+- At least 24 bits wide
+- Use SPI communications
+- Has a pin can be used to indicate sample ready without SPI communications.
   This is often called the "data ready" or "DRDY" pin. Checking a pin is much
   faster than running an SPI query.
-* Has a programmable gain amplifier gain setting of 128. This should eliminate
+- Has a programmable gain amplifier gain setting of 128. This should eliminate
   the need for a separate amplifier.
-* Indicates via SPI if the sensor has been reset. Detecting resets avoids
+- Indicates via SPI if the sensor has been reset. Detecting resets avoids
   timing errors in homing and using noisy data at startup. It can also help
   users
   track down wiring and grounding issues.
-* A selectable sample rate between 350Hz and 2Khz. Very high sample rates don't
+- A selectable sample rate between 350Hz and 2Khz. Very high sample rates don't
   turn out to be beneficial in our 3D printers because they produce so much
   noise
   when moving fast. Sample rates below 250Hz will require slower probing speeds.
@@ -393,7 +402,7 @@ Ideally a sensor would meet these criteria:
   measurements. E.g. a 500Hz sensor moving at 5mm/s has the same safety factor
   as
   a 100Hz sensor moving at only 1mm/s.
-* If designing for under-bed applications, and you want to sense multiple load
+- If designing for under-bed applications, and you want to sense multiple load
   cells, use a chip that can sample all of its inputs simultaneously. Multiplex
   ADCs that require switching channels have a settling of several samples after
   each channel switch making them unsuitable for probing applications.
@@ -425,15 +434,15 @@ should have proper grounding back to the DC supply.
 This sensor is popular because of its low cost and availability in the
 supply chain. However, this is a sensor with some drawbacks:
 
-* The HX71x sensors use bit-bang communication which has a high overhead on the
+- The HX71x sensors use bit-bang communication which has a high overhead on the
   MCU. Using a sensor that communicates via SPI would save resources on the tool
   board's CPU.
-* The HX71x lacks a way to communicate reset events to the MCU. Klipper detects
+- The HX71x lacks a way to communicate reset events to the MCU. Klipper detects
   resets with a timing heuristic but this is not ideal. Resets indicate a
   problem with wiring or grounding.
-* For probing applications the HX717 version is strongly preferred because
+- For probing applications the HX717 version is strongly preferred because
   of its higher sample rate (320 vs 80). Probing speed on the HX711 should be
   limited to less than 2mm/s.
-* The sample rate on the HX71x cannot be set from klipper's config. If you have
+- The sample rate on the HX71x cannot be set from klipper's config. If you have
   the 10SPS version of the sensor (which is widely distributed) it needs to
   be physically re-wired to run at 80SPS.

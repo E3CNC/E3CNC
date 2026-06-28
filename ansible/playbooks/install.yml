@@ -36,7 +36,7 @@
         name: '{{ moonraker_service }}'
         state: restarted
       become: true
-      when: not (bootstrap_skip_runtime_verification | default(false))
+      when: not (bootstrap_skip_runtime_verification | default(false) | bool)
       tags:
         - restart-services
 
@@ -48,7 +48,7 @@
       retries: 30
       delay: 1
       until: moonraker_api.status == 200
-      when: not (bootstrap_skip_runtime_verification | default(false))
+      when: not (bootstrap_skip_runtime_verification | default(false) | bool)
       tags:
         - restart-services
 
@@ -61,7 +61,7 @@
       delay: 3
       until: klippy_info.json is defined and klippy_info.json.result.state == 'ready'
       when:
-        - not (bootstrap_skip_runtime_verification | default(false))
+        - not (bootstrap_skip_runtime_verification | default(false) | bool)
         - not (e3cnc_skip_klippy_ready_check | default(false))
       tags:
         - restart-services
@@ -70,7 +70,7 @@
       ansible.builtin.debug:
         msg: 'Skipping Klippy ready check for this install because the fresh-bootstrap path created a placeholder printer.cfg.'
       when:
-        - not (bootstrap_skip_runtime_verification | default(false))
+        - not (bootstrap_skip_runtime_verification | default(false) | bool)
         - e3cnc_skip_klippy_ready_check | default(false)
       tags:
         - restart-services
@@ -85,13 +85,13 @@
       register: agent_logs
       changed_when: false
       failed_when: false
-      when: not (bootstrap_skip_runtime_verification | default(false))
+      when: not (bootstrap_skip_runtime_verification | default(false) | bool)
       tags:
         - restart-services
 
     - name: Skip runtime verification for bootstrap integration environments
       ansible.builtin.debug:
         msg: 'Skipping Moonraker/Klipper runtime verification because bootstrap_skip_runtime_verification=true.'
-      when: bootstrap_skip_runtime_verification | default(false)
+      when: bootstrap_skip_runtime_verification | default(false) | bool
       tags:
         - restart-services

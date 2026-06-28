@@ -90,7 +90,7 @@ is also a useful resource for finding and sharing config files.
       for more information.
    6. Avoid defining field values that are set to their default
       value. For example, one should not specify `min_extrude_temp:
-      170` as that is already the default value.
+170` as that is already the default value.
    7. Where possible, lines should not exceed 80 columns.
    8. Avoid adding attribution or revision messages to the config
       files. (For example, avoid adding lines like "this file was

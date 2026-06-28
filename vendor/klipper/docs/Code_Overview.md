@@ -102,32 +102,33 @@ some functionality in C code.
 Initial execution starts in **klippy/klippy.py**. This reads the
 command-line arguments, opens the printer config file, instantiates
 the main printer objects, and starts the serial connection. The main
-execution of G-code commands is in the _process_commands() method in
+execution of G-code commands is in the \_process_commands() method in
 **klippy/gcode.py**. This code translates the G-code commands into
 printer object calls, which frequently translate the actions to
 commands to be executed on the micro-controller (as declared via the
 DECL_COMMAND macro in the micro-controller code).
 
 There are several threads in the Klipper host code:
-* There is a Python "main thread" that handles incoming G-Code
+
+- There is a Python "main thread" that handles incoming G-Code
   commands and is the starting point for most actions. This thread
   runs the [reactor](https://en.wikipedia.org/wiki/Reactor_pattern)
   (**klippy/reactor.py**) and most high-level actions originate from
   IO and timer event callbacks from that reactor.
-* A thread for writing messages to the log so that the other threads
+- A thread for writing messages to the log so that the other threads
   do not block on log writes. This thread resides in the
   **klippy/queuelogger.py** code and its multi-threaded nature is not
   exposed to the main Python thread.
-* A thread per micro-controller that performs the low-level reading
+- A thread per micro-controller that performs the low-level reading
   and writing of messages to that micro-controller. It resides in the
   **klippy/chelper/serialqueue.c** C code and its multi-threaded
   nature is not exposed to the Python code.
-* A thread per micro-controller for processing messages received from
+- A thread per micro-controller for processing messages received from
   that micro-controller in the Python code. This thread is created in
   **klippy/serialhdl.py**. Care must be taken in Python callbacks
   invoked from this thread as this thread may directly interact with
   the main Python thread.
-* A thread per stepper motor that calculates the timing of stepper
+- A thread per stepper motor that calculates the timing of stepper
   motor step pulses and compresses those times. This thread resides in
   the **klippy/chelper/steppersync.c** C code and its multi-threaded
   nature is not exposed to the Python code.
@@ -140,71 +141,71 @@ produced on the micro-controller. This section outlines the code flow
 of a typical move command. The [kinematics](Kinematics.md) document
 provides further information on the mechanics of moves.
 
-* Processing for a move command starts in gcode.py. The goal of
+- Processing for a move command starts in gcode.py. The goal of
   gcode.py is to translate G-code into internal calls. A G1 command
   will invoke cmd_G1() in klippy/extras/gcode_move.py. The
   gcode_move.py code handles changes in origin (eg, G92), changes in
   relative vs absolute positions (eg, G90), and unit changes (eg,
   F6000=100mm/s). The code path for a move is: `_process_data() ->
-  _process_commands() -> cmd_G1()`. Ultimately the ToolHead class is
+_process_commands() -> cmd_G1()`. Ultimately the ToolHead class is
   invoked to execute the actual request: `cmd_G1() -> ToolHead.move()`
 
-* The ToolHead class (in toolhead.py) handles "look-ahead" and tracks
+- The ToolHead class (in toolhead.py) handles "look-ahead" and tracks
   the timing of printing actions. The main codepath for a move is:
   `ToolHead.move() -> LookAheadQueue.add_move()`, then
   `ToolHead.move() -> ToolHead._process_lookahead() ->
-  LookAheadQueue.flush() -> Move.set_junction()`, and then
+LookAheadQueue.flush() -> Move.set_junction()`, and then
   `ToolHead._process_lookahead() -> trapq_append()`.
-  * ToolHead.move() creates a Move() object with the parameters of the
-  move (in cartesian space and in units of seconds and millimeters).
-  * The kinematics class is given the opportunity to audit each move
-  (`ToolHead.move() -> kin.check_move()`). The kinematics classes are
-  located in the klippy/kinematics/ directory. The check_move() code
-  may raise an error if the move is not valid. If check_move()
-  completes successfully then the underlying kinematics must be able
-  to handle the move.
-  * LookAheadQueue.add_move() places the move object on the
-  "look-ahead" queue.
-  * LookAheadQueue.flush() determines the start and end velocities of
-  each move.
-  * Move.set_junction() implements the "trapezoid generator" on a
-  move. The "trapezoid generator" breaks every move into three parts:
-  a constant acceleration phase, followed by a constant velocity
-  phase, followed by a constant deceleration phase. Every move
-  contains these three phases in this order, but some phases may be of
-  zero duration.
-  * When ToolHead._process_lookahead() resumes, everything about the
-  move is known - its start location, its end location, its
-  acceleration, its start/cruising/end velocity, and distance traveled
-  during acceleration/cruising/deceleration. All the information is
-  stored in the Move() class and is in cartesian space in units of
-  millimeters and seconds.
-  * The moves are then placed on a "trapezoid motion queue" via
-  trapq_append() (in klippy/chelper/trapq.c). The trapq stores all the
-  information in the Move() class in a C struct accessible to the host
-  C code.
+  - ToolHead.move() creates a Move() object with the parameters of the
+    move (in cartesian space and in units of seconds and millimeters).
+  - The kinematics class is given the opportunity to audit each move
+    (`ToolHead.move() -> kin.check_move()`). The kinematics classes are
+    located in the klippy/kinematics/ directory. The check_move() code
+    may raise an error if the move is not valid. If check_move()
+    completes successfully then the underlying kinematics must be able
+    to handle the move.
+  - LookAheadQueue.add_move() places the move object on the
+    "look-ahead" queue.
+  - LookAheadQueue.flush() determines the start and end velocities of
+    each move.
+  - Move.set_junction() implements the "trapezoid generator" on a
+    move. The "trapezoid generator" breaks every move into three parts:
+    a constant acceleration phase, followed by a constant velocity
+    phase, followed by a constant deceleration phase. Every move
+    contains these three phases in this order, but some phases may be of
+    zero duration.
+  - When ToolHead.\_process_lookahead() resumes, everything about the
+    move is known - its start location, its end location, its
+    acceleration, its start/cruising/end velocity, and distance traveled
+    during acceleration/cruising/deceleration. All the information is
+    stored in the Move() class and is in cartesian space in units of
+    millimeters and seconds.
+  - The moves are then placed on a "trapezoid motion queue" via
+    trapq_append() (in klippy/chelper/trapq.c). The trapq stores all the
+    information in the Move() class in a C struct accessible to the host
+    C code.
 
-* Note that the extruder is handled in its own kinematic class:
+- Note that the extruder is handled in its own kinematic class:
   `ToolHead._process_lookahead() -> PrinterExtruder.process_move()`.
   Since the Move() class specifies the exact movement time and since
   step pulses are sent to the micro-controller with specific timing,
   stepper movements produced by the extruder class will be in sync
   with head movement even though the code is kept separate.
 
-* For efficiency reasons, stepper motion is generated in the C code in
+- For efficiency reasons, stepper motion is generated in the C code in
   a thread per stepper motor. The threads are notified when steps
   should be generated by the motion_queuing module
   (klippy/extras/motion_queuing.py):
   `PrinterMotionQueuing._flush_handler() ->
-  PrinterMotionQueuing._advance_move_time() ->
-  steppersyncmgr_gen_steps() -> se_start_gen_steps()`.
+PrinterMotionQueuing._advance_move_time() ->
+steppersyncmgr_gen_steps() -> se_start_gen_steps()`.
 
-* Klipper uses an
+- Klipper uses an
   [iterative solver](https://en.wikipedia.org/wiki/Root-finding_algorithm)
   to generate the step times for each stepper. The step times are
   generated from the background thread (klippy/chelper/steppersync.c):
   `se_background_thread() -> se_generate_steps() ->
-  itersolve_generate_steps() -> itersolve_gen_steps_range()` (in
+itersolve_generate_steps() -> itersolve_gen_steps_range()` (in
   klippy/chelper/itersolve.c). The goal of the iterative solver is to
   find step times given a function that calculates a stepper position
   from a time. This is done by repeatedly "guessing" various times
@@ -215,7 +216,7 @@ provides further information on the mechanics of moves.
   formulas are located in the klippy/chelper/ directory (eg,
   kin_cart.c, kin_corexy.c, kin_delta.c, kin_extruder.c).
 
-* After the iterative solver calculates the step times they are added
+- After the iterative solver calculates the step times they are added
   to an array: `itersolve_gen_steps_range() -> stepcompress_append()`
   (in klippy/chelper/stepcompress.c). The array (struct
   stepcompress.queue) stores the corresponding micro-controller clock
@@ -224,15 +225,15 @@ provides further information on the mechanics of moves.
   hardware counter - it is relative to when the micro-controller was
   last powered up.
 
-* The next major step is to compress the steps: `stepcompress_flush()
-  -> compress_bisect_add()` (in klippy/chelper/stepcompress.c). This
+- The next major step is to compress the steps: `stepcompress_flush()
+-> compress_bisect_add()` (in klippy/chelper/stepcompress.c). This
   code generates and encodes a series of micro-controller "queue_step"
   commands that correspond to the list of stepper step times built in
   the previous stage. These "queue_step" commands are then queued,
   prioritized, and sent to the micro-controller (via
   steppersync.c:steppersync and serialqueue.c:serialqueue).
 
-* Processing of the queue_step commands on the micro-controller starts
+- Processing of the queue_step commands on the micro-controller starts
   in src/command.c which parses the command and calls
   `command_queue_step()`. The command_queue_step() code (in
   src/stepper.c) just appends the parameters of each queue_step
@@ -246,7 +247,7 @@ provides further information on the mechanics of moves.
   queue_step parameters. The parameters for each queue_step command
   are "interval", "count", and "add". At a high-level, stepper_event()
   runs the following, 'count' times: `do_step(); next_wake_time =
-  last_wake_time + interval; interval += add;`
+last_wake_time + interval; interval += add;`
 
 The above may seem like a lot of complexity to execute a movement.
 However, the only really interesting parts are in the ToolHead and
@@ -266,13 +267,14 @@ The easiest way to add a new module is to use an existing module as a
 reference - see **klippy/extras/servo.py** as an example.
 
 The following may also be useful:
-* Execution of the module starts in the module level `load_config()`
+
+- Execution of the module starts in the module level `load_config()`
   function (for config sections of the form [my_module]) or in
   `load_config_prefix()` (for config sections of the form
   [my_module my_name]). This function is passed a "config" object and
   it must return a new "printer object" associated with the given
   config section.
-* During the process of instantiating a new printer object, the config
+- During the process of instantiating a new printer object, the config
   object can be used to read parameters from the given config
   section. This is done using `config.get()`, `config.getfloat()`,
   `config.getint()`, etc. methods. Be sure to read all values from the
@@ -280,7 +282,7 @@ The following may also be useful:
   specifies a config parameter that is not read during this phase then
   it will be assumed it is a typo in the config and an error will be
   raised.
-* Use the `config.get_printer()` method to obtain a reference to the
+- Use the `config.get_printer()` method to obtain a reference to the
   main "printer" class. This "printer" class stores references to all
   the "printer objects" that have been instantiated. Use the
   `printer.lookup_object()` method to find references to other printer
@@ -290,7 +292,7 @@ The following may also be useful:
   will have been instantiated. The "gcode" and "pins" modules will
   always be available, but for other modules it is a good idea to
   defer the lookup.
-* Register event handlers using the `printer.register_event_handler()`
+- Register event handlers using the `printer.register_event_handler()`
   method if the code needs to be called during "events" raised by
   other printer objects. Each event name is a string, and by
   convention it is the name of the main source module that raises the
@@ -298,29 +300,29 @@ The following may also be useful:
   "klippy:connect"). The parameters passed to each event handler are
   specific to the given event (as are exception handling and execution
   context). Two common startup events are:
-  * klippy:connect - This event is generated after all printer objects
+  - klippy:connect - This event is generated after all printer objects
     are instantiated. It is commonly used to lookup other printer
     objects, to verify config settings, and to perform an initial
     "handshake" with printer hardware.
-  * klippy:ready - This event is generated after all connect handlers
+  - klippy:ready - This event is generated after all connect handlers
     have completed successfully. It indicates the printer is
     transitioning to a state ready to handle normal operations. Do not
     raise an error in this callback.
-* If there is an error in the user's config, be sure to raise it
+- If there is an error in the user's config, be sure to raise it
   during the `load_config()` or "connect event" phases. Use either
   `raise config.error("my error")` or `raise printer.config_error("my
-  error")` to report the error.
-* Do not store a reference to the `config` object in a class member
+error")` to report the error.
+- Do not store a reference to the `config` object in a class member
   variable (nor in any similar location that may persist past initial
   module loading). The `config` object is a reference to a "config
   loading phase" class and it is not valid to invoke its methods after
   the "config loading phase" has completed.
-* Use the "pins" module to configure a pin on a micro-controller. This
+- Use the "pins" module to configure a pin on a micro-controller. This
   is typically done with something similar to
   `printer.lookup_object("pins").setup_pin("pwm",
-  config.get("my_pin"))`. The returned object can then be commanded at
+config.get("my_pin"))`. The returned object can then be commanded at
   run-time.
-* If the printer object defines a `get_status()` method then the
+- If the printer object defines a `get_status()` method then the
   module can export [status information](Status_Reference.md) via
   [macros](Command_Templates.md) and via the
   [API Server](API_Server.md). The `get_status()` method must return a
@@ -331,31 +333,31 @@ The following may also be useful:
   are exported must be treated as "immutable" - if their contents
   change then a new object must be returned from `get_status()`,
   otherwise the API Server will not detect those changes.
-* If the module needs access to system timing or external file
+- If the module needs access to system timing or external file
   descriptors then use `printer.get_reactor()` to obtain access to the
   global "event reactor" class. This reactor class allows one to
   schedule timers, wait for input on file descriptors, and to "sleep"
   the host code.
-* Do not use global variables. All state should be stored in the
+- Do not use global variables. All state should be stored in the
   printer object returned from the `load_config()` function. This is
   important as otherwise the RESTART command may not perform as
   expected. Also, for similar reasons, if any external files (or
   sockets) are opened then be sure to register a "klippy:disconnect"
   event handler and close them from that callback.
-* Avoid accessing the internal member variables (or calling methods
+- Avoid accessing the internal member variables (or calling methods
   that start with an underscore) of other printer objects. Observing
   this convention makes it easier to manage future changes.
-* It is recommended to assign a value to all member variables in the
+- It is recommended to assign a value to all member variables in the
   Python constructor of Python classes. (And therefore avoid utilizing
   Python's ability to dynamically create new member variables.)
-* If a Python variable is to store a floating point value then it is
+- If a Python variable is to store a floating point value then it is
   recommended to always assign and manipulate that variable with
   floating point constants (and never use integer constants). For
   example, prefer `self.speed = 1.` over `self.speed = 1`, and prefer
   `self.speed = 2. * x` over `self.speed = 2 * x`. Consistent use of
   floating point values can avoid hard to debug quirks in Python type
   conversions.
-* If submitting the module for inclusion in the main Klipper code, be
+- If submitting the module for inclusion in the main Klipper code, be
   sure to place a copyright notice at the top of the module. See the
   existing modules for the preferred format.
 
@@ -368,6 +370,7 @@ kinematics. It also requires software development skills - though one
 should only need to update the host software.
 
 Useful steps:
+
 1. Start by studying the
    "[code flow of a move](#code-flow-of-a-move-command)" section and
    the [Kinematics document](Kinematics.md).
@@ -406,6 +409,7 @@ knowledge of embedded development and hands-on access to the target
 micro-controller.
 
 Useful steps:
+
 1. Start by identifying any 3rd party libraries that will be used
    during the port. Common examples include "CMSIS" wrappers and
    manufacturer "HAL" libraries. All 3rd party code needs to be GNU
@@ -451,6 +455,7 @@ Useful steps:
 9. Consider adding build test cases in the test/ directory.
 
 Additional coding tips:
+
 1. Avoid using "C bitfields" to access IO registers; prefer direct
    read and write operations of 32bit, 16bit, or 8bit integers. The C
    language specifications don't clearly specify how the compiler must
@@ -559,14 +564,15 @@ the handling of time within Klipper is critical to correct operation.
 
 There are three types of times tracked internally in the Klipper host
 software:
-* System time. The system time uses the system's monotonic clock - it
+
+- System time. The system time uses the system's monotonic clock - it
   is a floating point number stored as seconds and it is (generally)
   relative to when the host computer was last started. System times
   have limited use in the software - they are primarily used when
   interacting with the operating system. Within the host code, system
-  times are frequently stored in variables named *eventtime* or
-  *curtime*.
-* Print time. The print time is synchronized to the main
+  times are frequently stored in variables named _eventtime_ or
+  _curtime_.
+- Print time. The print time is synchronized to the main
   micro-controller clock (the micro-controller defined in the "[mcu]"
   config section). It is a floating point number stored as seconds and
   is relative to when the main mcu was last restarted. It is possible
@@ -575,8 +581,8 @@ software:
   configured frequency rate. The high-level host code uses print times
   to calculate almost all physical actions (eg, head movement, heater
   changes, etc.). Within the host code, print times are generally
-  stored in variables named *print_time* or *move_time*.
-* MCU clock. This is the hardware clock counter on each
+  stored in variables named _print_time_ or _move_time_.
+- MCU clock. This is the hardware clock counter on each
   micro-controller. It is stored as an integer and its update rate is
   relative to the frequency of the given micro-controller. The host
   software translates its internal times to clocks before transmission
@@ -584,13 +590,14 @@ software:
   ticks. Within the host code, clock values are tracked as 64bit
   integers, while the mcu code uses 32bit integers. Within the host
   code, clocks are generally stored in variables with names containing
-  *clock* or *ticks*.
+  _clock_ or _ticks_.
 
 Conversion between the different time formats is primarily implemented
 in the **klippy/clocksync.py** code.
 
 Some things to be aware of when reviewing the code:
-* 32bit and 64bit clocks: To reduce bandwidth and to improve
+
+- 32bit and 64bit clocks: To reduce bandwidth and to improve
   micro-controller efficiency, clocks on the micro-controller are
   tracked as 32bit integers. When comparing two clocks in the mcu
   code, the `timer_is_before()` function must always be used to ensure
@@ -603,7 +610,7 @@ Some things to be aware of when reviewing the code:
   there is no ambiguity in this conversion, the
   **klippy/chelper/serialqueue.c** code will buffer messages until
   they are within 2^31 clock ticks of their target time.
-* Multiple micro-controllers: The host software supports using
+- Multiple micro-controllers: The host software supports using
   multiple micro-controllers on a single printer. In this case, the
   "MCU clock" of each micro-controller is tracked separately. The
   clocksync.py code handles clock drift between micro-controllers by

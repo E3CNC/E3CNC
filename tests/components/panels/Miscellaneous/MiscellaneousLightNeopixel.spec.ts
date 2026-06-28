@@ -8,10 +8,18 @@ vi.mock('vuetify/components', () => ({
     VRow: { name: 'VRow', template: '<div class="v-row"><slot /></div>' },
     VCol: { name: 'VCol', template: '<div class="v-col"><slot /></div>' },
     VListSubheader: { name: 'VListSubheader', template: '<div class="v-list-subheader"><slot /></div>' },
-    VIcon: { name: 'VIcon', props: ['size'], template: '<i class="v-icon" @click="$emit(\'click\', $event)"><slot /></i>' },
+    VIcon: {
+        name: 'VIcon',
+        props: ['size'],
+        template: '<i class="v-icon" @click="$emit(\'click\', $event)"><slot /></i>',
+    },
     VBtn: { name: 'VBtn', template: '<button class="v-btn" @click="$emit(\'click\', $event)"><slot /></button>' },
     VSpacer: { name: 'VSpacer', template: '<span class="v-spacer" />' },
-    VDialog: { name: 'VDialog', props: ['modelValue'], template: '<div class="v-dialog" v-if="modelValue"><slot /></div>' },
+    VDialog: {
+        name: 'VDialog',
+        props: ['modelValue'],
+        template: '<div class="v-dialog" v-if="modelValue"><slot /></div>',
+    },
     VCard: { name: 'VCard', template: '<div class="v-card"><slot /></div>' },
     VCardTitle: { name: 'VCardTitle', template: '<div class="v-card-title"><slot /></div>' },
     VCardText: { name: 'VCardText', template: '<div class="v-card-text"><slot /></div>' },
@@ -109,14 +117,12 @@ describe('MiscellaneousLightNeopixel.vue', () => {
         expect(stateIndicator.exists()).toBe(true) // rendered as child via v-if
     })
 
-
-
     it('renders neopixel group for each lightgroup entry', () => {
         const store = makeStore({
             gui: {
                 miscellaneous: {
                     entries: {
-                        'group1': {
+                        group1: {
                             type: 'led',
                             name: 'my_strip',
                             lightgroups: {

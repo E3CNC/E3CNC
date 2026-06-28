@@ -69,12 +69,15 @@ actual distance between the nozzle and bed at the given location.
 
 To perform the basic probe, make sure the config has a
 [delta_calibrate] section defined and then run the tool:
+
 ```
 G28
 DELTA_CALIBRATE METHOD=manual
 ```
+
 After probing the seven points new delta parameters will be
-calculated.  Save and apply these parameters by running:
+calculated. Save and apply these parameters by running:
+
 ```
 SAVE_CONFIG
 ```
@@ -139,9 +142,11 @@ from C label, distance from center to pillar with B label, etc.).
 
 Enter these parameters into Klipper with a comma separated list of
 floating point numbers:
+
 ```
 DELTA_ANALYZE CENTER_DISTS=<a_dist>,<far_c_dist>,<b_dist>,<far_a_dist>,<c_dist>,<far_b_dist>
 ```
+
 Provide the values without spaces between them.
 
 Then measure the distance between the A pillar and the pillar across
@@ -156,6 +161,7 @@ the pillar across from A, and so on.
 ![delta_cal_e_step2](img/delta_cal_e_step2.png)
 
 Enter these parameters into Klipper:
+
 ```
 DELTA_ANALYZE OUTER_DISTS=<a_to_far_c>,<far_c_to_b>,<b_to_far_a>,<far_a_to_c>,<c_to_far_b>,<far_b_to_a>
 ```
@@ -170,6 +176,7 @@ spoke.
 ![delta_cal_e_step3](img/delta_cal_e_step3.png)
 
 Enter them into Klipper:
+
 ```
 DELTA_ANALYZE CENTER_PILLAR_WIDTHS=<a>,<b>,<c>
 ```
@@ -187,26 +194,32 @@ pillar across from A, etc.).
 ![delta_cal_e_step4](img/delta_cal_e_step4.png)
 
 And enter them into Klipper:
+
 ```
 DELTA_ANALYZE OUTER_PILLAR_WIDTHS=<a>,<far_c>,<b>,<far_a>,<c>,<far_b>
 ```
 
 If the object was scaled to a smaller or larger size then provide the
 scale factor that was used when slicing the object:
+
 ```
 DELTA_ANALYZE SCALE=1.0
 ```
+
 (A scale value of 2.0 would mean the object is twice its original
 size, 0.5 would be half its original size.)
 
 Finally, perform the enhanced delta calibration by running:
+
 ```
 DELTA_ANALYZE CALIBRATE=extended
 ```
+
 This command can take several minutes to complete. After completion it
 will calculate updated delta parameters (delta radius, tower angles,
 endstop positions, and arm lengths). Use the SAVE_CONFIG command to
 save and apply the settings:
+
 ```
 SAVE_CONFIG
 ```
@@ -220,7 +233,7 @@ measurements no longer apply.
 
 ### Additional notes
 
-* If the delta printer has good dimensional accuracy then the distance
+- If the delta printer has good dimensional accuracy then the distance
   between any two pillars should be around 74mm and the width of every
   pillar should be around 9mm. (Specifically, the goal is for the
   distance between any two pillars minus the width of one of the
@@ -229,7 +242,7 @@ measurements no longer apply.
   new delta parameters using both the distance measurements and the
   previous height measurements from the last DELTA_CALIBRATE command.
 
-* DELTA_ANALYZE may produce delta parameters that are surprising. For
+- DELTA_ANALYZE may produce delta parameters that are surprising. For
   example, it may suggest arm lengths that do not match the printer's
   actual arm lengths. Despite this, testing has shown that
   DELTA_ANALYZE often produces superior results. It is believed that

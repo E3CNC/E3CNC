@@ -676,7 +676,7 @@ describe('TheTopCornerMenu.vue', () => {
         expect(global.fetch).toHaveBeenNthCalledWith(
             1,
             expect.stringContaining('/machine/e3cnc/rollback'),
-            expect.objectContaining({ method: 'POST' }),
+            expect.objectContaining({ method: 'POST' })
         )
         expect(global.fetch).toHaveBeenNthCalledWith(2, expect.stringContaining('/machine/e3cnc/info'))
         expect(vmAny(wrapper).instanceInfo.name).toBe('RolledBack')

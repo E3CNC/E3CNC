@@ -193,6 +193,7 @@ stall at very slow speeds.
 A good starting point for the homing speed is for the stepper motor to
 make a full rotation every two seconds. For many axes this will be the
 `rotation_distance` divided by two. For example:
+
 ```
 [stepper_x]
 rotation_distance: 40
@@ -217,6 +218,7 @@ will confuse the tuning process.)
 It is necessary to configure the sensorless homing pins and to
 configure initial "stallguard" settings. A tmc2209 example
 configuration for an X axis might look like:
+
 ```
 [tmc2209 stepper_x]
 diag_pin: ^PA1      # Set to MCU pin connected to TMC DIAG pin
@@ -230,6 +232,7 @@ homing_retract_dist: 0
 ```
 
 An example tmc2130 or tmc5160 config might look like:
+
 ```
 [tmc2130 stepper_x]
 diag1_pin: ^!PA1 # Pin connected to TMC DIAG1 pin (or use diag0_pin / DIAG0 pin)
@@ -243,6 +246,7 @@ homing_retract_dist: 0
 ```
 
 An example tmc2660 config might look like:
+
 ```
 [tmc2660 stepper_x]
 driver_SGT: -64     # -64 is most sensitive value, 63 is least sensitive
@@ -263,10 +267,13 @@ for all the available options.
 
 Place the carriage near the center of the rail. Use the SET_TMC_FIELD
 command to set the highest sensitivity. For tmc2209:
+
 ```
 SET_TMC_FIELD STEPPER=stepper_x FIELD=SGTHRS VALUE=255
 ```
+
 For tmc2130, tmc5160, and tmc2660:
+
 ```
 SET_TMC_FIELD STEPPER=stepper_x FIELD=sgt VALUE=-64
 ```
@@ -286,7 +293,7 @@ sure to start each attempt with the carriage near the center of the
 rail (if needed issue `M84` and then manually move the carriage to the
 center). It should be possible to find the highest sensitivity that
 homes reliably (settings with higher sensitivity result in small or no
-movement). Note the found value as *maximum_sensitivity*. (If the
+movement). Note the found value as _maximum_sensitivity_. (If the
 minimum possible sensitivity (SGTHRS=0 or sgt=63) is obtained without
 any carriage movement then something is not correct with the
 diag/sg_tst pin wiring or configuration and it must be corrected
@@ -311,7 +318,7 @@ undesirable and confusing results.
 
 #### Find lowest sensitivity that homes with one touch
 
-When homing with the found *maximum_sensitivity* value, the axis
+When homing with the found _maximum_sensitivity_ value, the axis
 should move to the end of the rail and stop with a "single touch" -
 that is, there should not be a "clicking" or "banging" sound. (If
 there is a banging or clicking sound at maximum_sensitivity then the
@@ -324,13 +331,13 @@ near the center of the rail, decrease the sensitivity, and run the
 sensitivity that still results in the carriage successfully homing
 with a "single touch". That is, it does not "bang" or "click" when
 contacting the end of the rail. Note the found value as
-*minimum_sensitivity*.
+_minimum_sensitivity_.
 
 #### Update printer.cfg with sensitivity value
 
-After finding *maximum_sensitivity* and *minimum_sensitivity*, use a
+After finding _maximum_sensitivity_ and _minimum_sensitivity_, use a
 calculator to obtain the recommend sensitivity as
-*minimum_sensitivity + (maximum_sensitivity - minimum_sensitivity)/3*.
+_minimum_sensitivity + (maximum_sensitivity - minimum_sensitivity)/3_.
 The recommended sensitivity should be in the range between the minimum
 and maximum, but slightly closer to the minimum. Round the final value
 to the nearest integer value.
@@ -338,7 +345,7 @@ to the nearest integer value.
 For tmc2209 set this in the config as `driver_SGTHRS`, for other TMC
 drivers set this in the config as `driver_SGT`.
 
-If the range between *maximum_sensitivity* and *minimum_sensitivity*
+If the range between _maximum_sensitivity_ and _minimum_sensitivity_
 is small (eg, less than 5) then it may result in unstable homing. A
 faster homing speed may increase the range and make the operation more
 stable.
@@ -365,6 +372,7 @@ It can also be useful to have that macro set the driver current before
 homing and set a new current after the carriage has moved away.
 
 An example macro might look something like:
+
 ```
 [gcode_macro SENSORLESS_HOME_X]
 gcode:
@@ -401,6 +409,7 @@ to detect stalls when homing the Y carriage.
 Use the tuning guide described above to find the appropriate "stall
 sensitivity" for each carriage, but be aware of the following
 restrictions:
+
 1. When using sensorless homing on CoreXY, make sure there is no
    `hold_current` configured for either stepper.
 2. While tuning, make sure both the X and Y carriages are near the
@@ -414,6 +423,7 @@ restrictions:
    to ensure the driver's stall flag is cleared prior to homing again.
 
 An example CoreXY homing macro might look like:
+
 ```
 [gcode_macro HOME]
 gcode:

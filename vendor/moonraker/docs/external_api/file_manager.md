@@ -4,9 +4,9 @@ Most file operations are available over both HTTP and JSON-RPC APIs,
 however file transfers (upload and download) are exclusive to the HTTP
 API.
 
-Moonraker organizes local directories into "roots".  For example,
+Moonraker organizes local directories into "roots". For example,
 `gcodes` are located at `http://host/server/files/gcodes/*`, otherwise known
-as the "gcodes" root.  The following default roots are generally available:
+as the "gcodes" root. The following default roots are generally available:
 
 - gcodes
 - config
@@ -26,6 +26,7 @@ Permissions are represented as a string value in the following format:
 | `"r"`  | Item is read-only.                   |
 | `"rw"` | Item has read and write permissions. |
 | `""`   | Item is not accessible.              |
+
 { #file-permissions-desc } Permissions
 
 ## List available files
@@ -55,19 +56,19 @@ GET /server/files/list?root=config
 ```
 
 /// api-parameters
-    open: True
-| Name   |  Type  | Default  | Description                                   |
+open: True
+| Name | Type | Default | Description |
 | ------ | :----: | -------- | --------------------------------------------- |
 | `root` | string | `gcodes` | The name of the `root` from which a file list |
-|        |        |          | should be returned.                           |^
+| | | | should be returned. |^
 
 //// Note
 The `gcodes` root will only return files with valid gcode file extensions.
 ////
 ///
 
-
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 [
     {
@@ -102,10 +103,11 @@ The `gcodes` root will only return files with valid gcode file extensions.
     }
 ]
 ```
+
 ///
 
 /// api-response-spec
-    open: True
+open: True
 
 The result is an array of `File Info` objects:
 
@@ -115,6 +117,7 @@ The result is an array of `File Info` objects:
 | `modified`    | float  | The last modified date in Unix Time (seconds).                   |
 | `size`        |  int   | The size of the file in bytes.                                   |
 | `permissions` | string | The available [permissions](#file-permissions-desc) of the file. |
+
 { #file-info-spec} File Info
 
 ///
@@ -136,6 +139,7 @@ GET /server/files/roots
 ```
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 [
     {
@@ -165,10 +169,11 @@ GET /server/files/roots
     }
 ]
 ```
+
 ///
 
 /// api-response-spec
-    open: True
+open: True
 
 The result is an array of `Root Info` objects:
 
@@ -177,6 +182,7 @@ The result is an array of `Root Info` objects:
 | `name`        | string | The name of the registered root.                             |
 | `path`        | string | The absolute path on disk of the registered root.            |
 | `permissions` | string | [Permissions](#file-permissions-desc) available on the root. |
+
 { #root-info-spec } Root Info
 
 ///
@@ -199,8 +205,9 @@ GET /server/files/metadata?filename=tools/drill.gcode
     "id": 3545
 }
 ```
+
 /// api-parameters
-    open: True
+open: True
 
 | Name       | Type | Default      | Description                                                |
 | ---------- | :--: | ------------ | ---------------------------------------------------------- |
@@ -209,6 +216,7 @@ GET /server/files/metadata?filename=tools/drill.gcode
 ///
 
 /// collapse-code
+
 ```{.json #metadata-example-response .apiresponse title="Example Response"}
 {
     "size": 1629418,
@@ -250,54 +258,55 @@ GET /server/files/metadata?filename=tools/drill.gcode
     "filename": "hook_x4_0.2mm_PLA_MK3S_1h39m.gcode"
 }
 ```
+
 ///
 
 /// api-response-spec
-    open: True
-| Field                   |   Type   | Description                                                  |
+open: True
+| Field | Type | Description |
 | ----------------------- | :------: | ------------------------------------------------------------ |
-| `size`                  |   int    | The gcode file size in bytes.                                |
-| `modified`              |  float   | The last modified time in Unix Time (seconds).               |
-| `uuid`                  |  string  | A unique identifier for the metadata object.                 |
-| `file_processors`       | [string] | An array of `File Processors` that have processed            |
-|                         |          | and modified the file.                                       |^
-|                         |          | #file-processor-app-desc                                     |+
-| `slicer`                |  string  | The name of the slicer software used to slice the file.      |
-| `slicer_version`        |  string  | The version of the slicer software.                          |
-| `gcode_start_byte`      |   int    | The byte offset in the file where the first gcode command    |
-|                         |          | is detected.                                                 |^
-| `gcode_int_byte`        |   int    | The byte offset in the file where the last gcode command     |
-|                         |          | is detected.                                                 |^
-| `object_height`         |  float   | The height (in mm) of the tallest object in the file.        |
-| `estimated_time`        |  float   | The estimated time to complete the print, in seconds.        |
-| `nozzle_diameter`       |  float   | The configured nozzle diameter, in mm.                       |
-| `layer_height`          |  float   | The configured layer height, in mm.                          |
-| `first_layer_height`    |  float   | The configured first layer height in mm.                     |
-| `first_layer_extr_temp` |  float   | The configured first layer extruder temperature, in Celsius. |
-| `first_layer_bed_temp`  |  float   | The configured first layer bed temperature, in Celsius.      |
-| `chamber_temp`          |  float   | The configured chamber temperature, in Celsius.              |
-| `filament_name`         |  string  | The name(s) of the filaments contained in print.             |
-| `filament_colors`       | [string] | List of filament colors used in #RRGGBB format.              |
-| `extruder_colors`       | [string] | List of  slicer defined extruder colors for the print.       |
-| `filament_temps`        |  [int]   | List of base temperatures for filaments, in Celsius.         |
-| `filament_type`         |  string  | The type(s) of filament used, ie: `PLA`.                     |
-| `filament_total`        |  float   | The total length filament used in mm.                        |
-| `filament_change_count` |   int    | The number of filament changes in the print.                 |
-| `filament_weight_total` |  float   | The total weight of filament used in grams.                  |
-| `filament_weights`      | [float]  | List of weights in grams used by each tool in the print.     |
-| `printer_vendor`        |  string  | The vendor name of the associated printer.                   |
-| `printer_model`         |  string  | The model of the associated printer.                         |
-| `printer_variant`       |  string  | The variant of the associated printer.                       |
-| `profile_version`       |  string  | The version of the profile configured in the slicer.         |
-| `mmu_print`             |   int    | Identifies a multimaterial print with single extruder.       |
-| `referenced_tools`      |  [int]   | List of tool numbers used in the print.                      |
-| `thumbnails`            | [object] | A list of `Thumbnail Info` objects.                          |
-|                         |          | #thumbnail-info-spec                                         |+
-| `job_id`                | string?  | The last `history` job ID associated with the gcode.         |
-|                         |          | Will be `null` if no job has been associated with the file.  |^
-| `print_start_time`      |  float   | The most recent start time the gcode file was printed. Will  |
-|                         |          | be `null` if the file has yet to be printed.                 |^
-| `filename`              |  string  | Path to the gcode file, relative to the `gcodes` root.       |
+| `size` | int | The gcode file size in bytes. |
+| `modified` | float | The last modified time in Unix Time (seconds). |
+| `uuid` | string | A unique identifier for the metadata object. |
+| `file_processors` | [string] | An array of `File Processors` that have processed |
+| | | and modified the file. |^
+| | | #file-processor-app-desc |+
+| `slicer` | string | The name of the slicer software used to slice the file. |
+| `slicer_version` | string | The version of the slicer software. |
+| `gcode_start_byte` | int | The byte offset in the file where the first gcode command |
+| | | is detected. |^
+| `gcode_int_byte` | int | The byte offset in the file where the last gcode command |
+| | | is detected. |^
+| `object_height` | float | The height (in mm) of the tallest object in the file. |
+| `estimated_time` | float | The estimated time to complete the print, in seconds. |
+| `nozzle_diameter` | float | The configured nozzle diameter, in mm. |
+| `layer_height` | float | The configured layer height, in mm. |
+| `first_layer_height` | float | The configured first layer height in mm. |
+| `first_layer_extr_temp` | float | The configured first layer extruder temperature, in Celsius. |
+| `first_layer_bed_temp` | float | The configured first layer bed temperature, in Celsius. |
+| `chamber_temp` | float | The configured chamber temperature, in Celsius. |
+| `filament_name` | string | The name(s) of the filaments contained in print. |
+| `filament_colors` | [string] | List of filament colors used in #RRGGBB format. |
+| `extruder_colors` | [string] | List of slicer defined extruder colors for the print. |
+| `filament_temps` | [int] | List of base temperatures for filaments, in Celsius. |
+| `filament_type` | string | The type(s) of filament used, ie: `PLA`. |
+| `filament_total` | float | The total length filament used in mm. |
+| `filament_change_count` | int | The number of filament changes in the print. |
+| `filament_weight_total` | float | The total weight of filament used in grams. |
+| `filament_weights` | [float] | List of weights in grams used by each tool in the print. |
+| `printer_vendor` | string | The vendor name of the associated printer. |
+| `printer_model` | string | The model of the associated printer. |
+| `printer_variant` | string | The variant of the associated printer. |
+| `profile_version` | string | The version of the profile configured in the slicer. |
+| `mmu_print` | int | Identifies a multimaterial print with single extruder. |
+| `referenced_tools` | [int] | List of tool numbers used in the print. |
+| `thumbnails` | [object] | A list of `Thumbnail Info` objects. |
+| | | #thumbnail-info-spec |+
+| `job_id` | string? | The last `history` job ID associated with the gcode. |
+| | | Will be `null` if no job has been associated with the file. |^
+| `print_start_time` | float | The most recent start time the gcode file was printed. Will |
+| | | be `null` if the file has yet to be printed. |^
+| `filename` | string | Path to the gcode file, relative to the `gcodes` root. |
 { #gcode-metadata-spec }
 
 | Field           |  Type  | Description                                                     |
@@ -306,31 +315,32 @@ GET /server/files/metadata?filename=tools/drill.gcode
 | `height`        |  int   | The height of the thumbnail in pixels.                          |
 | `size`          |  int   | The size of the thumbnail in bytes.                             |
 | `relative_path` | string | The path of the thumbnail, relative to the gcode file's parent. |
+
 { #thumbnail-info-spec } Thumbnail Info
 
 | Application               | Description                                                      |
-| ------------------------- | ---------------------------------------------------------------- |
+| ------------------------- | ---------------------------------------------------------------- | --- |
 | `preprocess_cancellation` | Converts "object identifiers" generated by the slicer into       |
-|                           | GCode commands for use with Klipper's `[exclude_object]` module. |^
+|                           | GCode commands for use with Klipper's `[exclude_object]` module. | ^   |
 | `klipper_estimator`       | Performs a time analysis on the gcode file, replacing the        |
-|                           | time estimates in the file with the result.  Also updates M73    |^
-|                           | commands.  The [analysis](../configuration.md#analysis)          |^
-|                           | component must be loaded for the metadata processor to detect if |^
-|                           | a file has been processed by `klipper_estimator`.                |^
+|                           | time estimates in the file with the result. Also updates M73     | ^   |
+|                           | commands. The [analysis](../configuration.md#analysis)           | ^   |
+|                           | component must be loaded for the metadata processor to detect if | ^   |
+|                           | a file has been processed by `klipper_estimator`.                | ^   |
+
 { #file-processor-app-desc } File Processors
 
 //// Note
 Metadata field availability depends on the Slicer application and its
-configuration.  If a field cannot be parsed from the slicer it will
+configuration. If a field cannot be parsed from the slicer it will
 be omitted.
 ////
 
 ///
 
-
 ## Scan GCode Metadata
 
-Initiate a metadata scan for a selected file.  If the file has already
+Initiate a metadata scan for a selected file. If the file has already
 been scanned the endpoint will force a re-scan.
 
 ```{.http .apirequest title="HTTP Request"}
@@ -349,7 +359,7 @@ POST /server/files/metascan?filename={filename}
 ```
 
 /// api-parameters
-    open: True
+open: True
 
 | Name       | Type | Default      | Description                                                |
 | ---------- | :--: | ------------ | ---------------------------------------------------------- |
@@ -361,11 +371,10 @@ For an example response refer to the
 [Metadata Example Response](#metadata-example-response).
 
 /// api-response-spec
-    open: True
+open: True
 The response spec is identical to the
 [Metadata Request Specification](#gcode-metadata-spec)
 ///
-
 
 ## Get GCode Thumbnail Details
 
@@ -374,6 +383,7 @@ Returns thumbnail information for a supplied gcode file.
 ```{.http .apirequest title="HTTP Request"}
 GET /server/files/thumbnails?filename=tools/drill.gcode
 ```
+
 ```{.json .apirequest title="JSON-RPC Request"}
 {
     "jsonrpc": "2.0",
@@ -386,7 +396,7 @@ GET /server/files/thumbnails?filename=tools/drill.gcode
 ```
 
 /// api-parameters
-    open: True
+open: True
 
 | Name       | Type | Default      | Description                                                |
 | ---------- | :--: | ------------ | ---------------------------------------------------------- |
@@ -395,6 +405,7 @@ GET /server/files/thumbnails?filename=tools/drill.gcode
 ///
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 [
     {
@@ -411,10 +422,11 @@ GET /server/files/thumbnails?filename=tools/drill.gcode
     }
 ]
 ```
+
 ///
 
 /// api-response-spec
-    open: True
+open: True
 
 The result is an array of `Thumbnail Details` objects.
 
@@ -424,6 +436,7 @@ The result is an array of `Thumbnail Details` objects.
 | `height`         |  int   | The height of the thumbnail in pixels.                    |
 | `size`           |  int   | The size of the thumbnail in bytes.                       |
 | `thumbnail_path` | string | The path of the thumbnail, relative to the `gcodes` root. |
+
 { #thumbnail-details-spec } Thumbnail Details
 
 //// Note
@@ -438,12 +451,11 @@ file's parent folder.
 
 ///
 
-
 ## Get directory information
 
 Returns a list of files and subdirectories given a supplied path.
 Unlike `/server/files/list`, this command does not walk through
-subdirectories.  This request will return all files in a directory,
+subdirectories. This request will return all files in a directory,
 including files in the `gcodes` root that do not have a valid gcode
 extension.
 
@@ -464,18 +476,19 @@ GET /server/files/directory?path=gcodes/my_subdir&extended=true
 ```
 
 /// api-parameters
-    open: True
+open: True
 
 | Name       |  Type  | Default  | Description                                         |
-| ---------- | :----: | -------- | --------------------------------------------------- |
-| `path`     | string | `gcodes` | Path to the directory.  The first part must be a    |
-|            |        |          | registered root.                                    |^
+| ---------- | :----: | -------- | --------------------------------------------------- | --- |
+| `path`     | string | `gcodes` | Path to the directory. The first part must be a     |
+|            |        |          | registered root.                                    | ^   |
 | `extended` |  bool  | `false`  | When set to `true` metadata will be included in the |
-|            |        |          | response for gcode file.                            |^
+|            |        |          | response for gcode file.                            | ^   |
 
 ///
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "dirs": [
@@ -529,27 +542,27 @@ GET /server/files/directory?path=gcodes/my_subdir&extended=true
     }
 }
 ```
+
 ///
 
 /// api-response-spec
-    open: True
+open: True
 
 | Field        |   Type   | Description                                             |
-| ------------ | :------: | ------------------------------------------------------- |
-| `dirs`       | [object] | An array of `Directory Info` objects.  Will be empty if |
-|              |          | no sub-directories are found.                           |^
-|              |          | #directory-info-spec                                    |+
-| `files`      | [object] | An array of `File Info` objects.  Will be empty if no   |
-|              |          | files are found.                                        |^
-|              |          | #dir-req-file-info-spec                                 |+
+| ------------ | :------: | ------------------------------------------------------- | --- |
+| `dirs`       | [object] | An array of `Directory Info` objects. Will be empty if  |
+|              |          | no sub-directories are found.                           | ^   |
+|              |          | #directory-info-spec                                    | +   |
+| `files`      | [object] | An array of `File Info` objects. Will be empty if no    |
+|              |          | files are found.                                        | ^   |
+|              |          | #dir-req-file-info-spec                                 | +   |
 | `disk_usage` |  object  | A `Disk Usage` object. This provides disk usage details |
-|              |          | about the underlying storage media containing the       |^
-|              |          | requested directory.                                    |^
-|              |          | #disk-usage-spec                                        |+
+|              |          | about the underlying storage media containing the       | ^   |
+|              |          | requested directory.                                    | ^   |
+|              |          | #disk-usage-spec                                        | +   |
 | `root_info`  |  object  | A `Root Info` object. Provides details about the        |
-|              |          | directory's root parent.                                |^
-|              |          | #root-info-spec                                         |+
-
+|              |          | directory's root parent.                                | ^   |
+|              |          | #root-info-spec                                         | +   |
 
 | Field         |  Type  | Description                                                           |
 | ------------- | :----: | --------------------------------------------------------------------- |
@@ -557,20 +570,21 @@ GET /server/files/directory?path=gcodes/my_subdir&extended=true
 | `size`        |  int   | The size of the file in bytes.                                        |
 | `permissions` | string | The available [permissions](#file-permissions-desc) of the directory. |
 | `dirname`     | string | The name of the directory.                                            |
+
 { #directory-info-spec } Directory Info
 
+| Field             |  Type  | Description                                                           |
+| ----------------- | :----: | --------------------------------------------------------------------- | --- |
+| `modified`        | float  | The last modified date in Unix Time (seconds).                        |
+| `size`            |  int   | The size of the file in bytes.                                        |
+| `permissions`     | string | The available [permissions](#file-permissions-desc) of the directory. |
+| `filename`        | string | The name of the file.                                                 |
+| _metadata-fields_ | _any_  | When the `extended` parameter is set to true all available metadata   |
+|                   |        | fields are included in the object. See the                            | ^   |
+|                   |        | [metadata response spec](#gcode-metadata-spec) for details. Note that | ^   |
+|                   |        | the `filename` in the metadata spec, which is a relative path, will   |
+|                   |        | not overwrite the `filename` above, which is not a path.              |
 
-| Field             |  Type  | Description                                                            |
-| ----------------- | :----: | ---------------------------------------------------------------------- |
-| `modified`        | float  | The last modified date in Unix Time (seconds).                         |
-| `size`            |  int   | The size of the file in bytes.                                         |
-| `permissions`     | string | The available [permissions](#file-permissions-desc) of the directory.  |
-| `filename`        | string | The name of the file.                                                  |
-| _metadata-fields_ | _any_  | When the `extended` parameter is set to true all available metadata    |
-|                   |        | fields are included in the object.  See the                            |^
-|                   |        | [metadata response spec](#gcode-metadata-spec) for details.  Note that |^
-|                   |        | the `filename` in the metadata spec, which is a relative path, will    |
-|                   |        | not overwrite the `filename` above, which is not a path.               |
 { #dir-req-file-info-spec } File Info
 
 | Field   | Type | Description                              |
@@ -578,13 +592,15 @@ GET /server/files/directory?path=gcodes/my_subdir&extended=true
 | `free`  | int  | The amount of free space in bytes.       |
 | `used`  | int  | The amount of used data in bytes.        |
 | `total` | int  | The total capacity of the disk in bytes. |
+
 { #disk-usage-spec } Disk Usage
 
 | Field         |  Type  | Description                                                |
-| ------------- | :----: | ---------------------------------------------------------- |
+| ------------- | :----: | ---------------------------------------------------------- | --- |
 | `name`        | string | The name of the root node for the requested directory.     |
 | `permissions` | string | The available [permissions](#file-permissions-desc) of the |
-|               |        | root node.                                                 |^
+|               |        | root node.                                                 | ^   |
+
 { #root-info-spec } Root Info
 
 ///
@@ -601,6 +617,7 @@ Content-Type: application/json
     "path": "gcodes/my_new_dir"
 }
 ```
+
 ```{.json .apirequest title="JSON-RPC Request"}
 {
     "jsonrpc": "2.0",
@@ -613,16 +630,17 @@ Content-Type: application/json
 ```
 
 /// api-parameters
-    open: True
+open: True
 
 | Name   |  Type  | Default      | Description                                                |
-| ------ | :----: | ------------ | ---------------------------------------------------------- |
+| ------ | :----: | ------------ | ---------------------------------------------------------- | --- |
 | `path` | string | **REQUIRED** | The path to the directory to create, including its `root`. |
-|        |        |              | Note that the parent directory must exist.                 |^
+|        |        |              | Note that the parent directory must exist.                 | ^   |
 
 ///
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "item": {
@@ -636,35 +654,39 @@ Content-Type: application/json
     "action": "create_dir"
 }
 ```
+
 ///
 
 /// api-response-spec
-    open: True
+open: True
 
-| Field    |  Type  | Description                                                 |
-| -------- | :----: | ----------------------------------------------------------- |
-| `item`   | object | An `Item Details` object describing the directory created.  |
-|          |        | #create-dir-item-details-spec                               |+
-| `action` | string | A description of the action taken by the host.  Will always |
-|          |        | be `create_dir` for this request.                           |^
+| Field    |  Type  | Description                                                |
+| -------- | :----: | ---------------------------------------------------------- | --- |
+| `item`   | object | An `Item Details` object describing the directory created. |
+|          |        | #create-dir-item-details-spec                              | +   |
+| `action` | string | A description of the action taken by the host. Will always |
+|          |        | be `create_dir` for this request.                          | ^   |
 
 | Field         |  Type  | Description                                          |
 | ------------- | :----: | ---------------------------------------------------- |
 | `path`        | string | The path of the new directory, relative to the root. |
 | `root`        | string | The root node the directory was created under.       |
 | `modified`    | float  | The last modified date in Unix Time (seconds).       |
-| `size`        |  int   | The size of the directory.  Will generally be 4096.  |
+| `size`        |  int   | The size of the directory. Will generally be 4096.   |
 | `permissions` | string | Permissions available on the new directory.          |
+
 { #create-dir-item-details-spec } Item Details
 
 ///
 
 ## Delete directory
+
 Deletes a directory at the specified path.
 
 ```{.http .apirequest title="HTTP Request"}
 DELETE /server/files/directory?path=gcodes/my_subdir&force=false
 ```
+
 ```{.json .apirequest title="JSON-RPC Request"}
 {
     "jsonrpc": "2.0",
@@ -678,19 +700,19 @@ DELETE /server/files/directory?path=gcodes/my_subdir&force=false
 ```
 
 /// api-parameters
-    open: True
+open: True
 
 | Name    |  Type  | Default      | Description                                                 |
-| ------- | :----: | ------------ | ----------------------------------------------------------- |
+| ------- | :----: | ------------ | ----------------------------------------------------------- | --- |
 | `path`  | string | **REQUIRED** | The path to the directory to delete, including its `root`.  |
-|         |        |              | Note that the directory must be empty if `force` is `false` |^
+|         |        |              | Note that the directory must be empty if `force` is `false` | ^   |
 | `force` |  bool  | `false`      | When set to `true` the directory and all of its contents    |
-|         |        |              | will be deleted.                                            |^
+|         |        |              | will be deleted.                                            | ^   |
 
 ///
 
-
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "item": {
@@ -704,28 +726,30 @@ DELETE /server/files/directory?path=gcodes/my_subdir&force=false
     "action": "delete_dir"
 }
 ```
+
 ///
 
 /// api-response-spec
-    open: True
+open: True
 
-| Field    |  Type  | Description                                                 |
-| -------- | :----: | ----------------------------------------------------------- |
-| `item`   | object | An `Item Details` object describing the directory deleted.  |
-|          |        | #delete-dir-item-details-spec                               |+
-| `action` | string | A description of the action taken by the host.  Will always |
-|          |        | be `delete_dir` for this request.                           |^
+| Field    |  Type  | Description                                                |
+| -------- | :----: | ---------------------------------------------------------- | --- |
+| `item`   | object | An `Item Details` object describing the directory deleted. |
+|          |        | #delete-dir-item-details-spec                              | +   |
+| `action` | string | A description of the action taken by the host. Will always |
+|          |        | be `delete_dir` for this request.                          | ^   |
 
-| Field         |  Type  | Description                                                   |
-| ------------- | :----: | ------------------------------------------------------------- |
-| `path`        | string | The path of the deleted directory, relative to the root.      |
-| `root`        | string | The root node the directory existed under prior to removal.   |
-| `modified`    | float  | The last modified date in Unix Time (seconds).  Should be     |
-|               |        | 0 if the delete was successful.                               |^
-| `size`        |  int   | The size of the removed directory.  Should be 0 if the delete |
-|               |        | was successful.                                               |^
-| `permissions` | string | Permissions available on the removed directory.  Should be    |
-|               |        | an empty string if the delete was successful.                 |^
+| Field         |  Type  | Description                                                  |
+| ------------- | :----: | ------------------------------------------------------------ | --- |
+| `path`        | string | The path of the deleted directory, relative to the root.     |
+| `root`        | string | The root node the directory existed under prior to removal.  |
+| `modified`    | float  | The last modified date in Unix Time (seconds). Should be     |
+|               |        | 0 if the delete was successful.                              | ^   |
+| `size`        |  int   | The size of the removed directory. Should be 0 if the delete |
+|               |        | was successful.                                              | ^   |
+| `permissions` | string | Permissions available on the removed directory. Should be    |
+|               |        | an empty string if the delete was successful.                | ^   |
+
 { #delete-dir-item-details-spec } Item Details
 
 ///
@@ -746,9 +770,9 @@ When specifying the `source` and `dest`, the `root` directory should be
 prefixed. Currently the only supported roots for `dest` are `gcodes`"
 and `config`".
 
-This endpoint may also be used to rename a file or directory.   Be aware that an
+This endpoint may also be used to rename a file or directory. Be aware that an
 attempt to rename a directory to a directory that exists with the same name will
-*move* the source directory into the destination directory.  Also be aware
+_move_ the source directory into the destination directory. Also be aware
 that renaming a file to a file that already exists will overwrite the existing
 file.
 
@@ -775,18 +799,19 @@ Content-Type: application/json
 ```
 
 /// api-parameters
-    open: True
+open: True
 
-| Name     |  Type  | Default      | Description                                         |
-| -------- | :----: | ------------ | --------------------------------------------------- |
-| `source` | string | **REQUIRED** | The source file or directory to move.               |
-|          |        |              | This is a path that must start with the root node.  |^
-| `dest`   | string | **REQUIRED** | The destination path.  The path must start with the |
-|          |        |              | root node.                                          |^
+| Name     |  Type  | Default      | Description                                        |
+| -------- | :----: | ------------ | -------------------------------------------------- | --- |
+| `source` | string | **REQUIRED** | The source file or directory to move.              |
+|          |        |              | This is a path that must start with the root node. | ^   |
+| `dest`   | string | **REQUIRED** | The destination path. The path must start with the |
+|          |        |              | root node.                                         | ^   |
 
 ///
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "item": {
@@ -803,46 +828,48 @@ Content-Type: application/json
     "action": "move_file"
 }
 ```
+
 ///
 
 /// api-response-spec
-    open: True
+open: True
 
-| Field         |  Type  | Description                                             |
-| ------------- | :----: | ------------------------------------------------------- |
-| `item`        | object | A `Destination Item` object.                            |
-|               |        | #move-dest-item-spec                                    |+
-| `source_item` | object | A `Source Item` object.                                 |
-|               |        | #move-source-item-spec                                  |+
-| `action`      | string | A description of the action taken.  Will be `move_file` |
-|               |        | if a file was moved or `move_dir` if a directory was    |^
-|               |        | moved.                                                  |^
+| Field         |  Type  | Description                                            |
+| ------------- | :----: | ------------------------------------------------------ | --- |
+| `item`        | object | A `Destination Item` object.                           |
+|               |        | #move-dest-item-spec                                   | +   |
+| `source_item` | object | A `Source Item` object.                                |
+|               |        | #move-source-item-spec                                 | +   |
+| `action`      | string | A description of the action taken. Will be `move_file` |
+|               |        | if a file was moved or `move_dir` if a directory was   | ^   |
+|               |        | moved.                                                 | ^   |
 
 | Field         |  Type  | Description                                               |
-| ------------- | :----: | --------------------------------------------------------- |
+| ------------- | :----: | --------------------------------------------------------- | --- |
 | `root`        | string | The root node of the destination file or directory.       |
 | `path`        | string | The path, relative to the root node, of the destination   |
-|               |        | file or directory.                                        |^
+|               |        | file or directory.                                        | ^   |
 | `modified`    | float  | The last modified time of the destination file or         |
-|               |        | directory.  This is expressed in Unix Time (seconds).     |^
+|               |        | directory. This is expressed in Unix Time (seconds).      | ^   |
 | `size`        |  int   | The size, in bytes, of the destination file or directory. |
 | `permissions` | string | The permissions available on the destination file or      |
-|               |        | directory.                                                |^
+|               |        | directory.                                                | ^   |
+
 { #move-dest-item-spec } Destination Item
 
 | Field  |  Type  | Description                                                   |
-| ------ | :----: | ------------------------------------------------------------- |
+| ------ | :----: | ------------------------------------------------------------- | --- |
 | `root` | string | The root node of the source file or directory that was moved. |
 | `path` | string | The path, relative to the root node, of the source file or    |
-|        |        | directory that was moved.                                     |^
+|        |        | directory that was moved.                                     | ^   |
+
 { #move-source-item-spec } Source Item
 
 ///
 
-
 ## Copy a file or directory
 
-Copies a file or directory from one location to another.  A successful copy has
+Copies a file or directory from one location to another. A successful copy has
 the same prerequisites as a move with one exception, a copy may complete if the
 source file or directory is loaded by the `virtual_sdcard`.
 
@@ -869,18 +896,19 @@ Content-Type: application/json
 ```
 
 /// api-parameters
-    open: True
+open: True
 
-| Name     |  Type  | Default      | Description                                         |
-| -------- | :----: | ------------ | --------------------------------------------------- |
-| `source` | string | **REQUIRED** | The source file or directory to copy.               |
-|          |        |              | This is a path that must start with the root node.  |^
-| `dest`   | string | **REQUIRED** | The destination path.  The path must start with the |
-|          |        |              | root node.                                          |^
+| Name     |  Type  | Default      | Description                                        |
+| -------- | :----: | ------------ | -------------------------------------------------- | --- |
+| `source` | string | **REQUIRED** | The source file or directory to copy.              |
+|          |        |              | This is a path that must start with the root node. | ^   |
+| `dest`   | string | **REQUIRED** | The destination path. The path must start with the |
+|          |        |              | root node.                                         | ^   |
 
 ///
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "item": {
@@ -893,38 +921,41 @@ Content-Type: application/json
     "action": "create_file"
 }
 ```
+
 ///
 
 /// api-response-spec
-    open: True
+open: True
 
-| Field    |  Type  | Description                                             |
-| -------- | :----: | ------------------------------------------------------- |
-| `item`   | object | A `Destination Item` object.                            |
-|          |        | #copy-dest-item-spec                                    |+
-| `action` | string | A description of the action taken.  Expand for details. |
-|          |        | #copy-action-desc                                       |+
+| Field    |  Type  | Description                                            |
+| -------- | :----: | ------------------------------------------------------ | --- |
+| `item`   | object | A `Destination Item` object.                           |
+|          |        | #copy-dest-item-spec                                   | +   |
+| `action` | string | A description of the action taken. Expand for details. |
+|          |        | #copy-action-desc                                      | +   |
 
 | Field         |  Type  | Description                                               |
-| ------------- | :----: | --------------------------------------------------------- |
+| ------------- | :----: | --------------------------------------------------------- | --- |
 | `root`        | string | The root node of the destination file or directory.       |
 | `path`        | string | The path, relative to the root node, of the destination   |
-|               |        | file or directory.                                        |^
+|               |        | file or directory.                                        | ^   |
 | `modified`    | float  | The last modified time of the destination file or         |
-|               |        | directory.  This is expressed in Unix Time (seconds).     |^
+|               |        | directory. This is expressed in Unix Time (seconds).      | ^   |
 | `size`        |  int   | The size, in bytes, of the destination file or directory. |
 | `permissions` | string | The permissions available on the destination file or      |
-|               |        | directory.                                                |^
+|               |        | directory.                                                | ^   |
+
 { #copy-dest-item-spec } Destination Item
 
 | Name          | Description                                             |
-| ------------- | ------------------------------------------------------- |
+| ------------- | ------------------------------------------------------- | --- |
 | `create_file` | A new file was created by the copy operation.           |
 | `modify_file` | An existing file was modified (overwritten) by the copy |
-|               | operation.                                              |^
-| `create_dir`  | A new directory was created by the copy operation.  In  |
-|               | addition, children files and directories may have been  |^
-|               | created.                                                |^
+|               | operation.                                              | ^   |
+| `create_dir`  | A new directory was created by the copy operation. In   |
+|               | addition, children files and directories may have been  | ^   |
+|               | created.                                                | ^   |
+
 { #copy-action-desc }
 ///
 
@@ -965,27 +996,26 @@ Content-Type: application/json
 ```
 
 /// api-parameters
-    open: True
+open: True
 
 | Name         |   Type   | Default                             | Description                                |
-| ------------ | :------: | ----------------------------------- | ------------------------------------------ |
+| ------------ | :------: | ----------------------------------- | ------------------------------------------ | --- |
 | `dest`       |  string  | `config/collection-{timestamp}.zip` | Path to the destination archive file.      |
-|              |          |                                     | The path must begin with a valid "root"    |^
-|              |          |                                     | that has write permission.                 |^
+|              |          |                                     | The path must begin with a valid "root"    | ^   |
+|              |          |                                     | that has write permission.                 | ^   |
 | `items`      | [string] | **REQUIRED**                        | An array of paths indicating the items     |
-|              |          |                                     | to be included in the archive.  Each       |^
-|              |          |                                     | path must start with a valid root. An      |^
-|              |          |                                     | item may be a file or directory.           |^
+|              |          |                                     | to be included in the archive. Each        | ^   |
+|              |          |                                     | path must start with a valid root. An      | ^   |
+|              |          |                                     | item may be a file or directory.           | ^   |
 | `store_only` |   bool   | `false`                             | When set to `true` the contents of the zip |
-|              |          |                                     | archive are not compressed.  Otherwise the |^
-|              |          |                                     | `deflation` algorithm will be used to      |^
-|              |          |                                     | compress the contents.                     |^
-
+|              |          |                                     | archive are not compressed. Otherwise the  | ^   |
+|              |          |                                     | `deflation` algorithm will be used to      | ^   |
+|              |          |                                     | compress the contents.                     | ^   |
 
 ///
 
-
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "destination": {
@@ -998,16 +1028,17 @@ Content-Type: application/json
     "action": "zip_files"
 }
 ```
+
 ///
 
 /// api-response-spec
-    open: True
+open: True
 
 | Field         |  Type  | Description                                                |
-| ------------- | :----: | ---------------------------------------------------------- |
+| ------------- | :----: | ---------------------------------------------------------- | --- |
 | `destination` | object | A `Zip Destination` object containing details about the    |
-|               |        | archived file.                                             |^
-|               |        | #zip-destination-spec                                      |+
+|               |        | archived file.                                             | ^   |
+|               |        | #zip-destination-spec                                      | +   |
 | `action`      | string | The action taken be the file manager. Will be `zip_files`. |
 
 | Field         |  Type  | Description                                                         |
@@ -1017,12 +1048,14 @@ Content-Type: application/json
 | `modified`    | float  | The last modified time in unix time.                                |
 | `size`        |  int   | The size of the file in bytes.                                      |
 | `permissions` | string | The available [permissions](#file-permissions-desc) of the archive. |
+
 { #zip-destination-spec } Zip Destination
 
 ///
 
 ## File download
-Retrieves file `filename` at root `root`.  The `filename` must include
+
+Retrieves file `filename` at root `root`. The `filename` must include
 the relative path if it is not in the root folder.
 
 ```{.http .apirequest title="HTTP Request"}
@@ -1034,18 +1067,19 @@ Not Available
 ```
 
 /// api-response-spec
-    open: True
+open: True
 
 The body of the response contains the contents of the requested file.
 
 ///
 
 ## File upload
-Upload a file.  Currently files may be uploaded to the `gcodes` or `config`
-roots, with `gcodes` being the default.  If one wishes to upload
+
+Upload a file. Currently files may be uploaded to the `gcodes` or `config`
+roots, with `gcodes` being the default. If one wishes to upload
 to a subdirectory, the path may be added to the upload's file name
 (relative to the root). If the directory does not exist an error will be
-returned.  Alternatively, the `path` form argument may be set, as explained
+returned. Alternatively, the `path` form argument may be set, as explained
 below.
 
 ```{.http .apirequest title="HTTP Request"}
@@ -1065,32 +1099,32 @@ Not Available
 ```
 
 /// api-parameters
-    open: True
+open: True
 
 The file data must be included in the request's body as `multipart/form-data`
-(ie: `<input type="file">`).  The following *optional* arguments may also be
+(ie: `<input type="file">`). The following _optional_ arguments may also be
 added to the form-data:
 
 | Name       |  Type  | Default  | Description                                                    |
-| ---------- | :----: | -------- | -------------------------------------------------------------- |
-| `root`     | string | `gcodes` | The root location in which to upload the file.  Currently      |
-|            |        |          | this may only be `gcodes` or `config`.                         |^
+| ---------- | :----: | -------- | -------------------------------------------------------------- | --- |
+| `root`     | string | `gcodes` | The root location in which to upload the file. Currently       |
+|            |        |          | this may only be `gcodes` or `config`.                         | ^   |
 | `path`     | string |          | An optional path, relative to the `root`, indicating a         |
-|            |        |          | subfolder in which to save the file.  If the subfolder does    |^
-|            |        |          | not exist it will be created.                                  |^
+|            |        |          | subfolder in which to save the file. If the subfolder does     | ^   |
+|            |        |          | not exist it will be created.                                  | ^   |
 | `checksum` | string |          | An optional SHA256 hex digest calculated by the client for     |
-|            |        |          | the uploaded file.  If this argument is supplied the server    |^
-|            |        |          | will compare it to its own checksum calculation after the      |^
-|            |        |          | upload has completed.  A checksum mismatch will result in a    |^
-|            |        |          | 422 error.                                                     |^
-| `print`    | string | `false`  | Available only for files uploaded to the `gcodes` root.  When  |
-|            |        |          | set to `true` Moonraker will command Klippy to start the print |^
-|            |        |          | after the upload has successfully completed.                   |^
+|            |        |          | the uploaded file. If this argument is supplied the server     | ^   |
+|            |        |          | will compare it to its own checksum calculation after the      | ^   |
+|            |        |          | upload has completed. A checksum mismatch will result in a     | ^   |
+|            |        |          | 422 error.                                                     | ^   |
+| `print`    | string | `false`  | Available only for files uploaded to the `gcodes` root. When   |
+|            |        |          | set to `true` Moonraker will command Klippy to start the print | ^   |
+|            |        |          | after the upload has successfully completed.                   | ^   |
 
 ///
 
-
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "item": {
@@ -1105,18 +1139,19 @@ added to the form-data:
     "action": "create_file"
 }
 ```
+
 ///
 
 /// api-response-spec
-    open: True
+open: True
 
 | Field           |  Type  | Description                                                           |
-| --------------- | :----: | --------------------------------------------------------------------- |
+| --------------- | :----: | --------------------------------------------------------------------- | --- |
 | `item`          | object | An `Uploaded Item` object.                                            |
-|                 |        | #uploaded-item-spec                                                   |+
+|                 |        | #uploaded-item-spec                                                   | +   |
 | `print_started` |  bool  | Set to `true` if the uploaded file has successfully started printing. |
 | `print_queued ` |  bool  | Set to `true` if the uploaded file has been queued for printing       |
-|                 |        | at a later time.                                                      |^
+|                 |        | at a later time.                                                      | ^   |
 | `action`        | string | Action taken by the file manager. Will always be "create_file".       |
 
 | Field         |  Type  | Description                                                         |
@@ -1126,6 +1161,7 @@ added to the form-data:
 | `modified`    | float  | The last modified time in unix time.                                |
 | `size`        |  int   | The size of the file in bytes.                                      |
 | `permissions` | string | The available [permissions](#file-permissions-desc) of the archive. |
+
 { #uploaded-item-spec } Uploaded Item
 
 In addition to the above returned object, all successful uploads will respond with
@@ -1134,7 +1170,8 @@ the uploaded file.
 ///
 
 ## File delete
-Delete a file in the requested root.  If the file exists in a subdirectory,
+
+Delete a file in the requested root. If the file exists in a subdirectory,
 its relative path must be part of the `{filename}` argument.
 
 ```{.http .apirequest title="HTTP Request"}
@@ -1153,6 +1190,7 @@ DELETE /server/files/{root}/{filename}
 ```
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "item": {
@@ -1165,27 +1203,29 @@ DELETE /server/files/{root}/{filename}
     "action": "delete_file"
 }
 ```
+
 ///
 
 /// api-response-spec
-    open: True
+open: True
 
 | Field    |  Type  | Description                                                     |
-| -------- | :----: | --------------------------------------------------------------- |
+| -------- | :----: | --------------------------------------------------------------- | --- |
 | `item`   | object | A `Deleted Item` object.                                        |
-|          |        | #deleted-item-spec                                              |+
+|          |        | #deleted-item-spec                                              | +   |
 | `action` | string | Action taken by the file manager. Will always be "delete_file". |
 
-| Field         |  Type  | Description                                                          |
-| ------------- | :----: | -------------------------------------------------------------------- |
-| `path`        | string | The path of the deleted file, relative to the `root`.                |
-| `root`        | string | The root node of the deleted file or directory.                      |
-| `modified`    | float  | The last modified time in unix time.  Should always be 0 as the file |
-|               |        | no longer exists.                                                    |^
-| `size`        |  int   | The size of the file in bytes. Should always be 0 as the file no     |
-|               |        | longer exits.                                                        |^
-| `permissions` | string | The available [permissions](#file-permissions-desc) of the archive.  |
-|               |        | should always be an empty string as the file no longer exists.       |^
+| Field         |  Type  | Description                                                         |
+| ------------- | :----: | ------------------------------------------------------------------- | --- |
+| `path`        | string | The path of the deleted file, relative to the `root`.               |
+| `root`        | string | The root node of the deleted file or directory.                     |
+| `modified`    | float  | The last modified time in unix time. Should always be 0 as the file |
+|               |        | no longer exists.                                                   | ^   |
+| `size`        |  int   | The size of the file in bytes. Should always be 0 as the file no    |
+|               |        | longer exits.                                                       | ^   |
+| `permissions` | string | The available [permissions](#file-permissions-desc) of the archive. |
+|               |        | should always be an empty string as the file no longer exists.      | ^   |
+
 { #deleted-item-spec } Deleted Item
 
 ///
@@ -1193,8 +1233,8 @@ DELETE /server/files/{root}/{filename}
 ## Download klippy.log
 
 /// Note
-Logs are now available in the `logs` root.  Front ends should consider
-presenting all available logs using "file manager" type of UI.  That said,
+Logs are now available in the `logs` root. Front ends should consider
+presenting all available logs using "file manager" type of UI. That said,
 If Klipper has not been configured to write logs in the `logs` root then
 this endpoint is available as a fallback.
 ///
@@ -1208,7 +1248,7 @@ Not Available
 ```
 
 /// api-response-spec
-    open: True
+open: True
 
 The body of the response contains contents of `klippy.log`.
 
@@ -1217,8 +1257,8 @@ The body of the response contains contents of `klippy.log`.
 ## Download moonraker.log
 
 /// Note
-Logs are now available in the `logs` root.  Front ends should consider
-presenting all available logs using "file manager" type of UI.  That said,
+Logs are now available in the `logs` root. Front ends should consider
+presenting all available logs using "file manager" type of UI. That said,
 If Moonraker has not been configured to write logs in the `logs` root then
 this endpoint is available as a fallback.
 ///
@@ -1232,7 +1272,7 @@ Not Available
 ```
 
 /// api-response-spec
-    open: True
+open: True
 
 The body of the response contains the contents of `moonraker.log`.
 

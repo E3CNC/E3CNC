@@ -13,7 +13,11 @@ vi.mock('@mdi/js', () => ({
 }))
 
 vi.mock('vuetify/components', () => ({
-    VBtn: { name: 'VBtn', props: ['size', 'variant', 'color'], template: '<button class="v-btn" :class="\'v-btn--size-\' + $props.size"><slot /></button>' },
+    VBtn: {
+        name: 'VBtn',
+        props: ['size', 'variant', 'color'],
+        template: '<button class="v-btn" :class="\'v-btn--size-\' + $props.size"><slot /></button>',
+    },
     VIcon: { name: 'VIcon', props: ['size'], template: '<i class="v-icon"><slot /></i>' },
 }))
 
@@ -21,7 +25,8 @@ vi.mock('@/components/settings/SettingsRow.vue', () => ({
     default: {
         name: 'SettingsRow',
         props: ['title', 'subTitle', 'dynamicSlotWidth'],
-        template: '<div class="settings-row"><span class="settings-row-title">{{ title }}</span><span class="settings-row-subtitle">{{ subTitle }}</span><slot /></div>',
+        template:
+            '<div class="settings-row"><span class="settings-row-title">{{ title }}</span><span class="settings-row-subtitle">{{ subTitle }}</span><slot /></div>',
     },
 }))
 

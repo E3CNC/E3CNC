@@ -6,8 +6,8 @@ in JSON-RPC is a method call without an `id` parameter, for example:
 
 ```json
 {
-    "jsonrpc": "2.0",
-    "method": "{notification method name}"
+  "jsonrpc": "2.0",
+  "method": "{notification method name}"
 }
 ```
 
@@ -15,15 +15,15 @@ OR with parameters:
 
 ```json
 {
-    "jsonrpc": "2.0",
-    "method": "{notification method name}",
-    "params": [true, "pos_param_2", {"obj": "stuff"}]
+  "jsonrpc": "2.0",
+  "method": "{notification method name}",
+  "params": [true, "pos_param_2", { "obj": "stuff" }]
 }
 ```
 
 To keep consistency Moonraker always sends parameters as positional
-arguments.  Specifically, the `params` field will always contain
-an array.  This can often lead to a somewhat strange format where
+arguments. Specifically, the `params` field will always contain
+an array. This can often lead to a somewhat strange format where
 the `params` field contains a single element array, where the element
 is an object.
 
@@ -47,7 +47,7 @@ notify_gcode_response
 ```
 
 /// api-notification-spec
-    open: True
+open: True
 
 | Pos |  Type  | Description                 |
 | --- | :----: | --------------------------- |
@@ -83,18 +83,18 @@ notify_status_update
 ```
 
 /// api-notification-spec
-    open: True
+open: True
 
 | Pos |  Type  | Description                                      |
-| --- | :----: | ------------------------------------------------ |
+| --- | :----: | ------------------------------------------------ | --- |
 | 0   | object | An object containing changes to subscribed       |
-|     |        | Klipper objects.  Each key is the name of a      |^
-|     |        | printer object, each value will be an object     |^
-|     |        | containing fields that have changed since        |^
-|     |        | the last update.                                 |^
+|     |        | Klipper objects. Each key is the name of a       | ^   |
+|     |        | printer object, each value will be an object     | ^   |
+|     |        | containing fields that have changed since        | ^   |
+|     |        | the last update.                                 | ^   |
 | 1   | float  | A timestamp indicating the time the subscription |
-|     |        | data was sent.  This time is relative to the     |^
-|     |        | monotonic clock used by Klipper.                 |^
+|     |        | data was sent. This time is relative to the      | ^   |
+|     |        | monotonic clock used by Klipper.                 | ^   |
 
 ///
 
@@ -151,9 +151,8 @@ notify_klippy_disconnected
 ## File List Changed
 
 Moonraker's `file_manager` will emit notifications when a change
-to one of its watched `root` directories is detected.  This includes
+to one of its watched `root` directories is detected. This includes
 changes to files and subdirectories within the root.
-
 
 ```{.text title="Notification Method Name"}
 notify_filelist_changed
@@ -183,39 +182,42 @@ notify_filelist_changed
 ```
 
 /// api-notification-spec
-    open: True
+open: True
 
 | Pos |  Type  | Description                                           |
 | --- | :----: | ----------------------------------------------------- |
 | 0   | object | A [Changed Item Info](#fileinfo-changed-spec) object. |
 
 | Field         |  Type  | Description                                     |
-| ------------- | :----: | ----------------------------------------------- |
+| ------------- | :----: | ----------------------------------------------- | --- |
 | `action`      | string | The [action](#filelist-changed-action-desc)     |
-|               |        | that caused the notification.                   |^
+|               |        | that caused the notification.                   | ^   |
 | `item`        | object | The `destination item` affected by the change.  |
-|               |        | #dest-item-info-spec                            |+
-| `source_item` | object | The `source item` affected by the change.  Only |
-|               |        | present for `move_file` and `move_dir` actions. |^
-|               |        | #source-item-info-spec                          |+
+|               |        | #dest-item-info-spec                            | +   |
+| `source_item` | object | The `source item` affected by the change. Only  |
+|               |        | present for `move_file` and `move_dir` actions. | ^   |
+|               |        | #source-item-info-spec                          | +   |
+
 { #fileinfo-changed-spec } Changed Item Info
 
 | Field         |  Type  | Description                                    |
-| ------------- | :----: | ---------------------------------------------- |
+| ------------- | :----: | ---------------------------------------------- | --- |
 | `path`        | string | The path of the destination item relative to   |
-|               |        | the root directory.                            |^
+|               |        | the root directory.                            | ^   |
 | `root`        | string | The root node of the destination item.         |
 | `modified`    | float  | The last modified date in Unix Time (seconds). |
 | `size`        |  int   | The size of the destination item.              |
 | `permissions` | string | Permissions available on the changed item      |
-|               |        | (if applicable).                               |^
+|               |        | (if applicable).                               | ^   |
+
 { #dest-item-info-spec } Destination Item Info
 
 | Field  |  Type  | Description                             |
-| ------ | :----: | --------------------------------------- |
+| ------ | :----: | --------------------------------------- | --- |
 | `path` | string | The path of the source item relative to |
-|        |        | the root directory.                     |^
+|        |        | the root directory.                     | ^   |
 | `root` | string | The root node of the source item.       |
+
 { #source-item-info-spec } Source Item Info
 
 | Action        | Description                                              |
@@ -228,15 +230,16 @@ notify_filelist_changed
 | `move_dir`    | A subdirectory in a watched root has been moved.         |
 | `modify_file` | A file in a watched root has been modified.              |
 | `root_update` | A root folder's location on disk has changed.            |
+
 { #filelist-changed-action-desc } Filelist Changed Action
 
 ///
 
 /// tip
-Notifications are bundled where applicable.  For example, when a
+Notifications are bundled where applicable. For example, when a
 directory containing children is deleted a single `delete_dir`
-notification is pushed.  Likewise, when a directory is moved or copied,
-a single `move_dir` or `create_dir` notification is pushed.  Children
+notification is pushed. Likewise, when a directory is moved or copied,
+a single `move_dir` or `create_dir` notification is pushed. Children
 that are moved, copied, or deleted as a result of a parent's action will
 not receive individual notifications.
 ///
@@ -265,22 +268,23 @@ notify_update_response
     ]
 }
 ```
+
 /// api-notification-spec
-    open: True
+open: True
 
 | Pos |  Type  | Description                                   |
 | --- | :----: | --------------------------------------------- |
 | 0   | object | An update manager notification status object. |
 
 | Field         |  Type   | Description                                     |
-| ------------- | :-----: | ----------------------------------------------- |
+| ------------- | :-----: | ----------------------------------------------- | --- |
 | `application` | string  | The name of the software currently updating.    |
 | `proc_id`     |   int   | A unique ID associated with the current update. |
 | `message`     | message | A message containing status and/or information  |
-|               |         | about the current update.                       |^
+|               |         | about the current update.                       | ^   |
 | `complete`    |  bool   | When set to `true` it indicates that the update |
-|               |         | has finished and this will be the last status   |^
-|               |         | response notification sent for this update.     |^
+|               |         | has finished and this will be the last status   | ^   |
+|               |         | response notification sent for this update.     | ^   |
 
 ///
 
@@ -295,6 +299,7 @@ notify_update_refreshed
 ```
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Notification"}
 {
     "jsonrpc": "2.0",
@@ -430,15 +435,16 @@ notify_update_refreshed
     ]
 }
 ```
+
 ///
 
 /// api-notification-spec
-    open: True
+open: True
 
 | Pos |  Type  | Description                                                     |
-| --- | :----: | --------------------------------------------------------------- |
+| --- | :----: | --------------------------------------------------------------- | --- |
 | 0   | object | An [Update Status Info](./update_manager.md#update-status-spec) |
-|     |        | object.                                                         |^
+|     |        | object.                                                         | ^   |
 
 ///
 
@@ -465,19 +471,20 @@ notify_cpu_throttled
 ```
 
 /// api-notification-spec
-    open: True
+open: True
 
 | Pos |  Type  | Description                                            |
 | --- | :----: | ------------------------------------------------------ |
 | 0   | object | A [CPU Throttled State](#throttled-state-spec) object. |
 
 | Field   |   Type   | Description                                                 |
-| ------- | :------: | ----------------------------------------------------------- |
-| `bits`  |   int    | The current throttled state as an integer.  A bitwise AND   |
-|         |          | can be performed against this value to generate custom flag |^
-|         |          | descriptions.                                               |^
+| ------- | :------: | ----------------------------------------------------------- | --- |
+| `bits`  |   int    | The current throttled state as an integer. A bitwise AND    |
+|         |          | can be performed against this value to generate custom flag | ^   |
+|         |          | descriptions.                                               | ^   |
 | `flags` | [string] | A list of `Throttled Flags` describing the current state.   |
-|         |          | #throttled-flags-desc                                       |+
+|         |          | #throttled-flags-desc                                       | +   |
+
 { #throttled-state-spec } Throttled State
 
 | Flag                           | Bit Offset |
@@ -490,6 +497,7 @@ notify_cpu_throttled
 | Previously Frequency Capped    | `1 << 17`  |
 | Previously Throttled           | `1 << 18`  |
 | Previously Temperature Limited | `1 << 16`  |
+
 { #throttled-flags-desc } Throttled Flags
 ///
 
@@ -509,6 +517,7 @@ notify_proc_stat_update
 ```
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Notification"}
 {
     "jsonrpc": "2.0",
@@ -546,16 +555,17 @@ notify_proc_stat_update
     ]
 }
 ```
+
 ///
 
 /// api-notification-spec
-    open: True
+open: True
 
 | Pos |  Type  | Description                                                    |
-| --- | :----: | -------------------------------------------------------------- |
+| --- | :----: | -------------------------------------------------------------- | --- |
 | 0   | object | A [proc stats response](./machine.md#proc-stats-response-spec) |
-|     |        | object.  The `throttled_state` and `system_uptime` fields are  |^
-|     |        | omitted from the notification.                                 |^
+|     |        | object. The `throttled_state` and `system_uptime` fields are   | ^   |
+|     |        | omitted from the notification.                                 | ^   |
 
 ///
 
@@ -569,6 +579,7 @@ notify_history_changed
 ```
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Notification"}
 {
     "jsonrpc": "2.0",
@@ -687,29 +698,32 @@ notify_history_changed
     ]
 }
 ```
+
 ///
 
 /// api-notification-spec
-    open: True
+open: True
 
-| Pos |  Type  | Description |
-| --- | :----: | ----------- |
+| Pos |  Type  | Description                                                 |
+| --- | :----: | ----------------------------------------------------------- |
 | 0   | object | A [Job History Notification](#job-hist-notify-spec) object. |
 
 | Field    |  Type  | Description                                                |
-| -------- | :----: | ---------------------------------------------------------- |
+| -------- | :----: | ---------------------------------------------------------- | --- |
 | `action` | string | The `action` that triggered the notification.              |
-|          |        | #job-hist-notify-action                                    |+
+|          |        | #job-hist-notify-action                                    | +   |
 | `job`    | string | A [Job History Entry](./history.md#job-history-entry-spec) |
-|          |        | object.                                                    |^
+|          |        | object.                                                    | ^   |
+
 { #job-hist-notify-spec } Job History Notification
 
 | Action     | Description                                  |
-| ---------- | -------------------------------------------- |
+| ---------- | -------------------------------------------- | --- |
 | `added`    | A new job was added to the job history.      |
-| `finished` | A running job was completed.  This includes  |
-|            | jobs successfully completed, cancelled jobs, |^
-|            | and jobs that encountered an error.          |^
+| `finished` | A running job was completed. This includes   |
+|            | jobs successfully completed, cancelled jobs, | ^   |
+|            | and jobs that encountered an error.          | ^   |
+
 { #job-hist-notify-action } Job History Notify Action
 
 ///
@@ -736,16 +750,17 @@ notify_user_created
 ```
 
 /// api-notification-spec
-    open: True
+open: True
 
 | Pos |  Type  | Description                                             |
 | --- | :----: | ------------------------------------------------------- |
 | 0   | object | An [Auth Notification](#auth-notification-spec) object. |
 
 | Field      |  Type  | Description                                    |
-| ---------- | :----: | ---------------------------------------------- |
+| ---------- | :----: | ---------------------------------------------- | --- |
 | `username` | string | The username of the user entry associated with |
-|            |        | the notification.                              |^
+|            |        | the notification.                              | ^   |
+
 { #auth-notification-spec } Auth Notification
 
 ///
@@ -772,7 +787,7 @@ notify_user_deleted
 ```
 
 /// api-notification-spec
-    open: True
+open: True
 
 | Pos |  Type  | Description                                             |
 | --- | :----: | ------------------------------------------------------- |
@@ -802,14 +817,13 @@ notify_user_logged_out
 ```
 
 /// api-notification-spec
-    open: True
+open: True
 
 | Pos |  Type  | Description                                             |
 | --- | :----: | ------------------------------------------------------- |
 | 0   | object | An [Auth Notification](#auth-notification-spec) object. |
 
 ///
-
 
 ## Service State Changed
 
@@ -838,24 +852,26 @@ notify_service_state_changed
 ```
 
 /// api-notification-spec
-    open: True
+open: True
 
 | Pos |  Type  | Description                                                |
-| --- | :----: | ---------------------------------------------------------- |
+| --- | :----: | ---------------------------------------------------------- | --- |
 | 0   | object | A [Service State Notification](#service-state-notify-spec) |
-|     |        | object.                                                    |^
+|     |        | object.                                                    | ^   |
 
-| Field          |  Type  | Description                                         |
-| -------------- | :----: | --------------------------------------------------- |
-| *service_name* | object | A [Unit Status](#unit-status-spec) object.  The key |
-|                |        | for this field is the service name.                 |^
-|                |        | #unit-status-spec                                   |+
+| Field          |  Type  | Description                                        |
+| -------------- | :----: | -------------------------------------------------- | --- |
+| _service_name_ | object | A [Unit Status](#unit-status-spec) object. The key |
+|                |        | for this field is the service name.                | ^   |
+|                |        | #unit-status-spec                                  | +   |
+
 { #service-state-notify-spec } Service State Notification
 
 | Field          |  Type  | Description                                                      |
 | -------------- | :----: | ---------------------------------------------------------------- |
 | `active_state` | string | The new `ACTIVE` state reported by the provider for the service. |
 | `sub_state`    | string | The new `SUB` state reported by the provider for the service.    |
+
 { #unit-status-spec } Unit Status
 
 ///
@@ -884,45 +900,47 @@ notify_job_queue_changed
 ```
 
 /// api-notification-spec
-    open: True
+open: True
 
 | Pos |  Type  | Description                                              |
-| --- | :----: | -------------------------------------------------------- |
+| --- | :----: | -------------------------------------------------------- | --- |
 | 0   | object | A [Job Queue Notification](#job-queue-notification-spec) |
-|     |        | object.                                                  |^
+|     |        | object.                                                  | ^   |
 
 | Field           |       Type       | Description                                 |
-| --------------- | :--------------: | ------------------------------------------- |
+| --------------- | :--------------: | ------------------------------------------- | --- |
 | `action`        |      string      | The [action](#job-queue-notify-action) that |
-|                 |                  | triggered the notification.                 |^
+|                 |                  | triggered the notification.                 | ^   |
 | `queue_state`   |      string      | The current queue                           |
-|                 |                  | [state](./job_queue.md#queue-state-desc).   |^
+|                 |                  | [state](./job_queue.md#queue-state-desc).   | ^   |
 | `updated_queue` | [object] \| null | An array of `Queued Job` objects reflecting |
-|                 |                  | the updated queue.  Will be `null` if the   |^
-|                 |                  | queue has not changed.                      |^
-|                 |                  | #queued-job-spec                            |+
+|                 |                  | the updated queue. Will be `null` if the    | ^   |
+|                 |                  | queue has not changed.                      | ^   |
+|                 |                  | #queued-job-spec                            | +   |
+
 { #job-queue-notification-spec }
 
 | Field           |  Type  | Description                                             |
-| --------------- | :----: | ------------------------------------------------------- |
+| --------------- | :----: | ------------------------------------------------------- | --- |
 | `filename`      | string | The name of the gcode file queued.                      |
 | `job_id`        | string | A unique ID assigned to the queued job.                 |
 | `time_added`    | float  | The time (in Unix Time) the job was added to the queue. |
 | `time_in_queue` | float  | The cumulative amount of time, in seconds, the job has  |
-|                 |        | been pending in the queue.                              |^
+|                 |        | been pending in the queue.                              | ^   |
+
 { #queued-job-spec } Queued Job
 
 | Action          | Description                                           |
-| --------------- | ----------------------------------------------------- |
+| --------------- | ----------------------------------------------------- | --- |
 | `state_changed` | The internal job queue state has changed.             |
 | `jobs_added`    | One or more jobs have been added to the queue.        |
 | `jobs_removed`  | One or more jobs have been removed from the queue.    |
 | `job_loaded`    | A job has been popped from the queue and successfully |
-|                 | started.                                              |^
+|                 | started.                                              | ^   |
+
 { #job-queue-notify-action } Job Queue Notification Action
 
 ///
-
 
 ## Button Event
 
@@ -952,35 +970,38 @@ notify_button_event
     ]
 }
 ```
-/// api-notification-spec
-    open: True
 
-| Pos |  Type  | Description                             |
-| --- | :----: | --------------------------------------- |
+/// api-notification-spec
+open: True
+
+| Pos |  Type  | Description                                          |
+| --- | :----: | ---------------------------------------------------- |
 | 0   | object | A [Button Notification](#button-notify-spec) object. |
 
-| Field   |  Type  | Description                                   |
-| ------- | :----: | --------------------------------------------- |
-| `name`  | string | The name of the button sending the event.     |
-| `type`  | string | The configured type of the button.  Currently |
-|         |        | only the `gpio` type is supported.            |^
-| `event` | object | A `Button Event` object.                      |
-|         |        | #button-event-spec                            |+
-| `aux`   |  any   | Auxiliary data attached to the event.  Can be |
-|         |        | any JSON encodable type.  If no aux data is   |^
-|         |        | sent with the event the value will be `null`  |^
+| Field   |  Type  | Description                                  |
+| ------- | :----: | -------------------------------------------- | --- |
+| `name`  | string | The name of the button sending the event.    |
+| `type`  | string | The configured type of the button. Currently |
+|         |        | only the `gpio` type is supported.           | ^   |
+| `event` | object | A `Button Event` object.                     |
+|         |        | #button-event-spec                           | +   |
+| `aux`   |  any   | Auxiliary data attached to the event. Can be |
+|         |        | any JSON encodable type. If no aux data is   | ^   |
+|         |        | sent with the event the value will be `null` | ^   |
+
 {#button-notify-spec} Button Notification
 
 | Field           | Type  | Description                                 |
-| --------------- | :---: | ------------------------------------------- |
+| --------------- | :---: | ------------------------------------------- | --- |
 | `elapsed_time`  | float | The time elapsed (in seconds) since the     |
-|                 |       | last detected button event.                 |^
+|                 |       | last detected button event.                 | ^   |
 | `received_time` | float | The time the event was detected relative    |
-|                 |       | to Moonraker's monotonic clock.             |^
+|                 |       | to Moonraker's monotonic clock.             | ^   |
 | `render_time`   | float | The time the button's template started      |
-|                 |       | rendering relative to Moonraker's monotonic |^
-|                 |       | clock.                                      |^
+|                 |       | rendering relative to Moonraker's monotonic | ^   |
+|                 |       | clock.                                      | ^   |
 | `pressed`       | bool  | Set to `true` if the button is pressed.     |
+
 { #button-event-spec } Button Event
 ///
 
@@ -994,6 +1015,7 @@ notify_announcement_update
 ```
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Notification"}
 {
     "jsonrpc": "2.0",
@@ -1043,21 +1065,23 @@ notify_announcement_update
     ]
 }
 ```
+
 ///
 
 /// api-notification-spec
-    open: True
+open: True
 
 | Pos |  Type  | Description                                               |
-| --- | :----: | --------------------------------------------------------- |
+| --- | :----: | --------------------------------------------------------- | --- |
 | 0   | object | An [Announcement Notification](#announcement-notify-spec) |
-|     |        | object.                                                   |^
+|     |        | object.                                                   | ^   |
 
-| Field     |   Type   | Description                                                       |
-| --------- | :------: | ----------------------------------------------------------------- |
-| `entries` | [object] | An array of                                                       |
-|           |          | [Announcement Entry](./announcements.md#announcement-entry-spec ) |^
-|           |          | objects.                                                          |^
+| Field     |   Type   | Description                                                      |
+| --------- | :------: | ---------------------------------------------------------------- | --- |
+| `entries` | [object] | An array of                                                      |
+|           |          | [Announcement Entry](./announcements.md#announcement-entry-spec) | ^   |
+|           |          | objects.                                                         | ^   |
+
 { #announcement-notify-spec } Announcement Notification
 
 ///
@@ -1084,16 +1108,17 @@ notify_announcement_dismissed
 ```
 
 /// api-notification-spec
-    open: True
+open: True
 
 | Pos |  Type  | Description                                                                   |
-| --- | :----: | ----------------------------------------------------------------------------- |
+| --- | :----: | ----------------------------------------------------------------------------- | --- |
 | 0   | object | An [Announcement Dismissed Notification](#announcement-dismissed-notify-desc) |
-|     |        | object.                                                                       |^
+|     |        | object.                                                                       | ^   |
 
 | Field      |  Type  | Description                                        |
 | ---------- | :----: | -------------------------------------------------- |
 | `entry_id` | string | The unique entry ID of the dismissed announcement. |
+
 { #announcement-dismissed-notify-desc} Announcement Dismissed Notification
 
 ///
@@ -1120,18 +1145,19 @@ notify_announcement_wake
 ```
 
 /// api-notification-spec
-    open: True
+open: True
 
-| Pos |  Type  | Description                                                                   |
-| --- | :----: | ----------------------------------------------------------------------------- |
+| Pos |  Type  | Description                                                         |
+| --- | :----: | ------------------------------------------------------------------- | --- |
 | 0   | object | An [Announcement Wake Notification](#announcement-wake-notify-desc) |
-|     |        | object.                                                                       |^
+|     |        | object.                                                             | ^   |
 
 | Field      |  Type  | Description                                     |
-| ---------- | :----: | ----------------------------------------------- |
+| ---------- | :----: | ----------------------------------------------- | --- |
 | `entry_id` | string | The unique entry ID of the awoken announcement. |
-|            |        | The announcement's `dismissed` field will       |^
-|            |        | be set to `false`.                              |^
+|            |        | The announcement's `dismissed` field will       | ^   |
+|            |        | be set to `false`.                              | ^   |
+
 { #announcement-wake-notify-desc} Announcement Wake Notification
 
 ///
@@ -1140,7 +1166,7 @@ notify_announcement_wake
 
 At times Moonraker may require sudo permission to perform a specific task.
 This is rare and generally involves an upgrade (ie: Moonraker's systemd
-service file needs to be modified).  When Moonraker runs a command that
+service file needs to be modified). When Moonraker runs a command that
 requires sudo permission an alert will be sent via notification.
 
 Pending sudo requests that cannot be executed until the user
@@ -1167,18 +1193,19 @@ notify_sudo_alert
 ```
 
 /// api-notification-spec
-    open: True
+open: True
 
 | Pos |  Type  | Description                                                 |
 | --- | :----: | ----------------------------------------------------------- |
 | 0   | object | A [Sudo Alert Notification](#sudo-alert-notify-spec) object |
 
 | Pos              |   Type   | Description                                |
-| ---------------- | :------: | ------------------------------------------ |
+| ---------------- | :------: | ------------------------------------------ | --- |
 | `sudo_requested` |   bool   | When `true` there are pending tasks that   |
-|                  |          | require super user permission.             |^
+|                  |          | require super user permission.             | ^   |
 | `sudo_messages`  | [string] | An array of messages describing the action |
-|                  |          | or actions requiring sudo permission.      |^
+|                  |          | or actions requiring sudo permission.      | ^   |
+
 { #sudo-alert-notify-spec} Sudo Alert Notification
 
 //// note
@@ -1187,7 +1214,7 @@ Each `sudo message` can fall into one of the following categories:
 - An explanation of a pending sudo request.
 - A response from a task that successfully ran with sudo permissions.
 - A response from a task that returned an error.
-////
+  ////
 
 ///
 
@@ -1201,6 +1228,7 @@ notify_webcams_changed
 ```
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Notification"}
 {
     "jsonrpc": "2.0",
@@ -1247,19 +1275,21 @@ notify_webcams_changed
     ]
 }
 ```
+
 ///
 
 /// api-notification-spec
-    open: True
+open: True
 
 | Pos |  Type  | Description                                          |
 | --- | :----: | ---------------------------------------------------- |
 | 0   | object | A [Webcam Notification](#webcam-notify-spec) object. |
 
 | Field     |   Type   | Description                                                |
-| --------- | :------: | ---------------------------------------------------------- |
+| --------- | :------: | ---------------------------------------------------------- | --- |
 | `webcams` | [object] | An array of [Webcam Entry](./webcams.md#webcam-entry-spec) |
-|           |          | objects.                                                   |^
+|           |          | objects.                                                   | ^   |
+
 { #webcam-notify-spec } Webcam Notification
 
 ///
@@ -1286,18 +1316,19 @@ notify_active_spool_set
 ```
 
 /// api-notification-spec
-    open: True
+open: True
 
 | Pos |  Type  | Description                                                            |
-| --- | :----: | ---------------------------------------------------------------------- |
+| --- | :----: | ---------------------------------------------------------------------- | --- |
 | 0   | object | An [Active Spool Set Notification](#spoolman-active-spool-notify-spec) |
-|     |        | object.                                                                |^
+|     |        | object.                                                                | ^   |
 
 | Field      |    Type     | Description                              |
-| ---------- | :---------: | ---------------------------------------- |
-| `spool_id` | int \| null | The spool ID of the new active spool.  A |
-|            |             | value of `null` indicates that no active |^
-|            |             | spool is set and tracking is disabled.   |^
+| ---------- | :---------: | ---------------------------------------- | --- |
+| `spool_id` | int \| null | The spool ID of the new active spool. A  |
+|            |             | value of `null` indicates that no active | ^   |
+|            |             | spool is set and tracking is disabled.   | ^   |
+
 { #spoolman-active-spool-notify-spec } Active Spool Set Notification
 
 ///
@@ -1305,8 +1336,8 @@ notify_active_spool_set
 ## Spoolman Status Changed
 
 Moonraker's `[spoolman]` component holds a persistent websocket
-connection to the server.  This allow Moonraker to remain aware
-of the server's status.  Moonraker will emit a notification when
+connection to the server. This allow Moonraker to remain aware
+of the server's status. Moonraker will emit a notification when
 the connection status to Spoolman changes.
 
 ```{.text title="Notification Method Name"}
@@ -1326,17 +1357,18 @@ notify_spoolman_status_changed
 ```
 
 /// api-notification-spec
-    open: True
+open: True
 
-| Pos |  Type  | Description                                                     |
-| --- | :----: | --------------------------------------------------------------- |
-| 0   | object | A [Spoolman Status Notification](#spoolman-status-notify-spec ) |
-|     |        | object.                                                         |^
+| Pos |  Type  | Description                                                    |
+| --- | :----: | -------------------------------------------------------------- | --- |
+| 0   | object | A [Spoolman Status Notification](#spoolman-status-notify-spec) |
+|     |        | object.                                                        | ^   |
 
 | Field                | Type | Description                                   |
-| -------------------- | :--: | --------------------------------------------- |
+| -------------------- | :--: | --------------------------------------------- | --- |
 | `spoolman_connected` | bool | A value of `true` indicates that Moonraker is |
-|                      |      | currently connected to the Spoolman Server.   |^
+|                      |      | currently connected to the Spoolman Server.   | ^   |
+
 { #spoolman-status-notify-spec } Spoolman Status Notification
 
 ///
@@ -1347,9 +1379,9 @@ Moonraker has limited support for third party extensions through
 client connections that identify themselves as
 [agents](./extensions.md#agent-specific-endpoints).
 Agents are granted access to additional endpoints that allow
-them to extend Moonraker's functionality.  One such method
+them to extend Moonraker's functionality. One such method
 allows agents to send events that are broadcast to all of Moonraker's
-connected clients.  Moonraker proxies agent events through a
+connected clients. Moonraker proxies agent events through a
 notification.
 
 ```{.text title="Notification Method Name"}
@@ -1376,44 +1408,46 @@ notify_agent_event
 ```
 
 /// api-notification-spec
-    open: True
+open: True
 
 | Pos |  Type  | Description                                             |
-| --- | :----: | ------------------------------------------------------- |
+| --- | :----: | ------------------------------------------------------- | --- |
 | 0   | object | An [Agent Event Notification](#agent-event-notify-spec) |
-|     |        | object.                                                 |^
+|     |        | object.                                                 | ^   |
 
-| Field   |   Type   | Description                                              |
-| ------- | :------: | -------------------------------------------------------- |
-| `agent` | `string` | The name of the agent sending the event.                 |
-| `event` | `string` | The name of the event.  Can be any name                  |
-|         |          | other than those [reserved](#reserved-agent-event-desc)  |^
-|         |          | by Moonraker.                                            |^
-| `data`  |   any    | Additional data sent with the event.  Can be any JSON    |
-|         |          | encodable value.  If the event does not attach data this |^
-|         |          | field will be omitted.                                   |^
+| Field   |   Type   | Description                                             |
+| ------- | :------: | ------------------------------------------------------- | --- |
+| `agent` | `string` | The name of the agent sending the event.                |
+| `event` | `string` | The name of the event. Can be any name                  |
+|         |          | other than those [reserved](#reserved-agent-event-desc) | ^   |
+|         |          | by Moonraker.                                           | ^   |
+| `data`  |   any    | Additional data sent with the event. Can be any JSON    |
+|         |          | encodable value. If the event does not attach data this | ^   |
+|         |          | field will be omitted.                                  | ^   |
+
 { #agent-event-notify-spec } Agent Event Notification
 
 | Event          | Description                                           |
-| -------------- | ----------------------------------------------------- |
-| `connected`    | An agent has connected to Moonraker.  The `data`      |
-|                | field will contain an                                 |^
-|                | [Agent Info](./extensions.md#agent-info-spec) object. |^
-| `disconnected` | An agent has disconnected from Moonraker.  The `data` |
-|                | field is omitted for this event.                      |^
+| -------------- | ----------------------------------------------------- | --- |
+| `connected`    | An agent has connected to Moonraker. The `data`       |
+|                | field will contain an                                 | ^   |
+|                | [Agent Info](./extensions.md#agent-info-spec) object. | ^   |
+| `disconnected` | An agent has disconnected from Moonraker. The `data`  |
+|                | field is omitted for this event.                      | ^   |
+
 { #reserved-agent-event-desc} Reserved Agent Events
 
 ///
 
 /// note
 The agent that sends an event will not receive a notification for that
-event.  It will however receive events from other agents.
+event. It will however receive events from other agents.
 ///
 
 ## Sensor Events
 
 Moonraker's `[sensor]` component will take periodic measurements
-of configured sensors.  When one or more new measurement is received
+of configured sensors. When one or more new measurement is received
 a notification will be emitted containing the new measurement data.
 
 ```{.text title="Notification Method Name"}
@@ -1434,27 +1468,30 @@ notify_sensor_update
     ]
 }
 ```
+
 /// api-notification-spec
-    open: True
+open: True
 
 | Pos |  Type  | Description                                                |
 | --- | :----: | ---------------------------------------------------------- |
 | 0   | object | A [Sensor Notification](#sensor-notification-spec) object. |
 
 | Field         |  Type  | Description                                      |
-| ------------- | :----: | ------------------------------------------------ |
-| *sensor_name* | object | The object may contain multiple `sensors`, where |
-|               |        | each key is the name of a sensor and the value   |^
-|               |        | is a `Sensor Values` object.                     |^
-|               |        | #sensor-values-spec                              |+
+| ------------- | :----: | ------------------------------------------------ | --- |
+| _sensor_name_ | object | The object may contain multiple `sensors`, where |
+|               |        | each key is the name of a sensor and the value   | ^   |
+|               |        | is a `Sensor Values` object.                     | ^   |
+|               |        | #sensor-values-spec                              | +   |
+
 { #sensor-notification-spec } Sensor Notification
 
 | Field        | Type | Description                                     |
-| ------------ | :--: | ----------------------------------------------- |
-| *value_name* | any  | The object may contain multiple `values`, where |
-|              |      | each key is the name of a parameter tracked     |^
-|              |      | by the sensor, and the value is the most        |^
-|              |      | recent reported measurement.                    |^
+| ------------ | :--: | ----------------------------------------------- | --- |
+| _value_name_ | any  | The object may contain multiple `values`, where |
+|              |      | each key is the name of a parameter tracked     | ^   |
+|              |      | by the sensor, and the value is the most        | ^   |
+|              |      | recent reported measurement.                    | ^   |
+
 { #sensor-values-spec } Sensor Values
 
 ///

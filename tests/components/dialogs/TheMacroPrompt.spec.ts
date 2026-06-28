@@ -13,16 +13,25 @@ vi.mock('@/components/ui/Panel.vue', () => ({
     default: {
         name: 'Panel',
         props: { icon: String, title: String, marginBottom: Boolean, cardClass: String, height: [String, Number] },
-        template: '<div class="panel"><slot name="buttons" /><slot /><span class="panel-title">{{ title }}</span></div>',
+        template:
+            '<div class="panel"><slot name="buttons" /><slot /><span class="panel-title">{{ title }}</span></div>',
     },
 }))
 
 vi.mock('@/components/dialogs/MacroPromptText.vue', () => ({
-    default: { name: 'MacroPromptText', props: ['event'], template: '<div class="macro-text">{{ event.message }}</div>' },
+    default: {
+        name: 'MacroPromptText',
+        props: ['event'],
+        template: '<div class="macro-text">{{ event.message }}</div>',
+    },
 }))
 
 vi.mock('@/components/dialogs/MacroPromptButtonGroup.vue', () => ({
-    default: { name: 'MacroPromptButtonGroup', props: ['groupIndex', 'children'], template: '<div class="macro-btn-group" />' },
+    default: {
+        name: 'MacroPromptButtonGroup',
+        props: ['groupIndex', 'children'],
+        template: '<div class="macro-btn-group" />',
+    },
 }))
 
 vi.mock('@/components/dialogs/MacroPromptFooterButton.vue', () => ({
@@ -30,10 +39,18 @@ vi.mock('@/components/dialogs/MacroPromptFooterButton.vue', () => ({
 }))
 
 vi.mock('vuetify/components', () => ({
-    VDialog: { name: 'VDialog', props: { modelValue: Boolean, width: [String, Number], persistent: Boolean, fullscreen: Boolean }, template: '<div class="v-dialog" v-if="modelValue"><slot /></div>' },
+    VDialog: {
+        name: 'VDialog',
+        props: { modelValue: Boolean, width: [String, Number], persistent: Boolean, fullscreen: Boolean },
+        template: '<div class="v-dialog" v-if="modelValue"><slot /></div>',
+    },
     VCardText: { name: 'VCardText', template: '<div class="v-card-text"><slot /></div>' },
     VCardActions: { name: 'VCardActions', template: '<div class="v-card-actions"><slot /></div>' },
-    VBtn: { name: 'VBtn', props: { icon: [String, Boolean] }, template: '<button @click="$emit(\'click\')"><slot /></button>' },
+    VBtn: {
+        name: 'VBtn',
+        props: { icon: [String, Boolean] },
+        template: '<button @click="$emit(\'click\')"><slot /></button>',
+    },
     VIcon: { name: 'VIcon', props: { icon: String }, template: '<i><slot /></i>' },
     VSpacer: { name: 'VSpacer', template: '<span />' },
 }))
@@ -54,7 +71,9 @@ function makeEvent(date: Date, message: string, type = 'action'): any {
 }
 
 describe('TheMacroPrompt.vue', () => {
-    beforeEach(() => { vi.clearAllMocks() })
+    beforeEach(() => {
+        vi.clearAllMocks()
+    })
 
     it('mounts without crashing', () => {
         const wrapper = mount(TheMacroPrompt, { global: { plugins: [makeStore(), i18n] } })

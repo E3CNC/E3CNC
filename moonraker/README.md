@@ -6,10 +6,10 @@ A Moonraker component and MCP (Model Context Protocol) server for the E3CNC UI p
 
 This package contains two things:
 
-| Component | Purpose |
-|---|---|
-| **CNC agent** (`cnc_agent.py`) | Moonraker component registered under `[cnc_agent]` — owns spindle, coolant, units, WCS, jog, and settings state. Vended into `moonraker/moonraker/components/` during install. |
-| **MCP server** (`mcp_server.py`) | A standalone stdio-based MCP server that exposes Moonraker's API as MCP tools for AI agents. |
+| Component                        | Purpose                                                                                                                                                                        |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **CNC agent** (`cnc_agent.py`)   | Moonraker component registered under `[cnc_agent]` — owns spindle, coolant, units, WCS, jog, and settings state. Vended into `moonraker/moonraker/components/` during install. |
+| **MCP server** (`mcp_server.py`) | A standalone stdio-based MCP server that exposes Moonraker's API as MCP tools for AI agents.                                                                                   |
 
 ## CNC Agent
 
@@ -25,17 +25,17 @@ The CNC agent owns CNC-specific state that Klipper does not model:
 
 It registers HTTP endpoints under `/server/cnc/*`:
 
-| Endpoint | Methods | Description |
-|---|---|---|
-| `/server/cnc/state` | GET | Full agent state snapshot |
-| `/server/cnc/spindle` | GET, POST | Read or control spindle (M3/M4/M5) |
-| `/server/cnc/coolant` | GET, POST | Read or control coolant (M7/M8/M9) |
-| `/server/cnc/units` | GET, POST | Read or set units (G20/G21) |
-| `/server/cnc/wcs` | GET | Query WCS offsets from Klipper |
-| `/server/cnc/wcs/select` | POST | Select active WCS (G54–G59) |
-| `/server/cnc/wcs/set-zero` | POST | Set work zero at current position (G10 L20) |
-| `/server/cnc/jog` | POST | Execute a guarded jog move |
-| `/server/cnc/settings` | GET, POST | Read or persist CNC dashboard settings |
+| Endpoint                   | Methods   | Description                                 |
+| -------------------------- | --------- | ------------------------------------------- |
+| `/server/cnc/state`        | GET       | Full agent state snapshot                   |
+| `/server/cnc/spindle`      | GET, POST | Read or control spindle (M3/M4/M5)          |
+| `/server/cnc/coolant`      | GET, POST | Read or control coolant (M7/M8/M9)          |
+| `/server/cnc/units`        | GET, POST | Read or set units (G20/G21)                 |
+| `/server/cnc/wcs`          | GET       | Query WCS offsets from Klipper              |
+| `/server/cnc/wcs/select`   | POST      | Select active WCS (G54–G59)                 |
+| `/server/cnc/wcs/set-zero` | POST      | Set work zero at current position (G10 L20) |
+| `/server/cnc/jog`          | POST      | Execute a guarded jog move                  |
+| `/server/cnc/settings`     | GET, POST | Read or persist CNC dashboard settings      |
 
 Read-only Klipper machine state is **not** re-exposed — the frontend reads it directly from Mainsail's existing websocket store subscription.
 
@@ -45,21 +45,21 @@ The MCP server connects to a running Moonraker instance and exposes 13 tools tha
 
 ### 13 Exposed MCP Tools
 
-| Tool | Moonraker Endpoint | What it does |
-|---|---|---|
-| `moonraker_server_info` | `GET /server/info` | Moonraker version, loaded components |
-| `moonraker_server_config` | `GET /server/config` | Parsed moonraker.conf |
-| `moonraker_printer_info` | `GET /printer/info` | Klippy host info |
-| `moonraker_printer_objects_list` | `GET /printer/objects/list` | Loaded Klipper objects |
-| `moonraker_query_printer_objects` | `POST /printer/objects/query` | Query printer object state |
-| `moonraker_gcode_help` | `GET /printer/gcode/help` | Supported G-code commands |
-| `moonraker_send_gcode` | `POST /printer/gcode/script` | Send G-code to Klipper |
-| `moonraker_job_queue_status` | `GET /server/job_queue/status` | Job queue state |
-| `moonraker_history_list` | `GET /server/history/list` | Print history (filterable) |
-| `moonraker_webcams_list` | `GET /server/webcams/list` | Configured webcams |
-| `moonraker_system_info` | `GET /machine/system_info` | Host OS and service info |
-| `moonraker_proc_stats` | `GET /machine/proc_stats` | Process statistics |
-| `moonraker_request` | Generic | Raw request to any Moonraker endpoint |
+| Tool                              | Moonraker Endpoint             | What it does                          |
+| --------------------------------- | ------------------------------ | ------------------------------------- |
+| `moonraker_server_info`           | `GET /server/info`             | Moonraker version, loaded components  |
+| `moonraker_server_config`         | `GET /server/config`           | Parsed moonraker.conf                 |
+| `moonraker_printer_info`          | `GET /printer/info`            | Klippy host info                      |
+| `moonraker_printer_objects_list`  | `GET /printer/objects/list`    | Loaded Klipper objects                |
+| `moonraker_query_printer_objects` | `POST /printer/objects/query`  | Query printer object state            |
+| `moonraker_gcode_help`            | `GET /printer/gcode/help`      | Supported G-code commands             |
+| `moonraker_send_gcode`            | `POST /printer/gcode/script`   | Send G-code to Klipper                |
+| `moonraker_job_queue_status`      | `GET /server/job_queue/status` | Job queue state                       |
+| `moonraker_history_list`          | `GET /server/history/list`     | Print history (filterable)            |
+| `moonraker_webcams_list`          | `GET /server/webcams/list`     | Configured webcams                    |
+| `moonraker_system_info`           | `GET /machine/system_info`     | Host OS and service info              |
+| `moonraker_proc_stats`            | `GET /machine/proc_stats`      | Process statistics                    |
+| `moonraker_request`               | Generic                        | Raw request to any Moonraker endpoint |
 
 ### Running the MCP server
 
@@ -87,11 +87,11 @@ PYTHONPATH=src python -m moonraker_mcp.mcp_server
 
 ### Environment variables
 
-| Env Var | Default | Purpose |
-|---|---|---|
-| `MOONRAKER_URL` | `http://127.0.0.1:7125` | Moonraker API base URL |
-| `MOONRAKER_API_KEY` | (none) | API key if Moonraker auth is configured |
-| `MOONRAKER_TIMEOUT` | `15` | Request timeout in seconds |
+| Env Var             | Default                 | Purpose                                 |
+| ------------------- | ----------------------- | --------------------------------------- |
+| `MOONRAKER_URL`     | `http://127.0.0.1:7125` | Moonraker API base URL                  |
+| `MOONRAKER_API_KEY` | (none)                  | API key if Moonraker auth is configured |
+| `MOONRAKER_TIMEOUT` | `15`                    | Request timeout in seconds              |
 
 ### Connecting to AI Agents
 

@@ -18,14 +18,17 @@ to move to a Z position that is at least five millimeters above the
 bed (if it is not already), command the head to move to an XY position
 near the center of the bed, then navigate to the OctoPrint terminal
 tab and run:
+
 ```
 Z_ENDSTOP_CALIBRATE
 ```
+
 Then follow the steps described at
 ["the paper test"](Bed_Level.md#the-paper-test) to determine the
 actual distance between the nozzle and bed at the given location. Once
 those steps are complete one can `ACCEPT` the position and save the
 results to the config file with:
+
 ```
 SAVE_CONFIG
 ```
@@ -61,6 +64,7 @@ screw XY location.
 
 This is done by creating a `[bed_screws]` config section. For example,
 it might look something similar to:
+
 ```
 [bed_screws]
 screw1: 100, 50
@@ -75,6 +79,7 @@ bed.
 
 Once the config file is ready, run `RESTART` to load that config, and
 then one can start the tool by running:
+
 ```
 BED_SCREWS_ADJUST
 ```
@@ -124,6 +129,7 @@ adjustment when the nozzle is at position D.
 To enable this feature, one would determine the additional nozzle
 coordinates and add them to the config file. For example, it might
 look like:
+
 ```
 [bed_screws]
 screw1: 100, 50
@@ -168,6 +174,7 @@ The screw1 is always the reference point for the others, so the system
 assumes that screw1 is at the correct height. Always run `G28` first
 and then run `SCREWS_TILT_CALCULATE` - it should produce output
 similar to:
+
 ```
 Send: G28
 Recv: ok
@@ -181,6 +188,7 @@ Recv: ok
 ```
 
 This means that:
+
 - front left screw is the reference point you must not change it.
 - front right screw must be turned clockwise 1 full turn and a quarter turn
 - rear right screw must be turned counter-clockwise 50 minutes

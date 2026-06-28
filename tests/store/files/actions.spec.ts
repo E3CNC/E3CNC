@@ -335,7 +335,11 @@ describe('files actions', () => {
             action: 'mystery',
         })
 
-        expect(dispatch).toHaveBeenCalledWith('server/addRootDirectory', { action: 'root_update', item: { root: 'config' } }, { root: true })
+        expect(dispatch).toHaveBeenCalledWith(
+            'server/addRootDirectory',
+            { action: 'root_update', item: { root: 'config' } },
+            { root: true }
+        )
         expect(commit).toHaveBeenCalledWith('setRootUpdate', { action: 'root_update', item: { root: 'config' } })
         expect(consoleSpy).toHaveBeenCalledWith('Unknown filelist_changed action: mystery')
         consoleSpy.mockRestore()
@@ -402,10 +406,9 @@ describe('files actions', () => {
     it('downloadZip opens the encoded file URL', () => {
         const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
 
-        actions.downloadZip(
-            { rootGetters: { 'socket/getUrl': 'http://moonraker' } } as any,
-            { destination: { root: 'gcodes', path: 'folder/Test File.gcode' } }
-        )
+        actions.downloadZip({ rootGetters: { 'socket/getUrl': 'http://moonraker' } } as any, {
+            destination: { root: 'gcodes', path: 'folder/Test File.gcode' },
+        })
 
         expect(openSpy).toHaveBeenCalledWith('http://moonraker/server/files/gcodes/folder/Test%20File.gcode')
         openSpy.mockRestore()

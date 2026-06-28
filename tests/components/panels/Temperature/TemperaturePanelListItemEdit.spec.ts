@@ -23,7 +23,8 @@ const vuetifyComponentsMock = vi.hoisted(() => ({
     VColorPicker: {
         name: 'VColorPicker',
         props: { modelValue: [String, Object], hideModeSwitch: Boolean, mode: String, class: String },
-        template: '<input type="color" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
+        template:
+            '<input type="color" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
     },
 }))
 

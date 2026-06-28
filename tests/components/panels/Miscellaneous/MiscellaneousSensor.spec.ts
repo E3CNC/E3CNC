@@ -4,14 +4,18 @@ import MiscellaneousSensor from '@/components/panels/Miscellaneous/Miscellaneous
 
 vi.mock('@/plugins/helpers', () => ({
     convertName: (s: string) => s.replace(/_/g, ' '),
-    unitToSymbol: (s?: string) => s === '°C' ? 'mdi-thermometer' : 'mdi-help',
+    unitToSymbol: (s?: string) => (s === '°C' ? 'mdi-thermometer' : 'mdi-help'),
 }))
 
 vi.mock('vuetify/components', () => ({
     VContainer: { name: 'VContainer', props: { class: String }, template: '<div class="v-container"><slot /></div>' },
     VRow: { name: 'VRow', template: '<div class="v-row"><slot /></div>' },
     VCol: { name: 'VCol', props: { class: String }, template: '<div class="v-col"><slot /></div>' },
-    VListSubheader: { name: 'VListSubheader', props: { class: String }, template: '<div class="v-list-subheader"><slot /></div>' },
+    VListSubheader: {
+        name: 'VListSubheader',
+        props: { class: String },
+        template: '<div class="v-list-subheader"><slot /></div>',
+    },
     VIcon: { name: 'VIcon', props: { size: String, icon: String }, template: '<i class="v-icon"><slot /></i>' },
     VSpacer: { name: 'VSpacer', template: '<span />' },
 }))

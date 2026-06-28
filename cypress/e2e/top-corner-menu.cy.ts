@@ -99,8 +99,6 @@ describe('TheTopCornerMenu — E3CNC Stack Control', () => {
 
         cy.contains('.v-list-item', 'Rollback').click()
 
-        cy.wait('@rollbackStack')
-            .its('request.method')
-            .should('eq', 'POST')
+        cy.wait('@rollbackStack').its('request.method').should('eq', 'POST')
     })
 })

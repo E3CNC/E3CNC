@@ -26,7 +26,9 @@ vi.mock('@/components/settings/Miscellaneous/SettingsMiscellaneousTabLightPreset
 
 vi.mock('@/plugins/helpers', () => ({
     caseInsensitiveSort: (arr: any[], key: string) =>
-        [...arr].sort((a: any, b: any) => String(a[key] ?? '').localeCompare(String(b[key] ?? ''), undefined, { sensitivity: 'base' })),
+        [...arr].sort((a: any, b: any) =>
+            String(a[key] ?? '').localeCompare(String(b[key] ?? ''), undefined, { sensitivity: 'base' })
+        ),
 }))
 
 function createMockStore(entries: Record<string, any> = {}) {

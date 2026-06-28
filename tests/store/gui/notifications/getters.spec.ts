@@ -26,22 +26,28 @@ vi.mock('@/plugins/i18n', () => ({
                     'App.Notifications.DependencyName': '{name} dependency',
                     'App.Notifications.DependencyDescription': '{name} v{installedVersion} needs {neededVersion}',
                     'App.Notifications.MoonrakerWarnings.MoonrakerWarning': 'Moonraker Warning',
-                    'App.Notifications.MoonrakerWarnings.UnparsedConfigOption': (params: any) => `Unparsed option ${params.option} in [${params.section}]`,
-                    'App.Notifications.MoonrakerWarnings.UnparsedConfigSection': (params: any) => `Unparsed section [${params.section}]`,
+                    'App.Notifications.MoonrakerWarnings.UnparsedConfigOption': (params: any) =>
+                        `Unparsed option ${params.option} in [${params.section}]`,
+                    'App.Notifications.MoonrakerWarnings.UnparsedConfigSection': (params: any) =>
+                        `Unparsed section [${params.section}]`,
                     'App.Notifications.KlipperWarnings.KlipperWarning': 'Klipper Warning',
                     'App.Notifications.KlipperWarnings.DeprecatedOptionHeadline': 'Deprecated Option',
                     'App.Notifications.KlipperWarnings.DeprecatedValueHeadline': 'Deprecated Value',
                     'App.Notifications.KlipperWarnings.KlipperRuntimeWarning': 'Runtime Warning',
-                    'App.Notifications.KlipperWarnings.DeprecatedOption': (params: any) => `Option ${params.option} is deprecated`,
-                    'App.Notifications.KlipperWarnings.DeprecatedValue': (params: any) => `Value ${params.value} is deprecated`,
+                    'App.Notifications.KlipperWarnings.DeprecatedOption': (params: any) =>
+                        `Option ${params.option} is deprecated`,
+                    'App.Notifications.KlipperWarnings.DeprecatedValue': (params: any) =>
+                        `Value ${params.value} is deprecated`,
                     'App.ThrottledStates.TitleUndervoltage': 'Undervoltage Detected',
                     'App.ThrottledStates.DescriptionUndervoltage': 'Voltage issue',
                     'App.Notifications.MaintenanceReminder': 'Maintenance due',
                     'App.Notifications.MaintenanceReminderText': '{name} is overdue',
                     'App.Notifications.MoonrakerWarnings.MoonrakerComponent': 'Component {component}',
-                    'App.Notifications.MoonrakerWarnings.MoonrakerFailedComponentDescription': 'Failed component {component}',
+                    'App.Notifications.MoonrakerWarnings.MoonrakerFailedComponentDescription':
+                        'Failed component {component}',
                     'App.Notifications.MoonrakerWarnings.MoonrakerInitComponent': 'Init component {component}',
-                    'App.Notifications.MoonrakerWarnings.MoonrakerFailedInitComponentDescription': 'Failed init component {component}',
+                    'App.Notifications.MoonrakerWarnings.MoonrakerFailedInitComponentDescription':
+                        'Failed init component {component}',
                 }
                 const entry = map[key]
                 if (typeof entry === 'function') return entry(params)
@@ -84,9 +90,7 @@ describe('gui notification getters', () => {
     it('getDismiss keeps reboot dismisses that are still in the future', () => {
         const farFuture = new Date().getTime() + 100000
         const state = defaultState({
-            dismiss: [
-                { id: 'd1', category: 'update', type: 'reboot', date: farFuture },
-            ],
+            dismiss: [{ id: 'd1', category: 'update', type: 'reboot', date: farFuture }],
         })
         const rootState = { server: { system_boot_at: new Date(1000) } }
 
@@ -118,7 +122,14 @@ describe('gui notification getters', () => {
     it('getNotifications aggregates sub-getters and sorts by priority then date descending', () => {
         const subNotifications = [
             { id: 'n1', priority: 'normal', title: 'normal', description: '', date: new Date(200), dismissed: false },
-            { id: 'n2', priority: 'critical', title: 'critical', description: '', date: new Date(100), dismissed: false },
+            {
+                id: 'n2',
+                priority: 'critical',
+                title: 'critical',
+                description: '',
+                date: new Date(100),
+                dismissed: false,
+            },
             { id: 'n3', priority: 'high', title: 'high', description: '', date: new Date(300), dismissed: false },
         ]
 
@@ -143,10 +154,38 @@ describe('gui notification getters', () => {
     })
 
     it('getNotifications aggregates notifications from multiple sources and sorts by priority', () => {
-        const critical = { id: 'c1', priority: 'critical', title: 'c', description: '', date: new Date(100), dismissed: false }
-        const high1 = { id: 'h1', priority: 'high', title: 'h1', description: '', date: new Date(200), dismissed: false }
-        const high2 = { id: 'h2', priority: 'high', title: 'h2', description: '', date: new Date(300), dismissed: false }
-        const normal = { id: 'n1', priority: 'normal', title: 'n', description: '', date: new Date(400), dismissed: false }
+        const critical = {
+            id: 'c1',
+            priority: 'critical',
+            title: 'c',
+            description: '',
+            date: new Date(100),
+            dismissed: false,
+        }
+        const high1 = {
+            id: 'h1',
+            priority: 'high',
+            title: 'h1',
+            description: '',
+            date: new Date(200),
+            dismissed: false,
+        }
+        const high2 = {
+            id: 'h2',
+            priority: 'high',
+            title: 'h2',
+            description: '',
+            date: new Date(300),
+            dismissed: false,
+        }
+        const normal = {
+            id: 'n1',
+            priority: 'normal',
+            title: 'n',
+            description: '',
+            date: new Date(400),
+            dismissed: false,
+        }
 
         const mockGetters = {
             getNotificationsAnnouncements: [critical],
@@ -246,12 +285,7 @@ describe('gui notification getters', () => {
             },
         }
 
-        const result = (getters as any).getNotificationsFlags(
-            defaultState(),
-            {},
-            rootState,
-            rootGetters
-        )
+        const result = (getters as any).getNotificationsFlags(defaultState(), {}, rootState, rootGetters)
 
         expect(result).toHaveLength(1)
         expect(result[0].id).toBe('flag/Previously frequency capped')
@@ -263,7 +297,7 @@ describe('gui notification getters', () => {
             server: {
                 system_boot_at: new Date(1000),
                 warnings: [
-                    'Unparsed config option \'pause_on_errors: something\' in section [responder]',
+                    "Unparsed config option 'pause_on_errors: something' in section [responder]",
                     'Unparsed config section [some_section]',
                     'Unknown warning without translation',
                 ],
@@ -314,12 +348,7 @@ describe('gui notification getters', () => {
             'gui/maintenance/getOverdueEntries': [],
         }
 
-        const result = (getters as any).getNotificationsOverdueMaintenance(
-            defaultState(),
-            {},
-            rootState,
-            rootGetters
-        )
+        const result = (getters as any).getNotificationsOverdueMaintenance(defaultState(), {}, rootState, rootGetters)
 
         expect(result).toEqual([])
     })
@@ -327,16 +356,19 @@ describe('gui notification getters', () => {
     it('getNotificationsAnnouncements maps announcements to notifications', () => {
         const rootGetters = {
             'server/announcements/getAnnouncements': [
-                { entry_id: 'a1', priority: 'high', title: 'Update', description: 'New version', date: new Date(100), dismissed: false, url: null },
+                {
+                    entry_id: 'a1',
+                    priority: 'high',
+                    title: 'Update',
+                    description: 'New version',
+                    date: new Date(100),
+                    dismissed: false,
+                    url: null,
+                },
             ],
         }
 
-        const result = (getters as any).getNotificationsAnnouncements(
-            defaultState(),
-            {},
-            {},
-            rootGetters
-        )
+        const result = (getters as any).getNotificationsAnnouncements(defaultState(), {}, {}, rootGetters)
 
         expect(result).toHaveLength(1)
         expect(result[0].id).toBe('announcement/a1')
@@ -356,12 +388,7 @@ describe('gui notification getters', () => {
             'server/getThrottledStateFlags': [],
         }
 
-        const result = (getters as any).getNotificationsFlags(
-            defaultState(),
-            {},
-            rootState,
-            rootGetters
-        )
+        const result = (getters as any).getNotificationsFlags(defaultState(), {}, rootState, rootGetters)
 
         expect(result).toEqual([])
     })
@@ -379,12 +406,7 @@ describe('gui notification getters', () => {
             },
         }
 
-        const result = (getters as any).getNotificationsDependencies(
-            defaultState(),
-            {},
-            rootState,
-            rootGetters
-        )
+        const result = (getters as any).getNotificationsDependencies(defaultState(), {}, rootState, rootGetters)
 
         expect(result).toHaveLength(1)
         expect(result[0].id).toBe('dependency/klipper/1.0')
@@ -452,11 +474,7 @@ describe('gui notification getters', () => {
     it('getNotificationsBrowserWarnings adds notification when browser is outdated', () => {
         const rootState = { server: { system_boot_at: new Date(1000) } }
 
-        const result = (getters as any).getNotificationsBrowserWarnings(
-            defaultState(),
-            {},
-            rootState
-        )
+        const result = (getters as any).getNotificationsBrowserWarnings(defaultState(), {}, rootState)
 
         // With the mock minBrowserVersions having Chrome 90.0.0 and the detected browser
         // being 'detect-browser', we need to check if it works or falls through.
@@ -470,20 +488,14 @@ describe('gui notification getters', () => {
         const originalModule = require('detect-browser')
         // We can't easily override the hoisted mock, so let's just check the return type
         const rootState = { server: { system_boot_at: new Date(1000) } }
-        const result = (getters as any).getNotificationsBrowserWarnings(
-            defaultState(),
-            {},
-            rootState
-        )
+        const result = (getters as any).getNotificationsBrowserWarnings(defaultState(), {}, rootState)
         expect(Array.isArray(result)).toBe(true)
     })
 
     it('getNotificationsOverdueMaintenance returns empty when all entries are dismissed', () => {
         const rootState = { server: { system_boot_at: new Date(1000) } }
         const rootGetters = {
-            'gui/maintenance/getOverdueEntries': [
-                { id: 'e1', name: 'Oil change' },
-            ],
+            'gui/maintenance/getOverdueEntries': [{ id: 'e1', name: 'Oil change' }],
             'gui/notifications/getDismissByCategory': () => [{ id: 'e1' }],
         }
 

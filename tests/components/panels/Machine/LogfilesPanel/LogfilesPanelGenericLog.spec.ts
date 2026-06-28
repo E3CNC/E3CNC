@@ -8,7 +8,11 @@ vi.mock('@mdi/js', () => ({
 }))
 
 vi.mock('vuetify/components', () => ({
-    VCol: { name: 'VCol', props: ['cols'], template: '<div class="v-col" :class="\'v-col-\' + $props.cols"><slot /></div>' },
+    VCol: {
+        name: 'VCol',
+        props: ['cols'],
+        template: '<div class="v-col" :class="\'v-col-\' + $props.cols"><slot /></div>',
+    },
     VBtn: { name: 'VBtn', props: ['href', 'variant'], template: '<a class="v-btn" :href="$props.href"><slot /></a>' },
     VIcon: { name: 'VIcon', template: '<i class="v-icon"><slot /></i>' },
 }))

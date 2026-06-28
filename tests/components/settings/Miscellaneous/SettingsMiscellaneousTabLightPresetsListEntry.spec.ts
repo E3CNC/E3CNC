@@ -21,7 +21,8 @@ vi.mock('@/components/settings/SettingsRow.vue', () => ({
     default: {
         name: 'SettingsRow',
         props: ['title', 'subTitle', 'dynamicSlotWidth'],
-        template: '<div class="settings-row"><span class="settings-row-title">{{ title }}</span><span class="settings-row-subtitle">{{ subTitle }}</span><slot /></div>',
+        template:
+            '<div class="settings-row"><span class="settings-row-title">{{ title }}</span><span class="settings-row-subtitle">{{ subTitle }}</span><slot /></div>',
     },
 }))
 

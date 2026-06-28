@@ -14,7 +14,8 @@ vi.mock('@/components/settings/SettingsRow.vue', () => ({
     default: {
         name: 'SettingsRow',
         props: { title: { default: '' }, subTitle: { default: '' } },
-        template: '<div class="settings-row"><div class="settings-row__title">{{ title }}</div><div class="settings-row__sub">{{ subTitle }}</div><slot /></div>',
+        template:
+            '<div class="settings-row"><div class="settings-row__title">{{ title }}</div><div class="settings-row__sub">{{ subTitle }}</div><slot /></div>',
     },
 }))
 
@@ -129,7 +130,9 @@ describe('SettingsMacrosTabExpert.vue', () => {
                     VDivider: { template: '<hr class="v-divider" />' },
                     VTextField: { template: '<input class="v-text-field" />' },
                     VSelect: { template: '<select class="v-select" />' },
-                    VTooltip: { template: '<div class="v-tooltip"><slot name="activator" :props="{}" /><slot /></div>' },
+                    VTooltip: {
+                        template: '<div class="v-tooltip"><slot name="activator" :props="{}" /><slot /></div>',
+                    },
                     VMenu: { template: '<div class="v-menu"><slot name="activator" :props="{}" /><slot /></div>' },
                     VColorPicker: { template: '<div class="v-color-picker" />' },
                     VIcon: { template: '<i><slot /></i>' },

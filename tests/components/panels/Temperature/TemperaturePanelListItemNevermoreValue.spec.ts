@@ -14,13 +14,15 @@ vi.mock('vuetify/components', () => ({
 
 import TemperaturePanelListItemNevermoreValue from '@/components/panels/Temperature/TemperaturePanelListItemNevermoreValue.vue'
 
-function mountNevermore(overrides: {
-    printerObject?: Record<string, number>
-    objectName?: string
-    keyName?: string
-    small?: boolean
-    guiSetting?: boolean
-} = {}) {
+function mountNevermore(
+    overrides: {
+        printerObject?: Record<string, number>
+        objectName?: string
+        keyName?: string
+        small?: boolean
+        guiSetting?: boolean
+    } = {}
+) {
     const store = createStore({
         getters: {
             'gui/getDatasetAdditionalSensorValue': () => () => overrides.guiSetting ?? true,

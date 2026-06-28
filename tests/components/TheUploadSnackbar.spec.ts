@@ -12,9 +12,21 @@ const i18n = createI18n({
 vi.mock('@/plugins/helpers', () => ({ formatFilesize: vi.fn((b: number) => `${b} B/s`) }))
 
 vi.mock('vuetify/components', () => ({
-    VSnackbar: { name: 'VSnackbar', props: { timeout: Number, location: String }, template: '<div class="v-snackbar"><slot /><slot name="actions" :props=\'{}\' /></div>' },
-    VBtn: { name: 'VBtn', props: { icon: [String, Boolean], color: String, variant: String }, template: '<button class="v-btn" @click="$emit(\'click\')"><slot /></button>' },
-    VProgressLinear: { name: 'VProgressLinear', props: { modelValue: Number }, template: '<div class="v-progress-linear" />' },
+    VSnackbar: {
+        name: 'VSnackbar',
+        props: { timeout: Number, location: String },
+        template: '<div class="v-snackbar"><slot /><slot name="actions" :props=\'{}\' /></div>',
+    },
+    VBtn: {
+        name: 'VBtn',
+        props: { icon: [String, Boolean], color: String, variant: String },
+        template: '<button class="v-btn" @click="$emit(\'click\')"><slot /></button>',
+    },
+    VProgressLinear: {
+        name: 'VProgressLinear',
+        props: { modelValue: Number },
+        template: '<div class="v-progress-linear" />',
+    },
 }))
 
 function makeStore(show = false, overrides: Record<string, any> = {}) {
@@ -22,7 +34,13 @@ function makeStore(show = false, overrides: Record<string, any> = {}) {
         state: {
             files: {
                 upload: {
-                    show, cancelTokenSource: { cancel: vi.fn() }, filename: '', currentNumber: 0, maxNumber: 0, speed: 0, percent: 0,
+                    show,
+                    cancelTokenSource: { cancel: vi.fn() },
+                    filename: '',
+                    currentNumber: 0,
+                    maxNumber: 0,
+                    speed: 0,
+                    percent: 0,
                     ...overrides,
                 },
             },
@@ -40,14 +58,18 @@ describe('TheUploadSnackbar.vue', () => {
     })
 
     it('renders when show is true', () => {
-        const wrapper = mount(TheUploadSnackbar, { global: { plugins: [makeStore(true, { filename: 'test.gcode', percent: 50 }), i18n] } })
+        const wrapper = mount(TheUploadSnackbar, {
+            global: { plugins: [makeStore(true, { filename: 'test.gcode', percent: 50 }), i18n] },
+        })
         expect(wrapper.find('.v-snackbar').exists()).toBe(true)
         expect(wrapper.text()).toContain('test.gcode')
         expect(wrapper.text()).toContain('50 %')
     })
 
     it('shows counter when maxNumber > 1', () => {
-        const wrapper = mount(TheUploadSnackbar, { global: { plugins: [makeStore(true, { currentNumber: 1, maxNumber: 3, percent: 50 }), i18n] } })
+        const wrapper = mount(TheUploadSnackbar, {
+            global: { plugins: [makeStore(true, { currentNumber: 1, maxNumber: 3, percent: 50 }), i18n] },
+        })
         expect(wrapper.text()).toContain('1/3')
     })
 
@@ -71,6 +93,6 @@ describe('TheUploadSnackbar.vue', () => {
         expect(document.body.classList.contains('fullscreenUpload--active')).toBe(false)
         // Update store to show=true to trigger watcher
         store.state.files.upload.show = true
-        await wrapper.vm.$nextTick?.() ?? new Promise((r) => setTimeout(r, 50))
+        ;(await wrapper.vm.$nextTick?.()) ?? new Promise((r) => setTimeout(r, 50))
     })
 })

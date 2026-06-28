@@ -13,7 +13,11 @@ vi.mock('@mdi/js', () => ({
 vi.mock('vuetify/components', () => ({
     VRow: { name: 'VRow', template: '<div class="v-row"><slot /></div>' },
     VCol: { name: 'VCol', template: '<div class="v-col"><slot /></div>' },
-    VChip: { name: 'VChip', props: ['variant', 'label', 'size', 'href'], template: '<a class="v-chip" :href="$props.href"><slot /></a>' },
+    VChip: {
+        name: 'VChip',
+        props: ['variant', 'label', 'size', 'href'],
+        template: '<a class="v-chip" :href="$props.href"><slot /></a>',
+    },
     VIcon: { name: 'VIcon', props: ['size'], template: '<i class="v-icon"><slot /></i>' },
 }))
 

@@ -1,5 +1,5 @@
 <html>
-   <head>
+    <head>
         <title>Moonraker {{ version }}</title>
         <style>
             body {
@@ -15,7 +15,7 @@
             .nav-bar a {
                 float: right;
                 text-align: center;
-                padding: .5em .75em;
+                padding: 0.5em 0.75em;
                 font-size: 1.2em;
                 text-decoration: none;
                 color: rgb(230, 230, 230);
@@ -44,9 +44,9 @@
                 flex-wrap: wrap;
             }
             .card {
-                background:none;
+                background: none;
                 border: 0px;
-                border-radius: .75rem;
+                border-radius: 0.75rem;
                 width: 25rem;
             }
             .card h1 {
@@ -56,21 +56,21 @@
                 font-size: 1.1rem;
                 height: 2.2rem;
                 margin: 0;
-                border-top-left-radius: .75rem;
-                border-top-right-radius: .75rem;
+                border-top-left-radius: 0.75rem;
+                border-top-right-radius: 0.75rem;
             }
-            .card .content{
+            .card .content {
                 background-color: #1a1a1a;
-                border-bottom-left-radius: .75rem;
-                border-bottom-right-radius: .75rem;
-                padding: .5rem;
+                border-bottom-left-radius: 0.75rem;
+                border-bottom-right-radius: 0.75rem;
+                padding: 0.5rem;
             }
             .card .entry {
                 display: inline-block;
                 width: 100%;
             }
             .card .entry:not(:last-child) {
-                margin-bottom: .4rem;
+                margin-bottom: 0.4rem;
             }
             .card .value {
                 float: right;
@@ -79,25 +79,25 @@
             .messages {
                 margin-top: 2rem;
                 width: 51.5rem;
-                padding: .5rem;
+                padding: 0.5rem;
             }
             .messages .item {
-                padding: .5rem;
+                padding: 0.5rem;
                 background: #242424;
-                border-radius: .4rem;
+                border-radius: 0.4rem;
             }
             .messages .announcement {
                 cursor: pointer;
             }
             .messages .item:not(:last-child) {
-                margin-bottom: .5rem;
+                margin-bottom: 0.5rem;
             }
             .messages .item a {
                 font-size: 1.2rem;
                 margin: 0;
                 font-weight: 600;
                 padding: 0rem;
-                margin-bottom: .1rem;
+                margin-bottom: 0.1rem;
                 text-decoration: None;
                 color: rgb(230, 230, 230);
             }
@@ -133,8 +133,8 @@
                 width: 100%;
                 height: 100%;
                 overflow: auto;
-                background-color: rgb(0,0,0);
-                background-color: rgba(0,0,0,0.4);
+                background-color: rgb(0, 0, 0);
+                background-color: rgba(0, 0, 0, 0.4);
             }
 
             .modal-card {
@@ -148,7 +148,7 @@
                 border: 0px;
                 width: 50%;
                 animation-name: fadein;
-                animation-duration: .5s;
+                animation-duration: 0.5s;
             }
 
             .modal-card h1 {
@@ -166,7 +166,7 @@
                 background-color: #3e3e3e;
                 padding: 1rem;
                 margin: 0;
-                height: auto
+                height: auto;
             }
 
             .modal-content .entry {
@@ -174,7 +174,7 @@
                 width: 100%;
             }
             .modal-content .entry:not(:last-child) {
-                margin-bottom: .5rem;
+                margin-bottom: 0.5rem;
             }
             .modal-content .value {
                 float: right;
@@ -186,9 +186,9 @@
                 border-radius: 4px;
                 -moz-border-radius: 4px;
                 -webkit-border-radius: 4px;
-                font-size: 1rem; color: #222;
-                background: #F7F7F7;
-
+                font-size: 1rem;
+                color: #222;
+                background: #f7f7f7;
             }
 
             .modal-footer {
@@ -210,11 +210,11 @@
                 font-size: 1rem;
                 font-weight: bold;
                 color: rgb(0, 0, 0);
-                padding: .4rem .5rem;
-                margin: 0rem .5rem .5rem 0rem;
-                border-radius: .5rem;
-                -webkit-border-radius: .5rem;
-                -moz-border-radius: .5rem;
+                padding: 0.4rem 0.5rem;
+                margin: 0rem 0.5rem 0.5rem 0rem;
+                border-radius: 0.5rem;
+                -webkit-border-radius: 0.5rem;
+                -moz-border-radius: 0.5rem;
             }
 
             .modal-button:hover {
@@ -233,7 +233,7 @@
                 padding: 0rem;
                 width: 50%;
                 animation-name: fadebottom;
-                animation-duration: .5s;
+                animation-duration: 0.5s;
             }
 
             .modal-status:hover {
@@ -246,47 +246,55 @@
             }
 
             @keyframes fadebottom {
-                from {top: 10em; opacity: 0}
-                to {top: 0em; opacity: 1}
+                from {
+                    top: 10em;
+                    opacity: 0;
+                }
+                to {
+                    top: 0em;
+                    opacity: 1;
+                }
             }
 
             @keyframes fadein {
-                from {opacity: 0}
-                to {opacity: 1}
+                from {
+                    opacity: 0;
+                }
+                to {
+                    opacity: 1;
+                }
             }
         </style>
         <script>
             function setClickable(id) {
-                const item = document.querySelector(`#${id}`);
-                const primary_link = item.querySelector("a");
-                const clickable = Array.from(item.querySelectorAll(".clickable"));
+                const item = document.querySelector(`#${id}`)
+                const primary_link = item.querySelector('a')
+                const clickable = Array.from(item.querySelectorAll('.clickable'))
                 clickable.forEach((element) => {
-                    element.addEventListener("click", (evt) => {
-                        evt.stopPropagation();
+                    element.addEventListener('click', (evt) => {
+                        evt.stopPropagation()
                     })
-                });
+                })
                 function onItemClicked(evt) {
-                    const noTextSelected = !window.getSelection().toString();
-                    if (noTextSelected)
-                        primary_link.click();
+                    const noTextSelected = !window.getSelection().toString()
+                    if (noTextSelected) primary_link.click()
                 }
-                item.addEventListener("click", onItemClicked);
+                item.addEventListener('click', onItemClicked)
             }
         </script>
-   </head>
-   <body>
-       <main>
+    </head>
+    <body>
+        <main>
             <div class="nav-bar">
                 <a href="https://github.com/Arksine/moonraker">GitHub</a>
                 <a href="https://moonraker.readthedocs.io">Documentation</a>
             </div>
             <div class="intro">
                 <h1>Welcome to Moonraker</h1>
-                <p>You may have intended
-                to navigate to one of Moonraker's front ends.  If so, check
-                that you entered the correct port in the address bar.  If the
-                front end is hosted on a default port (80 for http, 443 for https),
-                you may remove the port from the address.
+                <p>
+                    You may have intended to navigate to one of Moonraker's front ends. If so, check that you entered
+                    the correct port in the address bar. If the front end is hosted on a default port (80 for http, 443
+                    for https), you may remove the port from the address.
                 </p>
             </div>
             <div class="status">
@@ -325,72 +333,63 @@
                     </div>
                 </article>
                 {% if summary %}
-                    <article class="card messages">
-                        <h1>Summary</h1>
-                        <div class="content">
-                            {% for item in summary %}
-                                <article class="item">{{ item }}</article>
-                            {% endfor %}
-                        </div>
-                    </article>
-                {% endif %}
-                {% if announcements %}
+                <article class="card messages">
+                    <h1>Summary</h1>
+                    <div class="content">
+                        {% for item in summary %}
+                        <article class="item">{{ item }}</article>
+                        {% endfor %}
+                    </div>
+                </article>
+                {% endif %} {% if announcements %}
                 <article class="card messages">
                     <h1>Announcements</h1>
                     <div class="content">
-                        {% for item in announcements %}
-                            {% set id = "announcement-" + item["entry_id"].replace("/", "-") %}
-                            <article class="item announcement" id="{{ id }}">
-                                {% set url = item["url"] %}
-                                <a href="{{ url }}" class="clickable">{{ item["title"] }}</a>
-                                <p>{{ item["description"] }}</p>
-                            </article>
-                            <script>
-                                setClickable("{{ id }}");
-                            </script>
+                        {% for item in announcements %} {% set id = "announcement-" + item["entry_id"].replace("/", "-")
+                        %}
+                        <article class="item announcement" id="{{ id }}">
+                            {% set url = item["url"] %}
+                            <a href="{{ url }}" class="clickable">{{ item["title"] }}</a>
+                            <p>{{ item["description"] }}</p>
+                        </article>
+                        <script>
+                            setClickable('{{ id }}')
+                        </script>
+                        {% endfor %}
+                    </div>
+                </article>
+                {% endif %} {% if warnings %}
+                <article class="card messages warning">
+                    <h1>Warnings</h1>
+                    <div class="content">
+                        {% for warn in warnings %}
+                        <article class="item">{{ warn }}</article>
                         {% endfor %}
                     </div>
                 </article>
                 {% endif %}
-                {% if warnings %}
-                    <article class="card messages warning">
-                        <h1>Warnings</h1>
-                        <div class="content">
-                            {% for warn in warnings %}
-                                <article class="item">{{ warn }}</article>
-                            {% endfor %}
-                        </div>
-                    </article>
-                {% endif %}
             </div>
             <div id="update_modal" class="modal">
                 <div class="modal-card">
-                    <h1 id="modal_header_msg">
-                        Moonraker Sudo Password Request
-                    </h1>
+                    <h1 id="modal_header_msg">Moonraker Sudo Password Request</h1>
                     <div id="modal_body" class="modal-content">
                         <div id="main_form">
                             <div class="entry">
                                 Service Name:
-                                <div class="value">
-                                    {{ service_name }}
-                                </div>
+                                <div class="value">{{ service_name }}</div>
                             </div>
                             <div class="entry">
                                 Host Name:
-                                <div class="value">
-                                    {{ hostname }}
-                                </div>
+                                <div class="value">{{ hostname }}</div>
                             </div>
                             <div class="entry">
                                 Host IP Address:
-                                <div class="value">
-                                    {{ local_ip }}
-                                </div>
+                                <div class="value">{{ local_ip }}</div>
                             </div>
                             <div class="entry">
-                                {{ sudo_request_message }}
-                                Please enter the password for linux user <b>{{ linux_user }}</b>:
+                                {{ sudo_request_message }} Please enter the password for linux user
+                                <b>{{ linux_user }}</b>
+                                :
                             </div>
                             <div class="entry">
                                 <input id="sudo_passwd" name="sudo_passwd" type="password" />
@@ -403,9 +402,7 @@
                     </div>
                 </div>
                 <div id="modal_status" class="modal-status">
-                    <div id="status_msg" class="content">
-                        Status Text
-                    </div>
+                    <div id="status_msg" class="content">Status Text</div>
                 </div>
             </div>
             <script>
@@ -497,6 +494,6 @@
                     }
                 };
             </script>
-       </main>
-   </body>
- </html>
+        </main>
+    </body>
+</html>

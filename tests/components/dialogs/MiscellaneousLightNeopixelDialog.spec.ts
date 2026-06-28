@@ -19,16 +19,25 @@ vi.mock('@/components/ui/Panel.vue', () => ({
     default: {
         name: 'Panel',
         props: { icon: String, title: [String, Object], cardClass: String, marginBottom: Boolean },
-        template: '<div class="panel" :class="cardClass"><slot name="buttons" /><slot /><span class="panel-title">{{ title }}</span></div>',
+        template:
+            '<div class="panel" :class="cardClass"><slot name="buttons" /><slot /><span class="panel-title">{{ title }}</span></div>',
     },
 }))
 
 vi.mock('vuetify/components', () => ({
-    VDialog: { name: 'VDialog', props: ['modelValue', 'width'], template: '<div class="v-dialog" v-if="modelValue"><slot /></div>' },
+    VDialog: {
+        name: 'VDialog',
+        props: ['modelValue', 'width'],
+        template: '<div class="v-dialog" v-if="modelValue"><slot /></div>',
+    },
     VCardText: { name: 'VCardText', template: '<div class="v-card-text"><slot /></div>' },
     VRow: { name: 'VRow', template: '<div class="v-row"><slot /></div>' },
     VCol: { name: 'VCol', template: '<div class="v-col"><slot /></div>' },
-    VBtn: { name: 'VBtn', props: ['icon', 'rounded'], template: '<button class="v-btn" @click="$emit(\'click\')"><slot /></button>' },
+    VBtn: {
+        name: 'VBtn',
+        props: ['icon', 'rounded'],
+        template: '<button class="v-btn" @click="$emit(\'click\')"><slot /></button>',
+    },
     VDivider: { name: 'VDivider', template: '<hr class="v-divider" />' },
     VIcon: { name: 'VIcon', props: ['icon'], template: '<i class="v-icon"><slot /></i>' },
 }))
@@ -45,7 +54,18 @@ vi.mock('@/components/inputs/ColorPicker.vue', () => ({
 vi.mock('@/components/inputs/NumberInput.vue', () => ({
     default: {
         name: 'NumberInput',
-        props: ['label', 'param', 'target', 'defaultValue', 'min', 'max', 'dec', 'step', 'hasSpinner', 'outputErrorMsg'],
+        props: [
+            'label',
+            'param',
+            'target',
+            'defaultValue',
+            'min',
+            'max',
+            'dec',
+            'step',
+            'hasSpinner',
+            'outputErrorMsg',
+        ],
         template: '<div class="number-input-stub">{{ param }}: {{ target }}</div>',
         emits: ['submit'],
     },
@@ -63,32 +83,33 @@ vi.mock('@/components/dialogs/MiscellaneousLightNeopixelDialogPreset.vue', () =>
 describe('MiscellaneousLightNeopixelDialog.vue', () => {
     let store: ReturnType<typeof createStore>
 
-    const baseStore = () => createStore({
-        state: {
-            printer: {
-                configfile: {
-                    settings: {
-                        'neopixel my_strip': {
-                            color_order: ['GRB'],
-                            initial_red: 1.0,
-                            initial_green: 0.5,
-                            initial_blue: 0.0,
-                            initial_white: 0.0,
-                            chip: 'WS2812',
+    const baseStore = () =>
+        createStore({
+            state: {
+                printer: {
+                    configfile: {
+                        settings: {
+                            'neopixel my_strip': {
+                                color_order: ['GRB'],
+                                initial_red: 1.0,
+                                initial_green: 0.5,
+                                initial_blue: 0.0,
+                                initial_white: 0.0,
+                                chip: 'WS2812',
+                            },
                         },
                     },
+                    'neopixel my_strip': {
+                        color_data: [[1.0, 0.5, 0.0, 0.0]],
+                    },
                 },
-                'neopixel my_strip': {
-                    color_data: [[1.0, 0.5, 0.0, 0.0]],
+                gui: {
+                    miscellaneous: {
+                        entries: {},
+                    },
                 },
             },
-            gui: {
-                miscellaneous: {
-                    entries: {},
-                },
-            },
-        },
-    })
+        })
 
     beforeEach(() => {
         vi.clearAllMocks()
@@ -184,7 +205,12 @@ describe('MiscellaneousLightNeopixelDialog.vue', () => {
                 printer: {
                     configfile: {
                         settings: {
-                            'neopixel my_strip': { color_order: ['GRB'], initial_red: 0, initial_green: 0, initial_blue: 0 },
+                            'neopixel my_strip': {
+                                color_order: ['GRB'],
+                                initial_red: 0,
+                                initial_green: 0,
+                                initial_blue: 0,
+                            },
                         },
                     },
                     'neopixel my_strip': { color_data: [[0, 0, 0, 0]] },
@@ -192,7 +218,14 @@ describe('MiscellaneousLightNeopixelDialog.vue', () => {
                 gui: {
                     miscellaneous: {
                         entries: {
-                            preset1: { type: 'neopixel', name: 'my_strip', presets: { p1: { name: 'Red', red: 1, green: 0, blue: 0 }, p2: { name: 'Green', red: 0, green: 1, blue: 0 } } },
+                            preset1: {
+                                type: 'neopixel',
+                                name: 'my_strip',
+                                presets: {
+                                    p1: { name: 'Red', red: 1, green: 0, blue: 0 },
+                                    p2: { name: 'Green', red: 0, green: 1, blue: 0 },
+                                },
+                            },
                         },
                     },
                 },
@@ -238,7 +271,14 @@ describe('MiscellaneousLightNeopixelDialog.vue', () => {
                 printer: {
                     configfile: {
                         settings: {
-                            'led my_led': { red_pin: 'PA1', green_pin: 'PA2', blue_pin: 'PA3', initial_red: 1, initial_green: 0, initial_blue: 0 },
+                            'led my_led': {
+                                red_pin: 'PA1',
+                                green_pin: 'PA2',
+                                blue_pin: 'PA3',
+                                initial_red: 1,
+                                initial_green: 0,
+                                initial_blue: 0,
+                            },
                         },
                     },
                     'led my_led': { color_data: [[1, 0, 0, 0]] },

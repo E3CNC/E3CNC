@@ -18,5 +18,5 @@ Host module monitors voltage changes and adjusts extrusion multiplier.
 ## Note:
 
 Sensor readings done with 10 mm intervals by default. If necessary you are
-free to change this setting by editing ***MEASUREMENT_INTERVAL_MM*** parameter
+free to change this setting by editing **_MEASUREMENT_INTERVAL_MM_** parameter
 in **filament_width_sensor.py** file.

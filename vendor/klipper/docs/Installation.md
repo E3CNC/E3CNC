@@ -183,7 +183,6 @@ sudo service klipper start
 It is important to note that RP2040 chips may need to be put into Boot mode
 before this operation.
 
-
 ## Configuring Klipper
 
 The next step is to copy the

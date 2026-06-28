@@ -214,7 +214,12 @@
             <v-row density="compact" class="mb-2 justify-center">
                 <v-col cols="12" md="6" class="d-flex flex-column align-center">
                     <div class="text-center mb-3 w-100">
-                        <span class="text-caption font-weight-bold">XY Jog (<span class="step-num">{{ currentStep < 1 ? currentStep.toFixed(2) : currentStep }}</span><span class="step-unit">mm</span>)</span>
+                        <span class="text-caption font-weight-bold">
+                            XY Jog (
+                            <span class="step-num">{{ currentStep < 1 ? currentStep.toFixed(2) : currentStep }}</span>
+                            <span class="step-unit">mm</span>
+                            )
+                        </span>
                     </div>
                     <div class="jog-panel__xy-pad">
                         <v-btn
@@ -266,7 +271,11 @@
                         :disabled="['printing'].includes(printer_state) || !zHomed"
                         @click="jog('Z', currentStep)">
                         <v-icon>{{ mdiChevronUp }}</v-icon>
-                        <span class="ml-2"><span class="step-num">{{ currentStep < 1 ? currentStep.toFixed(2) : currentStep }}</span><span class="step-unit">mm</span> up</span>
+                        <span class="ml-2">
+                            <span class="step-num">{{ currentStep < 1 ? currentStep.toFixed(2) : currentStep }}</span>
+                            <span class="step-unit">mm</span>
+                            up
+                        </span>
                     </v-btn>
                     <v-btn
                         class="jog-panel__jog-btn d-block w-100"
@@ -274,7 +283,11 @@
                         :disabled="['printing'].includes(printer_state) || !zHomed"
                         @click="jog('Z', -currentStep)">
                         <v-icon>{{ mdiChevronDown }}</v-icon>
-                        <span class="ml-2"><span class="step-num">{{ currentStep < 1 ? currentStep.toFixed(2) : currentStep }}</span><span class="step-unit">mm</span> down</span>
+                        <span class="ml-2">
+                            <span class="step-num">{{ currentStep < 1 ? currentStep.toFixed(2) : currentStep }}</span>
+                            <span class="step-unit">mm</span>
+                            down
+                        </span>
                     </v-btn>
                 </v-col>
             </v-row>
@@ -472,17 +485,14 @@ function jogPrecise(axis: string, distance: number) {
 }
 
 function showKeyboardNavToast(step: number) {
-    keyboardNavToast.value = toast.warning(
-        `KEYBOARD NAVIGATION IS ON, BE CAREFULL! (jog step: ${formatStep(step)})`,
-        {
-            position: 'bottom',
-            duration: 0,
-            onDismiss: () => {
-                keyboardNavEnabled.value = false
-                keyboardNavToast.value = null
-            },
-        }
-    )
+    keyboardNavToast.value = toast.warning(`KEYBOARD NAVIGATION IS ON, BE CAREFULL! (jog step: ${formatStep(step)})`, {
+        position: 'bottom',
+        duration: 0,
+        onDismiss: () => {
+            keyboardNavEnabled.value = false
+            keyboardNavToast.value = null
+        },
+    })
 }
 
 function toggleKeyboardNav() {

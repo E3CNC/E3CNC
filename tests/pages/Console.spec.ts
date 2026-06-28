@@ -225,9 +225,7 @@ describe('Console.vue', () => {
     it('settings menu shows autoscroll checkbox when consoleDirection is shell', () => {
         const wrapper = mountConsole('shell')
         const checkboxes = wrapper.findAll('.v-checkbox')
-        const autoscrollCheckbox = checkboxes.find((cb) =>
-            cb.text().includes('Panels.MiniconsolePanel.Autoscroll')
-        )
+        const autoscrollCheckbox = checkboxes.find((cb) => cb.text().includes('Panels.MiniconsolePanel.Autoscroll'))
         expect(autoscrollCheckbox).toBeDefined()
     })
 
@@ -241,26 +239,20 @@ describe('Console.vue', () => {
 
     it('settings menu shows hide temperatures checkbox', () => {
         const wrapper = mountConsole()
-        const checkbox = wrapper
-            .findAll('.v-checkbox')
-            .find((cb) => cb.text().includes('Console.HideTemperatures'))
+        const checkbox = wrapper.findAll('.v-checkbox').find((cb) => cb.text().includes('Console.HideTemperatures'))
         expect(checkbox).toBeDefined()
     })
 
     it('settings menu shows hide timelapse checkbox when timelapse component is present', () => {
         const wrapper = mountConsole('shell', { moonrakerComponents: ['timelapse'] })
-        const checkbox = wrapper
-            .findAll('.v-checkbox')
-            .find((cb) => cb.text().includes('Console.HideTimelapse'))
+        const checkbox = wrapper.findAll('.v-checkbox').find((cb) => cb.text().includes('Console.HideTimelapse'))
         expect(checkbox).toBeDefined()
     })
 
     it('settings menu does NOT show hide timelapse checkbox when timelapse component is absent', () => {
         mockConsoleValues.moonrakerComponents._value = []
         const wrapper = mountConsole()
-        const checkbox = wrapper
-            .findAll('.v-checkbox')
-            .find((cb) => cb.text().includes('Console.HideTimelapse'))
+        const checkbox = wrapper.findAll('.v-checkbox').find((cb) => cb.text().includes('Console.HideTimelapse'))
         expect(checkbox).toBeUndefined()
     })
 

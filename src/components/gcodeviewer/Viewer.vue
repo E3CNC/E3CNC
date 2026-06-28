@@ -899,11 +899,7 @@ function applyPreviewOffset(force = false) {
         return
 
     viewer.scene?.meshes?.forEach((mesh: any) => {
-        if (
-            mesh?.renderingGroupId !== 2 ||
-            mesh?.name === 'JRNozzle' ||
-            mesh?.name === 'SimpleToolCursorCylinder'
-        )
+        if (mesh?.renderingGroupId !== 2 || mesh?.name === 'JRNozzle' || mesh?.name === 'SimpleToolCursorCylinder')
             return
         if (!mesh?.position) return
 
@@ -1296,13 +1292,7 @@ const bedMinSize = computed(
 const machineStateReady = computed(() => {
     const min = store.state.printer.toolhead?.axis_minimum
     const max = store.state.printer.toolhead?.axis_maximum
-    return (
-        klipperReadyForGui.value &&
-        Array.isArray(min) &&
-        min.length >= 3 &&
-        Array.isArray(max) &&
-        max.length >= 3
-    )
+    return klipperReadyForGui.value && Array.isArray(min) && min.length >= 3 && Array.isArray(max) && max.length >= 3
 })
 
 async function waitForMachineStateReady() {

@@ -19,9 +19,15 @@ const mockIsMobile = vi.hoisted(() => {
     class MockRef {
         _value: any
         __v_isRef = true
-        constructor(v: any) { this._value = v }
-        get value() { return this._value }
-        set value(v) { this._value = v }
+        constructor(v: any) {
+            this._value = v
+        }
+        get value() {
+            return this._value
+        }
+        set value(v) {
+            this._value = v
+        }
     }
     return new MockRef(false)
 })

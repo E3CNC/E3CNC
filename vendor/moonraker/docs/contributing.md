@@ -1,23 +1,23 @@
 # Contributing to Moonraker
 
 Prior to submitting a pull request prospective contributors must read this
-entire document.  Care should be taken to [format git commits](#git-commit-format)
-correctly.  This eases the review process and provides the reviewer with
+entire document. Care should be taken to [format git commits](#git-commit-format)
+correctly. This eases the review process and provides the reviewer with
 confidence that the submission will be of sufficient quality.
 
 Prospective contributors should consider the following:
 
-- Does the contribution have significant impact?  Bug fixes to existing
+- Does the contribution have significant impact? Bug fixes to existing
   functionality and new features requested by 100+ users qualify as
   items of significant impact.
-- Has the submission been well tested?  Submissions with substantial code
+- Has the submission been well tested? Submissions with substantial code
   change must include details about the testing procedure and results.
-- Does the submission include blocking code?  Moonraker is an asynchronous
+- Does the submission include blocking code? Moonraker is an asynchronous
   application, thus blocking code must be avoided.
-- If any dependencies are included, are they pure python?  Many low-powered SBCs
+- If any dependencies are included, are they pure python? Many low-powered SBCs
   running Armbian do not have prebuilt wheels and are not capable of building wheels
   themselves, thus breaking updates on these systems.
-- Does the submission change the API?  If so, could the change potentially break
+- Does the submission change the API? If so, could the change potentially break
   frontends using the API?
 - Does the submission include updates to the documentation?
 
@@ -38,12 +38,12 @@ All source files should begin with a copyright notice in the following format:
 
 #### Git Commit Format
 
-Commits should be contain one functional change.  Changes that are unrelated
-or independent should be broken up into multiple commits.  It is acceptable
+Commits should be contain one functional change. Changes that are unrelated
+or independent should be broken up into multiple commits. It is acceptable
 for a commit to contain multiple files if a change to one module depends on a
 change to another (ie: changing the name of a method).
 
-Avoid merge commits.  If it is necessary to update a Pull Request from the
+Avoid merge commits. If it is necessary to update a Pull Request from the
 master branch use git's interactive rebase and force push.
 
 Each Commit message should be in the following format:
@@ -71,6 +71,7 @@ power: add support for mqtt devices
 
 Signed-off-by: Eric Callahan <arksine.code@gmail.com>
 ```
+
 ```git
 docs: add mqtt power device documentation
 
@@ -79,7 +80,7 @@ Signed-off-by: Eric Callahan <arksine.code@gmail.com>
 
 By signing off on commits, you acknowledge that you agree to the
 [developer certificate of origin](https://developercertificate.org/)
-shown below.  As mentioned above, your signature must contain your
+shown below. As mentioned above, your signature must contain your
 real name and a current email address.
 
 ```text
@@ -121,25 +122,27 @@ By making a contribution to this project, I certify that:
     maintained indefinitely and may be redistributed consistent with
     this project or the open source license(s) involved.
 ```
+
 #### Code Style
+
 Python methods should be fully annotated. Variables should be annotated where
 the type cannot be inferred. Moonraker uses `mypy` version 1.5.1 for static
 type checking with the following options:
 
-  - `--ignore-missing-imports`
-  - `--follow-imports=silent`
+- `--ignore-missing-imports`
+- `--follow-imports=silent`
 
-No line in the source code should exceed 88 characters.  Be sure there is no
-trailing whitespace.  To validate code before submission one may use
+No line in the source code should exceed 88 characters. Be sure there is no
+trailing whitespace. To validate code before submission one may use
 `flake8` version 6.1.0 with the following options:
 
-  - `--ignore=E226,E301,E302,E303,W503,W504`
-  - `--max-line-length=88`
-  - `--max-doc-length=88`
+- `--ignore=E226,E301,E302,E303,W503,W504`
+- `--max-line-length=88`
+- `--max-doc-length=88`
 
 Generally speaking, each line in submitted documentation should also be no
 longer than 88 characters, however there are situations where this isn't
 possible, such as long hyperlinks or example return values.
 
-Avoid peeking into the member variables of another class.  Use getters or
+Avoid peeking into the member variables of another class. Use getters or
 properties to access object state.

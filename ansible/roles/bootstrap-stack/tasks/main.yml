@@ -314,7 +314,7 @@
   changed_when: false
   when:
     - e3cnc_bootstrap_needed
-    - not (bootstrap_skip_runtime_start | default(false))
+    - not (bootstrap_skip_runtime_start | default(false) | bool)
 
 - name: Reload systemd after bootstrap unit installation
   ansible.builtin.systemd:
@@ -322,7 +322,7 @@
   become: true
   when:
     - e3cnc_bootstrap_needed
-    - not (bootstrap_skip_runtime_start | default(false))
+    - not (bootstrap_skip_runtime_start | default(false) | bool)
 
 - name: Enable and start nginx for E3CNC bootstrap
   ansible.builtin.systemd:
@@ -332,7 +332,7 @@
   become: true
   when:
     - e3cnc_bootstrap_needed
-    - not (bootstrap_skip_runtime_start | default(false))
+    - not (bootstrap_skip_runtime_start | default(false) | bool)
 
 - name: Enable and start Moonraker for E3CNC bootstrap
   ansible.builtin.systemd:
@@ -342,7 +342,7 @@
   become: true
   when:
     - e3cnc_bootstrap_needed
-    - not (bootstrap_skip_runtime_start | default(false))
+    - not (bootstrap_skip_runtime_start | default(false) | bool)
 
 - name: Install Klipper service without starting when using placeholder config
   ansible.builtin.systemd:
@@ -352,7 +352,7 @@
   become: true
   when:
     - e3cnc_bootstrap_needed
-    - not (bootstrap_skip_runtime_start | default(false))
+    - not (bootstrap_skip_runtime_start | default(false) | bool)
     - e3cnc_placeholder_printer_cfg
 
 - name: Start Klipper when an existing printer.cfg was already present
@@ -363,7 +363,7 @@
   become: true
   when:
     - e3cnc_bootstrap_needed
-    - not (bootstrap_skip_runtime_start | default(false))
+    - not (bootstrap_skip_runtime_start | default(false) | bool)
     - not e3cnc_placeholder_printer_cfg
 
 - name: Explain skipped runtime start for bootstrap integration environments
@@ -373,7 +373,7 @@
       - 'Set bootstrap_skip_runtime_start=false to start nginx, Moonraker, and Klipper during install.'
   when:
     - e3cnc_bootstrap_needed
-    - bootstrap_skip_runtime_start | default(false)
+    - bootstrap_skip_runtime_start | default(false) | bool
 
 - name: Explain follow-up steps for placeholder printer.cfg
   ansible.builtin.debug:

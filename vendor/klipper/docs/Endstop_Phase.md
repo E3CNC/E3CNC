@@ -40,6 +40,7 @@ If using Trinamic stepper motor drivers with run-time configuration
 then one can calibrate the endstop phases using the
 ENDSTOP_PHASE_CALIBRATE command. Start by adding the following to the
 config file:
+
 ```
 [endstop_phase]
 ```
@@ -59,6 +60,7 @@ little later.)
 
 To save the endstop phase for a particular stepper motor, run
 something like the following:
+
 ```
 ENDSTOP_PHASE_CALIBRATE STEPPER=stepper_z
 ```
@@ -67,13 +69,14 @@ Run the above for all the steppers one wishes to save. Typically, one
 would use this on stepper_z for cartesian and corexy printers, and for
 stepper_a, stepper_b, and stepper_c on delta printers. Finally, run
 the following to update the configuration file with the data:
+
 ```
 SAVE_CONFIG
 ```
 
 ### Additional notes
 
-* This feature is most useful on delta printers and on the Z endstop
+- This feature is most useful on delta printers and on the Z endstop
   of cartesian/corexy printers. It is possible to use this feature on
   the XY endstops of cartesian printers, but that isn't particularly
   useful as a minor error in X/Y endstop position is unlikely to
@@ -84,12 +87,12 @@ SAVE_CONFIG
   the stepper phase is only stable if the endstop is at a static
   location on a rail).
 
-* After calibrating the endstop phase, if the endstop is later moved
+- After calibrating the endstop phase, if the endstop is later moved
   or adjusted then it will be necessary to recalibrate the endstop.
   Remove the calibration data from the config file and rerun the steps
   above.
 
-* In order to use this system the endstop must be accurate enough to
+- In order to use this system the endstop must be accurate enough to
   identify the stepper position within two "full steps". So, for
   example, if a stepper is using 16 micro-steps with a step distance
   of 0.005mm then the endstop must have an accuracy of at least
@@ -98,7 +101,7 @@ SAVE_CONFIG
   accurate. If recalibration does not help then disable endstop phase
   adjustments by removing them from the config file.
 
-* If one is using a traditional stepper controlled Z axis (as on a
+- If one is using a traditional stepper controlled Z axis (as on a
   cartesian or corexy printer) along with traditional bed leveling
   screws then it is also possible to use this system to arrange for
   each print layer to be performed on a "full step" boundary. To
@@ -108,7 +111,7 @@ SAVE_CONFIG
   (see [config reference](Config_Reference.md#endstop_phase) for
   further details), and then re-level the bed screws.
 
-* It is possible to use this system with traditional (non-Trinamic)
+- It is possible to use this system with traditional (non-Trinamic)
   stepper motor drivers. However, doing this requires making sure that
   the stepper motor drivers are reset every time the micro-controller
   is reset. (If the two are always reset together then Klipper can

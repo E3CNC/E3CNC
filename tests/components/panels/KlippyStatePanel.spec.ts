@@ -318,6 +318,10 @@ describe('KlippyStatePanel.vue', () => {
         const powerBtn = buttons.find((b) => b.text().includes('Panels.KlippyStatePanel.PowerOn'))
         expect(powerBtn).toBeDefined()
         await powerBtn!.trigger('click')
-        expect(mockSocketEmit).toHaveBeenCalledWith('machine.device_power.post_device', { device: 'printer', action: 'on' }, { action: 'server/power/responseToggle' })
+        expect(mockSocketEmit).toHaveBeenCalledWith(
+            'machine.device_power.post_device',
+            { device: 'printer', action: 'on' },
+            { action: 'server/power/responseToggle' }
+        )
     })
 })

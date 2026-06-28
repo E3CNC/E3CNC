@@ -1,6 +1,6 @@
 name: Create Release
 
-"on":
+'on':
   workflow_dispatch:
     inputs:
       version_tag:

@@ -159,21 +159,21 @@ Common things a reviewer will look for:
 
    At a minimum, the reference documentation must be updated with
    corresponding changes to the code:
-   * All commands and command parameters must be documented in
+   - All commands and command parameters must be documented in
      [G-Codes.md](G-Codes.md).
-   * All user facing modules and their config parameters must be
+   - All user facing modules and their config parameters must be
      documented in [Config_Reference.md](Config_Reference.md).
-   * All exported "status variables" must be documented in
+   - All exported "status variables" must be documented in
      [Status_Reference.md](Status_Reference.md).
-   * All new "webhooks" and their parameters must be documented in
+   - All new "webhooks" and their parameters must be documented in
      [API_Server.md](API_Server.md).
-   * Any change that makes a non-backwards compatible change to a
+   - Any change that makes a non-backwards compatible change to a
      command or config file setting must be documented in
      [Config_Changes.md](Config_Changes.md).
 
    New documents should be added to [Overview.md](Overview.md) and be
    added to the website index
-   [docs/_klipper3d/mkdocs.yml](../docs/_klipper3d/mkdocs.yml).
+   [docs/\_klipper3d/mkdocs.yml](../docs/_klipper3d/mkdocs.yml).
 
 6. Are commits well formed, address a single topic per commit, and
    independent?
@@ -249,12 +249,12 @@ good".
 
 The Klipper "reviewers" are:
 
-| Name                   | GitHub Id         | Areas of interest |
-| ---------------------- | ----------------- | ----------------- |
-| Dmitry Butyugin        | @dmbutyugin       | Input shaping, resonance testing, kinematics |
-| Eric Callahan          | @Arksine          | Bed leveling, MCU flashing |
-| James Hartley          | @JamesH1978       | Configuration files |
-| Kevin O'Connor         | @KevinOConnor     | Core motion system, Micro-controller code |
+| Name            | GitHub Id     | Areas of interest                            |
+| --------------- | ------------- | -------------------------------------------- |
+| Dmitry Butyugin | @dmbutyugin   | Input shaping, resonance testing, kinematics |
+| Eric Callahan   | @Arksine      | Bed leveling, MCU flashing                   |
+| James Hartley   | @JamesH1978   | Configuration files                          |
+| Kevin O'Connor  | @KevinOConnor | Core motion system, Micro-controller code    |
 
 Please do not "ping" any of the reviewers and please do not direct
 submissions at them. All of the reviewers monitor the forums and PRs,
@@ -262,9 +262,9 @@ and will take on reviews when they have time to.
 
 The Klipper "maintainers" are:
 
-| Name                   | GitHub name       |
-| ---------------------- | ----------------- |
-| Kevin O'Connor         | @KevinOConnor     |
+| Name           | GitHub name   |
+| -------------- | ------------- |
+| Kevin O'Connor | @KevinOConnor |
 
 ## Format of commit messages
 
@@ -324,12 +324,13 @@ a month without updates.
 Once the requirements are met, you need to:
 
 1. update klipper-translations repository
-[active_translations](https://github.com/Klipper3d/klipper-translations/blob/translations/active_translations)
+   [active_translations](https://github.com/Klipper3d/klipper-translations/blob/translations/active_translations)
 2. Optional: add a manual-index.md file in klipper-translations repository's
-`docs\locals\<lang>` folder to replace the language specific index.md (generated
-index.md does not render correctly).
+   `docs\locals\<lang>` folder to replace the language specific index.md (generated
+   index.md does not render correctly).
 
 Known Issues:
+
 1. Currently, there isn't a method for correctly translating pictures in
-the documentation
+   the documentation
 2. It is impossible to translate titles in mkdocs.yml.

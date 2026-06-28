@@ -371,8 +371,8 @@ describe('files mutations', () => {
                 item: { root: 'gcodes', path: 'dest/renamed.gcode' },
             })
 
-            const srcChildren = ((state.filetree[0].childrens![0] as any).childrens ?? [])
-            const destChildren = ((state.filetree[0].childrens![1] as any).childrens ?? [])
+            const srcChildren = (state.filetree[0].childrens![0] as any).childrens ?? []
+            const destChildren = (state.filetree[0].childrens![1] as any).childrens ?? []
             expect(srcChildren).toHaveLength(0)
             expect(destChildren[0].filename).toBe('renamed.gcode')
             expect((destChildren[0] as any).metadataPulled).toBe(false)
@@ -414,7 +414,11 @@ describe('files mutations', () => {
                     isDirectory: true,
                     filename: 'gcodes',
                     childrens: [
-                        { isDirectory: true, filename: 'src', childrens: [{ isDirectory: true, filename: 'dirA', childrens: [] }] },
+                        {
+                            isDirectory: true,
+                            filename: 'src',
+                            childrens: [{ isDirectory: true, filename: 'dirA', childrens: [] }],
+                        },
                         { isDirectory: true, filename: 'dest', childrens: [] },
                     ],
                 } as any,
@@ -425,7 +429,7 @@ describe('files mutations', () => {
                 item: { root: 'gcodes', path: 'dest/dirB' },
             })
 
-            expect(((state.filetree[0].childrens![0] as any).childrens ?? [])).toHaveLength(0)
+            expect((state.filetree[0].childrens![0] as any).childrens ?? []).toHaveLength(0)
             expect((((state.filetree[0].childrens![1] as any).childrens ?? [])[0] as any).filename).toBe('dirB')
         })
 

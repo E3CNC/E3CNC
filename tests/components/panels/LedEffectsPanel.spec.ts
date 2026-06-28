@@ -4,15 +4,51 @@ import { createStore } from 'vuex'
 import LedEffectsPanel from '@/components/panels/LedEffectsPanel.vue'
 
 const mockKlipperReadyForGui = vi.hoisted(() => {
-    class MockRef { _value: any; __v_isRef = true; constructor(v: any) { this._value = v } get value() { return this._value } set value(v) { this._value = v } }
+    class MockRef {
+        _value: any
+        __v_isRef = true
+        constructor(v: any) {
+            this._value = v
+        }
+        get value() {
+            return this._value
+        }
+        set value(v) {
+            this._value = v
+        }
+    }
     return new MockRef(true)
 })
 const mockPrinterIsPrintingOnly = vi.hoisted(() => {
-    class MockRef { _value: any; __v_isRef = true; constructor(v: any) { this._value = v } get value() { return this._value } set value(v) { this._value = v } }
+    class MockRef {
+        _value: any
+        __v_isRef = true
+        constructor(v: any) {
+            this._value = v
+        }
+        get value() {
+            return this._value
+        }
+        set value(v) {
+            this._value = v
+        }
+    }
     return new MockRef(false)
 })
 const mockLoadings = vi.hoisted(() => {
-    class MockRef { _value: any; __v_isRef = true; constructor(v: any) { this._value = v } get value() { return this._value } set value(v) { this._value = v } }
+    class MockRef {
+        _value: any
+        __v_isRef = true
+        constructor(v: any) {
+            this._value = v
+        }
+        get value() {
+            return this._value
+        }
+        set value(v) {
+            this._value = v
+        }
+    }
     return new MockRef([])
 })
 
@@ -36,7 +72,8 @@ vi.mock('@/components/ui/Panel.vue', () => ({
     default: {
         name: 'Panel',
         props: { icon: String, title: [String, Object], collapsible: Boolean, cardClass: String },
-        template: '<div class="panel" :class="cardClass"><slot name="buttons" /><slot /><span class="panel-title">{{ title }}</span></div>',
+        template:
+            '<div class="panel" :class="cardClass"><slot name="buttons" /><slot /><span class="panel-title">{{ title }}</span></div>',
     },
 }))
 

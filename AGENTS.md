@@ -86,17 +86,17 @@ with Ansible playbooks for idempotent deployment.
 
 ### Single-Deploy Migration (branch: `single-deploy`, merged into `main`)
 
-| Phase | What                                                                          | Status |
-| ----- | ----------------------------------------------------------------------------- | ------ |
-| 0     | Rename repo `E3CNC_UI`→`E3CNC`, flatten layout, move Moonraker source         | ✅     |
-| 1     | Stack artifact inventory defined in plan                                       | ✅     |
-| 2     | CI builds `e3cnc-stack-v*.tar.zst` artifact with checksum                     | ✅     |
-| 3     | Staged runtime activation (`~/e3cnc/releases/`, `current` symlink, journal)   | ✅     |
-| 4     | Migration path for existing installations                                      | ✅     |
-| 5     | Config/schema migration system (migration script interface)                    | ✅     |
-| 6     | Health checks (7 checks, auto-rollback on failure)                             | ✅     |
-| 7     | CLI rewrite as stack apply tool (`./e3cnc-cli update` owns full deploy flow)   | ✅     |
-| 8     | Legacy Ansible retirement (`post_update.sh` delegates to `e3cnc-cli update`)   | ✅     |
+| Phase | What                                                                         | Status |
+| ----- | ---------------------------------------------------------------------------- | ------ |
+| 0     | Rename repo `E3CNC_UI`→`E3CNC`, flatten layout, move Moonraker source        | ✅     |
+| 1     | Stack artifact inventory defined in plan                                     | ✅     |
+| 2     | CI builds `e3cnc-stack-v*.tar.zst` artifact with checksum                    | ✅     |
+| 3     | Staged runtime activation (`~/e3cnc/releases/`, `current` symlink, journal)  | ✅     |
+| 4     | Migration path for existing installations                                    | ✅     |
+| 5     | Config/schema migration system (migration script interface)                  | ✅     |
+| 6     | Health checks (7 checks, auto-rollback on failure)                           | ✅     |
+| 7     | CLI rewrite as stack apply tool (`./e3cnc-cli update` owns full deploy flow) | ✅     |
+| 8     | Legacy Ansible retirement (`post_update.sh` delegates to `e3cnc-cli update`) | ✅     |
 
 Plus fixes discovered during rollout:
 

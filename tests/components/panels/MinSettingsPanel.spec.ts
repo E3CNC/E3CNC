@@ -3,19 +3,67 @@ import { mount } from '@vue/test-utils'
 import MinSettingsPanel from '@/components/panels/MinSettingsPanel.vue'
 
 const mockKlipperState = vi.hoisted(() => {
-    class MockRef { _value: any; __v_isRef = true; constructor(v: any) { this._value = v } get value() { return this._value } set value(v) { this._value = v } }
+    class MockRef {
+        _value: any
+        __v_isRef = true
+        constructor(v: any) {
+            this._value = v
+        }
+        get value() {
+            return this._value
+        }
+        set value(v) {
+            this._value = v
+        }
+    }
     return new MockRef('ready')
 })
 const mockExistsPrinterConfig = vi.hoisted(() => {
-    class MockRef { _value: any; __v_isRef = true; constructor(v: any) { this._value = v } get value() { return this._value } set value(v) { this._value = v } }
+    class MockRef {
+        _value: any
+        __v_isRef = true
+        constructor(v: any) {
+            this._value = v
+        }
+        get value() {
+            return this._value
+        }
+        set value(v) {
+            this._value = v
+        }
+    }
     return new MockRef(true)
 })
 const mockMissingConfigs = vi.hoisted(() => {
-    class MockRef { _value: any; __v_isRef = true; constructor(v: any) { this._value = v } get value() { return this._value } set value(v) { this._value = v } }
+    class MockRef {
+        _value: any
+        __v_isRef = true
+        constructor(v: any) {
+            this._value = v
+        }
+        get value() {
+            return this._value
+        }
+        set value(v) {
+            this._value = v
+        }
+    }
     return new MockRef(['[idle_timeout]'])
 })
 const mockMainsailCfgExists = vi.hoisted(() => {
-    class MockRef { _value: any; __v_isRef = true; constructor(v: any) { this._value = v } get value() { return this._value } set value(v) { this._value = v } }
+    class MockRef {
+        _value: any
+        __v_isRef = true
+        constructor(v: any) {
+            this._value = v
+        }
+        get value() {
+            return this._value
+        }
+        set value(v) {
+            this._value = v
+        }
+    }
     return new MockRef(false)
 })
 
@@ -32,7 +80,8 @@ vi.mock('@/components/ui/Panel.vue', () => ({
     default: {
         name: 'Panel',
         props: { icon: String, title: [String, Object], collapsible: Boolean, cardClass: String, toolbarColor: String },
-        template: '<div class="panel" :class="cardClass"><slot /><slot name="buttons" /><span class="panel-title">{{ title }}</span></div>',
+        template:
+            '<div class="panel" :class="cardClass"><slot /><slot name="buttons" /><span class="panel-title">{{ title }}</span></div>',
     },
 }))
 

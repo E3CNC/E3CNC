@@ -18,6 +18,7 @@ GET /server/info
 ```
 
 //// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "klippy_connected": true,
@@ -47,35 +48,37 @@ GET /server/info
     "api_version_string": "1.4.0"
 }
 ```
+
 ////
 
 /// api-response-spec
-    open: True
-| Field                    |   Type   | Description                                              |
+open: True
+| Field | Type | Description |
 | ------------------------ | :------: | -------------------------------------------------------- |
-| `klippy_connected`       |   bool   | Moonraker's connection status to the Klippy Host.        |
-| `klippy_state`           |  string  | Klippy's current state. Expand for available values.     |
-| #klippy-state-desc       |          |                                                          |+
-| `components`             | [string] | A list of Moonraker components that are currently        |
-|                          |          | loaded.                                                  |^
-| `failed_components`      | [string] | A list of Moonraker components that failed to load.      |
-| `registered_directories` | [string] | A list of "roots" registered with Moonraker's file       |
-|                          |          | manager.                                                 |^
-| `warnings`               | [string] | A list of warning messages describing errors encountered |
-|                          |          | during initialization or regular operation.              |^
-| `websocket_count`        |   int    | The number of currently active websocket connections.    |
-| `moonraker_version`      |  string  | The version of the Moonraker Application.                |
-| `api_version`            |  [int]   | The version of the API in tuple format.                  |
-| `api_version_string`     |  string  | The version of the API in string format.                 |
+| `klippy_connected` | bool | Moonraker's connection status to the Klippy Host. |
+| `klippy_state` | string | Klippy's current state. Expand for available values. |
+| #klippy-state-desc | | |+
+| `components` | [string] | A list of Moonraker components that are currently |
+| | | loaded. |^
+| `failed_components` | [string] | A list of Moonraker components that failed to load. |
+| `registered_directories` | [string] | A list of "roots" registered with Moonraker's file |
+| | | manager. |^
+| `warnings` | [string] | A list of warning messages describing errors encountered |
+| | | during initialization or regular operation. |^
+| `websocket_count` | int | The number of currently active websocket connections. |
+| `moonraker_version` | string | The version of the Moonraker Application. |
+| `api_version` | [int] | The version of the API in tuple format. |
+| `api_version_string` | string | The version of the API in string format. |
 
-| State          | Description                                                        |
-| -------------- | ------------------------------------------------------------------ |
-| `disconnected` | Moonraker is currently disconnect from Klippy.                     |
-| `startup`      | Klippy is currently initializing.                                  |
-| `ready`        | Klippy is active and ready to receive commands.                    |
-| `error`        | Klippy experienced an error during startup.                        |
-| `shutdown`     | Klippy has been emergency stopped.  This can occur at user request |
-|                | or if a critical error is encountered while running.               |^
+| State          | Description                                                       |
+| -------------- | ----------------------------------------------------------------- | --- |
+| `disconnected` | Moonraker is currently disconnect from Klippy.                    |
+| `startup`      | Klippy is currently initializing.                                 |
+| `ready`        | Klippy is active and ready to receive commands.                   |
+| `error`        | Klippy experienced an error during startup.                       |
+| `shutdown`     | Klippy has been emergency stopped. This can occur at user request |
+|                | or if a critical error is encountered while running.              | ^   |
+
 { #klippy-state-desc }
 ///
 
@@ -94,6 +97,7 @@ GET /server/config
 ```
 
 //// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "config": {
@@ -252,30 +256,31 @@ GET /server/config
     ]
 }
 ```
+
 ////
 
 /// api-response-spec
-    open: True
-| Field    |   Type   | Description                                                            |
+open: True
+| Field | Type | Description |
 | -------- | :------: | ---------------------------------------------------------------------- |
-| `config` |  object  | An object containing the full Moonraker configuration.  Each field of  |
-|          |          | this object is a section name.  The value for each section is an       |^
-|          |          | object mapping option names to values.  Values are cast to their       |^
-|          |          | internal type.  Default values not specified in the configuration      |^
-|          |          | files are included.                                                    |^
-| `orig`   |  object  | An object containing the original configuration as read from the       |
-|          |          | configuration file(s).  Like `config`, each field is a section name    |^
-|          |          | and each value is a mapping of options to values.  Only values present |^
-|          |          | in the configuration files are reported, and all values are strings.   |^
-| `files`  | [object] | An array of [File Objects](#file-object-spec) describing the config  |
-|          |          | files parsed.                                                          |^
+| `config` | object | An object containing the full Moonraker configuration. Each field of |
+| | | this object is a section name. The value for each section is an |^
+| | | object mapping option names to values. Values are cast to their |^
+| | | internal type. Default values not specified in the configuration |^
+| | | files are included. |^
+| `orig` | object | An object containing the original configuration as read from the |
+| | | configuration file(s). Like `config`, each field is a section name |^
+| | | and each value is a mapping of options to values. Only values present |^
+| | | in the configuration files are reported, and all values are strings. |^
+| `files` | [object] | An array of [File Objects](#file-object-spec) describing the config |
+| | | files parsed. |^
 
+| Field      |   Type   | Description                                                      |
+| ---------- | :------: | ---------------------------------------------------------------- | --- |
+| `filename` |  string  | The name of the configuration file. This name is a path relative |
+|            |          | to the main configuration file's parent folder.                  | ^   |
+| `sections` | [string] | The config sections parsed from this file.                       |
 
-| Field      |   Type   | Description                                                       |
-| ---------- | :------: | ----------------------------------------------------------------- |
-| `filename` |  string  | The name of the configuration file.  This name is a path relative |
-|            |          | to the main configuration file's parent folder.                   |^
-| `sections` | [string] | The config sections parsed from this file.                        |
 { #file-object-spec } File Object
 
 ///
@@ -298,17 +303,18 @@ GET /server/temperature_store?include_monitors=false
 ```
 
 /// api-parameters
-    open: True
-| Name               | Type | Default | Description                                  |
+open: True
+| Name | Type | Default | Description |
 | ------------------ | :--: | ------- | -------------------------------------------- |
 | `include_monitors` | bool | `false` | When set to `true` the response will include |
-|                    |      |         | sensors reported as `temperature monitors.`  |^
-|                    |      |         | A temperature monitor is a specific type of  |^
-|                    |      |         | sensor that may include `null` values in     |^
-|                    |      |         | the `temperatures` field of the response.    |^
+| | | | sensors reported as `temperature monitors.` |^
+| | | | A temperature monitor is a specific type of |^
+| | | | sensor that may include `null` values in |^
+| | | | the `temperatures` field of the response. |^
 ///
 
 //// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "extruder": {
@@ -326,35 +332,37 @@ GET /server/temperature_store?include_monitors=false
     }
 }
 ```
+
 ////
 
 /// api-response-spec
-    open: True
-| Field      |  Type  | Description                                                                   |
+open: True
+| Field | Type | Description |
 | ---------- | :----: | ----------------------------------------------------------------------------- |
-| *variable* | object | A primary object including zero or more [Sensor Objects](#sensor-obj-spec). |
-|            |        | The `fields` in this object will be sensor names as reported by Klippy.       |^
-|            |        | If Klippy has not been initialized or reports no sensors this object will     |^
-|            |        | be empty.                                                                     |^
+| _variable_ | object | A primary object including zero or more [Sensor Objects](#sensor-obj-spec). |
+| | | The `fields` in this object will be sensor names as reported by Klippy. |^
+| | | If Klippy has not been initialized or reports no sensors this object will |^
+| | | be empty. |^
 
-| Field          |   Type   | Description                                                        |
-| -------------- | :------: | ------------------------------------------------------------------ |
-| `temperatures` | [float?] | Contains the history of temperature measurements of this sensor.   |
-|                |          | If the sensor is a `temperature monitor` values may be `null`.  A  |^
-|                |          | `null` value indicates that the sensor recorded no measurement at  |^
-|                |          | that time.                                                         |^
-| `targets`      | [float]  | Contains the history of temperature targets for heaters.           |
-| `speeds`       | [float]  | Contains a history of `speeds` for fans.  This value should be     |
-|                |          | between 0 and 1 indicating the pwm duty cycle.                     |^
-| `powers`       | [float]  | Contains a history fof `powers` for heaters.  This value should be |
-|                |          | between 0 and 1 indicating the pwm duty cycle.                     |^
+| Field          |   Type   | Description                                                       |
+| -------------- | :------: | ----------------------------------------------------------------- | --- |
+| `temperatures` | [float?] | Contains the history of temperature measurements of this sensor.  |
+|                |          | If the sensor is a `temperature monitor` values may be `null`. A  | ^   |
+|                |          | `null` value indicates that the sensor recorded no measurement at | ^   |
+|                |          | that time.                                                        | ^   |
+| `targets`      | [float]  | Contains the history of temperature targets for heaters.          |
+| `speeds`       | [float]  | Contains a history of `speeds` for fans. This value should be     |
+|                |          | between 0 and 1 indicating the pwm duty cycle.                    | ^   |
+| `powers`       | [float]  | Contains a history fof `powers` for heaters. This value should be |
+|                |          | between 0 and 1 indicating the pwm duty cycle.                    | ^   |
+
 { #sensor-obj-spec } Sensor Object
 
 //// Note
 Fields not reported by a sensor will be omitted in the `Sensor Object`.
 
 Each array in the `Sensor Object` is a FIFO queue, where the measurement at index 0
-is the oldest value.  The time period between each measurement is 1 second.  The
+is the oldest value. The time period between each measurement is 1 second. The
 maximum length of the array is set in Moonraker's configuration, where the default is
 1200 values.
 ////
@@ -379,14 +387,15 @@ GET /server/gcode_store?count=100
 ```
 
 /// api-parameters
-    open: True
-| Name    | Type | Default      | Description                                         |
+open: True
+| Name | Type | Default | Description |
 | ------- | :--: | ------------ | --------------------------------------------------- |
-| `count` | int  | *Store Size* | The number of cached gcode responses to return. The |
-|         |      |              | default is to return all cached items.              |^
+| `count` | int | _Store Size_ | The number of cached gcode responses to return. The |
+| | | | default is to return all cached items. |^
 ///
 
 //// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "gcode_store": [
@@ -423,22 +432,24 @@ GET /server/gcode_store?count=100
     ]
 }
 ```
+
 ////
 
 /// api-response-spec
-    open: True
+open: True
 
 | Field         |   Type   | Description                                                      |
-| ------------- | :------: | ---------------------------------------------------------------- |
-| `gcode_store` | [object] | An array of [GCode Tracking Objects](#gc-tracking-obj-spec).   |
-|               |          | The array is a FIFO queue with the oldest item being at index 0. |^
+| ------------- | :------: | ---------------------------------------------------------------- | --- |
+| `gcode_store` | [object] | An array of [GCode Tracking Objects](#gc-tracking-obj-spec).     |
+|               |          | The array is a FIFO queue with the oldest item being at index 0. | ^   |
 
 | Field     |  Type  | Description                                                        |
-| --------- | :----: | ------------------------------------------------------------------ |
+| --------- | :----: | ------------------------------------------------------------------ | --- |
 | `message` | string | The GCode Message associated with ths object.                      |
 | `time`    | float  | The time at which the message was received reported in Unix Time.  |
-| `type`    | string | The message type.  Can be `command` or `response`.  Commands are   |
-|           |        | only tracked when received through Moonraker's gcode API endpoint. |^
+| `type`    | string | The message type. Can be `command` or `response`. Commands are     |
+|           |        | only tracked when received through Moonraker's gcode API endpoint. | ^   |
+
 { #gc-tracking-obj-spec } GCode Tracking Object
 
 ///
@@ -446,18 +457,18 @@ GET /server/gcode_store?count=100
 ## Rollover Logs
 
 Requests a manual rollover for log files registered with Moonraker's
-log management facility.  Currently these are limited to `moonraker.log`
+log management facility. Currently these are limited to `moonraker.log`
 and `klippy.log`.
 
 /// Warning
 Moonraker must be able to manage Klipper's systemd service to
-perform a manual rollover.  The rollover will fail under the following
+perform a manual rollover. The rollover will fail under the following
 conditions:
 
 - Moonraker cannot detect Klipper's systemd unit
 - Moonraker cannot detect the location of Klipper's files
 - A print is in progress
-///
+  ///
 
 ```{.http .apirequest title="HTTP Request"}
 POST /server/logs/rollover
@@ -480,16 +491,16 @@ Content-Type: application/json
 ```
 
 /// api-parameters
-    open: True
-| Name          |  Type  | Default | Description                                             |
+open: True
+| Name | Type | Default | Description |
 | ------------- | :----: | ------- | ------------------------------------------------------- |
-| `application` | string | *all*   | The name of the application for which the log should be |
-|               |        |         | rolled over.  Can be `moonraker` or `klipper`.  When no |^
-|               |        |         | value is specified all logs are rolled over.            |^
+| `application` | string | _all_ | The name of the application for which the log should be |
+| | | | rolled over. Can be `moonraker` or `klipper`. When no |^
+| | | | value is specified all logs are rolled over. |^
 ///
 
-
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "rolled_over": [
@@ -499,23 +510,25 @@ Content-Type: application/json
     "failed": {}
 }
 ```
+
 ///
 
 /// api-response-spec
-    open: True
-| Field         |   Type   | Description                                              |
+open: True
+| Field | Type | Description |
 | ------------- | :------: | -------------------------------------------------------- |
-| `rolled_over` | [string] | A list of application names successfully rolled over.    |
-| `failed`      |  object  | An object where the fields consist of applications names |
-|               |          | that failed the rollover procedure.  The value assigned  |^
-|               |          | to each field is an error message.                       |^
+| `rolled_over` | [string] | A list of application names successfully rolled over. |
+| `failed` | object | An object where the fields consist of applications names |
+| | | that failed the rollover procedure. The value assigned |^
+| | | to each field is an error message. |^
 ///
 
-
 ## Restart Server
+
 ```{.http .apirequest title="HTTP Request"}
 POST /server/restart
 ```
+
 ```{.json .apirequest title="JSON-RPC Request"}
 {
     "jsonrpc": "2.0",
@@ -529,11 +542,12 @@ POST /server/restart
 ```
 
 ## Identify Connection
+
 This method provides a way for applications with persistent connections
-to identify themselves to Moonraker.  This information may be used by
+to identify themselves to Moonraker. This information may be used by
 Moonraker perform an action or present information based on if a specific
-type of frontend is connected.  Currently this method is only available
-to websocket and unix socket connections.  Once this endpoint returns
+type of frontend is connected. Currently this method is only available
+to websocket and unix socket connections. Once this endpoint returns
 success it cannot be called again, repeated calls will result in an error.
 
 ```{.text .apirequest title="HTTP request"}
@@ -557,25 +571,25 @@ Not Available
 ```
 
 /// api-parameters
-    open: True
-| Name           |  Type  | Default      | Description                                        |
+open: True
+| Name | Type | Default | Description |
 | -------------- | :----: | ------------ | -------------------------------------------------- |
-| `client_name`  | string | **REQUIRED** | The name of the application identifying itself,    |
-|                |        |              | ie: `Mainsail`, `Fluidd`, `KlipperScreen`, etc.    |^
-| `version`      | string | **REQUIRED** | The version of the application identifying itself. |
-| `type`         | string | **REQUIRED** | The type of the application.  Expand for available |
-|                |        |              | values.                                            |^
-|                |        |              | #valid-id-type-desc                                |+
-| `url`          | string | **REQUIRED** | The project URL or homepage for the application.   |
-| `access_token` | string | `null`       | An optional JSON Web Token used to authenticate    |
-|                |        |              | the websocket connection.  Only needed when the    |^
-|                |        |              | app uses JWT authentication and did not            |^
-|                |        |              | authenticate through the original Websocket        |^
-|                |        |              | Request.                                           |^
-| `api_key`      | string | `null`       | An optional API Key used to authenticate the       |
-|                |        |              | connection.  Only needed when the APP uses API     |^
-|                |        |              | Key authentication and did not authenticate        |^
-|                |        |              | through the original Websocket Request.            |^
+| `client_name` | string | **REQUIRED** | The name of the application identifying itself, |
+| | | | ie: `Mainsail`, `Fluidd`, `KlipperScreen`, etc. |^
+| `version` | string | **REQUIRED** | The version of the application identifying itself. |
+| `type` | string | **REQUIRED** | The type of the application. Expand for available |
+| | | | values. |^
+| | | | #valid-id-type-desc |+
+| `url` | string | **REQUIRED** | The project URL or homepage for the application. |
+| `access_token` | string | `null` | An optional JSON Web Token used to authenticate |
+| | | | the websocket connection. Only needed when the |^
+| | | | app uses JWT authentication and did not |^
+| | | | authenticate through the original Websocket |^
+| | | | Request. |^
+| `api_key` | string | `null` | An optional API Key used to authenticate the |
+| | | | connection. Only needed when the APP uses API |^
+| | | | Key authentication and did not authenticate |^
+| | | | through the original Websocket Request. |^
 
 | Name      | Description                                                     |
 | --------- | --------------------------------------------------------------- |
@@ -586,11 +600,12 @@ Not Available
 | `bot`     | An interactive bot like `MoonCord`.                             |
 | `agent`   | An external extension like `Obico`.                             |
 | `other`   | Anything that doesn't fit in to the above categories.           |
+
 {: #valid-id-type-desc }
 
 //// Note
 When identifying as an `agent`, only one instance should be connected
-to Moonraker at a time.  If multiple agents of the same `client_name`
+to Moonraker at a time. If multiple agents of the same `client_name`
 attempt to identify themselves this endpoint will return an error.
 See the [extensions](./extensions.md) document for more information about
 `agents`.
@@ -601,7 +616,6 @@ See the authorization API documentation for details on JWT and API Key authentic
 ////
 ///
 
-
 ```{.json .apiresponse title="Example Response"}
 {
     "connection_id": 1730367696
@@ -609,18 +623,18 @@ See the authorization API documentation for details on JWT and API Key authentic
 ```
 
 /// api-response-spec
-    open: True
-| Field           | Type | Description                              |
+open: True
+| Field | Type | Description |
 | --------------- | :--: | ---------------------------------------- |
-| `connection_id` | int  | A unique identifier for this connection. |
+| `connection_id` | int | A unique identifier for this connection. |
 ///
 
 ## Get Websocket ID
 
 !!! Warning
-    This method is deprecated.  Please use the
-    [identify endpoint](#identify-connection) to retrieve the
-    Websocket's UID
+This method is deprecated. Please use the
+[identify endpoint](#identify-connection) to retrieve the
+Websocket's UID
 
 ```{.text .apirequest title="HTTP request"}
 Not Available
@@ -641,9 +655,10 @@ Not Available
 ```
 
 /// api-response-spec
-    open: True
+open: True
 
 | Field          | Type | Description                              |
 | -------------- | :--: | ---------------------------------------- |
 | `websocket_id` | int  | A unique identifier for this connection. |
+
 ///

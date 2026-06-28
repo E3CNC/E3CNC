@@ -4,11 +4,23 @@ import { createStore } from 'vuex'
 import { createI18n } from 'vue-i18n'
 import TheTimelapseRenderingSnackbar from '@/components/TheTimelapseRenderingSnackbar.vue'
 
-const i18n = createI18n({ legacy: false, locale: 'en', messages: { en: { Timelapse: { TimelapseRendering: 'Rendering', TimelapseRenderingSuccessful: 'Done' } } } })
+const i18n = createI18n({
+    legacy: false,
+    locale: 'en',
+    messages: { en: { Timelapse: { TimelapseRendering: 'Rendering', TimelapseRenderingSuccessful: 'Done' } } },
+})
 
 vi.mock('vuetify/components', () => ({
-    VSnackbar: { name: 'VSnackbar', props: { modelValue: Boolean, timeout: Number, location: String }, template: '<div class="v-snackbar" v-if="modelValue"><slot /></div>' },
-    VProgressLinear: { name: 'VProgressLinear', props: { modelValue: Number, indeterminate: Boolean }, template: '<div class="v-progress-linear" />' },
+    VSnackbar: {
+        name: 'VSnackbar',
+        props: { modelValue: Boolean, timeout: Number, location: String },
+        template: '<div class="v-snackbar" v-if="modelValue"><slot /></div>',
+    },
+    VProgressLinear: {
+        name: 'VProgressLinear',
+        props: { modelValue: Number, indeterminate: Boolean },
+        template: '<div class="v-progress-linear" />',
+    },
 }))
 
 function makeStore(status: string = '', progress: number = 0, filename: string = '') {
@@ -40,7 +52,9 @@ describe('TheTimelapseRenderingSnackbar.vue', () => {
     })
 
     it('shows success snackbar when status is success', () => {
-        const wrapper = mount(TheTimelapseRenderingSnackbar, { global: { plugins: [makeStore('success', 100, 'output.mp4'), i18n] } })
+        const wrapper = mount(TheTimelapseRenderingSnackbar, {
+            global: { plugins: [makeStore('success', 100, 'output.mp4'), i18n] },
+        })
         const snackbars = wrapper.findAll('.v-snackbar')
         expect(snackbars.length).toBe(1)
         expect(wrapper.text()).toContain('Done')

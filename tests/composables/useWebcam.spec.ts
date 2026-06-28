@@ -48,7 +48,9 @@ describe('useWebcam', () => {
     it('converts webcam URLs using the current host port', () => {
         const webcam = mountComposable()
         expect(webcam.convertUrl('/webcam/?action=stream', null)).toBe('http://localhost:8080/webcam/?action=stream')
-        expect(webcam.convertUrl('/webcam/?action=snapshot', null)).toBe('http://localhost:8080/webcam/?action=snapshot')
+        expect(webcam.convertUrl('/webcam/?action=snapshot', null)).toBe(
+            'http://localhost:8080/webcam/?action=snapshot'
+        )
     })
 
     it('converts webcam URLs with printer URL', () => {
@@ -108,7 +110,10 @@ describe('useWebcam', () => {
 
     it('updates aspect ratio from image element', () => {
         const webcam = mountComposable()
-        expect(webcam.updateAspectRatioFromImage({ naturalWidth: 800, naturalHeight: 600 } as any)).toBeCloseTo(1.333, 3)
+        expect(webcam.updateAspectRatioFromImage({ naturalWidth: 800, naturalHeight: 600 } as any)).toBeCloseTo(
+            1.333,
+            3
+        )
         expect(webcam.updateAspectRatioFromImage(null)).toBeNull()
         expect(webcam.updateAspectRatioFromImage(undefined)).toBeNull()
         expect(webcam.updateAspectRatioFromImage({} as any)).toBeNull()

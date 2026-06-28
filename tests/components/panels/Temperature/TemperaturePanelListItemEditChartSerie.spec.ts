@@ -10,7 +10,8 @@ const vuetifyComponentsMock = vi.hoisted(() => ({
     VCheckbox: {
         name: 'VCheckbox',
         props: { modelValue: Boolean, label: String, hideDetails: Boolean, class: String },
-        template: '<input type="checkbox" :checked="modelValue" :data-label="label" @change="$emit(\'update:modelValue\', $event.target.checked)" />',
+        template:
+            '<input type="checkbox" :checked="modelValue" :data-label="label" @change="$emit(\'update:modelValue\', $event.target.checked)" />',
     },
 }))
 

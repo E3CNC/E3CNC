@@ -6,9 +6,7 @@
             </template>
             <v-list density="compact">
                 <!-- E3CNC Instance Info -->
-                <v-list-subheader v-if="instanceInfo" class="" style="height: auto">
-                    Instance
-                </v-list-subheader>
+                <v-list-subheader v-if="instanceInfo" class="" style="height: auto">Instance</v-list-subheader>
                 <v-list-item v-if="instanceInfo" class="minHeight30 pr-2" density="compact">
                     <template #title>
                         <div class="text-caption">
@@ -88,13 +86,12 @@
                 <!-- E3CNC Stack Control -->
                 <v-divider class="mt-0"></v-divider>
                 <v-list-subheader class="pt-2" style="height: auto">
-                    E3CNC <span v-if="instanceInfo?.current_version" class="text-caption text-disabled">{{ instanceInfo.current_version }}</span>
+                    E3CNC
+                    <span v-if="instanceInfo?.current_version" class="text-caption text-disabled">
+                        {{ instanceInfo.current_version }}
+                    </span>
                 </v-list-subheader>
-                <v-list-item
-                    class="minHeight30 pr-2"
-                    link
-                    :disabled="e3cncUpdating"
-                    @click="e3cncUpdate()">
+                <v-list-item class="minHeight30 pr-2" link :disabled="e3cncUpdating" @click="e3cncUpdate()">
                     <template #title>{{ e3cncUpdating ? 'Updating...' : 'Update Stack' }}</template>
                     <template #append>
                         <v-icon v-if="e3cncUpdating" class="mr-2" size="small" color="primary">
@@ -148,11 +145,7 @@
         <!-- E3CNC update overlay -->
         <v-overlay v-model="e3cncUpdating" class="align-center justify-center" persistent>
             <v-card class="pa-6 text-center" elevation="6">
-                <v-progress-circular
-                    :size="48"
-                    :width="4"
-                    color="primary"
-                    indeterminate />
+                <v-progress-circular :size="48" :width="4" color="primary" indeterminate />
                 <p class="mt-4 mb-0 text-body-2">Updating E3CNC stack...</p>
             </v-card>
         </v-overlay>
@@ -227,8 +220,9 @@ async function e3cncUpdate() {
         if (data?.result?.status === 'started') {
             // Poll for completion — check releases endpoint every 5s
             $toast.success('Update started')
-            for (let i = 0; i < 24; i++) {  // 2 minutes max
-                await new Promise(r => setTimeout(r, 5000))
+            for (let i = 0; i < 24; i++) {
+                // 2 minutes max
+                await new Promise((r) => setTimeout(r, 5000))
                 try {
                     const info = await fetch(apiUrl.value + '/machine/e3cnc/info')
                     const infoData = await info.json()

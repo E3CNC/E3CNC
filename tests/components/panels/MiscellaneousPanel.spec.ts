@@ -4,11 +4,35 @@ import { createStore } from 'vuex'
 import MiscellaneousPanel from '@/components/panels/MiscellaneousPanel.vue'
 
 const mockKlipperReadyForGui = vi.hoisted(() => {
-    class MockRef { _value: any; __v_isRef = true; constructor(v: any) { this._value = v } get value() { return this._value } set value(v) { this._value = v } }
+    class MockRef {
+        _value: any
+        __v_isRef = true
+        constructor(v: any) {
+            this._value = v
+        }
+        get value() {
+            return this._value
+        }
+        set value(v) {
+            this._value = v
+        }
+    }
     return new MockRef(true)
 })
 const mockLights = vi.hoisted(() => {
-    class MockRef { _value: any; __v_isRef = true; constructor(v: any) { this._value = v } get value() { return this._value } set value(v) { this._value = v } }
+    class MockRef {
+        _value: any
+        __v_isRef = true
+        constructor(v: any) {
+            this._value = v
+        }
+        get value() {
+            return this._value
+        }
+        set value(v) {
+            this._value = v
+        }
+    }
     return new MockRef([])
 })
 
@@ -90,7 +114,19 @@ describe('MiscellaneousPanel.vue', () => {
         store = createStore({
             state: { printer: {} },
             getters: {
-                'printer/getMiscellaneous': () => [{ name: 'fan0', type: 'fan', power: 0.5, max_power: 1.0, controllable: true, pwm: true, off_below: 0.1, scale: '1', rpm: null }],
+                'printer/getMiscellaneous': () => [
+                    {
+                        name: 'fan0',
+                        type: 'fan',
+                        power: 0.5,
+                        max_power: 1.0,
+                        controllable: true,
+                        pwm: true,
+                        off_below: 0.1,
+                        scale: '1',
+                        rpm: null,
+                    },
+                ],
                 'printer/getMiscellaneousSensors': () => [],
                 'server/sensor/getSensors': () => [],
             },
@@ -141,8 +177,28 @@ describe('MiscellaneousPanel.vue', () => {
             state: { printer: {} },
             getters: {
                 'printer/getMiscellaneous': () => [
-                    { name: 'fan0', type: 'fan', power: 0.5, max_power: 1.0, controllable: true, pwm: true, off_below: 0.1, scale: '1', rpm: null },
-                    { name: 'fan1', type: 'fan', power: 0.8, max_power: 1.0, controllable: true, pwm: true, off_below: 0.1, scale: '1', rpm: null },
+                    {
+                        name: 'fan0',
+                        type: 'fan',
+                        power: 0.5,
+                        max_power: 1.0,
+                        controllable: true,
+                        pwm: true,
+                        off_below: 0.1,
+                        scale: '1',
+                        rpm: null,
+                    },
+                    {
+                        name: 'fan1',
+                        type: 'fan',
+                        power: 0.8,
+                        max_power: 1.0,
+                        controllable: true,
+                        pwm: true,
+                        off_below: 0.1,
+                        scale: '1',
+                        rpm: null,
+                    },
                 ],
                 'printer/getMiscellaneousSensors': () => [],
                 'server/sensor/getSensors': () => [],
@@ -173,7 +229,19 @@ describe('MiscellaneousPanel.vue', () => {
         store = createStore({
             state: { printer: {} },
             getters: {
-                'printer/getMiscellaneous': () => [{ name: 'fan0', type: 'fan', power: 0.5, max_power: 1.0, controllable: true, pwm: true, off_below: 0.1, scale: '1', rpm: null }],
+                'printer/getMiscellaneous': () => [
+                    {
+                        name: 'fan0',
+                        type: 'fan',
+                        power: 0.5,
+                        max_power: 1.0,
+                        controllable: true,
+                        pwm: true,
+                        off_below: 0.1,
+                        scale: '1',
+                        rpm: null,
+                    },
+                ],
                 'printer/getMiscellaneousSensors': () => [{ name: 'temp_sensor', value: 25.5, unit: 'C' }],
                 'server/sensor/getSensors': () => [],
             },
@@ -191,7 +259,19 @@ describe('MiscellaneousPanel.vue', () => {
         store = createStore({
             state: { printer: {} },
             getters: {
-                'printer/getMiscellaneous': () => [{ name: 'fan0', type: 'fan', power: 0.5, max_power: 1.0, controllable: true, pwm: true, off_below: 0.1, scale: '1', rpm: null }],
+                'printer/getMiscellaneous': () => [
+                    {
+                        name: 'fan0',
+                        type: 'fan',
+                        power: 0.5,
+                        max_power: 1.0,
+                        controllable: true,
+                        pwm: true,
+                        off_below: 0.1,
+                        scale: '1',
+                        rpm: null,
+                    },
+                ],
                 'printer/getMiscellaneousSensors': () => [],
                 'server/sensor/getSensors': () => ['sensor1', 'sensor2'],
             },

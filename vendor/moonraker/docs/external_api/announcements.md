@@ -27,17 +27,18 @@ GET /server/announcements/list?include_dismissed=false
 ```
 
 /// api-parameters
-    open: True
+open: True
 
 | Name                | Type | Default | Description                         |
-| ------------------- | :--: | ------- | ----------------------------------- |
+| ------------------- | :--: | ------- | ----------------------------------- | --- |
 | `include_dismissed` | bool | true    | When set to false dismissed entries |
-|                     |      |         | will be excluded from the returned  |^
-|                     |      |         | list of current announcements.      |^
+|                     |      |         | will be excluded from the returned  | ^   |
+|                     |      |         | list of current announcements.      | ^   |
 
 ///
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "entries": [
@@ -100,77 +101,84 @@ GET /server/announcements/list?include_dismissed=false
     ]
 }
 ```
+
 ///
 
 /// api-response-spec
-    open: True
+open: True
 
 | Field     |   Type   | Description                                                |
-| --------- | :------: | ---------------------------------------------------------- |
+| --------- | :------: | ---------------------------------------------------------- | --- |
 | `entries` | [object] | An array of [announcement entry](#announcement-entry-spec) |
-|           |          | objects. The array is sorted by date in descending order   |^
-|           |          | (newest to oldest).                                        |^
+|           |          | objects. The array is sorted by date in descending order   | ^   |
+|           |          | (newest to oldest).                                        | ^   |
 | `feeds`   | [string] | An array of RSS announcement feeds Moonraker is            |
-|           |          | currently subscribed to.                                   |^
+|           |          | currently subscribed to.                                   | ^   |
+
 { #list-announcements-spec }
 
 | Field            |     Type      | Description                                                  |
-| ---------------- | :-----------: | ------------------------------------------------------------ |
+| ---------------- | :-----------: | ------------------------------------------------------------ | --- |
 | `entry_id`       |    string     | A unique identifier for the announcement entry.              |
-| `url`            |    string     | A url associated with the announcement.  This will link to   |
-|                  |               | a GitHub issue for announcements sourced from `moonlight`.   |^
+| `url`            |    string     | A url associated with the announcement. This will link to    |
+|                  |               | a GitHub issue for announcements sourced from `moonlight`.   | ^   |
 | `title`          |    string     | The title of the announcement.                               |
 | `description`    |    string     | A brief description of the announcement. For announcement's  |
-|                  |               | sourced from `moonlight` this will be the first paragraph    |^
-|                  |               | of the associated GitHub issue.  Moonlight will truncate     |^
-|                  |               | truncate descriptions over 512 characters.                   |^
+|                  |               | sourced from `moonlight` this will be the first paragraph    | ^   |
+|                  |               | of the associated GitHub issue. Moonlight will truncate      | ^   |
+|                  |               | truncate descriptions over 512 characters.                   | ^   |
 | `priority`       |    string     | The [priority](#announcement-priority-desc) of the           |
-|                  |               | announcement.                                                |^
+|                  |               | announcement.                                                | ^   |
 | `date`           | int \| float  | The announcement creation date in unix time.                 |
 | `dismissed`      |     bool      | Set to `true` if the announcement has been dismissed.        |
 | `date_dismissed` | float \| null | The date, in unix time, the announcement was last dismissed. |
-|                  |               | Will be `null` if the announcement has not been dismissed.   |^
+|                  |               | Will be `null` if the announcement has not been dismissed.   | ^   |
 | `dismiss_wake`   | float \| null | The amount of time remaining, in seconds, before the entry's |
-|                  |               | `dismissed` flag reverts to `true`.  Will be `null` if the   |^
-|                  |               | announcement has not been dismissed or if the announcement   |^
-|                  |               | was dismissed indefinitely.                                  |^
+|                  |               | `dismissed` flag reverts to `true`. Will be `null` if the    | ^   |
+|                  |               | announcement has not been dismissed or if the announcement   | ^   |
+|                  |               | was dismissed indefinitely.                                  | ^   |
 | `source`         |    string     | The [source](#announcement-source-desc) of the announcement. |
 | `feed`           |    string     | The registered RSS feed the announcement belongs to. For     |
-|                  |               | announcements sourced internally this will typically be      |^
-|                  |               | the name of the component that generated the announcement.   |^
+|                  |               | announcements sourced internally this will typically be      | ^   |
+|                  |               | the name of the component that generated the announcement.   | ^   |
+
 { #announcement-entry-spec } Announcement Entry
 
 | Priority | Description                                                       |
-| -------- | ----------------------------------------------------------------- |
+| -------- | ----------------------------------------------------------------- | --- |
 | `normal` | Standard priority. Front-end devs should use their own discretion |
-|          | on how to present announcements with normal priority to users.    |^
+|          | on how to present announcements with normal priority to users.    | ^   |
 | `high`   | High priority. It is recommended that front-ends alert the user   |
-|          | when a high priority announcement is received.                    |^
+|          | when a high priority announcement is received.                    | ^   |
+
 { #announcement-priority-desc } Announcement Priority
 
 | Source      | Description                                                          |
-| ----------- | -------------------------------------------------------------------- |
+| ----------- | -------------------------------------------------------------------- | --- |
 | `moonlight` | The announcement was received from the                               |
-|             | [moonlight](https://github.com/Arksine/moonlight) GitHub repo.       |^
-|             | Announcements received from local XML files when the `announcements` |^
-|             | module is configured in `dev_mode` will also report the source as    |^
-|             | `moonlight`.                                                         |^
-| `internal`  | The announcement was generated by Moonraker itself.  This could      |
-|             | be a component, such as `simplyprint`.                               |^
+|             | [moonlight](https://github.com/Arksine/moonlight) GitHub repo.       | ^   |
+|             | Announcements received from local XML files when the `announcements` | ^   |
+|             | module is configured in `dev_mode` will also report the source as    | ^   |
+|             | `moonlight`.                                                         | ^   |
+| `internal`  | The announcement was generated by Moonraker itself. This could       |
+|             | be a component, such as `simplyprint`.                               | ^   |
+
 { #announcement-source-desc } Announcement Source
 
 ///
 
 ## Update announcements
-Requests that Moonraker check for announcement updates.  This is generally
+
+Requests that Moonraker check for announcement updates. This is generally
 not required in production, as Moonraker will automatically check for
-updates every 30 minutes.  However, during development this endpoint is
+updates every 30 minutes. However, during development this endpoint is
 useful to force an update when it is necessary to perform integration
 tests.
 
 ```{.http .apirequest title="HTTP Request"}
 POST /server/announcements/update
 ```
+
 ```{.json .apirequest title="JSON-RPC Request"}
 {
     "jsonrpc": "2.0",
@@ -186,6 +194,7 @@ sorted by `date`, and a `modified` field that contains a boolean value
 indicating if the update resulted in a change:
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "entries": [
@@ -237,24 +246,24 @@ indicating if the update resulted in a change:
     "modified": false
 }
 ```
+
 ///
 
 /// api-response-spec
-    open: True
+open: True
 
 | Field      |   Type   | Description                                                |
-| ---------- | :------: | ---------------------------------------------------------- |
+| ---------- | :------: | ---------------------------------------------------------- | --- |
 | `entries`  | [object] | An array of [Announcement Entry](#announcement-entry-spec) |
-|            |          | objects.                                                   |^
+|            |          | objects.                                                   | ^   |
 | `modified` |   bool   | A value of `true` indicates that announcement entries      |
-|            |          | were changed after the update operation.                   |^
+|            |          | were changed after the update operation.                   | ^   |
 
 ///
 
 ## Dismiss an announcement
+
 Sets the dismiss flag of an announcement to `true`.
-
-
 
 ```{.http .apirequest title="HTTP Request"}
 POST /server/announcements/dismiss
@@ -279,15 +288,15 @@ Content-Type: application/json
 ```
 
 /// api-parameters
-    open: True
+open: True
 
 | Name        |     Type      | Default      | Description                                  |
-| ----------- | :-----------: | ------------ | -------------------------------------------- |
+| ----------- | :-----------: | ------------ | -------------------------------------------- | --- |
 | `entry_id`  |    string     | **REQUIRED** | The entry ID of the announcement to dismiss. |
 | `wake_time` | float \| null | null         | A time, in seconds, after which the entry's  |
-|             |               |              | `dismiss` flag will revert to `true`.  When  |^
-|             |               |              | set to `null` the flag will remain `false`   |^
-|             |               |              | indefinitely.                                |^
+|             |               |              | `dismiss` flag will revert to `true`. When   | ^   |
+|             |               |              | set to `null` the flag will remain `false`   | ^   |
+|             |               |              | indefinitely.                                | ^   |
 
 //// tip
 The `entry_id` typically contains forward slashes. Remember to escape this value
@@ -303,7 +312,7 @@ if including it in the query string of an HTTP request.
 ```
 
 /// api-response-spec
-    open: True
+open: True
 
 | Field      |  Type  | Description                                       |
 | ---------- | :----: | ------------------------------------------------- |
@@ -335,12 +344,12 @@ GET /server/announcements/feeds
 ```
 
 /// api-response-spec
-    open: True
+open: True
 
 | Field   |   Type   | Description                                           |
-| ------- | :------: | ----------------------------------------------------- |
+| ------- | :------: | ----------------------------------------------------- | --- |
 | `feeds` | [string] | An array of announcement feeds Moonraker is currently |
-|         |          | subscribed to.                                        |^
+|         |          | subscribed to.                                        | ^   |
 
 ///
 
@@ -369,7 +378,7 @@ Content-Type: application/json
 ```
 
 /// api-parameters
-    open: True
+open: True
 
 | Name   |  Type  | Default      | Description                                        |
 | ------ | :----: | ------------ | -------------------------------------------------- |
@@ -385,25 +394,26 @@ Content-Type: application/json
 ```
 
 /// api-response-spec
-    open: True
+open: True
 
 | Field    |  Type  | Description                                              |
-| -------- | :----: | -------------------------------------------------------- |
+| -------- | :----: | -------------------------------------------------------- | --- |
 | `feed`   | string | The name of the announcement feed subscribed to.         |
-| `action` | string | The [subscription action](#feed-subscribed-action-desc ) |
-|          |        | taken by Moonraker after the request has been processed. |^
+| `action` | string | The [subscription action](#feed-subscribed-action-desc)  |
+|          |        | taken by Moonraker after the request has been processed. | ^   |
 
 | Action    | Description                                             |
 | --------- | ------------------------------------------------------- |
 | `added`   | The requested announcement feed has been subscribed to. |
 | `skipped` | Moonraker was already subscribed to the requested feed. |
+
 { #feed-subscribed-action-desc } Subscription Action
 
 ///
 
 ## Remove an announcement feed
 
-Removes a subscribed feed.  Only feeds previously subscribed to using
+Removes a subscribed feed. Only feeds previously subscribed to using
 the [subscribe feed](#subscribe-to-an-announcement-feed) endpoint may be
 removed. Feeds configured in `moonraker.conf` may not be removed.
 
@@ -423,7 +433,7 @@ DELETE /server/announcements/feed?name=my_feed
 ```
 
 /// api-parameters
-    open: True
+open: True
 
 | Name   |  Type  | Default      | Description                                  |
 | ------ | :----: | ------------ | -------------------------------------------- |
@@ -431,14 +441,13 @@ DELETE /server/announcements/feed?name=my_feed
 
 ///
 
-
 Parameters:
 
-- `name`:  The name of the new feed to remove.  This parameter is required.
+- `name`: The name of the new feed to remove. This parameter is required.
 
 Returns:
 
-The name of the new feed and the action taken.  The `action` will be
+The name of the new feed and the action taken. The `action` will be
 `removed` if the operation was successful.
 
 ```{.json .apiresponse title="Example Response"}
@@ -449,13 +458,13 @@ The name of the new feed and the action taken.  The `action` will be
 ```
 
 /// api-response-spec
-    open: True
+open: True
 
-| Field    |  Type  | Description                                            |
-| -------- | :----: | ------------------------------------------------------ |
-| `feed`   | string | The name of the announcement feed removed.             |
-| `action` | string | The action taken after the request.  Will be `removed` |
-|          |        | upon successful removal.                               |^
+| Field    |  Type  | Description                                           |
+| -------- | :----: | ----------------------------------------------------- | --- |
+| `feed`   | string | The name of the announcement feed removed.            |
+| `action` | string | The action taken after the request. Will be `removed` |
+|          |        | upon successful removal.                              | ^   |
 
 //// tip
 Unlike the [feed subscription request](#subscribe-to-an-announcement-feed) an
@@ -473,32 +482,32 @@ recommendations on front-end implementation.
 ### How announcements work
 
 Moonraker announcements are GitHub issues tagged with the `announcement`
-label.  GitHub repos may registered with
+label. GitHub repos may registered with
 [moonlight](https://github.com/arksine/moonlight), which is responsible
 for generating RSS feeds from GitHub issues using GitHub's REST API. These
 RSS feeds are hosted on GitHub Pages, for example Moonraker's feed may be found
 [here](https://arksine.github.io/moonlight/assets/moonraker.xml). By
 centralizing GitHub API queries in `moonlight` we are able to poll multiple
 repos without running into API rate limit issues. Moonlight has has a workflow
-that checks all registered repos for new announcements every 30 minutes.  In
+that checks all registered repos for new announcements every 30 minutes. In
 theory it would be able to check for announcements in up to 500 repos before
 exceeding GitHub's API rate limit.
 
 Moonraker's `[announcements]` component will always check the `klipper` and
-`moonraker` RSS feeds.  It is possible to configure additional RSS feeds by
-adding them to the `subscriptions` option.  The component will poll configured
+`moonraker` RSS feeds. It is possible to configure additional RSS feeds by
+adding them to the `subscriptions` option. The component will poll configured
 feeds every 30 minutes, resulting in maximum of 1 hour for new announcements
 to reach all users.
 
 When new issues are tagged with `announcement` these entries will be parsed
-and added to the RSS feeds.  When the issue is closed they will be removed from
-the corresponding feed.  Moonlight will fetch up to 20 announcements for each
+and added to the RSS feeds. When the issue is closed they will be removed from
+the corresponding feed. Moonlight will fetch up to 20 announcements for each
 feed, if a repo goes over this limit older announcements will be removed.
 
 /// Note
-It is also possible for Moonraker to generate announcements itself.  For
+It is also possible for Moonraker to generate announcements itself. For
 example, if a Moonraker component needs user feedback it may generate an
-announcement and notify all connected clients.   From a front-end's
+announcement and notify all connected clients. From a front-end's
 perspective there is no need to treat these announcements differently than
 any other announcement.
 ///
@@ -518,12 +527,13 @@ dev_mode: True
 
 With `dev_mode` enabled, Moonraker will look for`moonraker.xml` and
 `klipper.xml` in the following folder:
+
 ```shell
 ~/moonraker/.devel/announcement_xml
 ```
 
 If moonraker is not installed in the home folder then substitute `~`
-for the parent folder location.  This folder is in a hardcoded location
+for the parent folder location. This folder is in a hardcoded location
 to so as not to expose users to vulnerabilities associated with parsing XML.
 
 It is possible to configure Moonraker to search for your own feeds:
@@ -538,15 +548,15 @@ dev_mode: True
 ```
 
 The above configuration would look for `my_project.xml` in addition to
-`klipper.xml` and `moonraker.xml`.  The developer may manually create
+`klipper.xml` and `moonraker.xml`. The developer may manually create
 the xml feeds or they may clone `moonlight` and leverage its script
-to generate a feed from issues created on their test repo.  When local
+to generate a feed from issues created on their test repo. When local
 feeds have been modified one may call the [update announcements API](#update-announcements)
 to have Moonraker fetch the updates and add/remove entries.
 
 ### RSS file structure
 
-Moonlight generates RSS feeds in XML format.  Below is an example generated
+Moonlight generates RSS feeds in XML format. Below is an example generated
 from moonlight's own issue tracker:
 
 ```xml
@@ -587,9 +597,9 @@ from moonlight's own issue tracker:
 ```
 
 Each xml file may contain only one `<rss>` element, and each `<rss>` element
-may contain only one channel.  All items must be present aside from
+may contain only one channel. All items must be present aside from
 `moonlight:configHash`, which is used by the workflow to detect changes to
-moonlight's configuration.  Most elements are self explanatory, developers will
+moonlight's configuration. Most elements are self explanatory, developers will
 be most interested in adding and removing `<item>` elements, as these are
 the basis for entries in Moonraker's announcement database.
 
@@ -609,32 +619,34 @@ deactivate
 ```
 
 To add your repo edit `~/moonlight/src/config.json`:
+
 ```json
 {
-    "moonraker": {
-        "repo_owner": "Arksine",
-        "repo_name": "moonraker",
-        "description": "API Host For Klipper",
-        "authorized_creators": ["Arksine"]
-    },
-    "klipper": {
-        "repo_owner": "Klipper3d",
-        "repo_name": "klipper",
-        "description": "A 3D Printer Firmware",
-        "authorized_creators": ["KevinOConnor"]
-    },
-    // Add your test repo info here.  It should contain
-    // fields matching those in "moonraker" and "klipper"
-    // shown above.
+  "moonraker": {
+    "repo_owner": "Arksine",
+    "repo_name": "moonraker",
+    "description": "API Host For Klipper",
+    "authorized_creators": ["Arksine"]
+  },
+  "klipper": {
+    "repo_owner": "Klipper3d",
+    "repo_name": "klipper",
+    "description": "A 3D Printer Firmware",
+    "authorized_creators": ["KevinOConnor"]
+  }
+  // Add your test repo info here.  It should contain
+  // fields matching those in "moonraker" and "klipper"
+  // shown above.
 }
 ```
 
 Once your repo is added, create one or more issues on your GitHub
-repo tagged with the `announcement` label.  Add the `critical` label to
-one if you wish to test high priority announcements.  You may need to
+repo tagged with the `announcement` label. Add the `critical` label to
+one if you wish to test high priority announcements. You may need to
 create these labels in your repo before they can be added.
 
 Now we can use moonlight to generate the xml files:
+
 ```shell
 cd ~/moonlight
 source .venv/bin/activate
@@ -643,7 +655,7 @@ deactivate
 ```
 
 After the script has run it will generate the configured RSS feeds
-and store them in `~/moonlight/assets`.  If using this method it may
+and store them in `~/moonlight/assets`. If using this method it may
 be useful to create a symbolic link to it in Moonraker's devel folder:
 
 ```shell
@@ -654,10 +666,9 @@ ln -s ~/moonlight/assets announcement_xml
 ```
 
 If you haven't done so, configure Moonraker to subscribe to your feed
-and restart the Moonraker service.  Otherwise you may call the
+and restart the Moonraker service. Otherwise you may call the
 [announcement update](#update-announcements) API to have Moonraker
 parse the announcements from your test feed.
-
 
 ### Implementation details and recommendations
 
@@ -672,21 +683,21 @@ JSON-RPC notifications and update its UI accordingly.
 Front-end devs should decide how they want to present announcements to users.
 They could be treated as any other notification, for example a front-end
 may have a notification icon that shows the current number of unread
-announcements.  Front-ends can mark an announcement as `read` by calling
-the [dismiss announcement](#dismiss-an-announcement) endpoint.  Any
+announcements. Front-ends can mark an announcement as `read` by calling
+the [dismiss announcement](#dismiss-an-announcement) endpoint. Any
 announcement entry with `dismissed == true` should be considered read.
 
 When a `high priority` announcement is detected it is recommended that
 clients present the announcement in a format that is immediately visible
-to the user.  That said, it may be wise to allow users to opt out of
+to the user. That said, it may be wise to allow users to opt out of
 this behavior via configuration.
 
 /// note
 If an announcement is dismissed, closed on GitHub, then reopened,
-the `dismissed` flag will reset to false.  This is expected behavior
+the `dismissed` flag will reset to false. This is expected behavior
 as announcements are pruned from the database when they are no
-longer present in feeds.  It isn't valid for repo maintainers
-to re-open a closed announcement.  That said, its fine to close
+longer present in feeds. It isn't valid for repo maintainers
+to re-open a closed announcement. That said, its fine to close
 and re-open issues during development and testing using repos
 that are not yet registered with moonlight.
 ///

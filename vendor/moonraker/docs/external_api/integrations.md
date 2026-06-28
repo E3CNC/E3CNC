@@ -3,7 +3,7 @@
 ## Apprise Notifier
 
 Moonraker supports configurable push notifications using the
-[apprise](https://github.com/caronc/apprise) library.  The
+[apprise](https://github.com/caronc/apprise) library. The
 endpoints in this section may be used to manage/view registered
 notifiers.
 
@@ -25,6 +25,7 @@ GET /server/notifiers/list
 ```
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "notifiers": [
@@ -61,30 +62,32 @@ GET /server/notifiers/list
     ]
 }
 ```
+
 ///
 
 /// api-response-spec
-    open: True
+open: True
 
 | Field       |   Type   | Description                                          |
-| ----------- | :------: | ---------------------------------------------------- |
+| ----------- | :------: | ---------------------------------------------------- | --- |
 | `notifiers` | [object] | An array of [Notifier Status](#notifier-status-spec) |
-|             |          | objects.                                             |^
+|             |          | objects.                                             | ^   |
 
 | Field    |      Type      | Description                                          |
-| -------- | :------------: | ---------------------------------------------------- |
+| -------- | :------------: | ---------------------------------------------------- | --- |
 | `name`   |     string     | The configured name of the notifier.                 |
 | `url`    |     string     | The notifier's destination url.                      |
 | `events` |    [string]    | An array that contains one or more                   |
-|          |                | [events](#notifier-event-desc) which will trigger    |^
-|          |                | the push notification.                               |^
+|          |                | [events](#notifier-event-desc) which will trigger    | ^   |
+|          |                | the push notification.                               | ^   |
 | `body`   | string \| null | The content to send in the body of the notification. |
-|          |                | Will be `null` if no body is configured.             |^
+|          |                | Will be `null` if no body is configured.             | ^   |
 | `title`  | string \| null | The title of the notification. Will be `null` if no  |
-|          |                | title is configured                                  |^
+|          |                | title is configured                                  | ^   |
 | `attach` | string \| null | One or more attachments added to the notification.   |
-|          |                | Multiple attachments are separated by newlines. Will |^
-|          |                | be `null` if no attachment is configured.            |^
+|          |                | Multiple attachments are separated by newlines. Will | ^   |
+|          |                | be `null` if no attachment is configured.            | ^   |
+
 { #notifier-status-spec } Notifier Status
 
 | Event       | Description                                |
@@ -96,11 +99,12 @@ GET /server/notifiers/list
 | `complete`  | A print job has successfully finished.     |
 | `error`     | A print job exited with an error.          |
 | `cancelled` | A print job was cancelled by the user.     |
+
 { #notifier-event-desc } Available Notifier Events
 
 //// note
 The `url`, `body`, `title`, and `attach` parameters may contain Jinja 2
-templates.  All templates are evaluated before the notification is
+templates. All templates are evaluated before the notification is
 pushed.
 ////
 
@@ -115,7 +119,6 @@ This endpoint is only available when Moonraker's debug
 features are enabled and should not be implemented
 in production code
 ///
-
 
 ```{.http .apirequest title="HTTP Request"}
 POST /debug/notifiers/test
@@ -138,7 +141,7 @@ Content-Type: application/json
 ```
 
 /// api-parameters
-    open: True
+open: True
 
 | Name   |  Type  | Default      | Description                       |
 | ------ | :----: | ------------ | --------------------------------- |
@@ -147,6 +150,7 @@ Content-Type: application/json
 ///
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "status": "success",
@@ -164,40 +168,43 @@ Content-Type: application/json
     }
 }
 ```
+
 ///
 
 /// api-response-spec
-    open: True
+open: True
 
 | Field    |  Type  | Description                                |
-| -------- | :----: | ------------------------------------------ |
-| `status` | string | The status of the test result.  Currently  |
-|          |        | will always be `success`.                  |^
+| -------- | :----: | ------------------------------------------ | --- |
+| `status` | string | The status of the test result. Currently   |
+|          |        | will always be `success`.                  | ^   |
 | `stats`  | object | A [Print Stats](#print-stats-spec) object. |
 
 | Field            |  Type  | Description                                        |
-| ---------------- | :----: | -------------------------------------------------- |
+| ---------------- | :----: | -------------------------------------------------- | --- |
 | `print_duration` | float  | Time spent printing the current job in seconds.    |
-|                  |        | Does not include time paused.                      |^
+|                  |        | Does not include time paused.                      | ^   |
 | `total_duration` | float  | Total job duration in seconds.                     |
 | `filament_used`  | float  | Amount of filament used for the current job in mm. |
 | `filename`       | string | File path of the current job, relative to the      |
-|                  |        | `gcodes` root.                                     |^
+|                  |        | `gcodes` root.                                     | ^   |
 | `state`          | string | The current job [state](#print-stats-state-desc).  |
-| `message`        | string | A status message set by Klipper.  Will be an empty |
-|                  |        | string if no message is set.                       |^
+| `message`        | string | A status message set by Klipper. Will be an empty  |
+|                  |        | string if no message is set.                       | ^   |
 | `info`           | object | A `Print Stats Supplemental Info` object.          |
-|                  |        | #print-stats-supplemental-info-spec                |+
+|                  |        | #print-stats-supplemental-info-spec                | +   |
+
 {#print-stats-spec} Print Stats
 
-| Field           |    Type     | Description                                  |
-| --------------- | :---------: | -------------------------------------------- |
-| `total_layer`   | int \| null | The total layer count of the current         |
-|                 |             | job.  Will be null if the total layer        |^
-|                 |             | count is not set.                            |^
-| `current_layer` | int \| null | The index of the layer the job is currently  |
-|                 |             | printing.  Will be null of the current layer |^
-|                 |             | is not set.                                  |^
+| Field           |    Type     | Description                                 |
+| --------------- | :---------: | ------------------------------------------- | --- |
+| `total_layer`   | int \| null | The total layer count of the current        |
+|                 |             | job. Will be null if the total layer        | ^   |
+|                 |             | count is not set.                           | ^   |
+| `current_layer` | int \| null | The index of the layer the job is currently |
+|                 |             | printing. Will be null of the current layer | ^   |
+|                 |             | is not set.                                 | ^   |
+
 {#print-stats-supplemental-info-spec} Print Stats Supplemental Info
 
 | State       | Description                                    |
@@ -208,6 +215,7 @@ Content-Type: application/json
 | `complete`  | A print job has successfully finished.         |
 | `error`     | A print job exited with an error.              |
 | `cancelled` | A print job was cancelled by the user.         |
+
 { #print-stats-state-desc } Print Stats State
 
 ///
@@ -216,7 +224,7 @@ Content-Type: application/json
 
 [Spoolman](https://github.com/Donkie/Spoolman) is a spool
 tracking web service that can manage spool data across
-multiple printers.  Moonraker has support for updating and retrieving
+multiple printers. Moonraker has support for updating and retrieving
 spool data through its `[spoolman]` integration.
 
 The following endpoints are available when the `[spoolman]` component
@@ -239,6 +247,7 @@ GET /server/spoolman/status
 ```
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "spoolman_connected": false,
@@ -251,30 +260,32 @@ GET /server/spoolman/status
     "spool_id": 2
 }
 ```
+
 ///
 
 /// api-response-spec
-    open: True
+open: True
 
 | Field                |    Type     | Description                                    |
-| -------------------- | :---------: | ---------------------------------------------- |
+| -------------------- | :---------: | ---------------------------------------------- | --- |
 | `spoolman_connected` |    bool     | Indicates that Moonraker has an established    |
-|                      |             | websocket connection to Spoolman.              |^
+|                      |             | websocket connection to Spoolman.              | ^   |
 | `pending_reports`    |  [object]   | An array of `Pending Spoolman Report` objects. |
-|                      |             | A pending report is a report that has not yet  |^
-|                      |             | been sent to Spoolman.  This may be because    |^
-|                      |             | Spoolman is not available or because the       |^
-|                      |             | current batch of reports are waiting for the   |^
-|                      |             | internal report timer to schedule them.        |^
-|                      |             | #spoolman-report-spec                          |+
+|                      |             | A pending report is a report that has not yet  | ^   |
+|                      |             | been sent to Spoolman. This may be because     | ^   |
+|                      |             | Spoolman is not available or because the       | ^   |
+|                      |             | current batch of reports are waiting for the   | ^   |
+|                      |             | internal report timer to schedule them.        | ^   |
+|                      |             | #spoolman-report-spec                          | +   |
 | `spool_id`           | int \| null | The ID of the currently tracked spool. A value |
-|                      |             | of `null` indicates that no spool ID is set    |^
-|                      |             | and tracking is disabled.                      |^
+|                      |             | of `null` indicates that no spool ID is set    | ^   |
+|                      |             | and tracking is disabled.                      | ^   |
 
 | Field           | Type  | Description                                   |
 | --------------- | :---: | --------------------------------------------- |
 | `spool_id`      |  int  | The ID of the spool with pending report data. |
 | `filament_used` | float | The amount of used filament to report in mm.  |
+
 { #spoolman-report-spec } Pending Reports
 
 ///
@@ -292,6 +303,7 @@ Content-Type: application/json
     "spool_id": 1
 }
 ```
+
 ```{.json .apirequest title="JSON-RPC Request"}
 {
     "jsonrpc": "2.0",
@@ -304,13 +316,13 @@ Content-Type: application/json
 ```
 
 /// api-parameters
-    open: True
+open: True
 
 | Name       |    Type     | Default | Description                        |
-| ---------- | :---------: | ------- | ---------------------------------- |
+| ---------- | :---------: | ------- | ---------------------------------- | --- |
 | `spool_id` | int \| null | null    | The new active spool ID. A `null`  |
-|            |             |         | value will unset the previous      |^
-|            |             |         | active spool and disable tracking. |^
+|            |             |         | value will unset the previous      | ^   |
+|            |             |         | active spool and disable tracking. | ^   |
 
 ///
 
@@ -321,17 +333,18 @@ Content-Type: application/json
 ```
 
 /// api-response-spec
-    open: True
+open: True
 
 | Field      |    Type     | Description                                    |
-| ---------- | :---------: | ---------------------------------------------- |
+| ---------- | :---------: | ---------------------------------------------- | --- |
 | `spool_id` | int \| null | The ID of the currently tracked spool. A value |
-|            |             | of `null` indicates that no spool ID is set    |^
-|            |             | and tracking is disabled.                      |^
+|            |             | of `null` indicates that no spool ID is set    | ^   |
+|            |             | and tracking is disabled.                      | ^   |
 
 ///
 
 ### Get active spool
+
 Retrieve the ID of the spool to which Moonraker reports usage for Spoolman.
 
 ```{.http .apirequest title="HTTP Request"}
@@ -353,13 +366,13 @@ GET /server/spoolman/spool_id
 ```
 
 /// api-response-spec
-    open: True
+open: True
 
 | Field      |    Type     | Description                                    |
-| ---------- | :---------: | ---------------------------------------------- |
+| ---------- | :---------: | ---------------------------------------------- | --- |
 | `spool_id` | int \| null | The ID of the currently tracked spool. A value |
-|            |             | of `null` indicates that no spool ID is set    |^
-|            |             | and tracking is disabled.                      |^
+|            |             | of `null` indicates that no spool ID is set    | ^   |
+|            |             | and tracking is disabled.                      | ^   |
 
 ///
 
@@ -372,9 +385,9 @@ detailed information about it's API.
 
 /// Note
 The version 2 response has been added to eliminate ambiguity between
-Spoolman errors and Moonraker errors.  With version 1 a frontend
+Spoolman errors and Moonraker errors. With version 1 a frontend
 is not able to reliably to determine if the error is sourced from
-Spoolman or Moonraker.  Version 2 responses will return success
+Spoolman or Moonraker. Version 2 responses will return success
 unless Moonraker is the source of the error.
 
 The version 2 response is currently opt-in to avoid breaking
@@ -415,28 +428,29 @@ Content-Type: application/json
 ```
 
 /// api-parameters
-    open: True
+open: True
 
-| Name              |  Type  | Default      | Description                              |
-| ----------------- | :----: | ------------ | ---------------------------------------- |
-| `use_v2_response` |  bool  | false        | When set to `true` the request will      |
-|                   |        |              | return a version 2 response.             |^
-| `request_method`  | string | **REQUIRED** | The HTTP request method of the API       |
-|                   |        |              | call to proxy.                           |^
-| `path`            | string | **REQUIRED** | The path section of the API endpoint to  |
-|                   |        |              | proxy.  It must include the version, ie: |^
-|                   |        |              | `/v1/filament`                           |^
-| `query`           | string | null         | An optional query string component of    |
-|                   |        |              | the URL to proxy.  A `null` value        |^
-|                   |        |              | will omit the query string.              |^
-| `body`            | object | null         | An optional body containing request      |
-|                   |        |              | parameters for the API call.  This       |^
-|                   |        |              | should be a JSON encodable object.       |^
-|                   |        |              | A `null` value will send an empty body.  |^
+| Name              |  Type  | Default      | Description                             |
+| ----------------- | :----: | ------------ | --------------------------------------- | --- |
+| `use_v2_response` |  bool  | false        | When set to `true` the request will     |
+|                   |        |              | return a version 2 response.            | ^   |
+| `request_method`  | string | **REQUIRED** | The HTTP request method of the API      |
+|                   |        |              | call to proxy.                          | ^   |
+| `path`            | string | **REQUIRED** | The path section of the API endpoint to |
+|                   |        |              | proxy. It must include the version, ie: | ^   |
+|                   |        |              | `/v1/filament`                          | ^   |
+| `query`           | string | null         | An optional query string component of   |
+|                   |        |              | the URL to proxy. A `null` value        | ^   |
+|                   |        |              | will omit the query string.             | ^   |
+| `body`            | object | null         | An optional body containing request     |
+|                   |        |              | parameters for the API call. This       | ^   |
+|                   |        |              | should be a JSON encodable object.      | ^   |
+|                   |        |              | A `null` value will send an empty body. | ^   |
 
 ///
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Success Response (Version 2)"}
 {
     "response": {
@@ -469,9 +483,11 @@ Content-Type: application/json
     "error": null
 }
 ```
+
 ///
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Error Response (Version 2)"}
 {
     "response": null,
@@ -481,31 +497,34 @@ Content-Type: application/json
     }
 }
 ```
+
 ///
 
 /// api-response-spec
-    open: True
+open: True
 
 //// Note
-Version 1 responses are proxied directly.  See Spoolman's API
-documentation for response specifications.  Errors are also
+Version 1 responses are proxied directly. See Spoolman's API
+documentation for response specifications. Errors are also
 proxied directly.
 ////
 
 | Field      |      Type      | Description                                 |
-| ---------- | :------------: | ------------------------------------------- |
+| ---------- | :------------: | ------------------------------------------- | --- |
 | `response` | object \| null | On success will be an object containing the |
-|            |                | response received from Spoolman.  Will be   |^
-|            |                | `null` if an error is received.             |^
+|            |                | response received from Spoolman. Will be    | ^   |
+|            |                | `null` if an error is received.             | ^   |
 | `error`    | object \| null | On error will be a `Spoolman Error` object. |
-|            |                | Will be `null` on successful requests.      |^
-|            |                | #spoolman-error-spec                        |+
+|            |                | Will be `null` on successful requests.      | ^   |
+|            |                | #spoolman-error-spec                        | +   |
+
 { #version2-success-spec} Version 2 response
 
 | Field         |  Type  | Description                                   |
 | ------------- | :----: | --------------------------------------------- |
 | `status_code` |  int   | The HTTP status code of the response.         |
 | `message`     | string | The error message received with the response. |
+
 { #spoolman-error-spec} Spoolman Error
 
 ///
@@ -514,7 +533,7 @@ proxied directly.
 
 Moonraker's `analysis` component uses
 [Klipper Estimator](https://github.com/Annex-Engineering/klipper_estimator)
-to perform gcode file time analysis.  The endpoints in this section are available
+to perform gcode file time analysis. The endpoints in this section are available
 when the `[analysis]` section has been configured in `moonraker.conf`.
 
 ### Get Analysis Status
@@ -532,6 +551,7 @@ GET /server/analysis/status
 ```
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "estimator_executable": "klipper_estimator_rpi",
@@ -541,28 +561,29 @@ GET /server/analysis/status
     "using_default_config": false
 }
 ```
+
 ///
 
 /// api-response-spec
-    open: True
+open: True
 
 | Field                     |  Type  | Description                                  |
-| ------------------------- | :----: | -------------------------------------------- |
+| ------------------------- | :----: | -------------------------------------------- | --- |
 | `estimator_executable`    | string | The name of the Klipper Estimator executable |
-|                           |        | file.                                        |^
+|                           |        | file.                                        | ^   |
 | `estimator_ready`         |  bool  | A value of `true` indicates that the Klipper |
-|                           |        | Estimator binary is present and successfully |^
-|                           |        | reports its version.                         |^
+|                           |        | Estimator binary is present and successfully | ^   |
+|                           |        | reports its version.                         | ^   |
 | `estimator_version`       | string | The version reported by Klipper Estimator.   |
 | `estimator_config_exists` |  bool  | A value of `true` indicates that a valid     |
-|                           |        | Klipper Estimator config file exists.        |^
+|                           |        | Klipper Estimator config file exists.        | ^   |
 | `using_default_config`    |  bool  | Reports `true` when Klipper Estimator is     |
-|                           |        | configured to use the default config.        |^
+|                           |        | configured to use the default config.        | ^   |
 
 //// note
 When Klipper Estimator is first initialized Moonraker downloads the binary
-and grants it executable permissions.  A default configuration will be
-dumped when Klippy reports `ready`.  The default configuration will not
+and grants it executable permissions. A default configuration will be
+dumped when Klippy reports `ready`. The default configuration will not
 exist until Klippy is `ready` and available.
 ////
 
@@ -593,24 +614,25 @@ Content-Type: application/json
 ```
 
 /// api-parameters
-    open: True
+open: True
 
-| Name               |  Type  | Default            | Description                               |
-| ------------------ | :----: | ------------------ | ----------------------------------------- |
-| `filename`         | string | **REQUIRED**       | The path to the gcode file to perform     |
-|                    |        |                    | a time estimate on.  This should be a     |^
-|                    |        |                    | path relative to the `gcodes` root        |^
-|                    |        |                    | folder.                                   |^
-| `estimator_config` | string | **CONFIG_DEFAULT** | The path to a Klipper Estimator config    |
-|                    |        |                    | file, relative to the `config` root       |^
-|                    |        |                    | folder.  When omitted the file configured |^
-|                    |        |                    | in the `[analysis]` section of            |^
-|                    |        |                    | `moonraker.conf` or the default dumped    |^
-|                    |        |                    | config will be used.                      |^
+| Name               |  Type  | Default            | Description                              |
+| ------------------ | :----: | ------------------ | ---------------------------------------- | --- |
+| `filename`         | string | **REQUIRED**       | The path to the gcode file to perform    |
+|                    |        |                    | a time estimate on. This should be a     | ^   |
+|                    |        |                    | path relative to the `gcodes` root       | ^   |
+|                    |        |                    | folder.                                  | ^   |
+| `estimator_config` | string | **CONFIG_DEFAULT** | The path to a Klipper Estimator config   |
+|                    |        |                    | file, relative to the `config` root      | ^   |
+|                    |        |                    | folder. When omitted the file configured | ^   |
+|                    |        |                    | in the `[analysis]` section of           | ^   |
+|                    |        |                    | `moonraker.conf` or the default dumped   | ^   |
+|                    |        |                    | config will be used.                     | ^   |
 
 ///
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "total_time": 3086.8131575260686,
@@ -1188,10 +1210,11 @@ Content-Type: application/json
     ]
 }
 ```
+
 ///
 
 /// api-response-spec
-    open: True
+open: True
 
 //// Note
 This specification applies to the values returned by
@@ -1201,7 +1224,7 @@ All time estimates are reported in seconds.
 ////
 
 | Field                     |   Type    | Description                                            |
-| ------------------------- | :-------: | ------------------------------------------------------ |
+| ------------------------- | :-------: | ------------------------------------------------------ | --- |
 | `total_time`              |   float   | The total estimated time spent on the job.             |
 | `total_distance`          |   float   | The total estimated travel distance of the tool in mm. |
 | `total_extrude_distance`  |   float   | The total estimated extrude distance in mm.            |
@@ -1209,38 +1232,40 @@ All time estimates are reported in seconds.
 | `max_speed`               |   float   | The maximum tool movement speed detected in mm/s.      |
 | `num_moves`               |    int    | The total number of moves detected.                    |
 | `total_z_time`            |   float   | The estimated amount of time spent moving on the       |
-|                           |           | Z axis.                                                |^
+|                           |           | Z axis.                                                | ^   |
 | `total_output_time`       |   float   | The estimated amount of time moving while extruding.   |
 | `total_travel_time`       |   float   | The estimated amount of time the tool spent traveling. |
 | `total_extrude_only_time` |   float   | The estimated amount of time the tool spent extruding  |
-|                           |           | without other movement.                                |^
+|                           |           | without other movement.                                | ^   |
 | `phase_times`             |  object   | A `Phase Times` object.                                |
-|                           |           | #phase-times-object-spec                               |+
+|                           |           | #phase-times-object-spec                               | +   |
 | `kind_times`              |  object   | A `Kind Times` object.                                 |
-|                           |           | #kind-times-object-spec                                |+
-| `layer_times`             | [[float]] | An array of 2-element arrays.  The first element       |
-|                           |           | is the layer height, the second is the estimated       |^
-|                           |           | time spent printing the layer.                         |^
+|                           |           | #kind-times-object-spec                                | +   |
+| `layer_times`             | [[float]] | An array of 2-element arrays. The first element        |
+|                           |           | is the layer height, the second is the estimated       | ^   |
+|                           |           | time spent printing the layer.                         | ^   |
 
 | Field          | Type  | Description                                           |
-| -------------- | :---: | ----------------------------------------------------- |
+| -------------- | :---: | ----------------------------------------------------- | --- |
 | `acceleration` | float | The amount of time the tool spent accelerating during |
-|                |       | the print job.                                        |^
+|                |       | the print job.                                        | ^   |
 | `cruise`       | float | The amount of time the tool spent at cruise velocity  |
-|                |       | during the print job.                                 |^
+|                |       | during the print job.                                 | ^   |
 | `deceleration` | float | The amount of time the tool spent decelerating during |
-|                |       | the print job.                                        |^
+|                |       | the print job.                                        | ^   |
+
 { #phase-times-object-spec } Phase Times
 
-| Field       | Type  | Description                                                       |
-| ----------- | :---: | ----------------------------------------------------------------- |
-| *kind_desc* | float | An entry where the key is a description of the "kind" of item     |
-|             |       | being printed and its value is the total time spent printing      |^
-|             |       | this "kind".  The "kind" is determined by comments in the slicer. |^
-|             |       | For example `Perimeter` and `Bridge infill` are "kinds" reported  |^
-|             |       | by PrusaSlicer.  If the "kind" is not available Klipper Estimator |^
-|             |       | will report it under `Other`.  The `Kind Times` object may have   |^
-|             |       | multiple *kind_desc* entries.                                     |^
+| Field       | Type  | Description                                                      |
+| ----------- | :---: | ---------------------------------------------------------------- | --- |
+| _kind_desc_ | float | An entry where the key is a description of the "kind" of item    |
+|             |       | being printed and its value is the total time spent printing     | ^   |
+|             |       | this "kind". The "kind" is determined by comments in the slicer. | ^   |
+|             |       | For example `Perimeter` and `Bridge infill` are "kinds" reported | ^   |
+|             |       | by PrusaSlicer. If the "kind" is not available Klipper Estimator | ^   |
+|             |       | will report it under `Other`. The `Kind Times` object may have   | ^   |
+|             |       | multiple _kind_desc_ entries.                                    | ^   |
+
 { #kind-times-object-spec } Kind Times
 
 ///
@@ -1248,7 +1273,7 @@ All time estimates are reported in seconds.
 ### Post process a file
 
 Klipper Estimator will perform a time analysis and use the results to
-modify the time estimates in the file.  If M73 (progress) commands are
+modify the time estimates in the file. If M73 (progress) commands are
 present they will also be modified.
 
 ```{.http .apirequest title="HTTP Request"}
@@ -1276,23 +1301,23 @@ Content-Type: application/json
 ```
 
 /// api-parameters
-    open: True
+open: True
 
 | Name               |  Type  | Default            | Description                                    |
-| ------------------ | :----: | ------------------ | ---------------------------------------------- |
+| ------------------ | :----: | ------------------ | ---------------------------------------------- | --- |
 | `filename`         | string | **REQUIRED**       | The path to the gcode file to post-process.    |
-|                    |        |                    | This should be a path relative to the `gcodes` |^
-|                    |        |                    | root folder.                                   |^
+|                    |        |                    | This should be a path relative to the `gcodes` | ^   |
+|                    |        |                    | root folder.                                   | ^   |
 | `estimator_config` | string | **CONFIG_DEFAULT** | The path to a Klipper Estimator config         |
-|                    |        |                    | file, relative to the `config` root            |^
-|                    |        |                    | folder.  When omitted the file configured      |^
-|                    |        |                    | in the `[analysis]` section of                 |^
-|                    |        |                    | `moonraker.conf` or the default dumped         |^
-|                    |        |                    | config will be used.                           |^
+|                    |        |                    | file, relative to the `config` root            | ^   |
+|                    |        |                    | folder. When omitted the file configured       | ^   |
+|                    |        |                    | in the `[analysis]` section of                 | ^   |
+|                    |        |                    | `moonraker.conf` or the default dumped         | ^   |
+|                    |        |                    | config will be used.                           | ^   |
 | `force`            |  bool  | false              | By default the request will not perform a new  |
-|                    |        |                    | post-process if the file was already processed |^
-|                    |        |                    | by Klipper Estimator. When `force` is `true`   |^
-|                    |        |                    | the file will be post-processed regardless.    |^
+|                    |        |                    | post-process if the file was already processed | ^   |
+|                    |        |                    | by Klipper Estimator. When `force` is `true`   | ^   |
+|                    |        |                    | the file will be post-processed regardless.    | ^   |
 
 ///
 
@@ -1305,16 +1330,16 @@ Content-Type: application/json
 ```
 
 /// api-response-spec
-    open: True
+open: True
 
 | Field            | Type | Description                                                |
-| ---------------- | :--: | ---------------------------------------------------------- |
+| ---------------- | :--: | ---------------------------------------------------------- | --- |
 | `prev_processed` | bool | Will be `true` if the requested file was previously        |
-|                  |      | processed by Klipper Estimator.                            |^
+|                  |      | processed by Klipper Estimator.                            | ^   |
 | `version`        | str  | The version of Klipper Estimator used to process the file. |
-| `bypassed`       | bool | Will be `true` if the post-processing was bypassed.  This  |
-|                  |      | occurs if the file was previously processed by Klipper     |^
-|                  |      | Estimator and the `force` argument is `false`.             |^
+| `bypassed`       | bool | Will be `true` if the post-processing was bypassed. This   |
+|                  |      | occurs if the file was previously processed by Klipper     | ^   |
+|                  |      | Estimator and the `force` argument is `false`.             | ^   |
 
 ///
 
@@ -1354,16 +1379,16 @@ Content-Type: application/json
 ```
 
 /// api-parameters
-    open: True
+open: True
 
 | Name          |  Type  | Default | Description                               |
-| ------------- | :----: | ------- | ----------------------------------------- |
+| ------------- | :----: | ------- | ----------------------------------------- | --- |
 | `dest_config` | string | null    | The name of the destination config file   |
-|               |        |         | for the dump. This should be a path       |^
-|               |        |         | relative to the `config` root folder.     |^
-|               |        |         | If omitted the result of the dump will    |^
-|               |        |         | be saved to the default Klipper Estimator |^
-|               |        |         | configuration file.                       |^
+|               |        |         | for the dump. This should be a path       | ^   |
+|               |        |         | relative to the `config` root folder.     | ^   |
+|               |        |         | If omitted the result of the dump will    | ^   |
+|               |        |         | be saved to the default Klipper Estimator | ^   |
+|               |        |         | configuration file.                       | ^   |
 
 //// Note
 The default configuration for Klipper Estimator is stored in the same
@@ -1372,11 +1397,13 @@ folder as the binary.
 ```
 <data_path>/tools/klipper_estimator/default_estimator_cfg.json
 ```
+
 ////
 
 ///
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "dest_root": "config",
@@ -1409,32 +1436,32 @@ folder as the binary.
     }
 }
 ```
+
 ///
 
 /// api-response-spec
-    open: True
+open: True
 
 | Field                      |      Type      | Description                               |
-| -------------------------- | :------------: | ----------------------------------------- |
+| -------------------------- | :------------: | ----------------------------------------- | --- |
 | `dest_root`                | string \| null | The destination root folder of the dumped |
-|                            |                | configuration file.  Will be `null` if    |^
-|                            |                | the dumped file is the default config.    |^
+|                            |                | configuration file. Will be `null` if     | ^   |
+|                            |                | the dumped file is the default config.    | ^   |
 | `dest_config`              |     sting      | The path of the dumped configuration file |
-|                            |                | relative to the `dest_root`.  If the      |^
-|                            |                | `dest_root` is null then this will be     |^
-|                            |                | the default configuration's file name.    |^
+|                            |                | relative to the `dest_root`. If the       | ^   |
+|                            |                | `dest_root` is null then this will be     | ^   |
+|                            |                | the default configuration's file name.    | ^   |
 | `klipper_estimator_config` |     object     | An object containing the output of the    |
-|                            |                | dump command.                             |^
+|                            |                | dump command.                             | ^   |
 
 ///
-
 
 ## OctoPrint API emulation
 
 Supports the minimal API requirements necessary to add compatibility
 with the `upload G-Code to OctoPrint` feature present on 3rd party
-applications, such as slicers.  Developers of Moonraker applications
-*should not* implement these APIs.
+applications, such as slicers. Developers of Moonraker applications
+_should not_ implement these APIs.
 
 These endpoints are available when the `[octoprint_compat]` feature
 has been configured in `moonraker.conf`
@@ -1446,7 +1473,7 @@ reducing the need for these endpoints.
 
 /// note
 Unlike all other Moonraker responses, OctoPrint responses are
-not wrapped in an object with a `result` field.  This section
+not wrapped in an object with a `result` field. This section
 will not include parameter and response specifications, they
 can be found in OctoPrint's API documentation.
 
@@ -1466,6 +1493,7 @@ Not Available
 ```
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "server": "1.5.0",
@@ -1473,6 +1501,7 @@ Not Available
     "text": "OctoPrint (Moonraker v0.3.1-12)"
 }
 ```
+
 ///
 
 ### Server status
@@ -1486,12 +1515,14 @@ Not Available
 ```
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "server": "1.5.0",
     "safemode": "settings"
 }
 ```
+
 ///
 
 ### Login verification & User information
@@ -1505,6 +1536,7 @@ Not Available
 ```
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "_is_external_client": false,
@@ -1518,6 +1550,7 @@ Not Available
     "groups": ["admins", "users"]
 }
 ```
+
 ///
 
 ### Get settings
@@ -1531,6 +1564,7 @@ Not Available
 ```
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "plugins": {
@@ -1558,6 +1592,7 @@ Not Available
     }
 }
 ```
+
 ///
 
 /// note
@@ -1589,6 +1624,7 @@ Not Available
 ```
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "job": {
@@ -1607,6 +1643,7 @@ Not Available
     "state": "Offline"
 }
 ```
+
 ///
 
 ### Get Printer status
@@ -1620,6 +1657,7 @@ Not Available
 ```
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "temperature": {
@@ -1649,6 +1687,7 @@ Not Available
     }
 }
 ```
+
 ///
 
 ### Send GCode command
@@ -1681,6 +1720,7 @@ Not Available
 ```
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "profiles": {
@@ -1697,19 +1737,23 @@ Not Available
     }
 }
 ```
+
 ///
 
-
 ## TD-1
+
 [TD-1](https://ajax-3d.com) is a device designed to capture transmission distance(TD) and color from filament making it easier to add new material directly to your [HueForge](https://shop.thehueforge.com/) filament library. Moonraker has support for interfacing with multiple TD-1 devices(when using a filament changer) that are inline with your filament path to capture this data.
 
 The following endpoints are available when the `[td1]` component has been configured.
 
 ### Get TD-1 Data
+
 Returns TD-1 data for all devices that are connected.
+
 ```{.http .apirequest title="HTTP Request"}
 GET /machine/td1/data
 ```
+
 ```{.json .apirequest title="JSON-RPC Request"}
 {
     "jsonrpc": "2.0",
@@ -1717,7 +1761,9 @@ GET /machine/td1/data
     "id": 4654
 }
 ```
+
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "devices": {
@@ -1730,52 +1776,57 @@ GET /machine/td1/data
     }
 }
 ```
+
 ///
 
 /// api-response-spec
-    open: True
+open: True
 //// note
 All TD-1 data fields return null after successful power on until first filament
 is scanned.
 ////
-| Field     |   Type   | Description                        |
+| Field | Type | Description |
 | --------- | :------: | ---------------------------------- |
 | `devices` | [object] | An array of `TD-1 Serial` objects. |
-|           |          | #td1-serial-spec                   |+
+| | | #td1-serial-spec |+
 
 | Field           |   Type   | Description                                     |
-| --------------- | :------: | ----------------------------------------------- |
+| --------------- | :------: | ----------------------------------------------- | --- |
 | `<td-1 serial>` | [object] | Serial number for `TD-1 data` object containing |
-|                 |          | scan data.                                      |^
-|                 |          | #td1-data-spec                                  |+
+|                 |          | scan data.                                      | ^   |
+|                 |          | #td1-data-spec                                  | +   |
+
 { #td1-serial-spec} TD-1 Serial
 
-
-
 | Field       |      Type       | Description                                     |
-| ----------- | :-------------: | ----------------------------------------------- |
+| ----------- | :-------------: | ----------------------------------------------- | --- |
 | `td`        |      float      | Transmission distance(TD) value for scanned     |
-|             |                 | filament.                                       |^
+|             |                 | filament.                                       | ^   |
 | `color`     |     string      | Color of scanned filament in Hex format.        |
 | `scan_time` | datetime string | Current time that filament was scanned          |
 | `error`     |     string      | Script checks for error upon first connecting   |
-|             |                 | to TD-1 device. If an error exists the error is |^
-|             |                 | displayed, if no error exists this field will   |^
-|             |                 | be null.
+|             |                 | to TD-1 device. If an error exists the error is | ^   |
+|             |                 | displayed, if no error exists this field will   | ^   |
+|             |                 | be null.                                        |
+
 { #td1-data-spec} TD-1 Data
 
 ///
 
 ### Reset TD-1
+
 Gives ability to reboot TD-1 device remotely if an error exists when first powering on device.
 
 Example: User has filament inserted before power on TD-1 device, the following error occurs if
 this happens.
+
 ```
 Measured Lux (6) less than 90% stored Lux (52868). If this error is triggered
 without a filament path obstruction, recalibrate the LEDs.
 ```
+
 User can correct error by removing filament and then call this endpoint with provided serial to reboot TD-1 device.
+
 ```{.http .apirequest title="HTTP Request"}
 POST /machine/td1/reboot
 Content-Type: application/json
@@ -1784,6 +1835,7 @@ Content-Type: application/json
     "serial": "E6625877D318C430"
 }
 ```
+
 ```{.json .apirequest title="JSON-RPC Request"}
 {
     "jsonrpc": "2.0",
@@ -1794,8 +1846,9 @@ Content-Type: application/json
     "id": 4654
 }
 ```
+
 /// api-parameters
-    open: True
+open: True
 
 | Name     |  Type  | Default  | Description               |
 | -------- | :----: | -------- | ------------------------- |
@@ -1808,10 +1861,11 @@ Content-Type: application/json
     "status": "ok"
 }
 ```
+
 /// api-response-spec
-    open: True
-| Field    |  Type  | Description                                    |
+open: True
+| Field | Type | Description |
 | -------- | :----: | ---------------------------------------------- |
-| `status` | string | Returns "ok" if reboot was initiated. Returns  |
-|          |        | "key_error" if provided serial ID is not valid |^
+| `status` | string | Returns "ok" if reboot was initiated. Returns |
+| | | "key_error" if provided serial ID is not valid |^
 ///

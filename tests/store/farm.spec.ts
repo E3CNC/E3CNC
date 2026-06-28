@@ -646,10 +646,13 @@ describe('farm printer store', () => {
                 params: {},
             })
 
-            expect(commit).toHaveBeenCalledWith('addWsData', expect.objectContaining({
-                action: 'getObjectsList',
-                params: {},
-            }))
+            expect(commit).toHaveBeenCalledWith(
+                'addWsData',
+                expect.objectContaining({
+                    action: 'getObjectsList',
+                    params: {},
+                })
+            )
             expect(send).toHaveBeenCalledWith(expect.stringContaining('printer.info'))
         })
 
@@ -702,12 +705,7 @@ describe('farm printer store', () => {
             const dispatch = vi.fn()
 
             printer.actions.getObjectsList({ dispatch } as any, {
-                objects: [
-                    'webhooks',
-                    'extruder',
-                    'some_unknown_stepper',
-                    'heater_bed',
-                ],
+                objects: ['webhooks', 'extruder', 'some_unknown_stepper', 'heater_bed'],
             })
 
             expect(dispatch).toHaveBeenCalledWith('sendObj', {
@@ -764,9 +762,12 @@ describe('farm printer store', () => {
             })
 
             expect(commit).toHaveBeenCalled()
-            expect(dispatch).not.toHaveBeenCalledWith('sendObj', expect.objectContaining({
-                method: 'server.files.metadata',
-            }))
+            expect(dispatch).not.toHaveBeenCalledWith(
+                'sendObj',
+                expect.objectContaining({
+                    method: 'server.files.metadata',
+                })
+            )
         })
 
         it('setSettings commits and updates remote printer settings', () => {
@@ -832,9 +833,15 @@ describe('farm printer store', () => {
 
             // Call connect — it creates WebSocket (mocked by happy-dom which returns null)
             // We just verify the commit and the getter is read
-            printer.actions.connect({ state: stateMock as any, commit, dispatch, getters, rootGetters: {
-                'farm/existsPrinter': vi.fn(() => true),
-            } } as any)
+            printer.actions.connect({
+                state: stateMock as any,
+                commit,
+                dispatch,
+                getters,
+                rootGetters: {
+                    'farm/existsPrinter': vi.fn(() => true),
+                },
+            } as any)
 
             expect(commit).toHaveBeenCalledWith('setSocketData', { isConnecting: true })
             vi.useRealTimers()

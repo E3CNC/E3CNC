@@ -4,7 +4,19 @@ import { createStore } from 'vuex'
 import DevicesDialog from '@/components/dialogs/DevicesDialog.vue'
 
 const mockIsMobile = vi.hoisted(() => {
-    class MockRef { _value: any; __v_isRef = true; constructor(v: any) { this._value = v } get value() { return this._value } set value(v) { this._value = v } }
+    class MockRef {
+        _value: any
+        __v_isRef = true
+        constructor(v: any) {
+            this._value = v
+        }
+        get value() {
+            return this._value
+        }
+        set value(v) {
+            this._value = v
+        }
+    }
     return new MockRef(false)
 })
 
@@ -17,22 +29,50 @@ vi.mock('@/composables/useBase', () => ({
 vi.mock('@/components/ui/Panel.vue', () => ({
     default: {
         name: 'Panel',
-        props: { icon: String, title: [String, Object], cardClass: String, marginBottom: Boolean, height: [String, Number] },
-        template: '<div class="panel" :class="cardClass" :style="{ height }"><slot name="buttons" /><slot /><span class="panel-title">{{ title }}</span></div>',
+        props: {
+            icon: String,
+            title: [String, Object],
+            cardClass: String,
+            marginBottom: Boolean,
+            height: [String, Number],
+        },
+        template:
+            '<div class="panel" :class="cardClass" :style="{ height }"><slot name="buttons" /><slot /><span class="panel-title">{{ title }}</span></div>',
     },
 }))
 
 vi.mock('vuetify/components', () => ({
-    VDialog: { name: 'VDialog', props: ['modelValue', 'width', 'persistent', 'fullscreen'], template: '<div class="v-dialog" v-if="modelValue"><slot /></div>' },
-    VMenu: { name: 'VMenu', props: ['location', 'closeOnContentClick', 'attach'], template: '<div class="v-menu"><slot name="activator" :props=\"{}\" /><slot /></div>' },
+    VDialog: {
+        name: 'VDialog',
+        props: ['modelValue', 'width', 'persistent', 'fullscreen'],
+        template: '<div class="v-dialog" v-if="modelValue"><slot /></div>',
+    },
+    VMenu: {
+        name: 'VMenu',
+        props: ['location', 'closeOnContentClick', 'attach'],
+        template: '<div class="v-menu"><slot name="activator" :props=\"{}\" /><slot /></div>',
+    },
     VList: { name: 'VList', template: '<div class="v-list"><slot /></div>' },
     VListItem: { name: 'VListItem', props: ['class'], template: '<div class="v-list-item"><slot /></div>' },
-    VCheckbox: { name: 'VCheckbox', props: ['modelValue', 'label', 'hideDetails'], template: '<label class="v-checkbox"><input type="checkbox" />{{ label }}</label>' },
-    VBtn: { name: 'VBtn', props: ['icon', 'rounded'], template: '<button class="v-btn" @click="typeof $attrs.onClick === \'function\' && $attrs.onClick($event); typeof $attrs.onclick === \'function\' && $attrs.onclick($event)"><slot /></button>' },
+    VCheckbox: {
+        name: 'VCheckbox',
+        props: ['modelValue', 'label', 'hideDetails'],
+        template: '<label class="v-checkbox"><input type="checkbox" />{{ label }}</label>',
+    },
+    VBtn: {
+        name: 'VBtn',
+        props: ['icon', 'rounded'],
+        template:
+            '<button class="v-btn" @click="typeof $attrs.onClick === \'function\' && $attrs.onClick($event); typeof $attrs.onclick === \'function\' && $attrs.onclick($event)"><slot /></button>',
+    },
     VTabs: { name: 'VTabs', props: ['modelValue', 'fixedTabs'], template: '<div class="v-tabs"><slot /></div>' },
     VTab: { name: 'VTab', props: ['value'], template: '<button class="v-tab">{{ value }}</button>' },
     VWindow: { name: 'VWindow', props: ['modelValue'], template: '<div class="v-window"><slot /></div>' },
-    VWindowItem: { name: 'VWindowItem', props: ['value'], template: '<div class="v-window-item" v-if="true"><slot /></div>' },
+    VWindowItem: {
+        name: 'VWindowItem',
+        props: ['value'],
+        template: '<div class="v-window-item" v-if="true"><slot /></div>',
+    },
     VIcon: { name: 'VIcon', props: ['icon'], template: '<i class="v-icon"><slot /></i>' },
 }))
 

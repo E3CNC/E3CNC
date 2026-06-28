@@ -6,7 +6,6 @@
         <title>E3CNC UI</title>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
         <style>
-
             @font-face {
                 font-family: '0xProto Nerd Font Mono';
                 font-style: normal;
@@ -293,7 +292,9 @@
             <header>
                 <img class="header-logo" src="assets/e3c_logo.svg" alt="E3CNC UI Logo" />
                 <h1>
-                    E3<span>CNC</span> UI
+                    E3
+                    <span>CNC</span>
+                    UI
                 </h1>
                 <p>A modern, responsive CNC controller interface for Klipper-based machines.</p>
                 <div class="badge-row">
@@ -347,9 +348,9 @@
                         <div class="icon"><i class="fa-solid fa-font"></i></div>
                         <h3>Ndot57 Theme</h3>
                         <p>
-                            Dedicated theme with Ndot 57 Aligned display font, custom letter-spacing, and cyan
-                            accent colours. Font-family and letter-spacing inherit from root via CSS custom
-                            properties — all Vuetify typography classes respect the active theme.
+                            Dedicated theme with Ndot 57 Aligned display font, custom letter-spacing, and cyan accent
+                            colours. Font-family and letter-spacing inherit from root via CSS custom properties — all
+                            Vuetify typography classes respect the active theme.
                         </p>
                     </div>
                     <div class="feature">
@@ -426,21 +427,25 @@
                         <span class="tag tag-feat">feat</span>
                         <span class="desc">
                             <strong>e3cnc-cli unified CLI tool</strong>
-                            — Zero-dependency CLI with interactive menu, direct commands,
-                            bash tab completion, SSH validation, confirmation prompts for
-                            destructive operations, and multi-instance detection for machines
-                            with multiple Klipper/Moonraker setups.
-                            Run <code>./e3cnc-cli</code> for the interactive menu or
-                            <code>./e3cnc-cli install</code> for direct install.
+                            — Zero-dependency CLI with interactive menu, direct commands, bash tab completion, SSH
+                            validation, confirmation prompts for destructive operations, and multi-instance detection
+                            for machines with multiple Klipper/Moonraker setups. Run
+                            <code>./e3cnc-cli</code>
+                            for the interactive menu or
+                            <code>./e3cnc-cli install</code>
+                            for direct install.
                         </span>
                     </div>
                     <div class="entry">
                         <span class="tag tag-feat">feat</span>
                         <span class="desc">
                             <strong>Ndot57 theme</strong>
-                            — New theme with Ndot 57 Aligned display font, configurable letter-spacing, and
-                            cyan accent colours. Theme interface extended with <code>fontFamily</code> and
-                            <code>letterSpacing</code> properties.
+                            — New theme with Ndot 57 Aligned display font, configurable letter-spacing, and cyan accent
+                            colours. Theme interface extended with
+                            <code>fontFamily</code>
+                            and
+                            <code>letterSpacing</code>
+                            properties.
                         </span>
                     </div>
                     <div class="entry">
@@ -448,27 +453,40 @@
                         <span class="desc">
                             <strong>Font inheritance system</strong>
                             — All font-family and letter-spacing declarations removed from individual components.
-                            Everything inherits from root via <code>--font-family</code> and
-                            <code>--letter-spacing</code> CSS custom properties, controlled by the active theme.
-                            Vuetify typography classes (<code>.text-caption</code>, <code>.v-card-title</code>, etc.)
-                            also respect theme fonts.
+                            Everything inherits from root via
+                            <code>--font-family</code>
+                            and
+                            <code>--letter-spacing</code>
+                            CSS custom properties, controlled by the active theme. Vuetify typography classes (
+                            <code>.text-caption</code>
+                            ,
+                            <code>.v-card-title</code>
+                            , etc.) also respect theme fonts.
                         </span>
                     </div>
                     <div class="entry">
                         <span class="tag tag-chore">chore</span>
                         <span class="desc">
                             <strong>Rem units</strong>
-                            — All <code>font-size</code> values converted from px and em to rem across 25+ components
-                            for consistent scaling with root font size.
+                            — All
+                            <code>font-size</code>
+                            values converted from px and em to rem across 25+ components for consistent scaling with
+                            root font size.
                         </span>
                     </div>
                     <div class="entry">
                         <span class="tag tag-fix">fix</span>
                         <span class="desc">
                             <strong>DRO formatting</strong>
-                            — Axis values now display 2 decimal places with trailing zeros stripped
-                            (e.g. <code>1.00</code> → <code>1</code>, <code>1.50</code> → <code>1.5</code>).
-                            Consistent between topbar DRO and dashboard DRO panel.
+                            — Axis values now display 2 decimal places with trailing zeros stripped (e.g.
+                            <code>1.00</code>
+                            →
+                            <code>1</code>
+                            ,
+                            <code>1.50</code>
+                            →
+                            <code>1.5</code>
+                            ). Consistent between topbar DRO and dashboard DRO panel.
                         </span>
                     </div>
                     <div class="entry">
@@ -611,18 +629,30 @@
                         <span class="tag tag-fix">fix</span>
                         <span class="desc">
                             <strong>Logo rendering</strong>
-                            — E3CNC UI SVG logo now uses single-line <code>href</code> data URI instead of multiline
-                            <code>xlink:href</code>. Fixed blank logo across all browsers.
+                            — E3CNC UI SVG logo now uses single-line
+                            <code>href</code>
+                            data URI instead of multiline
+                            <code>xlink:href</code>
+                            . Fixed blank logo across all browsers.
                         </span>
                     </div>
                     <div class="entry">
                         <span class="tag tag-feat">feat</span>
                         <span class="desc">
                             <strong>CNC-safe macros</strong>
-                            — <code>PAUSE</code>/<code>RESUME</code>/<code>CANCEL_PRINT</code> with
-                            <code>rename_existing: BASE_*</code>. M3-M9 overridden as no-ops (no spindle wired).
-                            <code>FINISH_JOB</code>: Z25, X0 Y0, no M84.
-                            <code>CANCEL_PRINT</code> keeps WCS semantics.
+                            —
+                            <code>PAUSE</code>
+                            /
+                            <code>RESUME</code>
+                            /
+                            <code>CANCEL_PRINT</code>
+                            with
+                            <code>rename_existing: BASE_*</code>
+                            . M3-M9 overridden as no-ops (no spindle wired).
+                            <code>FINISH_JOB</code>
+                            : Z25, X0 Y0, no M84.
+                            <code>CANCEL_PRINT</code>
+                            keeps WCS semantics.
                         </span>
                     </div>
                     <div class="entry">
@@ -630,24 +660,24 @@
                         <span class="desc">
                             <strong>G-code viewer with WCS metadata</strong>
                             — Stock/toolpath anchored to machine Z0. Live toolhead uses full WCS coordinates. Parses
-                            <code>CAM WCS Origin</code> comments from Fusion 360 posts.
+                            <code>CAM WCS Origin</code>
+                            comments from Fusion 360 posts.
                         </span>
                     </div>
                     <div class="entry">
                         <span class="tag tag-feat">feat</span>
                         <span class="desc">
                             <strong>Job start WCS selection</strong>
-                            — Pre-start dialog asks which WCS coordinates to use. Shows all G54-G59 slots.
-                            G-code WCS preselected by default.
+                            — Pre-start dialog asks which WCS coordinates to use. Shows all G54-G59 slots. G-code WCS
+                            preselected by default.
                         </span>
                     </div>
                     <div class="entry">
                         <span class="tag tag-feat">feat</span>
                         <span class="desc">
                             <strong>Jog panel enhancements</strong>
-                            — XY/Z jog buttons with primary hover bg, gray outline for contrast.
-                            Disable Steppers turns primary when any axis homed. Keyboard nav
-                            persistent toast with reactive jog step display.
+                            — XY/Z jog buttons with primary hover bg, gray outline for contrast. Disable Steppers turns
+                            primary when any axis homed. Keyboard nav persistent toast with reactive jog step display.
                         </span>
                     </div>
                     <div class="entry">
@@ -661,41 +691,48 @@
                         <span class="tag tag-feat">feat</span>
                         <span class="desc">
                             <strong>Semver release alignment</strong>
-                            — Releases use semver git tags on <code>main</code>.
-                            Version badges and GitHub releases now show proper semver (v0.5.0).
-                            Update manager switched to <code>primary_branch: main</code>.
+                            — Releases use semver git tags on
+                            <code>main</code>
+                            . Version badges and GitHub releases now show proper semver (v0.5.0). Update manager
+                            switched to
+                            <code>primary_branch: main</code>
+                            .
                         </span>
                     </div>
                     <div class="entry">
                         <span class="tag tag-feat">feat</span>
                         <span class="desc">
                             <strong>Post processor metadata</strong>
-                            — Fusion 360 post renamed to <code>E3CNC_Fusion360.cps</code>.
-                            Emits <code>CAM WCS Origin:</code> comments derived from stock bounds.
+                            — Fusion 360 post renamed to
+                            <code>E3CNC_Fusion360.cps</code>
+                            . Emits
+                            <code>CAM WCS Origin:</code>
+                            comments derived from stock bounds.
                         </span>
                     </div>
                     <div class="entry">
                         <span class="tag tag-feat">feat</span>
                         <span class="desc">
                             <strong>Feedrate override slider</strong>
-                            — Jog panel slider sends <code>M220 S&lt;percent&gt;</code> to adjust
-                            machine speed in real time. Range 10-300%, 1s debounce, always enabled.
+                            — Jog panel slider sends
+                            <code>M220 S&lt;percent&gt;</code>
+                            to adjust machine speed in real time. Range 10-300%, 1s debounce, always enabled.
                         </span>
                     </div>
                     <div class="entry">
                         <span class="tag tag-feat">feat</span>
                         <span class="desc">
                             <strong>Z Feed slider</strong>
-                            — Native range input below Z Feed field, matching XY Feed slider.
-                            Both sliders use dynamic min/max from toolhead, step 50.
+                            — Native range input below Z Feed field, matching XY Feed slider. Both sliders use dynamic
+                            min/max from toolhead, step 50.
                         </span>
                     </div>
                     <div class="entry">
                         <span class="tag tag-fix">fix</span>
                         <span class="desc">
                             <strong>Slider snap alignment</strong>
-                            — Feed slider min changed from 1 to 0 so values snap to
-                            round multiples of 50 instead of offset-by-1 values.
+                            — Feed slider min changed from 1 to 0 so values snap to round multiples of 50 instead of
+                            offset-by-1 values.
                         </span>
                     </div>
                     <div class="entry">
@@ -712,8 +749,10 @@
                 <h2>Quick Install</h2>
 
                 <p class="install-intro">
-                    <strong>Recommended:</strong> Use the <code>e3cnc-cli</code> tool for a unified
-                    interactive setup. It handles everything — agent vendoring, frontend build,
+                    <strong>Recommended:</strong>
+                    Use the
+                    <code>e3cnc-cli</code>
+                    tool for a unified interactive setup. It handles everything — agent vendoring, frontend build,
                     plugin deployment, and service restarts — in a single command.
                 </p>
 
@@ -722,22 +761,28 @@ cd ~/E3CNC
 ./e3cnc-cli install</code></pre>
 
                 <p class="install-note">
-                    Run <code>./e3cnc-cli</code> with no arguments for an interactive menu
-                    that loops after each command. Use <code>[W]</code> to switch between
-                    multiple Klipper/Moonraker instances on the same machine.
-                    Tab completion available via
-                    <code>source ~/E3CNC/build-scripts/e3cnc-completion.sh</code>.
-                    See the
+                    Run
+                    <code>./e3cnc-cli</code>
+                    with no arguments for an interactive menu that loops after each command. Use
+                    <code>[W]</code>
+                    to switch between multiple Klipper/Moonraker instances on the same machine. Tab completion available
+                    via
+                    <code>source ~/E3CNC/build-scripts/e3cnc-completion.sh</code>
+                    . See the
                     <a href="https://github.com/E3CNC/E3CNC/wiki/Installation">wiki</a>
                     for details and other install methods.
                 </p>
 
-                <h3 style="margin-top:2em">Alternate: Update Manager</h3>
+                <h3 style="margin-top: 2em">Alternate: Update Manager</h3>
 
                 <p class="install-intro">
                     Already have Klipper + Moonraker + Mainsail? Add this block to
-                    <code>~/printer_data/config/moonraker.conf</code>, restart Klipper,
-                    then click <strong>Update</strong> in <strong>Machine &rarr; Update Manager</strong>.
+                    <code>~/printer_data/config/moonraker.conf</code>
+                    , restart Klipper, then click
+                    <strong>Update</strong>
+                    in
+                    <strong>Machine &rarr; Update Manager</strong>
+                    .
                 </p>
 
                 <pre class="install-config"><code>[update_manager E3CNC]
@@ -754,13 +799,18 @@ managed_services: klipper moonraker
 refresh_interval: 24</code></pre>
 
                 <p class="install-note">
-                    Run <code>./e3cnc-cli update</code> on the host for the full stack redeploy instead of relying on the update manager's post-update hook.
+                    Run
+                    <code>./e3cnc-cli update</code>
+                    on the host for the full stack redeploy instead of relying on the update manager's post-update hook.
                 </p>
 
                 <p class="install-note">
-                    Replace <code>~/E3CNC</code> with an absolute path if needed (e.g. <code>/home/pi/E3CNC</code>). The script
-                    auto-installs Ansible, creates a backup before every update, and preserves
-                    the 3 most recent backups. See the
+                    Replace
+                    <code>~/E3CNC</code>
+                    with an absolute path if needed (e.g.
+                    <code>/home/pi/E3CNC</code>
+                    ). The script auto-installs Ansible, creates a backup before every update, and preserves the 3 most
+                    recent backups. See the
                     <a href="https://github.com/E3CNC/E3CNC/wiki/Installation-Update-Manager">wiki</a>
                     for details.
                 </p>

@@ -14,7 +14,10 @@ function makeStore() {
 }
 
 describe('TemperaturePanelListItemAdditionalSensorValue.vue', () => {
-    beforeEach(() => { vi.clearAllMocks(); getDatasetAdditionalSensorValue.mockReturnValue(true) })
+    beforeEach(() => {
+        vi.clearAllMocks()
+        getDatasetAdditionalSensorValue.mockReturnValue(true)
+    })
 
     it('mounts without crashing', () => {
         const wrapper = mount(TemperaturePanelListItemAdditionalSensorValue, {

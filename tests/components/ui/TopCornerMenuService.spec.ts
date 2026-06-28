@@ -73,8 +73,7 @@ vi.mock('vuetify/components', () => ({
     VBtn: {
         name: 'VBtn',
         props: { icon: Boolean, size: String, disabled: Boolean },
-        template:
-            '<button :disabled="disabled" @click="$attrs.onClick || $emit(\'click\')"><slot /></button>',
+        template: '<button :disabled="disabled" @click="$attrs.onClick || $emit(\'click\')"><slot /></button>',
     },
     VIcon: { name: 'VIcon', props: { size: String }, template: '<i><slot /></i>' },
 }))

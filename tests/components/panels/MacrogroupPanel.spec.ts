@@ -4,11 +4,35 @@ import { createStore } from 'vuex'
 import MacrogroupPanel from '@/components/panels/MacrogroupPanel.vue'
 
 const mockKlipperReadyForGui = vi.hoisted(() => {
-    class MockRef { _value: any; __v_isRef = true; constructor(v: any) { this._value = v } get value() { return this._value } set value(v) { this._value = v } }
+    class MockRef {
+        _value: any
+        __v_isRef = true
+        constructor(v: any) {
+            this._value = v
+        }
+        get value() {
+            return this._value
+        }
+        set value(v) {
+            this._value = v
+        }
+    }
     return new MockRef(true)
 })
 const mockPrinterState = vi.hoisted(() => {
-    class MockRef { _value: any; __v_isRef = true; constructor(v: any) { this._value = v } get value() { return this._value } set value(v) { this._value = v } }
+    class MockRef {
+        _value: any
+        __v_isRef = true
+        constructor(v: any) {
+            this._value = v
+        }
+        get value() {
+            return this._value
+        }
+        set value(v) {
+            this._value = v
+        }
+    }
     return new MockRef('standby')
 })
 
@@ -64,17 +88,28 @@ describe('MacrogroupPanel.vue', () => {
                             showInPause: false,
                             showInPrinting: false,
                             macros: [
-                                { name: 'G28', pos: 1, color: 'primary', showInStandby: true, showInPause: false, showInPrinting: false },
-                                { name: 'M84', pos: 2, color: 'primary', showInStandby: true, showInPause: false, showInPrinting: false },
+                                {
+                                    name: 'G28',
+                                    pos: 1,
+                                    color: 'primary',
+                                    showInStandby: true,
+                                    showInPause: false,
+                                    showInPrinting: false,
+                                },
+                                {
+                                    name: 'M84',
+                                    pos: 2,
+                                    color: 'primary',
+                                    showInStandby: true,
+                                    showInPause: false,
+                                    showInPrinting: false,
+                                },
                             ],
                         }
                     }
                     return null
                 },
-                'printer/getMacros': () => [
-                    { name: 'G28' },
-                    { name: 'M84' },
-                ],
+                'printer/getMacros': () => [{ name: 'G28' }, { name: 'M84' }],
             },
         })
     })
@@ -108,7 +143,14 @@ describe('MacrogroupPanel.vue', () => {
         store = createStore({
             state: { printer: {}, gui: { macros: { macrogroups: {} } } },
             getters: {
-                'gui/macros/getMacrogroup': () => () => ({ name: 'Empty', macros: [], color: 'primary', showInStandby: true, showInPause: false, showInPrinting: false }),
+                'gui/macros/getMacrogroup': () => () => ({
+                    name: 'Empty',
+                    macros: [],
+                    color: 'primary',
+                    showInStandby: true,
+                    showInPause: false,
+                    showInPrinting: false,
+                }),
                 'printer/getMacros': () => [],
             },
         })
@@ -141,8 +183,22 @@ describe('MacrogroupPanel.vue', () => {
                     showInPause: false,
                     showInPrinting: false,
                     macros: [
-                        { name: 'M84', pos: 2, color: 'primary', showInStandby: true, showInPause: false, showInPrinting: false },
-                        { name: 'G28', pos: 1, color: 'primary', showInStandby: true, showInPause: false, showInPrinting: false },
+                        {
+                            name: 'M84',
+                            pos: 2,
+                            color: 'primary',
+                            showInStandby: true,
+                            showInPause: false,
+                            showInPrinting: false,
+                        },
+                        {
+                            name: 'G28',
+                            pos: 1,
+                            color: 'primary',
+                            showInStandby: true,
+                            showInPause: false,
+                            showInPrinting: false,
+                        },
                     ],
                 }),
                 'printer/getMacros': () => [{ name: 'G28' }, { name: 'M84' }],

@@ -397,7 +397,11 @@ describe('server store', () => {
         expect(dispatch).toHaveBeenCalledWith('socket/addInitModule', 'server/info', { root: true })
         expect(dispatch).toHaveBeenCalledWith('socket/addInitModule', 'server/databaseList', { root: true })
         expect(mockSocket.emit).toHaveBeenCalledWith('server.info', {}, { action: 'server/initServerInfo' })
-        expect(mockSocket.emit).toHaveBeenCalledWith('server.database.list', { root: 'config' }, { action: 'server/checkDatabases' })
+        expect(mockSocket.emit).toHaveBeenCalledWith(
+            'server.database.list',
+            { root: 'config' },
+            { action: 'server/checkDatabases' }
+        )
         expect(dispatch).toHaveBeenCalledWith('socket/removeInitModule', 'server', { root: true })
     })
 
@@ -773,9 +777,7 @@ describe('server mutations', () => {
     })
 
     it('addEvent replaces autocomplete with follow-up command', () => {
-        state.events = [
-            { date: new Date(), message: 'prev', formatMessage: 'prev', type: 'autocomplete' },
-        ] as any
+        state.events = [{ date: new Date(), message: 'prev', formatMessage: 'prev', type: 'autocomplete' }] as any
 
         mutations.addEvent(state, {
             date: new Date(),

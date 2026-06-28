@@ -377,7 +377,9 @@ describe('printer getters', () => {
                 config: { 'fan_generic my_fan': {}, 'temperature_fan chamber': {}, fan: {} },
                 settings: { 'fan_generic my_fan': {}, 'temperature_fan chamber': {}, fan: {} },
             } as any
-            const result = (getters as any).getFans(state, { getPrinterObjects: (getters as any).getPrinterObjects(state) })
+            const result = (getters as any).getFans(state, {
+                getPrinterObjects: (getters as any).getPrinterObjects(state),
+            })
             expect(result).toHaveLength(3)
             // controllable fans (fan, fan_generic) come first
             expect(result[0].controllable).toBe(true)
@@ -535,9 +537,17 @@ describe('printer getters', () => {
 
     describe('getMcuTempSensors', () => {
         it('returns mcu temperature sensors', () => {
-            state['temperature_sensor mcu_temp'] = { temperature: 35.5, measured_min_temp: 30.0, measured_max_temp: 40.0 } as any
-            state.configfile = { settings: { 'temperature_sensor mcu_temp': { sensor_type: 'temperature_mcu', sensor_mcu: 'mcu' } } } as any
-            const result = (getters as any).getMcuTempSensors(state, { getPrinterConfigObjects: (getters as any).getPrinterConfigObjects(state) })
+            state['temperature_sensor mcu_temp'] = {
+                temperature: 35.5,
+                measured_min_temp: 30.0,
+                measured_max_temp: 40.0,
+            } as any
+            state.configfile = {
+                settings: { 'temperature_sensor mcu_temp': { sensor_type: 'temperature_mcu', sensor_mcu: 'mcu' } },
+            } as any
+            const result = (getters as any).getMcuTempSensors(state, {
+                getPrinterConfigObjects: (getters as any).getPrinterConfigObjects(state),
+            })
             expect(result).toHaveLength(1)
             expect(result[0].key).toBe('temperature_sensor mcu_temp')
             expect(result[0].settings.sensor_mcu).toBe('mcu')
@@ -559,10 +569,7 @@ describe('printer getters', () => {
                     object: { temperature: 35.5, measured_min_temp: 30.0, measured_max_temp: 40.0 },
                 },
             ]
-            const result = (getters as any).getMcuTempSensor(
-                state,
-                { getMcuTempSensors: mcuTempSensors }
-            )('mcu')
+            const result = (getters as any).getMcuTempSensor(state, { getMcuTempSensors: mcuTempSensors })('mcu')
             expect(result).not.toBeNull()
             expect(result!.temperature).toBe('36')
             expect(result!.measured_min_temp).toBe('30.0')
@@ -570,10 +577,7 @@ describe('printer getters', () => {
         })
 
         it('returns null when no matching sensor', () => {
-            const result = (getters as any).getMcuTempSensor(
-                state,
-                { getMcuTempSensors: [] }
-            )('mcu')
+            const result = (getters as any).getMcuTempSensor(state, { getMcuTempSensors: [] })('mcu')
             expect(result).toBeNull()
         })
     })

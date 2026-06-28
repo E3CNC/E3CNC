@@ -1,7 +1,7 @@
 # Extensions
 
 Moonraker has limited support for 3rd party extensions through the
-use of its API.  Extensions must establish a Websocket or Unix Socket
+use of its API. Extensions must establish a Websocket or Unix Socket
 connection and [identify](./server.md#identify-connection) themselves
 as an `agent`.
 
@@ -16,7 +16,7 @@ The endpoints in this section can be broken down into two categories:
 
 ### List Extensions
 
-Returns a list of all available extensions.  Currently Moonraker can only
+Returns a list of all available extensions. Currently Moonraker can only
 be officially extended through connected `agents`.
 
 ```{.http .apirequest title="HTTP Request"}
@@ -32,6 +32,7 @@ GET /server/extensions/list
 ```
 
 /// collapse-code
+
 ```{.json .apiresponse title="Example Response"}
 {
     "agents": [
@@ -44,10 +45,11 @@ GET /server/extensions/list
     ]
 }
 ```
+
 ///
 
 /// api-response-spec
-    open: True
+open: True
 
 | Field    |   Type   | Description                                         |
 | -------- | :------: | --------------------------------------------------- |
@@ -57,8 +59,9 @@ GET /server/extensions/list
 | --------- | :----: | -------------------------------------------------- |
 | `name`    | string | The name provided by the registered agent.         |
 | `version` | string | The version of the software reported by the agent. |
-| `type`    | string | The client type.  Will always be `agent`.          |
+| `type`    | string | The client type. Will always be `agent`.           |
 | `url`     | string | A url to the agent software's webpage.             |
+
 { #agent-info-spec } Agent Info
 
 ///
@@ -67,7 +70,7 @@ GET /server/extensions/list
 
 This endpoint may be used to call a method on a connected agent.
 The request effectively relays a JSON-RPC request from a front end
-or other client to the agent.  Agents should document their
+or other client to the agent. Agents should document their
 available methods so Moonraker client developers can interact
 with them.
 
@@ -98,27 +101,27 @@ Content-Type: application/json
 Parameters:
 
 /// api-parameters
-    open: True
+open: True
 
 | Name        |      Type       | Default      | Description                      |
-| ----------- | :-------------: | ------------ | -------------------------------- |
+| ----------- | :-------------: | ------------ | -------------------------------- | --- |
 | `agent`     |     string      | **REQUIRED** | The name of the registered agent |
-|             |                 |              | hosting the requested method.    |^
+|             |                 |              | hosting the requested method.    | ^   |
 | `method`    |     string      | **REQUIRED** | The name of the method to call.  |
 | `arguments` | array \| object | null         | The arguments to send with the   |
-|             |                 |              | method.  This may be an array    |^
-|             |                 |              | containing positional arguments  |^
-|             |                 |              | or an object containing keyword  |^
-|             |                 |              | arguments.  A value of `null`    |^
-|             |                 |              | will omit arguments from the     |^
-|             |                 |              | request.                         |^
+|             |                 |              | method. This may be an array     | ^   |
+|             |                 |              | containing positional arguments  | ^   |
+|             |                 |              | or an object containing keyword  | ^   |
+|             |                 |              | arguments. A value of `null`     | ^   |
+|             |                 |              | will omit arguments from the     | ^   |
+|             |                 |              | request.                         | ^   |
 
 ///
 
 /// api-response-spec
-    open: True
+open: True
 
-The result received from the agent will be returned directly.  See
+The result received from the agent will be returned directly. See
 the agent's documentation for response specifications
 
 ///
@@ -152,15 +155,15 @@ Not Available
 ```
 
 /// api-parameters
-    open: True
+open: True
 
 | Name    |  Type  | Default      | Description                                  |
-| ------- | :----: | ------------ | -------------------------------------------- |
-| `event` | string | **REQUIRED** | The name of the event.  This may be any      |
-|         |        |              | name other than those reserved by Moonraker. |^
+| ------- | :----: | ------------ | -------------------------------------------- | --- |
+| `event` | string | **REQUIRED** | The name of the event. This may be any       |
+|         |        |              | name other than those reserved by Moonraker. | ^   |
 | `data`  |  any   | undefined    | The data to send with the event. This can be |
-|         |        |              | any valid JSON decodable value.  If omitted  |^
-|         |        |              | no data is sent with the event.              |^
+|         |        |              | any valid JSON decodable value. If omitted   | ^   |
+|         |        |              | no data is sent with the event.              | ^   |
 
 //// Note
 The `connected` and `disconnected` events are reserved for use
@@ -177,7 +180,6 @@ ok
 An agent may send an event without specifying the JSON-RPC `id` field.
 In this case Moonraker will not return a response.
 ///
-
 
 ### Register a method with Klipper
 
@@ -199,15 +201,15 @@ Not Available
 ```
 
 /// api-parameters
-    open: True
+open: True
 
 | Name          |  Type  | Default      | Description                                   |
-| ------------- | :----: | ------------ | --------------------------------------------- |
+| ------------- | :----: | ------------ | --------------------------------------------- | --- |
 | `method_name` | string | **REQUIRED** | The name of the remote method to register     |
-|               |        |              | with Klipper.  It is recommended for agents   |^
-|               |        |              | to use a unique identifier, such as a prefix, |^
-|               |        |              | to prevent collisions with other remote       |^
-|               |        |              | methods registered with Klipper.              |^
+|               |        |              | with Klipper. It is recommended for agents    | ^   |
+|               |        |              | to use a unique identifier, such as a prefix, | ^   |
+|               |        |              | to prevent collisions with other remote       | ^   |
+|               |        |              | methods registered with Klipper.              | ^   |
 
 ///
 

@@ -13,7 +13,6 @@ insufficiently rigid printer frame, non-tight or too springy belts, alignment
 issues of mechanical parts, heavy moving mass, etc. Those should be checked
 and fixed first, if possible.
 
-
 [Input shaping](https://en.wikipedia.org/wiki/Input_shaping) is an open-loop
 control technique which creates a commanding signal that cancels its
 own vibrations. Input shaping requires some tuning and measurements before it
@@ -29,16 +28,16 @@ by printing a test model.
 Slice the ringing test model, which can be found in
 [docs/prints/ringing_tower.stl](prints/ringing_tower.stl), in the slicer:
 
-* Suggested layer height is 0.2 or 0.25 mm.
-* Infill and top layers can be set to 0.
-* Use 1-2 perimeters, or even better the smooth vase mode with 1-2 mm base.
-* Use sufficiently high speed, around 80-100 mm/sec, for **external** perimeters.
-* Make sure that the minimum layer time is **at most** 3 seconds.
-* Make sure any "dynamic acceleration control" is disabled in the slicer.
-* Do not turn the model. The model has X and Y marks at the back of the model.
- Note the unusual location of the marks vs. the axes of the printer - it is
- not a mistake. The marks can be used later in the tuning process as a
- reference, because they show which axis the measurements correspond to.
+- Suggested layer height is 0.2 or 0.25 mm.
+- Infill and top layers can be set to 0.
+- Use 1-2 perimeters, or even better the smooth vase mode with 1-2 mm base.
+- Use sufficiently high speed, around 80-100 mm/sec, for **external** perimeters.
+- Make sure that the minimum layer time is **at most** 3 seconds.
+- Make sure any "dynamic acceleration control" is disabled in the slicer.
+- Do not turn the model. The model has X and Y marks at the back of the model.
+  Note the unusual location of the marks vs. the axes of the printer - it is
+  not a mistake. The marks can be used later in the tuning process as a
+  reference, because they show which axis the measurements correspond to.
 
 ### Ringing frequency
 
@@ -66,22 +65,22 @@ First, measure the **ringing frequency**.
    that acceleration gets too high for your printer (e.g. printer shakes too
    much or starts skipping steps).
 8. Use X and Y marks at the back of the model for reference. The measurements
-   from the side with X mark should be used for X axis *configuration*, and
-   Y mark - for Y axis configuration. Measure the distance *D* (in mm) between
+   from the side with X mark should be used for X axis _configuration_, and
+   Y mark - for Y axis configuration. Measure the distance _D_ (in mm) between
    several oscillations on the part with X mark, near the notches, preferably
    skipping the first oscillation or two. To measure the distance between
    oscillations more easily, mark the oscillations first, then measure the
    distance between the marks with a ruler or calipers:
 
-    |![Mark ringing](img/ringing-mark.jpg)|![Measure ringing](img/ringing-measure.jpg)|
+   |![Mark ringing](img/ringing-mark.jpg)|![Measure ringing](img/ringing-measure.jpg)|
 
-9. Count how many oscillations *N* the measured distance *D* corresponds to.
+9. Count how many oscillations _N_ the measured distance _D_ corresponds to.
    If you are unsure how to count the oscillations, refer to the picture
-   above, which shows *N* = 6 oscillations.
-10. Compute the ringing frequency of X axis as *V* &middot; *N* / *D* (Hz),
-    where *V* is the velocity for outer perimeters (mm/sec). For the example
+   above, which shows _N_ = 6 oscillations.
+10. Compute the ringing frequency of X axis as _V_ &middot; _N_ / _D_ (Hz),
+    where _V_ is the velocity for outer perimeters (mm/sec). For the example
     above, we marked 6 oscillations, and the test was printed at 100 mm/sec
-    velocity, so the frequency is 100 * 6 / 12.14 ≈ 49.4 Hz.
+    velocity, so the frequency is 100 \* 6 / 12.14 ≈ 49.4 Hz.
 11. Do (8) - (10) for Y mark as well.
 
 Note that ringing on the test print should follow the pattern of the curved
@@ -97,7 +96,7 @@ tuning process described in
 section instead and still get something out of the input shaping technique.
 
 Ringing frequency can depend on the position of the model within the buildplate
-and Z height, *especially on delta printers*; you can check if you see the
+and Z height, _especially on delta printers_; you can check if you see the
 differences in frequencies at different positions along the sides of the test
 model and at different heights. You can calculate the average ringing
 frequencies over X and Y axes if that is the case.
@@ -112,12 +111,12 @@ Note that the ringing frequencies can change if the changes are made to the
 printer that affect the moving mass or change the stiffness of the system,
 for example:
 
-* Some tools are installed, removed or replaced on the toolhead that change
- its mass, e.g. a new (heavier or lighter) stepper motor for direct extruder
- or a new hotend is installed, heavy fan with a duct is added, etc.
-* Belts are tightened.
-* Some addons to increase frame rigidity are installed.
-* Different bed is installed on a bed-slinger printer, or glass added, etc.
+- Some tools are installed, removed or replaced on the toolhead that change
+  its mass, e.g. a new (heavier or lighter) stepper motor for direct extruder
+  or a new hotend is installed, heavy fan with a duct is added, etc.
+- Belts are tightened.
+- Some addons to increase frame rigidity are installed.
+- Different bed is installed on a bed-slinger printer, or glass added, etc.
 
 If such changes are made, it is a good idea to at least measure the ringing
 frequencies to see if they have changed.
@@ -126,6 +125,7 @@ frequencies to see if they have changed.
 
 After the ringing frequencies for X and Y axes are measured, you can add the
 following section to your `printer.cfg`:
+
 ```
 [input_shaper]
 shaper_freq_x: ...  # frequency for the X mark of the test model
@@ -173,6 +173,7 @@ results than MZV, use EI shaper, otherwise prefer MZV. Note that EI shaper will
 cause more smoothing in printed parts (see the next section for further
 details). Add `shaper_type: mzv` (or ei) parameter to [input_shaper] section,
 e.g.:
+
 ```
 [input_shaper]
 shaper_freq_x: ...
@@ -182,19 +183,19 @@ shaper_type: mzv
 
 A few notes on shaper selection:
 
-* EI shaper may be more suited for bed slinger printers (if the resonance
- frequency and resulting smoothing allows): as more filament is deposited
- on the moving bed, the mass of the bed increases and the resonance frequency
- will decrease. Since EI shaper is more robust to resonance frequency
- changes, it may work better when printing large parts.
-* Due to the nature of delta kinematics, resonance frequencies can differ a
- lot in different parts of the build volume. Therefore, EI shaper can be a
- better fit for delta printers rather than MZV or ZV, and should be
- considered for the use. If the resonance frequency is sufficiently large
- (more than 50-60 Hz), then one can even attempt to test 2HUMP_EI shaper
- (by running the suggested test above with
- `SET_INPUT_SHAPER SHAPER_TYPE=2HUMP_EI`), but check the considerations in
- the [section below](#selecting-max_accel) before enabling it.
+- EI shaper may be more suited for bed slinger printers (if the resonance
+  frequency and resulting smoothing allows): as more filament is deposited
+  on the moving bed, the mass of the bed increases and the resonance frequency
+  will decrease. Since EI shaper is more robust to resonance frequency
+  changes, it may work better when printing large parts.
+- Due to the nature of delta kinematics, resonance frequencies can differ a
+  lot in different parts of the build volume. Therefore, EI shaper can be a
+  better fit for delta printers rather than MZV or ZV, and should be
+  considered for the use. If the resonance frequency is sufficiently large
+  (more than 50-60 Hz), then one can even attempt to test 2HUMP_EI shaper
+  (by running the suggested test above with
+  `SET_INPUT_SHAPER SHAPER_TYPE=2HUMP_EI`), but check the considerations in
+  the [section below](#selecting-max_accel) before enabling it.
 
 ### Selecting max_accel
 
@@ -239,7 +240,6 @@ a good idea to check that too.
 Choose the minimum out of the two acceleration values (from ringing and
 smoothing), and put it as `max_accel` into printer.cfg.
 
-
 As a note, it may happen - especially at low ringing frequencies - that EI
 shaper will cause too much smoothing even at lower accelerations. In this case,
 MZV may be a better choice, because it may allow higher acceleration values.
@@ -255,7 +255,6 @@ Another consideration is that if a resonance frequency is too low (below 20-25
 Hz), it might be a good idea to increase the printer stiffness or reduce the
 moving mass. Otherwise, acceleration and printing speed may be limited due too
 much smoothing now instead of ringing.
-
 
 ### Fine-tuning resonance frequencies
 
@@ -277,7 +276,7 @@ parameters, complete the following steps for each of the axes X and Y:
    the acceleration that shows ringing sufficiently well, and set it with:
    `SET_VELOCITY_LIMIT ACCEL=...`
 5. Calculate the necessary parameters for the `TUNING_TOWER` command to tune
-   `shaper_freq_x` parameter as follows: start = shaper_freq_x * 83 / 132 and
+   `shaper_freq_x` parameter as follows: start = shaper_freq_x \* 83 / 132 and
    factor = shaper_freq_x / 66, where `shaper_freq_x` here is the current value
    in `printer.cfg`.
 6. Execute the command:
@@ -288,19 +287,19 @@ parameters, complete the following steps for each of the axes X and Y:
    `SET_INPUT_SHAPER SHAPER_FREQ_X=...`.
 9. Find the band which shows ringing the least and count its number from the
    bottom starting at 1.
-10. Calculate the new shaper_freq_x value via old
-    shaper_freq_x * (39 + 5 * #band-number) / 66.
+10. Calculate the new shaper*freq_x value via old
+    shaper_freq_x * (39 + 5 \_ #band-number) / 66.
 
 Repeat these steps for the Y axis in the same manner, replacing references to X
 axis with the axis Y (e.g. replace `shaper_freq_x` with `shaper_freq_y` in
 the formulae and in the `TUNING_TOWER` command).
 
 As an example, let's assume you have had measured the ringing frequency for one
-of the axis equal to 45 Hz. This gives start = 45 * 83 / 132 = 28.30
+of the axis equal to 45 Hz. This gives start = 45 _ 83 / 132 = 28.30
 and factor = 45 / 66 = 0.6818 values for `TUNING_TOWER` command.
 Now let's assume that after printing the test model, the fourth band from the
-bottom gives the least ringing. This gives the updated shaper_freq_? value
-equal to 45 * (39 + 5 * 4) / 66 ≈ 40.23.
+bottom gives the least ringing. This gives the updated shaper*freq*? value
+equal to 45 _ (39 + 5 \* 4) / 66 ≈ 40.23.
 
 After both new `shaper_freq_x` and `shaper_freq_y` parameters have been
 calculated, you can update `[input_shaper]` section in `printer.cfg` with the
@@ -323,7 +322,6 @@ the test model. Note that another possibility is to purchase and install an
 accelerometer and measure the resonances with it (refer to the
 [docs](Measuring_Resonances.md) describing the required hardware and the setup
 process) - but this option requires some crimping and soldering.
-
 
 For tuning, add empty `[input_shaper]` section to your
 `printer.cfg`. Then, assuming that you have sliced the ringing model
@@ -361,9 +359,9 @@ with 50 Hz.
 Now check if EI shaper would be good enough in your case. Choose EI shaper
 frequency based on the frequency of 2HUMP_EI shaper you chose:
 
-* For 2HUMP_EI 60 Hz shaper, use EI shaper with shaper_freq = 50 Hz.
-* For 2HUMP_EI 50 Hz shaper, use EI shaper with shaper_freq = 40 Hz.
-* For 2HUMP_EI 40 Hz shaper, use EI shaper with shaper_freq = 33 Hz.
+- For 2HUMP_EI 60 Hz shaper, use EI shaper with shaper_freq = 50 Hz.
+- For 2HUMP_EI 50 Hz shaper, use EI shaper with shaper_freq = 40 Hz.
+- For 2HUMP_EI 40 Hz shaper, use EI shaper with shaper_freq = 33 Hz.
 
 Now print the test model one more time, running
 
@@ -375,6 +373,7 @@ providing the shaper_freq_x=... and shaper_freq_y=... as determined previously.
 If EI shaper shows very comparable good results as 2HUMP_EI shaper, stick with
 EI shaper and the frequency determined earlier, otherwise use 2HUMP_EI shaper
 with the corresponding frequency. Add the results to `printer.cfg` as, e.g.
+
 ```
 [input_shaper]
 shaper_freq_x: 50
@@ -383,7 +382,6 @@ shaper_type: 2hump_ei
 ```
 
 Continue the tuning with [Selecting max_accel](#selecting-max_accel) section.
-
 
 ## Troubleshooting and FAQ
 
@@ -407,7 +405,6 @@ If the resonance frequency is low, one should not set too high max_accel or
 increase square_corner_velocity parameters. It might also be better to choose
 MZV or even ZV input shapers over EI (or 2HUMP_EI and 3HUMP_EI shapers).
 
-
 ### After successfully printing for some time without ringing, it appears to come back
 
 It is possible that after some time the resonance frequencies have changed.
@@ -426,6 +423,7 @@ carriages (as ultimately this axis is driven by one or more stepper motors each
 commanded to perform exactly the same steps). One possibility to configure
 the input shaper for such setups is to keep `[input_shaper]` section empty and
 additionally define a `[delayed_gcode]` section in the `printer.cfg` as follows:
+
 ```
 [input_shaper]
 # Intentionally empty
@@ -438,6 +436,7 @@ gcode:
   SET_DUAL_CARRIAGE CARRIAGE=0
   SET_INPUT_SHAPER SHAPER_TYPE_X=<primary_carriage_shaper> SHAPER_FREQ_X=<primary_carriage_freq> SHAPER_TYPE_Y=<y_shaper> SHAPER_FREQ_Y=<y_freq>
 ```
+
 However, users of `generic_cartesian` kinematics should specify carriage names
 in `CARRIAGE=` parameters of `SET_DUAL_CARRIAGE` instead of their numbers.
 Note that `SHAPER_TYPE_Y` and `SHAPER_FREQ_Y` should be the same in both
@@ -506,13 +505,13 @@ The table below shows some (usually approximate) parameters of each shaper with
 their default parameters.
 
 | Input <br> shaper | Shaper <br> duration | Vibration reduction 20x <br> (5% vibration tolerance) | Vibration reduction 10x <br> (10% vibration tolerance) |
-|:--:|:--:|:--:|:--:|
-| ZV | 0.5 / shaper_freq | N/A | ± 5% shaper_freq |
-| MZV | 0.75 / shaper_freq | ± 4% shaper_freq | -10%...+15% shaper_freq |
-| ZVD | 1 / shaper_freq | ± 15% shaper_freq | ± 22% shaper_freq |
-| EI | 1 / shaper_freq | ± 20% shaper_freq | ± 25% shaper_freq |
-| 2HUMP_EI | 1.5 / shaper_freq | -40...+45% shaper_freq | -45..+50% shaper_freq |
-| 3HUMP_EI | 2 / shaper_freq | -50...+60% shaper_freq | -55%...+65% shaper_freq |
+| :---------------: | :------------------: | :---------------------------------------------------: | :----------------------------------------------------: |
+|        ZV         |  0.5 / shaper_freq   |                          N/A                          |                    ± 5% shaper_freq                    |
+|        MZV        |  0.75 / shaper_freq  |                   ± 4% shaper_freq                    |                -10%...+15% shaper_freq                 |
+|        ZVD        |   1 / shaper_freq    |                   ± 15% shaper_freq                   |                   ± 22% shaper_freq                    |
+|        EI         |   1 / shaper_freq    |                   ± 20% shaper_freq                   |                   ± 25% shaper_freq                    |
+|     2HUMP_EI      |  1.5 / shaper_freq   |                -40...+45% shaper_freq                 |                 -45..+50% shaper_freq                  |
+|     3HUMP_EI      |   2 / shaper_freq    |                -50...+60% shaper_freq                 |                -55%...+65% shaper_freq                 |
 
 A note on vibration reduction: the values in the table above are approximate.
 If the damping ratio of the printer is known for each axis, the shaper can be
@@ -531,30 +530,30 @@ a manner similar to MZV input shaper as, e.g. `ei(v_tol=0.02)` or
 
 **How to use this table:**
 
-* Shaper duration affects the smoothing in parts - the larger it is, the more
- smooth the parts are. This dependency is not linear, but can give a sense of
- which shapers 'smooth' more for the same frequency. The ordering by
- smoothing is like this: ZV < MZV < ZVD ≈ EI < 2HUMP_EI < 3HUMP_EI. Also,
- it is rarely practical to set shaper_freq = resonance freq for shapers
- 2HUMP_EI and 3HUMP_EI (they should be used to reduce vibrations for several
- frequencies).
-* One can estimate a range of frequencies in which the shaper reduces
- vibrations. For example, MZV with shaper_freq = 35 Hz reduces vibrations
- to 5% for frequencies [33.6, 36.4] Hz. 3HUMP_EI with shaper_freq = 50 Hz
- reduces vibrations to 5% in range [27.5, 75] Hz.
-* One can use this table to check which shaper they should be using if they
- need to reduce vibrations at several frequencies. For example, if one has
- resonances at 35 Hz and 60 Hz on the same axis: a) EI shaper needs to have
- shaper_freq = 35 / (1 - 0.2) = 43.75 Hz, and it will reduce resonances
- until 43.75 * (1 + 0.2) = 52.5 Hz, so it is not sufficient; b) 2HUMP_EI
- shaper needs to have shaper_freq = 35 / (1 - 0.4) = 58.3 Hz and will
- reduce vibrations until 58.3 * (1 + 0.45) = 84.5 Hz - so this is an
- acceptable configuration. Always try to use as high shaper_freq as possible
- for a given shaper (perhaps with some safety margin, so in this example
- shaper_freq ≈ 55 Hz would work best), and try to use a shaper with as
- small shaper duration as possible.
-* If one needs to reduce vibrations at several very different frequencies
- (say, 30 Hz and 100 Hz), they may see that the table above does not provide
- enough information. In this case one may have more luck with
- [scripts/graph_shaper.py](../scripts/graph_shaper.py)
- script, which is more flexible.
+- Shaper duration affects the smoothing in parts - the larger it is, the more
+  smooth the parts are. This dependency is not linear, but can give a sense of
+  which shapers 'smooth' more for the same frequency. The ordering by
+  smoothing is like this: ZV < MZV < ZVD ≈ EI < 2HUMP_EI < 3HUMP_EI. Also,
+  it is rarely practical to set shaper_freq = resonance freq for shapers
+  2HUMP_EI and 3HUMP_EI (they should be used to reduce vibrations for several
+  frequencies).
+- One can estimate a range of frequencies in which the shaper reduces
+  vibrations. For example, MZV with shaper_freq = 35 Hz reduces vibrations
+  to 5% for frequencies [33.6, 36.4] Hz. 3HUMP_EI with shaper_freq = 50 Hz
+  reduces vibrations to 5% in range [27.5, 75] Hz.
+- One can use this table to check which shaper they should be using if they
+  need to reduce vibrations at several frequencies. For example, if one has
+  resonances at 35 Hz and 60 Hz on the same axis: a) EI shaper needs to have
+  shaper*freq = 35 / (1 - 0.2) = 43.75 Hz, and it will reduce resonances
+  until 43.75 * (1 + 0.2) = 52.5 Hz, so it is not sufficient; b) 2HUMP*EI
+  shaper needs to have shaper_freq = 35 / (1 - 0.4) = 58.3 Hz and will
+  reduce vibrations until 58.3 * (1 + 0.45) = 84.5 Hz - so this is an
+  acceptable configuration. Always try to use as high shaper_freq as possible
+  for a given shaper (perhaps with some safety margin, so in this example
+  shaper_freq ≈ 55 Hz would work best), and try to use a shaper with as
+  small shaper duration as possible.
+- If one needs to reduce vibrations at several very different frequencies
+  (say, 30 Hz and 100 Hz), they may see that the table above does not provide
+  enough information. In this case one may have more luck with
+  [scripts/graph_shaper.py](../scripts/graph_shaper.py)
+  script, which is more flexible.

@@ -10,7 +10,8 @@ vi.mock('vuetify/components', () => ({
     VBtn: {
         name: 'VBtn',
         props: ['size', 'variant', 'color', 'disabled'],
-        template: '<button :disabled="disabled" :color="color" class="v-btn" @click="$emit(\'click\', $event)"><slot /></button>',
+        template:
+            '<button :disabled="disabled" :color="color" class="v-btn" @click="$emit(\'click\', $event)"><slot /></button>',
     },
     VIcon: {
         name: 'VIcon',
@@ -23,7 +24,8 @@ vi.mock('@/components/settings/SettingsRow.vue', () => ({
     default: {
         name: 'SettingsRow',
         props: ['title', 'icon', 'subTitle'],
-        template: '<div class="settings-row"><div class="_title">{{ title }}</div><div class="_subtitle">{{ subTitle }}</div><slot /></div>',
+        template:
+            '<div class="settings-row"><div class="_title">{{ title }}</div><div class="_subtitle">{{ subTitle }}</div><slot /></div>',
     },
 }))
 

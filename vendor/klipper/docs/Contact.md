@@ -79,6 +79,7 @@ Problems should be reported in the
 
 There is important information that will be needed in order to fix a
 bug. Please follow these steps:
+
 1. Make sure you are running unmodified code from
    [https://github.com/Klipper3d/klipper](https://github.com/Klipper3d/klipper).
    If the code has been modified or is obtained from another source,
@@ -115,7 +116,7 @@ bug. Please follow these steps:
       of the log. Only the full unmodified log file provides the
       necessary information.
    4. It is a good idea to compress the log file with zip or gzip.
-5. Open a new topic on the [Klipper Discourse Forum](#discourse-forum)
+4. Open a new topic on the [Klipper Discourse Forum](#discourse-forum)
    and provide a clear description of the problem. Other Klipper
    contributors will need to understand what steps were taken, what
    the desired outcome was, and what outcome actually occurred. The

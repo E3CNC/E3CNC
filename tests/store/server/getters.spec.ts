@@ -69,9 +69,7 @@ describe('server getters', () => {
         })
 
         it('adds help message when fewer than 20 events and not cleared', () => {
-            state.events = [
-                { date: new Date(100), message: 'test', type: 'response' },
-            ]
+            state.events = [{ date: new Date(100), message: 'test', type: 'response' }]
             const result = (getters as any).getConsoleEvents(state)()
             expect(result).toHaveLength(2)
             // Help message is unshifted (reversed, so it ends up last)
@@ -79,9 +77,7 @@ describe('server getters', () => {
         })
 
         it('does not add help message when console was cleared this session', () => {
-            state.events = [
-                { date: new Date(100), message: 'test', type: 'response' },
-            ]
+            state.events = [{ date: new Date(100), message: 'test', type: 'response' }]
             state.console_cleared_this_session = true
             const result = (getters as any).getConsoleEvents(state)()
             expect(result).toHaveLength(1)

@@ -300,13 +300,19 @@
                                         {{ group.macros.length === 1 ? 'macro' : 'macros' }}
                                     </span>
                                 </div>
-                                <template v-for="(macro, index) in group.macros" :key="'availableMacro_macro_' + macro.name">
+                                <template
+                                    v-for="(macro, index) in group.macros"
+                                    :key="'availableMacro_macro_' + macro.name">
                                     <v-divider v-if="index" class="my-2" />
                                     <settings-row
                                         :title="macro.name"
                                         :sub-title="macro.description"
                                         :dynamic-slot-width="true">
-                                        <v-btn size="small" variant="outlined" class="ml-3" @click="addMacroToGroup(macro)">
+                                        <v-btn
+                                            size="small"
+                                            variant="outlined"
+                                            class="ml-3"
+                                            @click="addMacroToGroup(macro)">
                                             <v-icon start size="small">{{ mdiPlus }}</v-icon>
                                             {{ $t('Settings.MacrosTab.Add') }}
                                         </v-btn>

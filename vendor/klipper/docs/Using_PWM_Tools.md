@@ -13,7 +13,6 @@ Usually, cam-tools such as LaserWeb can be configured to use `M3-M5`
 commands, which stand for _spindle speed CW_ (`M3 S[0-255]`),
 _spindle speed CCW_ (`M4 S[0-255]`) and _spindle stop_ (`M5`).
 
-
 **Warning:** When driving a laser, keep all security precautions
 that you can think of! Diode lasers are usually inverted.
 This means, that when the MCU restarts, the laser will be

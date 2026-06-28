@@ -14,6 +14,7 @@ See the [rotation distance document](Rotation_Distance.md).
 The general way to find a USB serial port is to run `ls
 /dev/serial/by-id/*` from an ssh terminal on the host machine. It will
 likely produce output similar to the following:
+
 ```
 /dev/serial/by-id/usb-1a86_USB2.0-Serial-if00-port0
 ```
@@ -21,12 +22,15 @@ likely produce output similar to the following:
 The name found in the above command is stable and it is possible to
 use it in the config file and while flashing the micro-controller
 code. For example, a flash command might look similar to:
+
 ```
 sudo service klipper stop
 make flash FLASH_DEVICE=/dev/serial/by-id/usb-1a86_USB2.0-Serial-if00-port0
 sudo service klipper start
 ```
+
 and the updated config might look like:
+
 ```
 [mcu]
 serial: /dev/serial/by-id/usb-1a86_USB2.0-Serial-if00-port0
@@ -80,8 +84,9 @@ need to be configured in the micro-controller (during **make
 menuconfig**) and that updated code will need to be compiled and
 flashed to the micro-controller. The Klipper printer.cfg file will
 also need to be updated to match that baud rate (see the
-[config reference](Config_Reference.md#mcu) for details).  For
+[config reference](Config_Reference.md#mcu) for details). For
 example:
+
 ```
 [mcu]
 baud: 250000
@@ -143,12 +148,15 @@ package.
 It is possible to run multiple instances of the Klipper host software,
 but doing so requires Linux admin knowledge. The Klipper installation
 scripts ultimately cause the following Unix command to be run:
+
 ```
 ~/klippy-env/bin/python ~/klipper/klippy/klippy.py ~/printer.cfg -l /tmp/klippy.log
 ```
+
 One can run multiple instances of the above command as long as each
 instance has its own printer config file, its own log file, and its
 own pseudo-tty. For example:
+
 ```
 ~/klippy-env/bin/python ~/klipper/klippy/klippy.py ~/printer2.cfg -l /tmp/klippy2.log -I /tmp/printer2
 ```
@@ -235,6 +243,7 @@ Klipper in mid-March of 2020.
 
 This is commonly caused by hardware errors on the USB connection
 between the host machine and the micro-controller. Things to look for:
+
 - Use a good quality USB cable between the host machine and
   micro-controller. Make sure the plugs are secure.
 - If using a Raspberry Pi, use a
@@ -375,7 +384,7 @@ the terminal box. The M112 command will cause Klipper to enter into a
 Klipper. Navigate to the OctoPrint connection area and click on
 "Connect" to cause OctoPrint to reconnect. Navigate back to the
 terminal tab and issue a FIRMWARE_RESTART command to clear the Klipper
-error state.  After completing this sequence, the previous heating
+error state. After completing this sequence, the previous heating
 request will be canceled and a new print may be started.
 
 ## Can I find out whether the printer has lost steps?
@@ -485,6 +494,7 @@ flashing directions for the new firmware.
 On the raspberry pi end, an uninstall script is available in
 [scripts/klipper-uninstall.sh](../scripts/klipper-uninstall.sh). For
 example:
+
 ```
 sudo ~/klipper/scripts/klipper-uninstall.sh
 rm -rf ~/klippy-env ~/klipper

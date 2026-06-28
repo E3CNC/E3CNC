@@ -57,7 +57,7 @@ const terminalContainer = ref<HTMLDivElement | null>(null)
 let terminal: Terminal | null = null
 let fitAddon: FitAddon | null = null
 let inputBuffer = ''
-let commandHistory: string[] = []
+const commandHistory: string[] = []
 let historyIndex = -1
 let running = false
 
@@ -90,20 +90,14 @@ async function executeCommand(cmd: string) {
             if (result.stdout) {
                 // xterm.js needs \r\n (CRLF), not just \n (LF), otherwise
                 // the cursor doesn't return to column 0 on each new line.
-                const out = result.stdout
-                    .replace(/\r\n/g, '\n')
-                    .replace(/\n$/, '')
-                    .replace(/\n/g, '\r\n')
+                const out = result.stdout.replace(/\r\n/g, '\n').replace(/\n$/, '').replace(/\n/g, '\r\n')
                 // Always ensure the output ends with CRLF so the prompt
                 // starts on its own line at column 0.
                 terminal?.write(out)
                 terminal?.write('\r\n')
             }
             if (result.stderr) {
-                const err = result.stderr
-                    .replace(/\r\n/g, '\n')
-                    .replace(/\n$/, '')
-                    .replace(/\n/g, '\r\n')
+                const err = result.stderr.replace(/\r\n/g, '\n').replace(/\n$/, '').replace(/\n/g, '\r\n')
                 terminal?.write('\x1b[31m')
                 terminal?.write(err)
                 terminal?.write('\x1b[0m')

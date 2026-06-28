@@ -22,26 +22,37 @@ vi.mock('vuetify/components', () => ({
         template: '<div class="v-text-field"><span class="_label">{{ label }}</span></div>',
     },
     VSelect: { name: 'VSelect', props: ['label'], template: '<div class="v-select"><span>{{ label }}</span></div>' },
-    VCheckbox: { name: 'VCheckbox', props: ['label', 'modelValue'], template: '<div class="v-checkbox"><span>{{ label }}</span></div>' },
+    VCheckbox: {
+        name: 'VCheckbox',
+        props: ['label', 'modelValue'],
+        template: '<div class="v-checkbox"><span>{{ label }}</span></div>',
+    },
     VSlider: { name: 'VSlider', props: ['label'], template: '<div class="v-slider"><span>{{ label }}</span></div>' },
     VBtn: {
         name: 'VBtn',
         props: ['type', 'color', 'disabled'],
-        template: '<button :type="type" :color="color" :disabled="disabled" class="v-btn" @click="$emit(\'click\', $event)"><slot /></button>',
+        template:
+            '<button :type="type" :color="color" :disabled="disabled" class="v-btn" @click="$emit(\'click\', $event)"><slot /></button>',
     },
     VIcon: { name: 'VIcon', template: '<i class="v-icon"><slot /></i>' },
     VMenu: {
         name: 'VMenu',
         props: ['modelValue', 'closeOnContentClick'],
-        template: '<div class="v-menu-stub"><slot name="activator" /><div v-if="modelValue" class="v-menu-content"><slot /></div></div>',
+        template:
+            '<div class="v-menu-stub"><slot name="activator" /><div v-if="modelValue" class="v-menu-content"><slot /></div></div>',
     },
     VItemGroup: { name: 'VItemGroup', template: '<div class="v-item-group"><slot /></div>' },
     VList: { name: 'VList', template: '<div class="v-list"><slot /></div>' },
     VListItem: {
         name: 'VListItem',
-        template: '<div class="v-list-item" @click="$emit(\'click\', $event)"><slot name="prepend" /><slot name="title" /></div>',
+        template:
+            '<div class="v-list-item" @click="$emit(\'click\', $event)"><slot name="prepend" /><slot name="title" /></div>',
     },
-    VColorPicker: { name: 'VColorPicker', props: ['modelValue'], template: '<div class="v-color-picker"><slot /></div>' },
+    VColorPicker: {
+        name: 'VColorPicker',
+        props: ['modelValue'],
+        template: '<div class="v-color-picker"><slot /></div>',
+    },
     VDivider: { name: 'VDivider', template: '<hr class="v-divider" />' },
     VSpacer: { name: 'VSpacer', template: '<span class="v-spacer" />' },
 }))
@@ -319,7 +330,19 @@ describe('WebcamForm.vue', () => {
             gui: {
                 webcams: {
                     webcams: [
-                        { name: 'Test Cam', service: 'mjpegstreamer', enabled: true, icon: 'mdiWebcam', target_fps: 15, stream_url: '', snapshot_url: '', flip_horizontal: false, flip_vertical: false, rotation: 0, source: 'database' },
+                        {
+                            name: 'Test Cam',
+                            service: 'mjpegstreamer',
+                            enabled: true,
+                            icon: 'mdiWebcam',
+                            target_fps: 15,
+                            stream_url: '',
+                            snapshot_url: '',
+                            flip_horizontal: false,
+                            flip_vertical: false,
+                            rotation: 0,
+                            source: 'database',
+                        },
                     ],
                 },
             },
@@ -341,7 +364,19 @@ describe('WebcamForm.vue', () => {
             gui: {
                 webcams: {
                     webcams: [
-                        { name: 'My Cam', service: 'mjpegstreamer', enabled: true, icon: 'mdiWebcam', target_fps: 15, stream_url: '', snapshot_url: '', flip_horizontal: false, flip_vertical: false, rotation: 0, source: 'database' },
+                        {
+                            name: 'My Cam',
+                            service: 'mjpegstreamer',
+                            enabled: true,
+                            icon: 'mdiWebcam',
+                            target_fps: 15,
+                            stream_url: '',
+                            snapshot_url: '',
+                            flip_horizontal: false,
+                            flip_vertical: false,
+                            rotation: 0,
+                            source: 'database',
+                        },
                     ],
                 },
             },

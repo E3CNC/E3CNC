@@ -32,15 +32,25 @@ vi.mock('@/components/ui/Panel.vue', () => ({
 }))
 
 vi.mock('vuetify/components', () => ({
-    VDialog: { name: 'VDialog', props: { modelValue: Boolean, persistent: Boolean, maxWidth: [String, Number] }, template: '<div class="v-dialog" v-if="modelValue"><slot /></div>' },
+    VDialog: {
+        name: 'VDialog',
+        props: { modelValue: Boolean, persistent: Boolean, maxWidth: [String, Number] },
+        template: '<div class="v-dialog" v-if="modelValue"><slot /></div>',
+    },
     VCardText: { name: 'VCardText', template: '<div class="v-card-text"><slot /></div>' },
     VCardActions: { name: 'VCardActions', template: '<div class="v-card-actions"><slot /></div>' },
-    VBtn: { name: 'VBtn', props: { variant: String, color: String }, template: '<button class="v-btn" @click="$emit(\'click\', $event)"><slot /></button>' },
+    VBtn: {
+        name: 'VBtn',
+        props: { variant: String, color: String },
+        template: '<button class="v-btn" @click="$emit(\'click\', $event)"><slot /></button>',
+    },
     VSpacer: { name: 'VSpacer', template: '<span />' },
 }))
 
 describe('TheServiceWorker.vue', () => {
-    beforeEach(() => { vi.clearAllMocks() })
+    beforeEach(() => {
+        vi.clearAllMocks()
+    })
 
     it('mounts without crashing', () => {
         const wrapper = mount(TheServiceWorker, { global: { plugins: [i18n] } })
@@ -60,7 +70,7 @@ describe('TheServiceWorker.vue', () => {
     it('calls registerSW on mount with expected options', async () => {
         const { registerSW } = await import('virtual:pwa-register')
         mount(TheServiceWorker, { global: { plugins: [i18n] } })
-        await new Promise(r => setTimeout(r, 20))
+        await new Promise((r) => setTimeout(r, 20))
 
         expect(registerSW).toHaveBeenCalled()
         const options = vi.mocked(registerSW).mock.calls[0][0]

@@ -4,7 +4,19 @@ import { createStore } from 'vuex'
 import MachineSettingsPanel from '@/components/panels/MachineSettingsPanel.vue'
 
 const mockKlipperReadyForGui = vi.hoisted(() => {
-    class MockRef { _value: any; __v_isRef = true; constructor(v: any) { this._value = v } get value() { return this._value } set value(v) { this._value = v } }
+    class MockRef {
+        _value: any
+        __v_isRef = true
+        constructor(v: any) {
+            this._value = v
+        }
+        get value() {
+            return this._value
+        }
+        set value(v) {
+            this._value = v
+        }
+    }
     return new MockRef(true)
 })
 const mockDoSend = vi.fn()
@@ -31,14 +43,27 @@ vi.mock('@/components/ui/Panel.vue', () => ({
     default: {
         name: 'Panel',
         props: { icon: String, title: [String, Object], collapsible: Boolean, cardClass: String, toolbarColor: String },
-        template: '<div v-if="true" class="panel" :class="cardClass"><slot /><span class="panel-title">{{ title }}</span></div>',
+        template:
+            '<div v-if="true" class="panel" :class="cardClass"><slot /><span class="panel-title">{{ title }}</span></div>',
     },
 }))
 
 vi.mock('@/components/inputs/NumberInput.vue', () => ({
     default: {
         name: 'NumberInput',
-        props: ['label', 'param', 'target', 'defaultValue', 'unit', 'hasSpinner', 'step', 'min', 'max', 'dec', 'spinnerFactor'],
+        props: [
+            'label',
+            'param',
+            'target',
+            'defaultValue',
+            'unit',
+            'hasSpinner',
+            'step',
+            'min',
+            'max',
+            'dec',
+            'spinnerFactor',
+        ],
         template: '<div class="number-input-stub">{{ param }}: {{ target }} {{ unit }}</div>',
         emits: ['submit'],
     },
@@ -48,7 +73,8 @@ vi.mock('@/components/ui/Responsive.vue', () => ({
     default: {
         name: 'Responsive',
         props: ['breakpoints'],
-        template: '<div class="responsive-stub"><slot :el="{ is: { small: false, medium: true }, width: 400 }" /></div>',
+        template:
+            '<div class="responsive-stub"><slot :el="{ is: { small: false, medium: true }, width: 400 }" /></div>',
     },
 }))
 

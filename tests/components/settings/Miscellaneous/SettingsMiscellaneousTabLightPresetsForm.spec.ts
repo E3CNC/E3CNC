@@ -14,13 +14,21 @@ vi.mock('@mdi/js', () => ({
 
 vi.mock('vuetify/components', () => ({
     VCardText: { name: 'VCardText', template: '<div class="v-card-text"><slot /></div>' },
-    VTextField: { name: 'VTextField', props: ['modelValue', 'hideDetails', 'rules', 'density', 'variant'], template: '<input class="v-text-field" />' },
+    VTextField: {
+        name: 'VTextField',
+        props: ['modelValue', 'hideDetails', 'rules', 'density', 'variant'],
+        template: '<input class="v-text-field" />',
+    },
     VDivider: { name: 'VDivider', template: '<hr class="v-divider" />' },
     VRow: { name: 'VRow', template: '<div class="v-row"><slot /></div>' },
     VCol: { name: 'VCol', template: '<div class="v-col"><slot /></div>' },
     VCardActions: { name: 'VCardActions', template: '<div class="v-card-actions"><slot /></div>' },
     VSpacer: { name: 'VSpacer', template: '<div class="v-spacer" />' },
-    VBtn: { name: 'VBtn', props: ['variant', 'color', 'disabled'], template: '<button class="v-btn" :disabled="disabled"><slot /></button>' },
+    VBtn: {
+        name: 'VBtn',
+        props: ['variant', 'color', 'disabled'],
+        template: '<button class="v-btn" :disabled="disabled"><slot /></button>',
+    },
 }))
 
 vi.mock('@/components/settings/SettingsRow.vue', () => ({
@@ -51,7 +59,9 @@ vi.mock('@/components/inputs/NumberInput.vue', () => ({
 
 vi.mock('@/plugins/helpers', () => ({
     caseInsensitiveSort: (arr: any[], key: string) =>
-        [...arr].sort((a: any, b: any) => String(a[key] ?? '').localeCompare(String(b[key] ?? ''), undefined, { sensitivity: 'base' })),
+        [...arr].sort((a: any, b: any) =>
+            String(a[key] ?? '').localeCompare(String(b[key] ?? ''), undefined, { sensitivity: 'base' })
+        ),
 }))
 
 vi.mock('@jaames/iro', () => ({

@@ -107,7 +107,7 @@ describe('GeneralReset.vue', () => {
 
         await wrapper.find('.v-btn').trigger('click')
         await wrapper.vm.$nextTick()
-        await new Promise(r => setTimeout(r, 10))
+        await new Promise((r) => setTimeout(r, 10))
 
         if (wrapper.find('.v-dialog').exists()) {
             expect(true).toBe(true)
@@ -119,7 +119,7 @@ describe('GeneralReset.vue', () => {
 
         await wrapper.find('.v-btn').trigger('click')
         await wrapper.vm.$nextTick()
-        await new Promise(r => setTimeout(r, 10))
+        await new Promise((r) => setTimeout(r, 10))
 
         // Find all buttons and click the reset one
         const buttons = wrapper.findAll('.v-btn')
@@ -137,7 +137,7 @@ describe('GeneralReset.vue', () => {
 
         await wrapper.find('.v-btn').trigger('click')
         await wrapper.vm.$nextTick()
-        await new Promise(r => setTimeout(r, 10))
+        await new Promise((r) => setTimeout(r, 10))
 
         // loadBackupableNamespaces should have been called
         expect(mockLoadFn).toHaveBeenCalled()

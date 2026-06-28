@@ -342,7 +342,7 @@ example deltesian kinematics config file.
 
 Only parameters specific to deltesian printers are described here - see
 [common kinematic settings](#common-kinematic-settings) for available
- parameters.
+parameters.
 
 ```
 [printer]
@@ -736,6 +736,7 @@ corresponding endstops that allow the firmware to determine the position
 of carriages during homing, as well as a set of steppers that move those
 carriages. The `[printer]` section must specify the kinematic and
 other printer-level settings same as the regular Cartesian kinematic:
+
 ```
 [printer]
 kinematics: generic_cartesian
@@ -749,6 +750,7 @@ max_accel:
 ```
 
 Then a user must define three primary carriages for X, Y, and Z axes, e.g.:
+
 ```
 [carriage carriage_x]
 axis:
@@ -790,6 +792,7 @@ position_max:
 
 Afterwards, a user specifies the stepper motors that move these carriages,
 for instance
+
 ```
 [stepper my_stepper]
 carriages:
@@ -806,6 +809,7 @@ microsteps:
 #gear_ratio:
 #step_pulse_duration:
 ```
+
 See [stepper](#stepper) section for more information on the regular
 stepper parameters. The `carriages` parameter defines how the stepper
 affects the motion of the carriages. For example, `carriage_x+carriage_y`
@@ -820,6 +824,7 @@ the negative direction.
 More than a single stepper motor can be defined to drive the same axis
 or belt. For example, on a CoreXY AWD setups two motors driving the same
 belt can be defined as
+
 ```
 [carriage carriage_x]
 endstop_pin: ...
@@ -845,6 +850,7 @@ enable_pin: ...
 rotation_distance: ...
 ...
 ```
+
 with `a0` and `a1` steppers having their own control pins, but
 sharing the same `carriages` and corresponding endstops.
 
@@ -868,6 +874,7 @@ endstop_pin:
 ```
 
 and the corresponding stepper motors, for example:
+
 ```
 [extra_carriage carriage_y1]
 primary_carriage: carriage_y
@@ -877,6 +884,7 @@ endstop_pin: ...
 carriages: carriage_y1
 ...
 ```
+
 Notably, an `[extra_carriage]` does not define parameters such as
 `position_min`, `position_max`, and `position_endstop`, but instead
 inherits them from the specified `primary_carriage`, thus sharing
@@ -1064,6 +1072,7 @@ See the [bed mesh guide](Bed_Mesh.md) and
 [command reference](G-Codes.md#bed_mesh) for additional information.
 
 Visual Examples:
+
 ```
  rectangular bed, probe_count = 3, 3:
              x---x---x (max_point)
@@ -1354,6 +1363,7 @@ WARNING: Using this on a moving bed may lead to undesirable results.
 If this section is present then a QUAD_GANTRY_LEVEL extended G-Code
 command becomes available. This routine assumes the following Z motor
 configuration:
+
 ```
  ----------------
  |Z1          Z2|
@@ -1364,6 +1374,7 @@ configuration:
  |Z           Z3|
  ----------------
 ```
+
 Where x is the 0, 0 point on the bed
 
 ```
@@ -1753,6 +1764,7 @@ Enable the "M118" and "RESPOND" extended
 ```
 
 ### [exclude_object]
+
 Enables support to exclude or cancel individual objects during the printing
 process.
 
@@ -1932,6 +1944,7 @@ Support for LIS3DH accelerometers.
 ### [bmi160]
 
 BMI160 accelerometer. This sensor can be queried via I2C or SPI bus.
+
 ```
 [bmi160]
 #i2c_address:
@@ -1955,6 +1968,7 @@ BMI160 accelerometer. This sensor can be queried via I2C or SPI bus.
 ```
 
 **Important:** Many BMI160 modules use ambiguous pin labels. For SPI:
+
 - Use **SCL** for clock (not SCX)
 - Use **SDA** for MOSI (not SDX)
 - Use **SA0** for MISO
@@ -2087,7 +2101,7 @@ aliases_<name>:
 
 Include file support. One may include additional config file from the
 main printer config file. Wildcards may also be used (eg,
-"configs/*.cfg").
+"configs/\*.cfg").
 
 ```
 [include my_other_config.cfg]
@@ -2526,6 +2540,7 @@ kinematic, see the following configuration
 [sample](../config/example-generic-caretesian.cfg).
 Please note that in this case the `[dual_carriage]` configuration deviates
 from the configuration described above:
+
 ```
 [dual_carriage my_dc_carriage]
 #primary_carriage:
@@ -2559,11 +2574,13 @@ position_max:
 #homing_positive_dir:
 ...
 ```
+
 Refer to [generic cartesian](#generic-cartesian) section for more information
 on the regular `carriage` parameters.
 
 Then a user must define one or more stepper motors moving the dual carriage
 (and other carriages as appropriate), for instance
+
 ```
 [carriage carriage_x]
 ...
@@ -2585,6 +2602,7 @@ In general, it is necessary to run input shaper calibration twice -
 for the `dual_carriage` and its `primary_carriage` for the axis they
 share. Then the input shaper can be configured as follows, assuming the
 example above:
+
 ```
 [input_shaper]
 # Intentionally empty
@@ -2597,6 +2615,7 @@ gcode:
   SET_DUAL_CARRIAGE CARRIAGE=carriage_x
   SET_INPUT_SHAPER SHAPER_TYPE_X=<carriage_x_shaper> SHAPER_FREQ_X=<carriage_x_freq> SHAPER_TYPE_Y=<carriage_y_shaper> SHAPER_FREQ_Y=<carriage_y_freq>
 ```
+
 Note that `SHAPER_TYPE_Y` and `SHAPER_FREQ_Y` must be the same in both
 commands in this case, since the same motors drive Y axis when either
 of the `carriage_x` and `carriage_u` carriages are active.
@@ -2842,8 +2861,8 @@ temperature sensors that are reported via the M105 command.
 
 ### [temperature_probe]
 
-Reports probe coil temperature.  Includes optional thermal drift
-calibration for eddy current based probes.   A `[temperature_probe]`
+Reports probe coil temperature. Includes optional thermal drift
+calibration for eddy current based probes. A `[temperature_probe]`
 section may be linked to a `[probe_eddy_current]` by using the same
 postfix for both sections.
 
@@ -3705,6 +3724,7 @@ Static configurable output pin (one may define any number of
 sections with an "static_pwm_clock" prefix).
 Pins configured here will be set up as clock output pins.
 Generally used to provide clock input to other hardware on the board.
+
 ```
 [static_pwm_clock my_pin]
 pin:
@@ -5155,6 +5175,7 @@ adc2:
 ## Load Cells
 
 ### [load_cell]
+
 Load Cell. Uses an ADC sensor attached to a load cell to create a digital
 scale.
 
@@ -5175,8 +5196,10 @@ sensor_type:
 ```
 
 #### HX711
+
 This is a 24 bit low sample rate chip using "bit-bang" communications. It is
 suitable for filament scales.
+
 ```
 [load_cell]
 sensor_type: hx711
@@ -5197,7 +5220,9 @@ dout_pin:
 ```
 
 #### HX717
+
 This is the 4x higher sample rate version of the HX711, suitable for probing.
+
 ```
 [load_cell]
 sensor_type: hx717
@@ -5218,8 +5243,10 @@ dout_pin:
 ```
 
 #### ADS1220
+
 The ADS1220 is a 24 bit ADC supporting up to a 2Khz sample rate configurable in
 software.
+
 ```
 [load_cell]
 sensor_type: ads1220
@@ -5269,12 +5296,14 @@ data_ready_pin:
 ```
 
 #### ADS131M0x
+
 The ADS131M0x is a family of fast, 24-bit, delta-sigma ADCs. Two sensors
 are supported from this family: ADS131M02 with two simultaneously-sampling
 differential channels and ADS131M04 with four channels. They feature a
 programmable gain amplifier (PGA) with gains up to 128, configurable
 sampling rates up to 64000 samples per second, and require an external
 clock input (300 kHz to 8.4 MHz, 8.192 MHz nominal).
+
 ```
 [load_cell]
 sensor_type: ads131m02
@@ -5327,6 +5356,7 @@ data_ready_pin:
 ```
 
 ### [load_cell_probe]
+
 Load Cell Probe. This combines the functionality of a [probe] and a [load_cell].
 
 ```
@@ -5596,8 +5626,8 @@ Octoprint as they will conflict, and 1 will fail to initialize
 properly likely aborting your print.
 
 If you use Octoprint and stream gcode over the serial port instead of
-printing from virtual_sd, then remove **M1** and **M0** from *Pausing commands*
-in *Settings > Serial Connection > Firmware & protocol* will prevent
+printing from virtual*sd, then remove **M1** and **M0** from \_Pausing commands*
+in _Settings > Serial Connection > Firmware & protocol_ will prevent
 the need to start print on the Palette 2 and unpausing in Octoprint
 for your print to begin.
 
@@ -5689,8 +5719,8 @@ It is generally recommended to only use I2C devices that are on the
 same printed circuit board as the micro-controller.
 
 Most Klipper micro-controller implementations only support an
-`i2c_speed` of 100000 (*standard mode*, 100kbit/s). The Klipper "Linux"
-micro-controller supports a 400000 speed (*fast mode*, 400kbit/s), but it must be
+`i2c_speed` of 100000 (_standard mode_, 100kbit/s). The Klipper "Linux"
+micro-controller supports a 400000 speed (_fast mode_, 400kbit/s), but it must be
 [set in the operating system](RPi_microcontroller.md#optional-enabling-i2c)
 and the `i2c_speed` parameter is otherwise ignored. The Klipper
 "RP2040" micro-controller and ATmega AVR family and some STM32

@@ -82,7 +82,10 @@ describe('MiscellaneousLightNeopixelState.vue', () => {
     it('accesses correct index in color_data (index=2)', () => {
         const store = makeStoreWithCustomPrinter({
             'led neopixel': {
-                color_data: [[0, 0, 0, 0], [1, 0, 0.5, 0]],
+                color_data: [
+                    [0, 0, 0, 0],
+                    [1, 0, 0.5, 0],
+                ],
             },
         })
         const wrapper = mount(MiscellaneousLightNeopixelState, {

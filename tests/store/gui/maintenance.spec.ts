@@ -232,10 +232,7 @@ describe('gui maintenance store', () => {
                 { id: 'e1', note: 'completed' }
             )
             // Should have called update but NOT store (since type is not 'repeat')
-            expect(dispatch).toHaveBeenCalledWith(
-                'update',
-                expect.objectContaining({ perform_note: 'completed' })
-            )
+            expect(dispatch).toHaveBeenCalledWith('update', expect.objectContaining({ perform_note: 'completed' }))
             expect(dispatch).not.toHaveBeenCalledWith('store', expect.anything())
         })
 
@@ -256,10 +253,7 @@ describe('gui maintenance store', () => {
                 } as any,
                 { id: 'e1', note: '   ' }
             )
-            expect(dispatch).toHaveBeenCalledWith(
-                'update',
-                expect.objectContaining({ perform_note: null })
-            )
+            expect(dispatch).toHaveBeenCalledWith('update', expect.objectContaining({ perform_note: null }))
         })
 
         describe('initDb', () => {
@@ -334,13 +328,16 @@ describe('gui maintenance store', () => {
                 await actions.initDb({ dispatch, rootGetters } as any)
 
                 // Should have dispatched 'store' for the entry
-                expect(dispatch).toHaveBeenCalledWith('store', expect.objectContaining({
-                    entry: expect.objectContaining({
-                        name: 'Oil change',
-                        start_filament: 500,
-                        start_printtime: 3600,
-                    }),
-                }))
+                expect(dispatch).toHaveBeenCalledWith(
+                    'store',
+                    expect.objectContaining({
+                        entry: expect.objectContaining({
+                            name: 'Oil change',
+                            start_filament: 500,
+                            start_printtime: 3600,
+                        }),
+                    })
+                )
             })
 
             it('emits MAINTENANCE_INIT when maintenance.json has empty entries', async () => {
@@ -414,7 +411,12 @@ describe('gui maintenance store', () => {
                                     {
                                         name: 'Oil change',
                                         note: null,
-                                        reminder: { type: null, filament: { bool: false }, printtime: { bool: false }, date: { bool: false } },
+                                        reminder: {
+                                            type: null,
+                                            filament: { bool: false },
+                                            printtime: { bool: false },
+                                            date: { bool: false },
+                                        },
                                     },
                                 ],
                             }),
@@ -425,17 +427,19 @@ describe('gui maintenance store', () => {
 
                 expect(consoleSpy).toHaveBeenCalled()
                 // Should still dispatch store with fallback values (0)
-                expect(dispatch).toHaveBeenCalledWith('store', expect.objectContaining({
-                    entry: expect.objectContaining({
-                        start_filament: 0,
-                        start_printtime: 0,
-                    }),
-                }))
+                expect(dispatch).toHaveBeenCalledWith(
+                    'store',
+                    expect.objectContaining({
+                        entry: expect.objectContaining({
+                            start_filament: 0,
+                            start_printtime: 0,
+                        }),
+                    })
+                )
 
                 consoleSpy.mockRestore()
             })
         })
-
     })
 
     describe('getters', () => {

@@ -67,9 +67,7 @@ describe('DevicesDialogSerial.vue', () => {
             json: () =>
                 Promise.resolve({
                     result: {
-                        serial_devices: [
-                            { device_path: '/dev/ttyUSB0', device_type: 'usb' },
-                        ],
+                        serial_devices: [{ device_path: '/dev/ttyUSB0', device_type: 'usb' }],
                     },
                 }),
         })

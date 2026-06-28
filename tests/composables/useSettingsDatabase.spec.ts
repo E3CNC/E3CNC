@@ -72,19 +72,13 @@ describe('useSettingsDatabase', () => {
 
     it('sortNamespaces returns 0 for equal labels', () => {
         const db = mountComposable()
-        const result = db.sortNamespaces(
-            { value: 'a', label: 'test' },
-            { value: 'b', label: 'test' }
-        )
+        const result = db.sortNamespaces({ value: 'a', label: 'test' }, { value: 'b', label: 'test' })
         expect(result).toBe(0)
     })
 
     it('sortNamespaces returns -1 when a < b', () => {
         const db = mountComposable()
-        const result = db.sortNamespaces(
-            { value: 'a', label: 'apple' },
-            { value: 'b', label: 'banana' }
-        )
+        const result = db.sortNamespaces({ value: 'a', label: 'apple' }, { value: 'b', label: 'banana' })
         expect(result).toBe(-1)
     })
 

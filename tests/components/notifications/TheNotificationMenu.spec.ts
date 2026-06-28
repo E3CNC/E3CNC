@@ -91,7 +91,8 @@ function mountOptions(store: ReturnType<typeof createStore>) {
                 'v-btn': {
                     name: 'VBtn',
                     props: ['icon', 'rounded', 'color', 'variant', 'disabled'],
-                    template: '<button :disabled="disabled" class="v-btn-stub"><slot /><slot name="default" /></button>',
+                    template:
+                        '<button :disabled="disabled" class="v-btn-stub"><slot /><slot name="default" /></button>',
                 },
                 'v-badge': {
                     name: 'VBadge',
@@ -170,10 +171,7 @@ describe('TheNotificationMenu.vue', () => {
     })
 
     it('shows dismiss all button when more than one notification', async () => {
-        const entries = [
-            makeEntry({ id: 'announcement/1' }),
-            makeEntry({ id: 'announcement/2' }),
-        ]
+        const entries = [makeEntry({ id: 'announcement/1' }), makeEntry({ id: 'announcement/2' })]
         const store = createStoreWithNotifications(entries)
         store.dispatch = vi.fn()
         const wrapper = shallowMount(TheNotificationMenu, mountOptions(store))
@@ -196,10 +194,7 @@ describe('TheNotificationMenu.vue', () => {
     })
 
     it('dismissAll dispatches close for announcements and dismiss for all', async () => {
-        const entries = [
-            makeEntry({ id: 'announcement/1', title: 'A1' }),
-            makeEntry({ id: 'test/2', title: 'T2' }),
-        ]
+        const entries = [makeEntry({ id: 'announcement/1', title: 'A1' }), makeEntry({ id: 'test/2', title: 'T2' })]
         const store = createStoreWithNotifications(entries)
         store.dispatch = vi.fn()
         const wrapper = shallowMount(TheNotificationMenu, mountOptions(store))

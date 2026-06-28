@@ -4,7 +4,7 @@
 For the most complete and up to date list of Klipper printer objects
 available for query please see
 [Klipper's Status Reference](https://www.klipper3d.org/Status_Reference.html).
-The objects outlined in this document are a subset of all objects available.  In
+The objects outlined in this document are a subset of all objects available. In
 addition it is possible that the object specifications here are out of date
 relative to the latest commit pushed to Klipper's GitHub repo.
 
@@ -15,20 +15,20 @@ Klipper Version `v0.12.0-430-g329fbd01d`.
 As mentioned in the API documentation, it is possible to
 [query](./external_api/printer.md#query-printer-object-status) or
 [subscribe](./external_api/printer.md#subscribe-to-printer-object-status-updates)
-to "Klipper Printer Objects."  There are numerous printer objects in
+to "Klipper Printer Objects." There are numerous printer objects in
 Klipper, many of which are optional and only report status if they are
-enabled by Klipper's configuration.  Clients may retrieve a list of
+enabled by Klipper's configuration. Clients may retrieve a list of
 available printer objects via the
 [list objects endpoint](./external_api/printer.md#list-loaded-printer-objects).
 This should be done after Klipper reports its state as "ready".
 
 /// Tip
 There may be printer objects not documented here or in Klipper's
-Status Reference.  Developers interested in the state for such
+Status Reference. Developers interested in the state for such
 objects will need to view Klippy's Python source to determine the nature
 of the values reported.
 
-Look for a `get_status()` class method.  The returned `dict` will indicate
+Look for a `get_status()` class method. The returned `dict` will indicate
 the fields reported by the object.
 ///
 
@@ -58,10 +58,11 @@ after Klippy exits the `startup` phase.
 ```
 
 | Field           |  Type  | Description                                                      |
-| --------------- | :----: | ---------------------------------------------------------------- |
+| --------------- | :----: | ---------------------------------------------------------------- | --- |
 | `state`         | string | The current [state](./external_api/printer.md#klippy-state-desc) |
-|                 |        | reported by Klipper.                                             |^
+|                 |        | reported by Klipper.                                             | ^   |
 | `state_message` | string | A message describing current state.                              |
+
 { #webhooks-object-spec } Webhooks Object
 
 ## motion_report
@@ -85,15 +86,16 @@ after Klippy exits the `startup` phase.
 ```
 
 | Field                    |   Type   | Description                                   |
-| ------------------------ | :------: | --------------------------------------------- |
+| ------------------------ | :------: | --------------------------------------------- | --- |
 | `live_position`          | [float]  | The estimated real world position of the tool |
-|                          |          | at the time of the query.                     |^
+|                          |          | at the time of the query.                     | ^   |
 | `live_velocity`          |  float   | The estimated real world velocity of the tool |
-|                          |          | at the time of the query.                     |^
+|                          |          | at the time of the query.                     | ^   |
 | `live_extruder_velocity` |  float   | The estimated real world velocity of the      |
-|                          |          | active extruder at the time of the query.     |^
+|                          |          | active extruder at the time of the query.     | ^   |
 | `steppers`               | [string] | An array of registered stepper names.         |
 | `trapq`                  | [string] | An array of registered trapq objects.         |
+
 { #motion-report-object-spec } Motion Report Object
 
 ## gcode_move
@@ -112,21 +114,22 @@ after Klippy exits the `startup` phase.
 ```
 
 | Field                  |  Type   | Description                                   |
-| ---------------------- | :-----: | --------------------------------------------- |
+| ---------------------- | :-----: | --------------------------------------------- | --- |
 | `speed_factor`         |  float  | A speed multiplier applied to the move. Also  |
-|                        |         | known as "feedrate percentage".               |^
+|                        |         | known as "feedrate percentage".               | ^   |
 | `speed`                |  float  | Speed of the most recently processed gcode    |
-|                        |         | move command in mm/s.                         |^
+|                        |         | move command in mm/s.                         | ^   |
 | `extruder_factor`      |  float  | An extrusion multiplier applied to the move.  |
 | `absolute_coordinates` |  bool   | True if the move is in absolute coordinates,  |
-|                        |         | false if the move is relative.                |^
+|                        |         | false if the move is relative.                | ^   |
 | `absolute_extrude`     |  bool   | True if the extrusion move is in absolute     |
-|                        |         | coordinates, false if relative.               |^
+|                        |         | coordinates, false if relative.               | ^   |
 | `homing_origin`        | [float] | A coordinate representing the amount of gcode |
-|                        |         | offset applied to each axis.                  |^
+|                        |         | offset applied to each axis.                  | ^   |
 | `position`             | [float] | The current position after offsets are        |
-|                        |         | applied.                                      |^
+|                        |         | applied.                                      | ^   |
 | `gcode_position`       | [float] | The current position without any offsets.     |
+
 { #gcode-move-object-spec } GCode Move Object
 
 /// Note
@@ -135,6 +138,7 @@ coordinates due to lookahead.
 ///
 
 ## toolhead
+
 ```{.json title="Printer Object Example"}
 {
     "homed_axes": "xyz",
@@ -153,33 +157,34 @@ coordinates due to lookahead.
 ```
 
 | Field                    |  Type   | Description                                      |
-| ------------------------ | :-----: | ------------------------------------------------ |
-| `homed_axes`             | string  | The current homed axes.  Will be an empty string |
-|                          |         | if no axes are homed.                            |^
+| ------------------------ | :-----: | ------------------------------------------------ | --- |
+| `homed_axes`             | string  | The current homed axes. Will be an empty string  |
+|                          |         | if no axes are homed.                            | ^   |
 | `axis_minimum`           | [float] | A coordinate indicating the minimum valid move   |
-|                          |         | location.                                        |^
+|                          |         | location.                                        | ^   |
 | `axis_maximum`           | [float] | A coordinate indicating the maximum valid move   |
-|                          |         | location.                                        |^
-| `cone_start_z`           |  float  | Available for Delta printers only.  The value is |
-|                          |         | the maximum z height at the maximum radius.      |^
+|                          |         | location.                                        | ^   |
+| `cone_start_z`           |  float  | Available for Delta printers only. The value is  |
+|                          |         | the maximum z height at the maximum radius.      | ^   |
 | `print_time`             |  float  | An internal value Klipper uses for scheduling    |
-|                          |         | commands.                                        |^
+|                          |         | commands.                                        | ^   |
 | `stalls`                 |   int   | The total number of times since the last restart |
-|                          |         | that the printer had to pause because it ran out |^
-|                          |         | of buffered G-Code.                              |^
+|                          |         | that the printer had to pause because it ran out | ^   |
+|                          |         | of buffered G-Code.                              | ^   |
 | `estimated_print_time`   |  float  | An internal value Klipper uses for scheduling    |
-|                          |         | commands.                                        |^
+|                          |         | commands.                                        | ^   |
 | `extruder`               | string  | The name of the currently selected extruder.     |
 | `position`               | [float] | A coordinate indicating the commanded position   |
-|                          |         | of the toolhead.                                 |^
+|                          |         | of the toolhead.                                 | ^   |
 | `max_velocity`           |  float  | The current maximum velocity limit.              |
 | `max_accel`              |  float  | The current maximum acceleration limit.          |
-| `minimum_cruise_ratio`   |  float  | The current minimum cruise ratio.  This ratio    |
-|                          |         | enforces the minimum portion of a move that      |^
-|                          |         | must occur at cruising speed.                    |^
+| `minimum_cruise_ratio`   |  float  | The current minimum cruise ratio. This ratio     |
+|                          |         | enforces the minimum portion of a move that      | ^   |
+|                          |         | must occur at cruising speed.                    | ^   |
 | `square_corner_velocity` |  float  | The current square corner velocity. This is the  |
-|                          |         | maximum velocity the tool may travel a 90        |^
-|                          |         | degree corner.                                   |^
+|                          |         | maximum velocity the tool may travel a 90        | ^   |
+|                          |         | degree corner.                                   | ^   |
+
 { #toolhead-object-spec } Toolhead Object
 
 /// tip
@@ -192,6 +197,7 @@ section of Klipper's `printer.cfg`.
 ## configfile
 
 /// collapse-code
+
 ```{.json title="Printer Object Example"}
 {
     "config": {
@@ -667,44 +673,46 @@ section of Klipper's `printer.cfg`.
     }
 }
 ```
+
 ///
 
 | Field                       |   Type   | Description                                        |
-| --------------------------- | :------: | -------------------------------------------------- |
+| --------------------------- | :------: | -------------------------------------------------- | --- |
 | `config`                    |  object  | An object containing the raw config as parsed      |
-|                             |          | from Klipper's config file.  The keys are          |^
-|                             |          | `section` names, the value for each section is     |^
-|                             |          | an object containing `option: value` pairs.        |^
-|                             |          | The values for each option will always be          |^
-|                             |          | strings.                                           |^
+|                             |          | from Klipper's config file. The keys are           | ^   |
+|                             |          | `section` names, the value for each section is     | ^   |
+|                             |          | an object containing `option: value` pairs.        | ^   |
+|                             |          | The values for each option will always be          | ^   |
+|                             |          | strings.                                           | ^   |
 | `settings`                  |  object  | An object containing the parsed configuration      |
-|                             |          | for all loaded Klipper objects.  Each key          |^
-|                             |          | is a `Klipper object` name, the values are         |^
-|                             |          | objects containing `setting: value` pairs.         |^
-|                             |          | The values will be converted to the type requested |^
-|                             |          | during parsing.  Settings with default values      |^
-|                             |          | may be present without a corresponding `option`    |^
-|                             |          | in the `config`.  It is also possible              |^
-|                             |          | for an entire `Klipper object` to exist without    |^
-|                             |          | a corresponding `section` in the `config`.         |^
+|                             |          | for all loaded Klipper objects. Each key           | ^   |
+|                             |          | is a `Klipper object` name, the values are         | ^   |
+|                             |          | objects containing `setting: value` pairs.         | ^   |
+|                             |          | The values will be converted to the type requested | ^   |
+|                             |          | during parsing. Settings with default values       | ^   |
+|                             |          | may be present without a corresponding `option`    | ^   |
+|                             |          | in the `config`. It is also possible               | ^   |
+|                             |          | for an entire `Klipper object` to exist without    | ^   |
+|                             |          | a corresponding `section` in the `config`.         | ^   |
 | `save_config_pending`       |   bool   | A value of `true` indicates that a `save_config`   |
-|                             |          | action is pending a restart before writing the     |^
-|                             |          | updated options to the config file.                |^
+|                             |          | action is pending a restart before writing the     | ^   |
+|                             |          | updated options to the config file.                | ^   |
 | `save_config_pending_items` |  object  | An object containing the items pending for write   |
-|                             |          | when `save_config_pending` is `true.`              |^
+|                             |          | when `save_config_pending` is `true.`              | ^   |
 | `warnings`                  | [string] | An array of strings describing issues encountered  |
-|                             |          | when the configuration file was parsed.            |^
+|                             |          | when the configuration file was parsed.            | ^   |
+
 { # configfile-object-spec} Configfile Object
 
 /// warning
-The `configfile` object has the potential to be very large.  Client software
+The `configfile` object has the potential to be very large. Client software
 running on devices with limited memory (such as embedded devices) may have issues
 querying this object.
 ///
 
 ## extruder
 
-*Enabled when `[extruder]` is included in `printer.cfg`*
+_Enabled when `[extruder]` is included in `printer.cfg`_
 
 /// note
 If multiple extruders are configured, extruder 0 is available as
@@ -724,26 +732,27 @@ If multiple extruders are configured, extruder 0 is available as
 ```
 
 | Field              |      Type      | Description                                       |
-| ------------------ | :------------: | ------------------------------------------------- |
+| ------------------ | :------------: | ------------------------------------------------- | --- |
 | `temperature`      |     float      | The extruder's current temperature in C.          |
 | `target`           |     float      | The extruder's requested target temperature in C. |
 | `power`            |     float      | The current pwm value applied to the extruder's   |
-|                    |                | heater.  This value should be in a range from 0.0 |^
-|                    |                | to 1.0.                                           |^
+|                    |                | heater. This value should be in a range from 0.0  | ^   |
+|                    |                | to 1.0.                                           | ^   |
 | `can_extrude`      |      bool      | A value of `true` indicates that the current      |
-|                    |                | temperature is above the minimum extrusion temp.  |^
+|                    |                | temperature is above the minimum extrusion temp.  | ^   |
 | `pressure_advance` |     float      | The extruder's current pressure advance value.    |
 | `smooth_time`      |     float      | The currently set time range to use when          |
-|                    |                | calculating the average extruder velocity for     |^
-|                    |                | pressure advance.                                 |^
+|                    |                | calculating the average extruder velocity for     | ^   |
+|                    |                | pressure advance.                                 | ^   |
 | `motion_queue`     | string \| null | The name of the extruder the stepper is           |
-|                    |                | synchronized to.  Will be null if the stepper is  |^
-|                    |                | not synced with another extruder.                 |^
+|                    |                | synchronized to. Will be null if the stepper is   | ^   |
+|                    |                | not synced with another extruder.                 | ^   |
+
 { #extruder-object-spec } Extruder Object
 
 ## heater_bed
 
-*Enabled when `[heater_bed]` is included in `printer.cfg`*
+_Enabled when `[heater_bed]` is included in `printer.cfg`_
 
 ```{.json title="Printer Object Example"}
 {
@@ -754,16 +763,17 @@ If multiple extruders are configured, extruder 0 is available as
 ```
 
 | Field         | Type  | Description                                      |
-| ------------- | :---: | ------------------------------------------------ |
+| ------------- | :---: | ------------------------------------------------ | --- |
 | `temperature` | float | The current temperature of the bed.              |
 | `target`      | float | The target temperature of the bed.               |
 | `power`       | float | The current pwm value applied to the heater. The |
-|               |       | value should be in the range from 0.0 to 1.0.    |^
+|               |       | value should be in the range from 0.0 to 1.0.    | ^   |
+
 { #heater-bed-object-spec } Heater Bed Object
 
 ## fan
 
-*Enabled when `[fan]` is included in `printer.cfg`*
+_Enabled when `[fan]` is included in `printer.cfg`_
 
 ```{.json title="Printer Object Example"}
 {
@@ -772,13 +782,14 @@ If multiple extruders are configured, extruder 0 is available as
 }
 ```
 
-| Field   |    Type     | Description                                              |
-| ------- | :---------: | -------------------------------------------------------- |
-| `speed` |    float    | The current fan speed.  This is reported as a percentage |
-|         |             | with a range from 0.0 to 1.0                             |^
-| `rpm`   | int \| null | The fan's revolutions per minute if the tachometer pin   |
-|         |             | has been configured.  Will report `null` when the tach   |^
-|         |             | pin is not configured.                                   |^
+| Field   |    Type     | Description                                             |
+| ------- | :---------: | ------------------------------------------------------- | --- |
+| `speed` |    float    | The current fan speed. This is reported as a percentage |
+|         |             | with a range from 0.0 to 1.0                            | ^   |
+| `rpm`   | int \| null | The fan's revolutions per minute if the tachometer pin  |
+|         |             | has been configured. Will report `null` when the tach   | ^   |
+|         |             | pin is not configured.                                  | ^   |
+
 { #fan-object-spec } Fan Object
 
 ## idle_timeout
@@ -791,22 +802,24 @@ If multiple extruders are configured, extruder 0 is available as
 ```
 
 | Field           |  Type  | Description                                               |
-| --------------- | :----: | --------------------------------------------------------- |
+| --------------- | :----: | --------------------------------------------------------- | --- |
 | `state`         | string | The current [state](#idle-timeout-state-desc) as reported |
-|                 |        | by the idle timeout module.                               |^
+|                 |        | by the idle timeout module.                               | ^   |
 | `printing_time` | float  | The amount of time, in seconds, that idle timeout has     |
-|                 |        | reported a `Printing` state.  Will be reset to 0 when     |^
-|                 |        | the state transitions from `Printing` to `Ready`.         |^
+|                 |        | reported a `Printing` state. Will be reset to 0 when      | ^   |
+|                 |        | the state transitions from `Printing` to `Ready`.         | ^   |
+
 { #idle-timeout-object-spec } Idle Timeout Object
 
-| State      | Description                                                   |
-| ---------- | ------------------------------------------------------------- |
-| `Printing` | The printer is busy.  This indicates that some action has     |
-|            | been scheduled, such as a move command.                       |^
-| `Ready`    | The printer is no longer active and is waiting for more       |
-|            | activity or for the idle timeout to expire.                   |^
-| `Idle`     | The printer has been inactive for a period of time longer     |
-|            | than the configured idle timeout.                             |^
+| State      | Description                                               |
+| ---------- | --------------------------------------------------------- | --- |
+| `Printing` | The printer is busy. This indicates that some action has  |
+|            | been scheduled, such as a move command.                   | ^   |
+| `Ready`    | The printer is no longer active and is waiting for more   |
+|            | activity or for the idle timeout to expire.               | ^   |
+| `Idle`     | The printer has been inactive for a period of time longer |
+|            | than the configured idle timeout.                         | ^   |
+
 { #idle-timeout-state-desc} Idle Timeout State
 
 /// Tip
@@ -817,7 +830,7 @@ manual commands.
 
 ## virtual_sdcard
 
-*Enabled when `[virtual_sdcard]` is included in `printer.cfg`*
+_Enabled when `[virtual_sdcard]` is included in `printer.cfg`_
 
 ```{.json title="Printer Object Example"}
 {
@@ -830,28 +843,28 @@ manual commands.
 ```
 
 | Field           |      Type      | Description                                    |
-| --------------- | :------------: | ---------------------------------------------- |
+| --------------- | :------------: | ---------------------------------------------- | --- |
 | `file_path`     | string \| null | The full absolute path of the currently loaded |
-|                 |                | file. Will be `null` if no file is loaded.     |^
+|                 |                | file. Will be `null` if no file is loaded.     | ^   |
 | `progress`      |     float      | The current file progress reported as a        |
-|                 |                | percentage.  Valid range is 0.0 to 1.0.        |^
+|                 |                | percentage. Valid range is 0.0 to 1.0.         | ^   |
 | `is_active`     |      bool      | When `true` the virtual sdcard is actively     |
-|                 |                | processing a file.                             |^
+|                 |                | processing a file.                             | ^   |
 | `file_position` |      int       | The current file position in bytes.            |
 | `file_size`     |      int       | The file size of the currently loaded          |
-|                 |                | file in bytes.                                 |^
-{ #virtual-sdcard-object-spec } Virtual SDCard Object
+|                 |                | file in bytes.                                 | ^   |
 
+{ #virtual-sdcard-object-spec } Virtual SDCard Object
 
 /// Note
 The value for most fields will persist after a print has
-paused, completed, or errored.  They are cleared when the user issues
+paused, completed, or errored. They are cleared when the user issues
 an `SDCARD_RESET_FILE` gcode or when a new print has started.
 ///
 
 ## print_stats
 
-*Enabled when `[virtual_sdcard]` is included in `printer.cfg`*
+_Enabled when `[virtual_sdcard]` is included in `printer.cfg`_
 
 ```{.json title="Printer Object Example"}
 {
@@ -869,29 +882,31 @@ an `SDCARD_RESET_FILE` gcode or when a new print has started.
 ```
 
 | Field            |  Type  | Description                                        |
-| ---------------- | :----: | -------------------------------------------------- |
+| ---------------- | :----: | -------------------------------------------------- | --- |
 | `filename`       | string | The path to the currently loaded file relative to  |
-|                  |        | the configured gcode folder.  Will be an empty     |^
-|                  |        | string if no file is loaded.                       |^
+|                  |        | the configured gcode folder. Will be an empty      | ^   |
+|                  |        | string if no file is loaded.                       | ^   |
 | `total_duration` | float  | Total job duration in seconds.                     |
 | `print_duration` | float  | Time spent printing the current job in seconds.    |
-|                  |        | Does not include time paused.                      |^
+|                  |        | Does not include time paused.                      | ^   |
 | `filament_used`  | float  | Amount of filament used for the current job in mm. |
 | `state`          | string | The current job [state](#print-stats-state-desc).  |
-| `message`        | string | A status message set by Klipper.  Will be an empty |
-|                  |        | string if no message is set.                       |^
+| `message`        | string | A status message set by Klipper. Will be an empty  |
+|                  |        | string if no message is set.                       | ^   |
 | `info`           | object | A `Print Stats Supplemental Info` object.          |
-|                  |        | #print-stats-supplemental-info-spec                |+
+|                  |        | #print-stats-supplemental-info-spec                | +   |
+
 { #print-stats-object-spec } Print Stats Object
 
-| Field           |    Type     | Description                                  |
-| --------------- | :---------: | -------------------------------------------- |
-| `total_layer`   | int \| null | The total layer count of the current         |
-|                 |             | job.  Will be null if the total layer        |^
-|                 |             | count is not set.                            |^
-| `current_layer` | int \| null | The index of the layer the job is currently  |
-|                 |             | printing.  Will be null of the current layer |^
-|                 |             | is not set.                                  |^
+| Field           |    Type     | Description                                 |
+| --------------- | :---------: | ------------------------------------------- | --- |
+| `total_layer`   | int \| null | The total layer count of the current        |
+|                 |             | job. Will be null if the total layer        | ^   |
+|                 |             | count is not set.                           | ^   |
+| `current_layer` | int \| null | The index of the layer the job is currently |
+|                 |             | printing. Will be null of the current layer | ^   |
+|                 |             | is not set.                                 | ^   |
+
 {#print-stats-supplemental-info-spec} Print Stats Supplemental Info
 
 | State       | Description                                    |
@@ -902,19 +917,20 @@ an `SDCARD_RESET_FILE` gcode or when a new print has started.
 | `complete`  | The last print job successfully finished.      |
 | `error`     | The last print job exited with an error.       |
 | `cancelled` | THe last print job was cancelled by the user.  |
+
 { #print-stats-state-desc } Print Stats State
 
-  /// tip
-  The `total_layer` and `current_layer` values in the `info` field are set by the
-  [SET_PRINT_STATS_INFO](https://www.klipper3d.org/G-Codes.html#set_print_stats_info)
-  gcode command.  It is necessary to configure the slicer to include this command
-  in the print.  `SET_PRINT_STATS_INFO TOTAL_LAYER={total_layer_count}` should
-  be called in the slicer's "start gcode" to initialize the total layer count.
-  `SET_PRINT_STATS_INFO CURRENT_LAYER={current_layer}` should be called in the
-  slicer's "on layer change" gcode.  The user must substitute the
-  `total_layer_count` and `current_layer` with the appropriate
-  "placeholder syntax" for the slicer.
-  ///
+/// tip
+The `total_layer` and `current_layer` values in the `info` field are set by the
+[SET_PRINT_STATS_INFO](https://www.klipper3d.org/G-Codes.html#set_print_stats_info)
+gcode command. It is necessary to configure the slicer to include this command
+in the print. `SET_PRINT_STATS_INFO TOTAL_LAYER={total_layer_count}` should
+be called in the slicer's "start gcode" to initialize the total layer count.
+`SET_PRINT_STATS_INFO CURRENT_LAYER={current_layer}` should be called in the
+slicer's "on layer change" gcode. The user must substitute the
+`total_layer_count` and `current_layer` with the appropriate
+"placeholder syntax" for the slicer.
+///
 
 /// note
 After a print has started all of the values reported by `print_stats` will
@@ -924,7 +940,7 @@ has started.
 
 ## display_status
 
-*Enabled when `[display]` or `[display_status]` is included in `printer.cfg`*
+_Enabled when `[display]` or `[display_status]` is included in `printer.cfg`_
 
 ```{.json title="Printer Object Example"}
 {
@@ -934,27 +950,28 @@ has started.
 ```
 
 | Field      |  Type  | Description                                         |
-| ---------- | :----: | --------------------------------------------------- |
-| `message`  | string | The message set by an M117 gcode.  If no message    |
-|            |        | is set this will be an empty string.                |^
+| ---------- | :----: | --------------------------------------------------- | --- |
+| `message`  | string | The message set by an M117 gcode. If no message     |
+|            |        | is set this will be an empty string.                | ^   |
 | `progress` | float  | Current print progress as reported by the M73       |
-|            |        | gcode command.  If M73 has not been issued, this    |^
-|            |        | value will fall back on `virtual_sdcard.progress`.  |^
-|            |        | This value is expressed as a percentage of progress |^
-|            |        | complete with a range from 0.0 to 1.0.              |^
-{ #display-status-object-spec }  Display Status Object
+|            |        | gcode command. If M73 has not been issued, this     | ^   |
+|            |        | value will fall back on `virtual_sdcard.progress`.  | ^   |
+|            |        | This value is expressed as a percentage of progress | ^   |
+|            |        | complete with a range from 0.0 to 1.0.              | ^   |
+
+{ #display-status-object-spec } Display Status Object
 
 /// note
 Progress updates via M73 commands must be received at an interval of
-no more than 5 seconds.  M73 progress tracking has a 5 second timeout
+no more than 5 seconds. M73 progress tracking has a 5 second timeout
 after which the `progress` field will fall back to the value reported
 by `virtual_sdcard.progress`.
 ///
 
 ## temperature_sensor
 
-*Enabled when `[temperature_sensor sensor_name]` is included in `printer.cfg`.*
-*It is possible for multiple temperature sensors to be configured.*
+_Enabled when `[temperature_sensor sensor_name]` is included in `printer.cfg`._
+_It is possible for multiple temperature sensors to be configured._
 
 ```{.json title="Printer Object Example"}
 {
@@ -969,12 +986,13 @@ by `virtual_sdcard.progress`.
 | `temperature`       | float | The sensor's current temperature reading in C.     |
 | `measured_min_temp` | float | The minimum sensor reading since the host started. |
 | `measured_max_temp` | float | The maximum sensor reading since the host started. |
+
 { #temp-sensor-object-spec } Temperature Sensor Object
 
 ## temperature_fan
 
-*Enabled when `[temperature_fan fan_name]` is included in `printer.cfg`.*
-*It is possible for multiple temperature fans to be configured.*
+_Enabled when `[temperature_fan fan_name]` is included in `printer.cfg`._
+_It is possible for multiple temperature fans to be configured._
 
 ```{.json title="Printer Object Example"}
 {
@@ -986,21 +1004,22 @@ by `virtual_sdcard.progress`.
 ```
 
 | Field         |    Type     | Description                                                |
-| ------------- | :---------: | ---------------------------------------------------------- |
-| `speed`       |    float    | The current fan speed.  This is reported as a percentage   |
-|               |             | with a range from 0.0 to 1.0                               |^
+| ------------- | :---------: | ---------------------------------------------------------- | --- |
+| `speed`       |    float    | The current fan speed. This is reported as a percentage    |
+|               |             | with a range from 0.0 to 1.0                               | ^   |
 | `rpm`         | int \| null | The fan's revolutions per minute if the tachometer pin     |
-|               |             | has been configured.  Will report `null` when the tach     |^
-|               |             | pin is not configured.                                     |^
+|               |             | has been configured. Will report `null` when the tach      | ^   |
+|               |             | pin is not configured.                                     | ^   |
 | `temperature` |    float    | Current temperature of the sensor associated with the fan. |
 | `target`      |    float    | Target temperature for the fan to enable.                  |
+
 { #temp-fan-object-spec } Temperature Fan Object
 
 ## filament_switch_sensor
 
-*Enabled when `[filament_switch_sensor sensor_name]` is included in*
-*`printer.cfg`.  It is possible for multiple filament switch sensors*
-*to be configured.*
+_Enabled when `[filament_switch_sensor sensor_name]` is included in_
+_`printer.cfg`. It is possible for multiple filament switch sensors_
+_to be configured._
 
 ```{.json title="Printer Object Example"}
 {
@@ -1013,12 +1032,13 @@ by `virtual_sdcard.progress`.
 | ------------------- | :--: | ------------------------------------------------------- |
 | `filament_detected` | bool | Reports `true` when filament is detected by the sensor. |
 | `enabled`           | bool | Reports `true` when the filament sensor is enabled.     |
+
 { #filament-switch-sensor-object-spec }
 
 ## output_pin
 
-*Enabled when `[output_pin pin_name]` is included in `printer.cfg`.*
-*It is possible for multiple output pins to be configured.*
+_Enabled when `[output_pin pin_name]` is included in `printer.cfg`._
+_It is possible for multiple output pins to be configured._
 
 ```{.json title="Printer Object Example"}
 {
@@ -1026,18 +1046,20 @@ by `virtual_sdcard.progress`.
 }
 ```
 
-| Field   |     Type     | Description                                 |
-| ------- | :----------: | ------------------------------------------- |
-| `value` | float \| int | The current value of the pin.  Digital pins |
-|         |              | will be 0 (off) or 1 (on). PWM pins will    |^
-|         |              | report a range from 0.0 to 1.0.             |^
+| Field   |     Type     | Description                                |
+| ------- | :----------: | ------------------------------------------ | --- |
+| `value` | float \| int | The current value of the pin. Digital pins |
+|         |              | will be 0 (off) or 1 (on). PWM pins will   | ^   |
+|         |              | report a range from 0.0 to 1.0.            | ^   |
+
 { #output-pin-object-spec } Output Pin Object
 
 ## bed_mesh
 
-*Enabled when `[bed_mesh]` is included in `printer.cfg`.*
+_Enabled when `[bed_mesh]` is included in `printer.cfg`._
 
 /// collapse-code
+
 ```{.json title="Printer Object Example"}
 {
     "profile_name": "default",
@@ -1598,33 +1620,36 @@ by `virtual_sdcard.progress`.
     }
 }
 ```
+
 ///
 
-| Field           |   Type    | Description                                           |
-| --------------- | :-------: | ----------------------------------------------------- |
-| `profile_name`  |  string   | The name of the currently loaded profile.  Will be an |
-|                 |           | empty string if no profile is loaded.                 |^
-| `mesh_min`      |  [float]  | A coordinate (X,Y) indicating the minimum location    |
-|                 |           | of the mesh.                                          |^
-| `mesh_max`      |  [float]  | A coordinate (X,Y) indicating the maximum location    |
-|                 |           | of the mesh.                                          |^
-| `probed_matrix` | [[float]] | A 2D array of Z values sampled by the probe.          |
-| `mesh_matrix`   | [[float]] | A 2D array of Z values representing the interpolated  |
-|                 |           | mesh.                                                 |^
-| `profiles`      |  object   | An object, where the keys are profile names and the   |
-|                 |           | values are `Bed Mesh Profile` objects.                |^
-|                 |           | #bed-mesh-profile-spec                                |+
+| Field           |   Type    | Description                                          |
+| --------------- | :-------: | ---------------------------------------------------- | --- |
+| `profile_name`  |  string   | The name of the currently loaded profile. Will be an |
+|                 |           | empty string if no profile is loaded.                | ^   |
+| `mesh_min`      |  [float]  | A coordinate (X,Y) indicating the minimum location   |
+|                 |           | of the mesh.                                         | ^   |
+| `mesh_max`      |  [float]  | A coordinate (X,Y) indicating the maximum location   |
+|                 |           | of the mesh.                                         | ^   |
+| `probed_matrix` | [[float]] | A 2D array of Z values sampled by the probe.         |
+| `mesh_matrix`   | [[float]] | A 2D array of Z values representing the interpolated |
+|                 |           | mesh.                                                | ^   |
+| `profiles`      |  object   | An object, where the keys are profile names and the  |
+|                 |           | values are `Bed Mesh Profile` objects.               | ^   |
+|                 |           | #bed-mesh-profile-spec                               | +   |
+
 { #bed-mesh-object-spec } Bed Mesh Object
 
 | Field         |   Type    | Description                                  |
-| ------------- | :-------: | -------------------------------------------- |
+| ------------- | :-------: | -------------------------------------------- | --- |
 | `mesh_params` |  object   | A `Mesh Parameters` object.                  |
-|               |           | #profile-mesh-params-spec                    |+
+|               |           | #profile-mesh-params-spec                    | +   |
 | `points`      | [[float]] | A 2D array of Z values sampled by the probe. |
+
 { #bed-mesh-profile-spec } Bed Mesh Profile
 
 | Field        |  Type  | Description                                         |
-| ------------ | :----: | --------------------------------------------------- |
+| ------------ | :----: | --------------------------------------------------- | --- |
 | `min_x`      | float  | The minimum X coordinate probed.                    |
 | `max_x`      | float  | The maximum X coordinate probed.                    |
 | `min_y`      | float  | The minimum Y coordinate probed.                    |
@@ -1632,13 +1657,14 @@ by `virtual_sdcard.progress`.
 | `x_count`    |  int   | The number of probe samples taken along the X axis. |
 | `y_count`    |  int   | The number of probe samples taken along the Y axis. |
 | `mesh_x_pps` |  int   | The number of values to interpolate between probe   |
-|              |        | samples on the X axis.                              |^
+|              |        | samples on the X axis.                              | ^   |
 | `mesh_y_pps` |  int   | The number of values to interpolate between probe   |
-|              |        | samples on the Y axis.                              |^
-| `algo`       | string | The interpolation algorithm.  Can be `lagrange` or  |
-|              |        | `bicubic`.                                          |^
+|              |        | samples on the Y axis.                              | ^   |
+| `algo`       | string | The interpolation algorithm. Can be `lagrange` or   |
+|              |        | `bicubic`.                                          | ^   |
 | `tension`    | float  | The `tension` parameter used for the `bicubic`      |
-|              |        | interpolation algorithm.                            |^
+|              |        | interpolation algorithm.                            | ^   |
+
 { #profile-mesh-params-spec } Mesh Parameters
 
 /// tip
@@ -1649,9 +1675,10 @@ coordinates.
 
 ## exclude_object
 
-*Available when `[exclude_object]` is configured in `printer.cfg`.*
+_Available when `[exclude_object]` is configured in `printer.cfg`._
 
 /// collapse-code
+
 ```{.json title="Printer Object Example"}
 {
     "objects": [
@@ -2183,36 +2210,39 @@ coordinates.
 }
 
 ```
+
 ///
 
-| Field              |      Type      | Description                                   |
-| ------------------ | :------------: | --------------------------------------------- |
-| `objects`          |    [object]    | An array of `Object Definitions`.             |
-|                    |                | #object-definition-spec                       |+
-| `excluded_objects` |    [string]    | An array of object names currently excluded.  |
-| `current_object`   | string \| null | The name of the object currently being        |
-|                    |                | printed.  Will be `null` if no defined object |^
-|                    |                | is printing.                                  |^
+| Field              |      Type      | Description                                  |
+| ------------------ | :------------: | -------------------------------------------- | --- |
+| `objects`          |    [object]    | An array of `Object Definitions`.            |
+|                    |                | #object-definition-spec                      | +   |
+| `excluded_objects` |    [string]    | An array of object names currently excluded. |
+| `current_object`   | string \| null | The name of the object currently being       |
+|                    |                | printed. Will be `null` if no defined object | ^   |
+|                    |                | is printing.                                 | ^   |
+
 { #exclude-object-spec } Exclude Object
 
 | Field     |   Type    | Description                                         |
-| --------- | :-------: | --------------------------------------------------- |
+| --------- | :-------: | --------------------------------------------------- | --- |
 | `name`    |  string   | The name of the defined object.                     |
 | `polygon` | [[float]] | A 2D array indicating the (X,Y) coordinates         |
-|           |           | that form the boundary of the object's location.    |^
-|           |           | This field is only available if the `polygon`       |^
-|           |           | is included when the object is defined by the       |^
-|           |           | `EXCLUDE_OBJECT_DEFINE` gcode command.              |^
+|           |           | that form the boundary of the object's location.    | ^   |
+|           |           | This field is only available if the `polygon`       | ^   |
+|           |           | is included when the object is defined by the       | ^   |
+|           |           | `EXCLUDE_OBJECT_DEFINE` gcode command.              | ^   |
 | `center`  |  [float]  | An (X,Y) coordinate indicating the center point     |
-|           |           | of the object.  This field is only available if     |^
-|           |           | the `center` is included when the object is defined |^
-|           |           | by the `EXCLUDE_OBJECT_DEFINE` gcode command.       |^
+|           |           | of the object. This field is only available if      | ^   |
+|           |           | the `center` is included when the object is defined | ^   |
+|           |           | by the `EXCLUDE_OBJECT_DEFINE` gcode command.       | ^   |
+
 { #object-definition-spec } Object Definition
 
 ## gcode_macro
 
-*Available when `[gcode_macro macro_name]` is included in `printer.cfg`.*
-*It is possible for multiple gcode macros to be configured.*
+_Available when `[gcode_macro macro_name]` is included in `printer.cfg`._
+_It is possible for multiple gcode macros to be configured._
 
 ```{.json title="Printer Object Example"}
 {
@@ -2221,19 +2251,20 @@ coordinates.
 ```
 
 | Field      | Type | Description                              |
-| ---------- | :--: | ---------------------------------------- |
-| *var_name* | any  | Zero or more `variables` present in the  |
-|            |      | gcode_macro's configuration.  The type   |^
-|            |      | is coerced from the value set.  If no    |^
-|            |      | variables are configured the object will |^
-|            |      | be empty.                                |^
+| ---------- | :--: | ---------------------------------------- | --- |
+| _var_name_ | any  | Zero or more `variables` present in the  |
+|            |      | gcode_macro's configuration. The type    | ^   |
+|            |      | is coerced from the value set. If no     | ^   |
+|            |      | variables are configured the object will | ^   |
+|            |      | be empty.                                | ^   |
+
 { #gcode-macro-object-spec } GCode Macro Object
 
 ## mcu
 
-*The primary `mcu` object should always be available.  It is possible*
-*for additional MCU objects to be present when one or more*
-*[mcu mcu_name] sections are included in `printer.cfg`.*
+_The primary `mcu` object should always be available. It is possible_
+_for additional MCU objects to be present when one or more_
+_[mcu mcu_name] sections are included in `printer.cfg`._
 
 ```{.json title="Printer Object Example"}
 {
@@ -2255,20 +2286,21 @@ coordinates.
 ```
 
 | Field                |  Type  | Description                                   |
-| -------------------- | :----: | --------------------------------------------- |
+| -------------------- | :----: | --------------------------------------------- | --- |
 | `mcu_version`        | string | The version of Klipper at the time the MCU    |
-|                      |        | firmware was built.                           |^
+|                      |        | firmware was built.                           | ^   |
 | `mcu_build_versions` | string | Version information about the tools used      |
-|                      |        | to build the MCU firmware.                    |^
+|                      |        | to build the MCU firmware.                    | ^   |
 | `mcu_constants`      | object | An object containing compile time constants   |
-|                      |        | reported by the MCU.  The constants available |^
-|                      |        | may differ between MCUs as they depend on the |^
-|                      |        | micro-controller's  underlying architecture.  |^
+|                      |        | reported by the MCU. The constants available  | ^   |
+|                      |        | may differ between MCUs as they depend on the | ^   |
+|                      |        | micro-controller's underlying architecture.   | ^   |
+
 { #mcu-object-spec } MCU Object
 
 ## stepper_enable
 
-*Available when one or more steppers are configured in `printer.cfg`.*
+_Available when one or more steppers are configured in `printer.cfg`._
 
 ```{.json title="Printer Object Example"}
 {
@@ -2282,17 +2314,18 @@ coordinates.
 ```
 
 | Field      |  Type  | Description                                  |
-| ---------- | :----: | -------------------------------------------- |
+| ---------- | :----: | -------------------------------------------- | --- |
 | `steppers` | object | An object containing the enabled state for   |
-|            |        | all registered steppers.  The keys are       |^
-|            |        | stepper names, the values are booleans       |^
-|            |        | reflecting the stepper driver enabled state. |^
+|            |        | all registered steppers. The keys are        | ^   |
+|            |        | stepper names, the values are booleans       | ^   |
+|            |        | reflecting the stepper driver enabled state. | ^   |
+
 { #stepper-enable-object-spec } Stepper Enable Object
 
 ## TMC Drivers
 
-*Available when one or more `[tmcXXXX driver_name]` sections are included*
-*in `printer.cfg`.*
+_Available when one or more `[tmcXXXX driver_name]` sections are included_
+_in `printer.cfg`._
 
 ```{.json title="Printer Object Example"}
 {
@@ -2310,28 +2343,29 @@ coordinates.
 }
 ```
 
-| Field                   |      Type      | Description                                  |
-| ----------------------- | :------------: | -------------------------------------------- |
-| `phase_offset_position` | float \| null  | The commanded position corresponding         |
-|                         |                | with the driver's "zero phase".  Will be     |^
-|                         |                | `null` if the phase offset is unknown.       |^
-| `temperature`           | float \| null  | The temperature reported by the driver.      |
-|                         |                | Will be `null` if temperature reporting      |^
-|                         |                | is not available.                            |^
-| `drv_status`            | object \| null | An object containing results from the most   |
-|                         |                | recent driver status query.  Will be `null`  |^
-|                         |                | if the driver is disabled.  See the driver's |^
-|                         |                | datasheet for explanations on the fields     |^
-|                         |                | present in this object.                      |^
-| `mcu_phase_offset`      |  int \| null   | The MCU stepper position corresponding       |
-|                         |                | with the driver's "zero phase".  Will be     |^
-|                         |                | `null` if the phase offset is unknown.       |^
-| `run_current`           |     float      | The presently set run current in amps.       |
-| `hold_current`          |     float      | The presently set hold current in amps.      |
+| Field                   |      Type      | Description                                 |
+| ----------------------- | :------------: | ------------------------------------------- | --- |
+| `phase_offset_position` | float \| null  | The commanded position corresponding        |
+|                         |                | with the driver's "zero phase". Will be     | ^   |
+|                         |                | `null` if the phase offset is unknown.      | ^   |
+| `temperature`           | float \| null  | The temperature reported by the driver.     |
+|                         |                | Will be `null` if temperature reporting     | ^   |
+|                         |                | is not available.                           | ^   |
+| `drv_status`            | object \| null | An object containing results from the most  |
+|                         |                | recent driver status query. Will be `null`  | ^   |
+|                         |                | if the driver is disabled. See the driver's | ^   |
+|                         |                | datasheet for explanations on the fields    | ^   |
+|                         |                | present in this object.                     | ^   |
+| `mcu_phase_offset`      |  int \| null   | The MCU stepper position corresponding      |
+|                         |                | with the driver's "zero phase". Will be     | ^   |
+|                         |                | `null` if the phase offset is unknown.      | ^   |
+| `run_current`           |     float      | The presently set run current in amps.      |
+| `hold_current`          |     float      | The presently set hold current in amps.     |
+
 { #tmc-driver-object-spec } TMC Driver Object
 
 /// note
 Klipper will omit fields from the `drv_status` object whose value
-evaluates to false.  For example, the `stallguard` field is only
+evaluates to false. For example, the `stallguard` field is only
 present when its value is non-zero.
 ///

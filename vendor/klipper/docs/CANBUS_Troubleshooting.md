@@ -38,10 +38,11 @@ problem.
 
 Incrementing `bytes_invalid` on a CAN bus connection is a symptom of
 reordered messages on the CAN bus. If seen, make sure to:
-* Use a Linux kernel version 6.6.0 or later.
-* If using a USB-to-CANBUS adapter running candlelight firmware, use
+
+- Use a Linux kernel version 6.6.0 or later.
+- If using a USB-to-CANBUS adapter running candlelight firmware, use
   v2.0 or later of candleLight_fw.
-* If using Klipper's USB-to-CANBUS bridge mode, make sure the bridge
+- If using Klipper's USB-to-CANBUS bridge mode, make sure the bridge
   node is flashed with Klipper v0.12.0 or later.
 
 Reordered messages is a severe problem that must be fixed. It will
@@ -51,7 +52,7 @@ wiring or similar hardware issues and can only be fixed by identifying
 and updating the faulty software.
 
 Older versions of the Linux kernel had a bug in the gs_usb canbus
-driver code that could cause reordered canbus packets.  The issue is
+driver code that could cause reordered canbus packets. The issue is
 thought to be fixed in
 [Linux commit 24bc41b4](https://github.com/torvalds/linux/commit/24bc41b4558347672a3db61009c339b1f5692169)
 which was released in v6.6.0. In some cases, older Linux versions may
@@ -78,9 +79,11 @@ with a `txqueuelen 128` to increase that size.
 If Klipper transmits a packet and Linux has filled all of its transmit
 queue space then Linux will drop that packet and messages like the
 following will appear in the Klipper log:
+
 ```
 Got error -1 in can write: (105)No buffer space available
 ```
+
 Klipper will automatically retransmit the lost messages as part of its
 normal application level message retransmit system. Thus, this log
 message is a warning and it does not indicate an unrecoverable error.
@@ -145,12 +148,14 @@ in diagnostics.
 The Linux [can-utils](https://github.com/linux-can/can-utils) tool
 provides the capture software. It is typically installed on a machine
 by running:
+
 ```
 sudo apt-get update && sudo apt-get install can-utils
 ```
 
 Once installed, one may obtain a capture of all CAN bus messages on an
 interface with the following command:
+
 ```
 candump -tz -Ddex can0,#FFFFFFFF > mycanlog
 ```
@@ -167,6 +172,7 @@ One may use the `parsecandump.py` tool to parse the low-level Klipper
 micro-controller messages contained in a candump log. Using this tool
 is an advanced topic that requires knowledge of Klipper
 [MCU commands](MCU_Commands.md). For example:
+
 ```
 ./scripts/parsecandump.py mycanlog 108 ./out/klipper.dict
 ```

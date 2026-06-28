@@ -30,6 +30,7 @@ The test is performed using the console.py tool (described in
 [Debugging.md](Debugging.md)). The micro-controller is configured for
 the particular hardware platform (see below) and then the following is
 cut-and-paste into the console.py terminal window:
+
 ```
 SET start_clock {clock+freq}
 SET ticks 1000
@@ -63,6 +64,7 @@ ticks parameter until a stable value is found.
 
 On a failure, one can copy-and-paste the following to clear the error
 in preparation for the next test:
+
 ```
 clear_shutdown
 ```
@@ -76,6 +78,7 @@ number of steps per second is calculated by multiplying the number of
 active steppers with the nominal mcu frequency and dividing by the
 final ticks parameter. The results are rounded to the nearest K. For
 example, with three active steppers:
+
 ```
 ECHO Test result is: {"%.0fK" % (3. * freq / ticks / 1000.)}
 ```
@@ -90,6 +93,7 @@ use a `step_pulse_duration` corresponding to 100ns.
 ### AVR step rate benchmark
 
 The following configuration sequence is used on AVR chips:
+
 ```
 allocate_oids count=3
 config_stepper oid=0 step_pin=PA5 dir_pin=PA4 invert_step=0 step_pulse_ticks=32
@@ -103,14 +107,15 @@ The test was last run on commit `59314d99` with gcc version `avr-gcc
 configured for an atmega644p (previous tests have confirmed simulavr
 results match tests on both a 16Mhz at90usb and a 16Mhz atmega2560).
 
-| avr              | ticks |
-| ---------------- | ----- |
-| 1 stepper        | 102   |
-| 3 stepper        | 486   |
+| avr       | ticks |
+| --------- | ----- |
+| 1 stepper | 102   |
+| 3 stepper | 486   |
 
 ### Arduino Due step rate benchmark
 
 The following configuration sequence is used on the Due:
+
 ```
 allocate_oids count=3
 config_stepper oid=0 step_pin=PB27 dir_pin=PA21 invert_step=-1 step_pulse_ticks=0
@@ -122,14 +127,15 @@ finalize_config crc=0
 The test was last run on commit `59314d99` with gcc version
 `arm-none-eabi-gcc (Fedora 10.2.0-4.fc34) 10.2.0`.
 
-| sam3x8e              | ticks |
-| -------------------- | ----- |
-| 1 stepper            | 66    |
-| 3 stepper            | 257   |
+| sam3x8e   | ticks |
+| --------- | ----- |
+| 1 stepper | 66    |
+| 3 stepper | 257   |
 
 ### Duet Maestro step rate benchmark
 
 The following configuration sequence is used on the Duet Maestro:
+
 ```
 allocate_oids count=3
 config_stepper oid=0 step_pin=PC26 dir_pin=PC18 invert_step=-1 step_pulse_ticks=0
@@ -141,14 +147,15 @@ finalize_config crc=0
 The test was last run on commit `59314d99` with gcc version
 `arm-none-eabi-gcc (Fedora 10.2.0-4.fc34) 10.2.0`.
 
-| sam4s8c              | ticks |
-| -------------------- | ----- |
-| 1 stepper            | 71    |
-| 3 stepper            | 260   |
+| sam4s8c   | ticks |
+| --------- | ----- |
+| 1 stepper | 71    |
+| 3 stepper | 260   |
 
 ### Duet Wifi step rate benchmark
 
 The following configuration sequence is used on the Duet Wifi:
+
 ```
 allocate_oids count=3
 config_stepper oid=0 step_pin=PD6 dir_pin=PD11 invert_step=-1 step_pulse_ticks=0
@@ -160,14 +167,15 @@ finalize_config crc=0
 The test was last run on commit `59314d99` with gcc version
 `gcc version 10.3.1 20210621 (release) (GNU Arm Embedded Toolchain 10.3-2021.07)`.
 
-| sam4e8e          | ticks |
-| ---------------- | ----- |
-| 1 stepper        | 48    |
-| 3 stepper        | 215   |
+| sam4e8e   | ticks |
+| --------- | ----- |
+| 1 stepper | 48    |
+| 3 stepper | 215   |
 
 ### Beaglebone PRU step rate benchmark
 
 The following configuration sequence is used on the PRU:
+
 ```
 allocate_oids count=3
 config_stepper oid=0 step_pin=gpio0_23 dir_pin=gpio1_12 invert_step=0 step_pulse_ticks=20
@@ -179,14 +187,15 @@ finalize_config crc=0
 The test was last run on commit `59314d99` with gcc version `pru-gcc
 (GCC) 8.0.0 20170530 (experimental)`.
 
-| pru              | ticks |
-| ---------------- | ----- |
-| 1 stepper        | 231   |
-| 3 stepper        | 847   |
+| pru       | ticks |
+| --------- | ----- |
+| 1 stepper | 231   |
+| 3 stepper | 847   |
 
 ### STM32F042 step rate benchmark
 
 The following configuration sequence is used on the STM32F042:
+
 ```
 allocate_oids count=3
 config_stepper oid=0 step_pin=PA1 dir_pin=PA2 invert_step=-1 step_pulse_ticks=0
@@ -198,14 +207,15 @@ finalize_config crc=0
 The test was last run on commit `59314d99` with gcc version
 `arm-none-eabi-gcc (Fedora 10.2.0-4.fc34) 10.2.0`.
 
-| stm32f042        | ticks |
-| ---------------- | ----- |
-| 1 stepper        | 59    |
-| 3 stepper        | 249   |
+| stm32f042 | ticks |
+| --------- | ----- |
+| 1 stepper | 59    |
+| 3 stepper | 249   |
 
 ### STM32F103 step rate benchmark
 
 The following configuration sequence is used on the STM32F103:
+
 ```
 allocate_oids count=3
 config_stepper oid=0 step_pin=PC13 dir_pin=PB5 invert_step=-1 step_pulse_ticks=0
@@ -217,14 +227,15 @@ finalize_config crc=0
 The test was last run on commit `59314d99` with gcc version
 `arm-none-eabi-gcc (Fedora 10.2.0-4.fc34) 10.2.0`.
 
-| stm32f103            | ticks |
-| -------------------- | ----- |
-| 1 stepper            | 61    |
-| 3 stepper            | 264   |
+| stm32f103 | ticks |
+| --------- | ----- |
+| 1 stepper | 61    |
+| 3 stepper | 264   |
 
 ### STM32F4 step rate benchmark
 
 The following configuration sequence is used on the STM32F4:
+
 ```
 allocate_oids count=3
 config_stepper oid=0 step_pin=PA5 dir_pin=PB5 invert_step=-1 step_pulse_ticks=0
@@ -238,19 +249,20 @@ The test was last run on commit `59314d99` with gcc version
 results were obtained by running an STM32F407 binary on an STM32F446
 (and thus using a 168Mhz clock).
 
-| stm32f446            | ticks |
-| -------------------- | ----- |
-| 1 stepper            | 46    |
-| 3 stepper            | 205   |
+| stm32f446 | ticks |
+| --------- | ----- |
+| 1 stepper | 46    |
+| 3 stepper | 205   |
 
-| stm32f407            | ticks |
-| -------------------- | ----- |
-| 1 stepper            | 46    |
-| 3 stepper            | 205   |
+| stm32f407 | ticks |
+| --------- | ----- |
+| 1 stepper | 46    |
+| 3 stepper | 205   |
 
 ### STM32H7 step rate benchmark
 
 The following configuration sequence is used on STM32H723:
+
 ```
 allocate_oids count=3
 config_stepper oid=0 step_pin=PA13 dir_pin=PB5 invert_step=-1 step_pulse_ticks=52
@@ -262,14 +274,15 @@ finalize_config crc=0
 The test was last run on commit `554ae78d` with gcc version
 `arm-none-eabi-gcc (Fedora 14.1.0-1.fc40) 14.1.0`.
 
-| stm32h723            | ticks |
-| -------------------- | ----- |
-| 1 stepper            | 70    |
-| 3 stepper            | 181   |
+| stm32h723 | ticks |
+| --------- | ----- |
+| 1 stepper | 70    |
+| 3 stepper | 181   |
 
 ### STM32G0B1 step rate benchmark
 
 The following configuration sequence is used on the STM32G0B1:
+
 ```
 allocate_oids count=3
 config_stepper oid=0 step_pin=PB13 dir_pin=PB12 invert_step=-1 step_pulse_ticks=0
@@ -281,14 +294,15 @@ finalize_config crc=0
 The test was last run on commit `247cd753` with gcc version
 `arm-none-eabi-gcc (Fedora 10.2.0-4.fc34) 10.2.0`.
 
-| stm32g0b1        | ticks |
-| ---------------- | ----- |
-| 1 stepper        | 58    |
-| 3 stepper        | 243   |
+| stm32g0b1 | ticks |
+| --------- | ----- |
+| 1 stepper | 58    |
+| 3 stepper | 243   |
 
 ### STM32G4 step rate benchmark
 
 The following configuration sequence is used on the STM32G431:
+
 ```
 allocate_oids count=3
 config_stepper oid=0 step_pin=PA0 dir_pin=PB5 invert_step=-1 step_pulse_ticks=17
@@ -300,14 +314,15 @@ finalize_config crc=0
 The test was last run on commit `cfa48fe3` with gcc version
 `arm-none-eabi-gcc (Fedora 14.1.0-1.fc40) 14.1.0`.
 
-| stm32g431        | ticks |
-| ---------------- | ----- |
-| 1 stepper        | 47    |
-| 3 stepper        | 208   |
+| stm32g431 | ticks |
+| --------- | ----- |
+| 1 stepper | 47    |
+| 3 stepper | 208   |
 
 ### LPC176x step rate benchmark
 
 The following configuration sequence is used on the LPC176x:
+
 ```
 allocate_oids count=3
 config_stepper oid=0 step_pin=P1.20 dir_pin=P1.18 invert_step=-1 step_pulse_ticks=0
@@ -320,19 +335,20 @@ The test was last run on commit `59314d99` with gcc version
 `arm-none-eabi-gcc (Fedora 10.2.0-4.fc34) 10.2.0`. The 120Mhz LPC1769
 results were obtained by overclocking an LPC1768 to 120Mhz.
 
-| lpc1768              | ticks |
-| -------------------- | ----- |
-| 1 stepper            | 52    |
-| 3 stepper            | 222   |
+| lpc1768   | ticks |
+| --------- | ----- |
+| 1 stepper | 52    |
+| 3 stepper | 222   |
 
-| lpc1769              | ticks |
-| -------------------- | ----- |
-| 1 stepper            | 51    |
-| 3 stepper            | 222   |
+| lpc1769   | ticks |
+| --------- | ----- |
+| 1 stepper | 51    |
+| 3 stepper | 222   |
 
 ### SAMD21 step rate benchmark
 
 The following configuration sequence is used on the SAMD21:
+
 ```
 allocate_oids count=3
 config_stepper oid=0 step_pin=PA27 dir_pin=PA20 invert_step=-1 step_pulse_ticks=0
@@ -345,14 +361,15 @@ The test was last run on commit `59314d99` with gcc version
 `arm-none-eabi-gcc (Fedora 10.2.0-4.fc34) 10.2.0` on a SAMD21G18
 micro-controller.
 
-| samd21               | ticks |
-| -------------------- | ----- |
-| 1 stepper            | 70    |
-| 3 stepper            | 306   |
+| samd21    | ticks |
+| --------- | ----- |
+| 1 stepper | 70    |
+| 3 stepper | 306   |
 
 ### SAMD51 step rate benchmark
 
 The following configuration sequence is used on the SAMD51:
+
 ```
 allocate_oids count=3
 config_stepper oid=0 step_pin=PA22 dir_pin=PA20 invert_step=-1 step_pulse_ticks=0
@@ -365,16 +382,17 @@ The test was last run on commit `59314d99` with gcc version
 `arm-none-eabi-gcc (Fedora 10.2.0-4.fc34) 10.2.0` on a SAMD51J19A
 micro-controller.
 
-| samd51               | ticks |
-| -------------------- | ----- |
-| 1 stepper            | 39    |
-| 3 stepper            | 191   |
-| 1 stepper (200Mhz)   | 39    |
-| 3 stepper (200Mhz)   | 181   |
+| samd51             | ticks |
+| ------------------ | ----- |
+| 1 stepper          | 39    |
+| 3 stepper          | 191   |
+| 1 stepper (200Mhz) | 39    |
+| 3 stepper (200Mhz) | 181   |
 
 ### SAME70 step rate benchmark
 
 The following configuration sequence is used on the SAME70:
+
 ```
 allocate_oids count=3
 config_stepper oid=0 step_pin=PC18 dir_pin=PB5 invert_step=-1 step_pulse_ticks=0
@@ -387,14 +405,15 @@ The test was last run on commit `34e9ea55` with gcc version
 `arm-none-eabi-gcc (NixOS 10.3-2021.10) 10.3.1` on a SAME70Q20B
 micro-controller.
 
-| same70               | ticks |
-| -------------------- | ----- |
-| 1 stepper            | 45    |
-| 3 stepper            | 190   |
+| same70    | ticks |
+| --------- | ----- |
+| 1 stepper | 45    |
+| 3 stepper | 190   |
 
-### AR100 step rate benchmark ###
+### AR100 step rate benchmark
 
 The following configuration sequence is used on AR100 CPU (Allwinner A64):
+
 ```
 allocate_oids count=3
 config_stepper oid=0 step_pin=PL10 dir_pin=PE14 invert_step=-1 step_pulse_ticks=0
@@ -408,10 +427,10 @@ The test was last run on commit `b7978d37` with gcc version
 `or1k-linux-musl-gcc (GCC) 9.2.0` on an Allwinner A64-H
 micro-controller.
 
-| AR100 R_PIO          | ticks |
-| -------------------- | ----- |
-| 1 stepper            | 85    |
-| 3 stepper            | 359   |
+| AR100 R_PIO | ticks |
+| ----------- | ----- |
+| 1 stepper   | 85    |
+| 3 stepper   | 359   |
 
 ### RPxxxx step rate benchmark
 
@@ -429,17 +448,17 @@ The test was last run on commit `14c105b8` with gcc version
 `arm-none-eabi-gcc (Fedora 14.1.0-1.fc40) 14.1.0` on Raspberry Pi
 Pico and Pico 2 boards.
 
-| rp2040 (*)           | ticks |
-| -------------------- | ----- |
-| 1 stepper            | 3     |
-| 3 stepper            | 14    |
+| rp2040 (\*) | ticks |
+| ----------- | ----- |
+| 1 stepper   | 3     |
+| 3 stepper   | 14    |
 
-| rp2350               | ticks |
-| -------------------- | ----- |
-| 1 stepper            | 36    |
-| 3 stepper            | 169   |
+| rp2350    | ticks |
+| --------- | ----- |
+| 1 stepper | 36    |
+| 3 stepper | 169   |
 
-(*) Note that the reported rp2040 ticks are relative to a 12Mhz
+(\*) Note that the reported rp2040 ticks are relative to a 12Mhz
 scheduling timer and do not correspond to its 200Mhz internal ARM
 processing rate. It is expected that 3 scheduling ticks corresponds to
 ~42 ARM core cycles and 14 scheduling ticks corresponds to ~225 ARM
@@ -448,6 +467,7 @@ core cycles.
 ### Linux MCU step rate benchmark
 
 The following configuration sequence is used on a Raspberry Pi:
+
 ```
 allocate_oids count=3
 config_stepper oid=0 step_pin=gpio2 dir_pin=gpio3 invert_step=0 step_pulse_ticks=5
@@ -460,10 +480,10 @@ The test was last run on commit `59314d99` with gcc version
 `gcc (Raspbian 8.3.0-6+rpi1) 8.3.0` on a Raspberry Pi 3 (revision
 a02082). It was difficult to get stable results in this benchmark.
 
-| Linux (RPi3)         | ticks |
-| -------------------- | ----- |
-| 1 stepper            | 160   |
-| 3 stepper            | 380   |
+| Linux (RPi3) | ticks |
+| ------------ | ----- |
+| 1 stepper    | 160   |
+| 3 stepper    | 380   |
 
 ## Command dispatch benchmark
 
@@ -472,6 +492,7 @@ micro-controller can process. It is primarily a test of the hardware
 communication mechanism. The test is run using the console.py tool
 (described in [Debugging.md](Debugging.md)). The following is
 cut-and-paste into the console.py terminal window:
+
 ```
 DELAY {clock + 2*freq} get_uptime
 FLOOD 100000 0.0 debug_nop
@@ -494,22 +515,22 @@ applicable, the CAN bus benchmarks below are with console.py running
 on a desktop class machine with a USB to CAN bus adapter connected via
 a super-speed USB hub.
 
-| MCU                 | Rate | Build    | Build compiler      |
-| ------------------- | ---- | -------- | ------------------- |
-| atmega2560 (serial) |  23K | b161a69e | avr-gcc (GCC) 4.8.1 |
-| sam3x8e (serial)    |  23K | b161a69e | arm-none-eabi-gcc (Fedora 7.1.0-5.fc27) 7.1.0 |
-| rp2350 (CAN)        |  59K | 17b8ce4c | arm-none-eabi-gcc (Fedora 14.1.0-1.fc40) 14.1.0 |
-| at90usb1286 (USB)   |  75K | 01d2183f | avr-gcc (GCC) 5.4.0 |
-| ar100 (serial)      | 138K | 08d037c6 | or1k-linux-musl-gcc 9.3.0 |
-| samd21 (USB)        | 223K | 01d2183f | arm-none-eabi-gcc (Fedora 7.4.0-1.fc30) 7.4.0 |
-| pru (shared memory) | 260K | c5968a08 | pru-gcc (GCC) 8.0.0 20170530 (experimental) |
-| stm32f103 (USB)     | 355K | 01d2183f | arm-none-eabi-gcc (Fedora 7.4.0-1.fc30) 7.4.0 |
-| sam3x8e (USB)       | 418K | 01d2183f | arm-none-eabi-gcc (Fedora 7.4.0-1.fc30) 7.4.0 |
-| lpc1768 (USB)       | 534K | 01d2183f | arm-none-eabi-gcc (Fedora 7.4.0-1.fc30) 7.4.0 |
-| lpc1769 (USB)       | 628K | 01d2183f | arm-none-eabi-gcc (Fedora 7.4.0-1.fc30) 7.4.0 |
-| sam4s8c (USB)       | 650K | 8d4a5c16 | arm-none-eabi-gcc (Fedora 7.4.0-1.fc30) 7.4.0 |
-| samd51 (USB)        | 864K | 01d2183f | arm-none-eabi-gcc (Fedora 7.4.0-1.fc30) 7.4.0 |
-| stm32f446 (USB)     | 870K | 01d2183f | arm-none-eabi-gcc (Fedora 7.4.0-1.fc30) 7.4.0 |
+| MCU                 | Rate | Build    | Build compiler                                  |
+| ------------------- | ---- | -------- | ----------------------------------------------- |
+| atmega2560 (serial) | 23K  | b161a69e | avr-gcc (GCC) 4.8.1                             |
+| sam3x8e (serial)    | 23K  | b161a69e | arm-none-eabi-gcc (Fedora 7.1.0-5.fc27) 7.1.0   |
+| rp2350 (CAN)        | 59K  | 17b8ce4c | arm-none-eabi-gcc (Fedora 14.1.0-1.fc40) 14.1.0 |
+| at90usb1286 (USB)   | 75K  | 01d2183f | avr-gcc (GCC) 5.4.0                             |
+| ar100 (serial)      | 138K | 08d037c6 | or1k-linux-musl-gcc 9.3.0                       |
+| samd21 (USB)        | 223K | 01d2183f | arm-none-eabi-gcc (Fedora 7.4.0-1.fc30) 7.4.0   |
+| pru (shared memory) | 260K | c5968a08 | pru-gcc (GCC) 8.0.0 20170530 (experimental)     |
+| stm32f103 (USB)     | 355K | 01d2183f | arm-none-eabi-gcc (Fedora 7.4.0-1.fc30) 7.4.0   |
+| sam3x8e (USB)       | 418K | 01d2183f | arm-none-eabi-gcc (Fedora 7.4.0-1.fc30) 7.4.0   |
+| lpc1768 (USB)       | 534K | 01d2183f | arm-none-eabi-gcc (Fedora 7.4.0-1.fc30) 7.4.0   |
+| lpc1769 (USB)       | 628K | 01d2183f | arm-none-eabi-gcc (Fedora 7.4.0-1.fc30) 7.4.0   |
+| sam4s8c (USB)       | 650K | 8d4a5c16 | arm-none-eabi-gcc (Fedora 7.4.0-1.fc30) 7.4.0   |
+| samd51 (USB)        | 864K | 01d2183f | arm-none-eabi-gcc (Fedora 7.4.0-1.fc30) 7.4.0   |
+| stm32f446 (USB)     | 870K | 01d2183f | arm-none-eabi-gcc (Fedora 7.4.0-1.fc30) 7.4.0   |
 | rp2040 (USB)        | 885K | f6718291 | arm-none-eabi-gcc (Fedora 14.1.0-1.fc40) 14.1.0 |
 | rp2350 (USB)        | 885K | f6718291 | arm-none-eabi-gcc (Fedora 14.1.0-1.fc40) 14.1.0 |
 
@@ -520,6 +541,7 @@ It is possible to run timing tests on the host software using the
 [Debugging.md](Debugging.md)). This is typically done by choosing a
 large and complex G-Code file and timing how long it takes for the
 host software to process it. For example:
+
 ```
 time ~/klippy-env/bin/python ./klippy/klippy.py config/example-cartesian.cfg -i something_complex.gcode -o /dev/null -d out/klipper.dict
 ```

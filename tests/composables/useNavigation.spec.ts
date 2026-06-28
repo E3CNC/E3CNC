@@ -116,30 +116,77 @@ describe('useNavigation', () => {
     it('showInNavi hides route when klippy_state is shutdown/error/disconnected without alwaysShow', () => {
         mockStore.state.server.klippy_state = 'shutdown'
         const nav = mountComposable()
-        expect(nav.showInNavi({ title: 'Dashboard', showInNavi: true, path: '/dashboard', icon: 'dash', position: 5 })).toBe(false)
+        expect(
+            nav.showInNavi({ title: 'Dashboard', showInNavi: true, path: '/dashboard', icon: 'dash', position: 5 })
+        ).toBe(false)
     })
 
     it('showInNavi shows route when klippy_state is shutdown but route has alwaysShow', () => {
         mockStore.state.server.klippy_state = 'shutdown'
         const nav = mountComposable()
-        expect(nav.showInNavi({ title: 'Config', showInNavi: true, path: '/config', icon: 'cfg', position: 5, alwaysShow: true })).toBe(true)
+        expect(
+            nav.showInNavi({
+                title: 'Config',
+                showInNavi: true,
+                path: '/config',
+                icon: 'cfg',
+                position: 5,
+                alwaysShow: true,
+            })
+        ).toBe(true)
     })
 
     it('showInNavi hides route when moonrakerComponent not in components', () => {
         mockStore.state.server.components = []
         const nav = mountComposable()
-        expect(nav.showInNavi({ title: 'History', showInNavi: true, path: '/history', icon: 'hist', position: 1, moonrakerComponent: 'history' })).toBe(false)
+        expect(
+            nav.showInNavi({
+                title: 'History',
+                showInNavi: true,
+                path: '/history',
+                icon: 'hist',
+                position: 1,
+                moonrakerComponent: 'history',
+            })
+        ).toBe(false)
     })
 
     it('showInNavi hides route when registeredDirectory not present', () => {
         const nav = mountComposable()
-        expect(nav.showInNavi({ title: 'Files', showInNavi: true, path: '/files', icon: 'files', position: 3, registeredDirectory: 'gcodes' })).toBe(true)
-        expect(nav.showInNavi({ title: 'Files', showInNavi: true, path: '/files', icon: 'files', position: 3, registeredDirectory: 'nonexistent' })).toBe(false)
+        expect(
+            nav.showInNavi({
+                title: 'Files',
+                showInNavi: true,
+                path: '/files',
+                icon: 'files',
+                position: 3,
+                registeredDirectory: 'gcodes',
+            })
+        ).toBe(true)
+        expect(
+            nav.showInNavi({
+                title: 'Files',
+                showInNavi: true,
+                path: '/files',
+                icon: 'files',
+                position: 3,
+                registeredDirectory: 'nonexistent',
+            })
+        ).toBe(false)
     })
 
     it('showInNavi hides route when klipperComponent not in config settings', () => {
         const nav = mountComposable()
-        expect(nav.showInNavi({ title: 'Special', showInNavi: true, path: '/special', icon: 'sp', position: 5, klipperComponent: 'nonexistent' })).toBe(false)
+        expect(
+            nav.showInNavi({
+                title: 'Special',
+                showInNavi: true,
+                path: '/special',
+                icon: 'sp',
+                position: 5,
+                klipperComponent: 'nonexistent',
+            })
+        ).toBe(false)
     })
 
     it('checks if webcam navi should be shown based on webcams and setting', () => {

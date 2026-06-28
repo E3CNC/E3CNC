@@ -83,9 +83,7 @@ const startingPrint = ref(false)
 
 const showDivider = computed(() => existsTimelapse.value)
 
-const question = computed(() =>
-    t('Dialogs.StartPrint.ChooseWcsToUse', { filename: props.file?.filename ?? 'unknown' })
-)
+const question = computed(() => t('Dialogs.StartPrint.ChooseWcsToUse', { filename: props.file?.filename ?? 'unknown' }))
 
 const currentWcsLabel = computed(() => {
     const offset = wcsOffsets.value[activeWcs.value] ?? { X: 0, Y: 0, Z: 0 }

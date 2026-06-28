@@ -122,12 +122,12 @@ DECL_ENUMERATION_RANGE("pin", "PC0", 16, 8);
 
 If the first example, the DECL_ENUMERATION() macro defines an
 enumeration for any command/response message with a parameter name of
-"spi_bus" or parameter name with a suffix of "_spi_bus". For those
+"spi_bus" or parameter name with a suffix of "\_spi_bus". For those
 parameters the string "spi" is a valid value and it will be
 transmitted with an integer value of zero.
 
 It's also possible to declare an enumeration range. In the second
-example, a "pin" parameter (or any parameter with a suffix of "_pin")
+example, a "pin" parameter (or any parameter with a suffix of "\_pin")
 would accept PC0, PC1, PC2, ..., PC7 as valid values. The strings will
 be transmitted with integers 16, 17, 18, ..., 23.
 
@@ -236,7 +236,7 @@ integers. The following table shows the number of bytes each integer
 takes to encode:
 
 | Integer                   | Encoded size |
-|---------------------------|--------------|
+| ------------------------- | ------------ |
 | -32 .. 95                 | 1            |
 | -4096 .. 12287            | 2            |
 | -524288 .. 1572863        | 3            |

@@ -27,6 +27,7 @@ mode") or that run the
 It is also necessary to configure the host operating system to use the
 adapter. This is typically done by creating a new file named
 `/etc/network/interfaces.d/can0` with the following contents:
+
 ```
 allow-hotplug can0
 iface can0 can static
@@ -57,12 +58,14 @@ Each micro-controller on the CAN bus is assigned a unique id based on
 the factory chip identifier encoded into each micro-controller. To
 find each micro-controller device id, make sure the hardware is
 powered and wired correctly, and then run:
+
 ```
 ~/klippy-env/bin/python ~/klipper/scripts/canbus_query.py can0
 ```
 
 If uninitialized CAN devices are detected the above command will
 report lines like the following:
+
 ```
 Found canbus_uuid=11aa22bb33cc, Application: Klipper
 ```
@@ -78,6 +81,7 @@ will no longer appear in the list.
 
 Update the Klipper [mcu configuration](Config_Reference.md#mcu) to use
 the CAN bus to communicate with the device - for example:
+
 ```
 [mcu my_can_mcu]
 canbus_uuid: 11aa22bb33cc
@@ -98,17 +102,18 @@ nodes.
 
 Some important notes when using this mode:
 
-* It is necessary to configure the `can0` (or similar) interface in
+- It is necessary to configure the `can0` (or similar) interface in
   Linux in order to communicate with the bus. However, Linux CAN bus
   speed and CAN bus bit-timing options are ignored by Klipper.
   Currently, the CAN bus frequency is specified during "make
   menuconfig" and the bus speed specified in Linux is ignored.
 
-* Whenever the "bridge mcu" is reset, Linux will disable the
+- Whenever the "bridge mcu" is reset, Linux will disable the
   corresponding `can0` interface. To ensure proper handling of
   FIRMWARE_RESTART and RESTART commands, it is recommended to use
   `allow-hotplug` in the `/etc/network/interfaces.d/can0` file. For
   example:
+
 ```
 allow-hotplug can0
 iface can0 can static
@@ -116,16 +121,16 @@ iface can0 can static
     up ip link set $IFACE txqueuelen 128
 ```
 
-* The "bridge mcu" is not actually on the CAN bus. Messages to and
+- The "bridge mcu" is not actually on the CAN bus. Messages to and
   from the bridge mcu will not be seen by other adapters that may be
   on the CAN bus.
 
-* The available bandwidth to both the "bridge mcu" itself and all
+- The available bandwidth to both the "bridge mcu" itself and all
   devices on the CAN bus is effectively limited by the CAN bus
   frequency. As a result, it is recommended to use a CAN bus frequency
   of 1000000 when using "USB to CAN bus bridge mode".
 
-* It is only valid to use USB to CAN bridge mode if there is a
+- It is only valid to use USB to CAN bridge mode if there is a
   functioning CAN bus with at least one other node available (in
   addition to the bridge node itself). Use a standard USB
   configuration if the goal is to communicate only with the single USB
@@ -134,7 +139,7 @@ iface can0 can static
   result in sporadic errors even when communicating with the bridge
   node.
 
-* A USB to CAN bridge board will not appear as a USB serial device, it
+- A USB to CAN bridge board will not appear as a USB serial device, it
   will not show up when running `ls /dev/serial/by-id`, and it can not
   be configured in Klipper's printer.cfg file with a `serial:`
   parameter. The bridge board appears as a "USB CAN adapter" and it is

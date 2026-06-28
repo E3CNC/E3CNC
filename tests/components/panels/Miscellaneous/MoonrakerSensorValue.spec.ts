@@ -5,11 +5,15 @@ import MoonrakerSensorValue from '@/components/panels/Miscellaneous/MoonrakerSen
 
 vi.mock('@/plugins/helpers', () => ({
     convertName: (s: string) => s.replace(/_/g, ' '),
-    unitToSymbol: (s: string | null) => s === '°C' ? 'thermometer' : 'help',
+    unitToSymbol: (s: string | null) => (s === '°C' ? 'thermometer' : 'help'),
 }))
 
 vi.mock('vuetify/components', () => ({
-    VIcon: { name: 'VIcon', props: { size: String, start: Boolean, icon: String }, template: '<i class="v-icon"><slot /></i>' },
+    VIcon: {
+        name: 'VIcon',
+        props: { size: String, start: Boolean, icon: String },
+        template: '<i class="v-icon"><slot /></i>',
+    },
 }))
 
 function makeStore(sensors: Record<string, any> = {}, config: Record<string, any> = {}) {
@@ -26,7 +30,9 @@ function makeStore(sensors: Record<string, any> = {}, config: Record<string, any
 }
 
 describe('MoonrakerSensorValue.vue', () => {
-    beforeEach(() => { vi.clearAllMocks() })
+    beforeEach(() => {
+        vi.clearAllMocks()
+    })
 
     it('mounts without crashing', () => {
         const wrapper = mount(MoonrakerSensorValue, {
@@ -68,10 +74,12 @@ describe('MoonrakerSensorValue.vue', () => {
         const wrapper = mount(MoonrakerSensorValue, {
             props: { sensor: 'mysensor', valueName: 'temperature' },
             global: {
-                plugins: [makeStore(
-                    { mysensor: { values: { temperature: 25.5 } } },
-                    { 'sensor mysensor': { parameter_temperature: { units: '°C' } } }
-                )],
+                plugins: [
+                    makeStore(
+                        { mysensor: { values: { temperature: 25.5 } } },
+                        { 'sensor mysensor': { parameter_temperature: { units: '°C' } } }
+                    ),
+                ],
             },
         })
         expect(wrapper.text()).toContain('°C')

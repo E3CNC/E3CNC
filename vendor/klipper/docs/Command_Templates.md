@@ -54,7 +54,7 @@ The standard mechanism to move the toolhead is via the `G1` command
 (the `G0` command is an alias for `G1` and it can be used
 interchangeably with it). However, this command relies on the "G-Code
 parsing state" setup by `M82`, `M83`, `G90`, `G91`, `G92`, and
-previous `G1` commands.  When creating a G-Code macro it is a good
+previous `G1` commands. When creating a G-Code macro it is a good
 idea to always explicitly set the G-Code parsing state prior to
 issuing a `G1` command. (Otherwise, there is a risk the `G1` command
 will make an undesirable request.)
@@ -86,6 +86,7 @@ wrapped in `{% %}`. See the
 for further information on the syntax.
 
 An example of a complex macro:
+
 ```
 [gcode_macro clean_nozzle]
 gcode:
@@ -171,6 +172,7 @@ access it via the `[ ]` accessor - for example:
 Note that the Jinja2 `set` directive can assign a local name to an
 object in the `printer` hierarchy. This can make macros more readable
 and reduce typing. For example:
+
 ```
 [gcode_macro QUERY_HTU21D]
 gcode:
@@ -187,6 +189,7 @@ at the time that the macro is evaluated, which may be a significant
 amount of time before the generated g-code commands are executed.
 
 Available "action" commands:
+
 - `action_respond_info(msg)`: Write the given `msg` to the
   /tmp/printer pseudo-terminal. Each line of `msg` will be sent with a
   "// " prefix.
@@ -198,7 +201,7 @@ Available "action" commands:
   state. The `msg` parameter is optional, it may be useful to describe
   the reason for the shutdown.
 - `action_call_remote_method(method_name)`: Calls a method registered
-  by a remote client.  If the method takes parameters they should
+  by a remote client. If the method takes parameters they should
   be provided via keyword arguments, ie:
   `action_call_remote_method("print_stuff", my_arg="hello_world")`
 
@@ -251,13 +254,13 @@ gcode:
 ```
 
 When the `load_filament` macro above executes, it will display a
-"Load Complete!" message after the extrusion is finished.  The
+"Load Complete!" message after the extrusion is finished. The
 last line of gcode enables the "clear_display" delayed_gcode, set
 to execute in 10 seconds.
 
 The `initial_duration` config option can be set to execute the
-delayed_gcode on printer startup.  The countdown begins when the
-printer enters the "ready" state.  For example, the below delayed_gcode
+delayed_gcode on printer startup. The countdown begins when the
+printer enters the "ready" state. For example, the below delayed_gcode
 will execute 5 seconds after the printer is ready, initializing
 the display with a "Welcome!" message:
 
@@ -280,9 +283,8 @@ gcode:
 ```
 
 The above delayed_gcode will send "// Extruder Temp: [ex0_temp]" to
-Octoprint every 2 seconds.  This can be canceled with the following
+Octoprint every 2 seconds. This can be canceled with the following
 gcode:
-
 
 ```
 UPDATE_DELAYED_GCODE ID=report_temp DURATION=0
@@ -295,21 +297,23 @@ then it is possible to customize the menu with
 [menu](Config_Reference.md#menu) config sections.
 
 The following read-only attributes are available in menu templates:
-* `menu.width` - element width (number of display columns)
-* `menu.ns` - element namespace
-* `menu.event` - name of the event that triggered the script
-* `menu.input` - input value, only available in input script context
+
+- `menu.width` - element width (number of display columns)
+- `menu.ns` - element namespace
+- `menu.event` - name of the event that triggered the script
+- `menu.input` - input value, only available in input script context
 
 The following actions are available in menu templates:
-* `menu.back(force, update)`: will execute menu back command, optional
+
+- `menu.back(force, update)`: will execute menu back command, optional
   boolean parameters `<force>` and `<update>`.
-  * When `<force>` is set True then it will also stop editing. Default
+  - When `<force>` is set True then it will also stop editing. Default
     value is False.
-  * When `<update>` is set False then parent container items are not
+  - When `<update>` is set False then parent container items are not
     updated. Default value is True.
-* `menu.exit(force)` - will execute menu exit command, optional
+- `menu.exit(force)` - will execute menu exit command, optional
   boolean parameter `<force>` default value False.
-  * When `<force>` is set True then it will also stop editing. Default
+  - When `<force>` is set True then it will also stop editing. Default
     value is False.
 
 ## Save Variables to disk
@@ -322,6 +326,7 @@ restarts. All stored variables are loaded into the
 `printer.save_variables.variables` dict at startup and can be used in
 gcode macros. to avoid overly long lines you can add the following at
 the top of the macro:
+
 ```
 {% set svv = printer.save_variables.variables %}
 ```

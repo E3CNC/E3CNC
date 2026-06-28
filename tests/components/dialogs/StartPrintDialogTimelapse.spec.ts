@@ -4,21 +4,38 @@ import { createStore } from 'vuex'
 import { createI18n } from 'vue-i18n'
 import StartPrintDialogTimelapse from '@/components/dialogs/StartPrintDialogTimelapse.vue'
 
-const i18n = createI18n({ legacy: false, locale: 'en', messages: { en: { Dialogs: { StartPrint: { Timelapse: 'Timelapse' } } } } })
+const i18n = createI18n({
+    legacy: false,
+    locale: 'en',
+    messages: { en: { Dialogs: { StartPrint: { Timelapse: 'Timelapse' } } } },
+})
 
 vi.mock('@/composables/useSocket', () => ({ useSocket: () => ({ emit: vi.fn() }) }))
 
 vi.mock('vuetify/components', () => ({
     VCardText: { name: 'VCardText', props: { class: String }, template: '<div class="v-card-text"><slot /></div>' },
-    VSwitch: { name: 'VSwitch', props: { modelValue: Boolean, hideDetails: Boolean, class: String }, template: '<input type="checkbox" class="v-switch" :checked="modelValue" @change="$emit(\'update:modelValue\', $event.target.checked)" />' },
-    VProgressCircular: { name: 'VProgressCircular', props: { indeterminate: Boolean, color: String, size: [String, Number] }, template: '<div class="v-progress-circular" />' },
+    VSwitch: {
+        name: 'VSwitch',
+        props: { modelValue: Boolean, hideDetails: Boolean, class: String },
+        template:
+            '<input type="checkbox" class="v-switch" :checked="modelValue" @change="$emit(\'update:modelValue\', $event.target.checked)" />',
+    },
+    VProgressCircular: {
+        name: 'VProgressCircular',
+        props: { indeterminate: Boolean, color: String, size: [String, Number] },
+        template: '<div class="v-progress-circular" />',
+    },
     VRow: { name: 'VRow', props: { class: String }, template: '<div class="v-row"><slot /></div>' },
     VCol: { name: 'VCol', props: { class: String }, template: '<div class="v-col"><slot /></div>' },
     VIcon: { name: 'VIcon', props: { icon: String }, template: '<i class="v-icon"><slot /></i>' },
 }))
 
 vi.mock('@/components/ui/SettingsRow.vue', () => ({
-    default: { name: 'SettingsRow', props: { title: String, dense: Boolean }, template: '<div class="settings-row"><slot /></div>' },
+    default: {
+        name: 'SettingsRow',
+        props: { title: String, dense: Boolean },
+        template: '<div class="settings-row"><slot /></div>',
+    },
 }))
 
 function makeStore(enabled = false) {
@@ -28,7 +45,9 @@ function makeStore(enabled = false) {
 }
 
 describe('StartPrintDialogTimelapse.vue', () => {
-    beforeEach(() => { vi.clearAllMocks() })
+    beforeEach(() => {
+        vi.clearAllMocks()
+    })
 
     it('mounts without crashing', () => {
         const wrapper = mount(StartPrintDialogTimelapse, { global: { plugins: [makeStore(), i18n] } })

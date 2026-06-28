@@ -139,10 +139,11 @@ describe('gui miscellaneous store', () => {
                 },
             }
 
-            await actions.storeLightgroup(
-                { commit, dispatch, state: stateMock as any } as any,
-                { type: 'light', name: 'RGB', lightgroup: { name: 'Group1', start: 0, end: 100 } }
-            )
+            await actions.storeLightgroup({ commit, dispatch, state: stateMock as any } as any, {
+                type: 'light',
+                name: 'RGB',
+                lightgroup: { name: 'Group1', start: 0, end: 100 },
+            })
 
             expect(commit).toHaveBeenCalledWith('storeLightgroup', {
                 entryId: 'entry-1',
@@ -156,10 +157,11 @@ describe('gui miscellaneous store', () => {
             const dispatch = vi.fn()
             const stateMock = { entries: {} }
 
-            await actions.storeLightgroup(
-                { commit, dispatch, state: stateMock as any } as any,
-                { type: 'light', name: 'NewDevice', lightgroup: { name: 'G1', start: 0, end: 50 } }
-            )
+            await actions.storeLightgroup({ commit, dispatch, state: stateMock as any } as any, {
+                type: 'light',
+                name: 'NewDevice',
+                lightgroup: { name: 'G1', start: 0, end: 50 },
+            })
 
             expect(commit).toHaveBeenCalledWith('store', {
                 id: 'mocked-uuid',
@@ -181,10 +183,12 @@ describe('gui miscellaneous store', () => {
                 },
             }
 
-            await actions.updateLightgroup(
-                { commit, dispatch, state: stateMock as any } as any,
-                { type: 'light', name: 'RGB', lightgroupId: 'lg1', lightgroup: { name: 'G1', start: 10, end: 90 } }
-            )
+            await actions.updateLightgroup({ commit, dispatch, state: stateMock as any } as any, {
+                type: 'light',
+                name: 'RGB',
+                lightgroupId: 'lg1',
+                lightgroup: { name: 'G1', start: 10, end: 90 },
+            })
 
             expect(commit).toHaveBeenCalledWith('updateLightgroup', {
                 entryId: 'entry-1',
@@ -199,10 +203,12 @@ describe('gui miscellaneous store', () => {
             const dispatch = vi.fn()
             const stateMock = { entries: {} }
 
-            await actions.updateLightgroup(
-                { commit, dispatch, state: stateMock as any } as any,
-                { type: 'light', name: 'Missing', lightgroupId: 'lg1', lightgroup: {} }
-            )
+            await actions.updateLightgroup({ commit, dispatch, state: stateMock as any } as any, {
+                type: 'light',
+                name: 'Missing',
+                lightgroupId: 'lg1',
+                lightgroup: {},
+            })
 
             expect(commit).not.toHaveBeenCalled()
             expect(dispatch).not.toHaveBeenCalled()
@@ -217,10 +223,11 @@ describe('gui miscellaneous store', () => {
                 },
             }
 
-            await actions.deleteLightgroup(
-                { commit, dispatch, state: stateMock as any } as any,
-                { type: 'light', name: 'RGB', lightgroupId: 'lg1' }
-            )
+            await actions.deleteLightgroup({ commit, dispatch, state: stateMock as any } as any, {
+                type: 'light',
+                name: 'RGB',
+                lightgroupId: 'lg1',
+            })
 
             expect(commit).toHaveBeenCalledWith('destroyLightgroup', { entryId: 'entry-1', lightgroupId: 'lg1' })
             expect(dispatch).toHaveBeenCalledWith('upload', 'entry-1')
@@ -231,10 +238,11 @@ describe('gui miscellaneous store', () => {
             const dispatch = vi.fn()
             const stateMock = { entries: {} }
 
-            await actions.deleteLightgroup(
-                { commit, dispatch, state: stateMock as any } as any,
-                { type: 'light', name: 'Missing', lightgroupId: 'lg1' }
-            )
+            await actions.deleteLightgroup({ commit, dispatch, state: stateMock as any } as any, {
+                type: 'light',
+                name: 'Missing',
+                lightgroupId: 'lg1',
+            })
 
             expect(commit).not.toHaveBeenCalled()
             expect(dispatch).not.toHaveBeenCalled()
@@ -249,10 +257,11 @@ describe('gui miscellaneous store', () => {
                 },
             }
 
-            await actions.storePreset(
-                { commit, dispatch, state: stateMock as any } as any,
-                { type: 'light', name: 'RGB', preset: { name: 'P1', red: 255, green: 0, blue: 0, white: null } }
-            )
+            await actions.storePreset({ commit, dispatch, state: stateMock as any } as any, {
+                type: 'light',
+                name: 'RGB',
+                preset: { name: 'P1', red: 255, green: 0, blue: 0, white: null },
+            })
 
             expect(commit).toHaveBeenCalledWith('storePreset', {
                 entryId: 'entry-1',
@@ -270,10 +279,12 @@ describe('gui miscellaneous store', () => {
                 },
             }
 
-            await actions.updatePreset(
-                { commit, dispatch, state: stateMock as any } as any,
-                { type: 'light', name: 'RGB', presetId: 'p1', preset: { name: 'P2' } }
-            )
+            await actions.updatePreset({ commit, dispatch, state: stateMock as any } as any, {
+                type: 'light',
+                name: 'RGB',
+                presetId: 'p1',
+                preset: { name: 'P2' },
+            })
 
             expect(commit).toHaveBeenCalledWith('updatePreset', {
                 entryId: 'entry-1',
@@ -288,10 +299,12 @@ describe('gui miscellaneous store', () => {
             const dispatch = vi.fn()
             const stateMock = { entries: {} }
 
-            await actions.updatePreset(
-                { commit, dispatch, state: stateMock as any } as any,
-                { type: 'light', name: 'Missing', presetId: 'p1', preset: {} }
-            )
+            await actions.updatePreset({ commit, dispatch, state: stateMock as any } as any, {
+                type: 'light',
+                name: 'Missing',
+                presetId: 'p1',
+                preset: {},
+            })
 
             expect(commit).not.toHaveBeenCalled()
             expect(dispatch).not.toHaveBeenCalled()
@@ -306,10 +319,11 @@ describe('gui miscellaneous store', () => {
                 },
             }
 
-            await actions.deletePreset(
-                { commit, dispatch, state: stateMock as any } as any,
-                { type: 'light', name: 'RGB', presetId: 'p1' }
-            )
+            await actions.deletePreset({ commit, dispatch, state: stateMock as any } as any, {
+                type: 'light',
+                name: 'RGB',
+                presetId: 'p1',
+            })
 
             expect(commit).toHaveBeenCalledWith('destroyPreset', { entryId: 'entry-1', presetId: 'p1' })
             expect(dispatch).toHaveBeenCalledWith('upload', 'entry-1')
@@ -320,10 +334,11 @@ describe('gui miscellaneous store', () => {
             const dispatch = vi.fn()
             const stateMock = { entries: {} }
 
-            await actions.deletePreset(
-                { commit, dispatch, state: stateMock as any } as any,
-                { type: 'light', name: 'Missing', presetId: 'p1' }
-            )
+            await actions.deletePreset({ commit, dispatch, state: stateMock as any } as any, {
+                type: 'light',
+                name: 'Missing',
+                presetId: 'p1',
+            })
 
             expect(commit).not.toHaveBeenCalled()
             expect(dispatch).not.toHaveBeenCalled()

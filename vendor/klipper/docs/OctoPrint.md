@@ -20,11 +20,14 @@ to ssh into the target machine to run a handful of system commands.
 
 Start by running these commands on your host device:
 
-__If you do not have git installed, please do so with:__
+**If you do not have git installed, please do so with:**
+
 ```
 sudo apt install git
 ```
+
 then proceed:
+
 ```
 cd ~
 git clone https://github.com/Klipper3d/klipper
@@ -54,10 +57,10 @@ Under "Serial Connection" in "Additional serial ports" add:
 ```
 ~/printer_data/comms/klippy.serial
 ```
+
 Then click "Save".
 
 _In some older setups this address may be `/tmp/printer`_
-
 
 Enter the Settings tab again and under "Serial Connection" change the "Serial Port"
 setting to the one added above.
