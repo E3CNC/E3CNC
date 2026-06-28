@@ -6,6 +6,13 @@
     insertbefore: EOF
     create: true
 
+- name: Ensure [cnc_metadata] section header in moonraker.conf
+  ansible.builtin.lineinfile:
+    path: '{{ moonraker_conf }}'
+    line: '[cnc_metadata]'
+    insertbefore: EOF
+    create: true
+
 - name: Ensure extractor_path in [cnc_metadata] section
   ansible.builtin.lineinfile:
     path: '{{ moonraker_conf }}'
@@ -20,30 +27,8 @@
     line: 'timeout: 30.0'
     insertafter: '\[cnc_metadata\]'
 
-- name: Comment out [update_manager mainsail] block to avoid conflicts with E3CNC
-  ansible.builtin.command:
-    cmd: 'python3 {{ repo.dest }}/build-scripts/comment_mainsail_update_manager.py {{ moonraker_conf }}'
-  register: mainsail_update_manager_disable
-  changed_when: "'changed' in mainsail_update_manager_disable.stdout"
-  when: not ansible_check_mode
-
-- name: Ensure [update_manager E3CNC] section in moonraker.conf
+- name: Remove legacy [update_manager E3CNC] block from moonraker.conf
   ansible.builtin.blockinfile:
     path: '{{ moonraker_conf }}'
     marker: '# {mark} ANSIBLE MANAGED BLOCK - update_manager E3CNC'
-    insertafter: EOF
-    create: true
-    block: |-
-      [update_manager E3CNC]
-      type: git_repo
-      channel: dev
-      path: {{ repo.dest }}
-      origin: {{ repo.url }}
-      primary_branch: {{ repo.branch }}
-      enable_node_updates: False
-      is_system_service: False
-      post_update_script: {{ repo.dest }}/build-scripts/post_update.sh
-      info_tags:
-          desc=E3CNC UI
-      managed_services: {{ klipper_service }} {{ moonraker_service }}
-      refresh_interval: 24
+    state: absent

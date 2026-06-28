@@ -256,12 +256,27 @@ def _read_text(path: Path) -> str:
 
 def _read_service_name(printer_data_path: Path, kind: str, instance_name: str) -> str:
     raw = _read_text(printer_data_path / f"{kind}.asvc")
-    if raw:
-        raw = raw.removesuffix(".service")
-        if raw.startswith(kind):
-            return raw
-        return f"{kind}-{raw}"
-    return _default_service_name(kind, instance_name)
+    default = _default_service_name(kind, instance_name)
+    if not raw:
+        return default
+
+    lines = [line.strip() for line in raw.splitlines() if line.strip()]
+    if len(lines) != 1:
+        return default
+
+    token = lines[0].removesuffix(".service")
+    if token == kind or token == default:
+        return token
+
+    legacy = re.fullmatch(r"cnc_(.+)", instance_name)
+    suffix = legacy.group(1) if legacy else instance_name
+    if token in {instance_name, suffix}:
+        return default
+
+    if token.startswith(f"{kind}-"):
+        return token
+
+    return default
 
 
 def _read_python_service_dir(env_path: Path, env_key: str, script_name: str, fallback: str) -> str:
@@ -292,8 +307,12 @@ def _default_web_root(home: str, instance_name: str) -> str:
     if instance_name != "cnc":
         legacy = re.fullmatch(r"cnc_(.+)", instance_name)
         if legacy:
+            candidates.append(home_path / f"e3cnc-web-{legacy.group(1)}")
+        candidates.append(home_path / f"e3cnc-web-{instance_name}")
+        if legacy:
             candidates.append(home_path / f"mainsail-{legacy.group(1)}")
         candidates.append(home_path / f"mainsail-{instance_name}")
+    candidates.append(home_path / "e3cnc-web")
     candidates.append(home_path / "mainsail")
     for candidate in candidates:
         if candidate.exists():
@@ -339,7 +358,7 @@ def check_status(remote_host: Optional[str] = None, output_callback=None, inst: 
     _check("Moonraker cnc_metadata component", f"test -f '{active_inst.moonraker_dir}/moonraker/components/cnc_metadata/cnc_metadata.py' && echo 'found' || true", "found")
     _check("Metadata extractor script", f"test -x '{active_inst.scripts_dir}/cnc_metadata_extractor.py' && echo 'found' || true", "found")
     _check("Moonraker config [cnc_agent] section", f"grep -qE '^\\[cnc_agent\\]' '{active_inst.moonraker_conf}' 2>/dev/null && echo 'found' || true", "found")
-    _check("Moonraker config [update_manager E3CNC] section", f"grep -qE '^\\[update_manager E3CNC\\]' '{active_inst.moonraker_conf}' 2>/dev/null && echo 'found' || true", "found")
+    _check("Moonraker config [cnc_metadata] section", f"grep -qE '^\\[cnc_metadata\\]' '{active_inst.moonraker_conf}' 2>/dev/null && echo 'found' || true", "found")
     _check("Klipper WCS plugin", f"test -f '{active_inst.klipper_dir}/klippy/extras/work_coordinate_systems.py' && echo 'found' || true", "found")
     _check("E3CNC macros directory", f"test -d '{active_inst.E3CNC_dir}/macros' && echo 'found' || true", "found")
     _check("Frontend deployed", f"test -f '{active_inst.web_root}/index.html' && echo 'found' || true", "found")

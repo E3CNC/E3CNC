@@ -72,11 +72,9 @@ jobs:
         run: |
           VERSION='${{ steps.version.outputs.VERSION }}'
           STACK_DIR="e3cnc-stack-${VERSION}"
-          mkdir -p "${STACK_DIR}/frontend" \
-                   "${STACK_DIR}/moonraker/cnc_agent" \
-                   "${STACK_DIR}/moonraker/cnc_metadata" \
-                   "${STACK_DIR}/moonraker/mcp" \
-                   "${STACK_DIR}/klipper/extras" \
+          mkdir -p "${STACK_DIR}/vendor/moonraker" \
+                   "${STACK_DIR}/vendor/klipper" \
+                   "${STACK_DIR}/frontend" \
                    "${STACK_DIR}/config/macros" \
                    "${STACK_DIR}/scripts" \
                    "${STACK_DIR}/migrations"
@@ -84,19 +82,17 @@ jobs:
           # Frontend (built assets)
           cp -r dist/* "${STACK_DIR}/frontend/"
 
-          # Moonraker components
-          cp moonraker/cnc_agent/cnc_agent.py "${STACK_DIR}/moonraker/cnc_agent/"
-          cp moonraker/cnc_metadata/cnc_metadata.py "${STACK_DIR}/moonraker/cnc_metadata/"
-          cp moonraker/mcp/mcp_server.py "${STACK_DIR}/moonraker/mcp/"
-          cp moonraker/mcp/__init__.py "${STACK_DIR}/moonraker/mcp/"
-          cp moonraker/requirements.txt "${STACK_DIR}/moonraker/"
+          # Full vendored Moonraker — includes cnc_agent, cnc_metadata, MCP already integrated
+          cp -r vendor/moonraker/* "${STACK_DIR}/vendor/moonraker/"
 
-          # Klipper extras
-          cp extras/work_coordinate_systems.py "${STACK_DIR}/klipper/extras/"
+          # Full vendored Klipper — includes work_coordinate_systems.py already in klippy/extras/
+          cp -r vendor/klipper/* "${STACK_DIR}/vendor/klipper/"
 
-          # Macros (merge macros/ + post_processors/klipper/macros/)
+          # Macros (merge with post_processors)
           cp macros/*.cfg "${STACK_DIR}/config/macros/"
-          cp -r post_processors/klipper/macros/* "${STACK_DIR}/config/macros/"
+          if [ -d post_processors/klipper/macros ]; then
+            cp post_processors/klipper/macros/*.cfg "${STACK_DIR}/config/macros/"
+          fi
 
           # Scripts
           cp scripts/cnc_metadata_extractor.py "${STACK_DIR}/scripts/"
@@ -104,7 +100,7 @@ jobs:
           # Theme
           cp theme.json "${STACK_DIR}/"
 
-          # Write manifest.json (single line — no heredoc in YAML block)
+          # Write manifest.json
           echo "{\"e3cnc_version\": \"${VERSION}\", \"moonraker_component_version\": \"${VERSION}\", \"klipper_extras_version\": \"1\", \"config_schema\": 1, \"klipper_requires\": \">=0.12.0\", \"python_requires\": \">=3.11\"}" > "${STACK_DIR}/manifest.json"
 
           # Create compressed archive

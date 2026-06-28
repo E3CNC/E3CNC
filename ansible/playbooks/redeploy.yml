@@ -9,6 +9,8 @@
       tags: [agent]
     - role: extractor
       tags: [extractor]
+    - role: moonraker-config
+      tags: [moonraker-config]
     - role: klipper-extras
       tags: [klipper-extras]
     - role: macros

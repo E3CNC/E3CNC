@@ -19,11 +19,11 @@
 #      moonraker.conf
 #   6. ensures the `[cnc_metadata]` section is present in the active
 #      moonraker.conf
-#   7. deploys work_coordinate_systems.py to klippy/extras/
+#   7. deploys work_coordinate_systems.py from vendor/klipper/klippy/extras/ to klippy/extras/
 #   8. deploys macros to printer_data/config/E3CNC/macros/
-#   9. (if not skipped) appends a single `[update_manager E3CNC]`
-#      section pointing at the monorepo so Mainsail's Update Manager
-#      shows the project and can `git pull` it
+#   9. removes any legacy `[update_manager E3CNC]` section from
+#      moonraker.conf. E3CNC updates are now owned by the in-app menu
+#      and e3cnc-cli rather than Moonraker's update_manager.
 #  10. restarts moonraker
 #  11. waits for moonraker to come back up and checks the journal for a
 #      clean "CncAgent component initialized." log line
@@ -43,8 +43,8 @@
 #                             remote, falling back to the public fork).
 #   CNC_CHANNEL               Update channel (default: dev). Use
 #                             `stable` once a stable release is tagged.
-#   CNC_SKIP_UPDATE_MANAGER=1      Skip the [update_manager] append
-#                                  entirely (steps 1 + 4 still run).
+#   CNC_SKIP_UPDATE_MANAGER=1      Skip legacy [update_manager E3CNC]
+#                                  cleanup (steps 1 + 4 still run).
 #   CNC_SKIP_CLONE=1               Skip step 1 entirely — use the
 #                                  existing clone at $CNC_REPO_DIR
 #                                  as-is. For users who manage the
@@ -112,10 +112,6 @@ CNC_REPO_URL="${CNC_REPO_URL:-https://github.com/E3CNC/E3CNC.git}"
 echo "==> Target: $CNC_HOST  (home=$REMOTE_HOME)"
 echo "==> Repo URL: $CNC_REPO_URL  (channel=$CNC_CHANNEL)"
 echo "==> Monorepo dir: $REMOTE_REPO_DIR"
-
-# Tempfile for the [update_manager] block before pushing to the target.
-APPEND_BLOCK="$(mktemp)"
-trap 'rm -f "$APPEND_BLOCK"' EXIT
 
 # ---------------------------------------------------------------------------
 # 1) clone (or pull) the monorepo on the target
@@ -248,14 +244,14 @@ run_on_target "
 # ---------------------------------------------------------------------------
 # 7) deploy Klipper extra: work_coordinate_systems.py
 # ---------------------------------------------------------------------------
-echo "==> [7/11] deploy work_coordinate_systems.py to klippy/extras/"
+echo "==> [7/11] deploy work_coordinate_systems.py to klippy/extras/ (from vendor)"
 REMOTE_E3CNC_DIR="$REMOTE_CONFIG_DIR/E3CNC"
 
-REMOTE_WCS_EXTRAS_SRC="$REMOTE_REPO_DIR/E3CNC/extras/work_coordinate_systems.py"
+REMOTE_WCS_EXTRAS_SRC="$REMOTE_REPO_DIR/E3CNC/vendor/klipper/klippy/extras/work_coordinate_systems.py"
 run_on_target "
     set -e
     if [[ ! -f '$REMOTE_WCS_EXTRAS_SRC' ]]; then
-        echo '    skipping — E3CNC/extras/work_coordinate_systems.py not found in monorepo'
+        echo '    skipping — E3CNC/vendor/klipper/klippy/extras/work_coordinate_systems.py not found in monorepo'
     else
         install -m 0644 '$REMOTE_WCS_EXTRAS_SRC' '$REMOTE_KLIPPER_EXTRAS/work_coordinate_systems.py'
         echo '    installed at: '\$REMOTE_KLIPPER_EXTRAS/work_coordinate_systems.py
@@ -286,46 +282,41 @@ run_on_target "
 "
 
 # ---------------------------------------------------------------------------
-# 9) append [update_manager E3CNC] section (idempotent)
+# 9) remove legacy [update_manager E3CNC] section if present
 # ---------------------------------------------------------------------------
 if [[ "${CNC_SKIP_UPDATE_MANAGER:-0}" == "1" ]]; then
     echo "==> [9/11] SKIPPED (CNC_SKIP_UPDATE_MANAGER=1)"
 else
-    echo "==> [9/11] append [update_manager E3CNC] section to $REMOTE_CONF"
-    # Pull a local copy of the remote conf so we can decide whether to
-    # append. Only the section header needs to be inspected.
-    REMOTE_CONF_LOCAL="$(mktemp)"
-    trap 'rm -f "$APPEND_BLOCK" "$REMOTE_CONF_LOCAL"' EXIT
-
-    run_on_target "cat '$REMOTE_CONF'" > "$REMOTE_CONF_LOCAL"
-
-    if grep -qE '^\[update_manager E3CNC\]' "$REMOTE_CONF_LOCAL"; then
-        echo "    [update_manager E3CNC] already present in $REMOTE_CONF"
-    else
-        # printf is used (not a heredoc) so backticks in the post_update
-        # hint are emitted literally and not re-evaluated by the shell.
-        {
-            printf '\n# -------------------------------------------------------------------------\n'
-            printf '# E3CNC update-manager entry (installed by install_to_moonraker.sh)\n'
-            printf '# -------------------------------------------------------------------------\n\n'
-            printf '[update_manager E3CNC]\n'
-            printf 'type: git_repo\n'
-            printf 'channel: %s\n' "$CNC_CHANNEL"
-            printf 'path: %s\n' "$REMOTE_REPO_DIR"
-            printf 'origin: %s\n' "$CNC_REPO_URL"
-            printf 'primary_branch: main\n'
-            printf 'enable_node_updates: False\n'
-            printf 'is_system_service: False\n'
-            printf 'info_tags:\n'
-            printf '    desc=E3CNC UI\n'
-            printf '    post_update=./deploy.sh --live && cp -f E3CNC/extras/work_coordinate_systems.py %s/work_coordinate_systems.py && cp -f E3CNC/macros/wcs_macros.cfg %s/E3CNC/macros/wcs_macros.cfg && cp -f moonraker/cnc_agent.py %s/cnc_agent/cnc_agent.py && cp -f moonraker/cnc_metadata.py %s/cnc_metadata/cnc_metadata.py\n' "$REMOTE_KLIPPER_EXTRAS" "$REMOTE_CONFIG_DIR" "$REMOTE_COMPONENTS_DIR" "$REMOTE_COMPONENTS_DIR"
-            printf 'managed_services: klipper moonraker\n'
-            printf 'refresh_interval: 24\n'
-        } > "$APPEND_BLOCK"
-
-        cat "$APPEND_BLOCK" | run_on_target "cat >> '$REMOTE_CONF'"
-        echo "    appended [update_manager E3CNC] to $REMOTE_CONF"
-    fi
+    echo "==> [9/11] remove legacy [update_manager E3CNC] section from $REMOTE_CONF"
+    run_on_target "python3 - <<'PY'
+from pathlib import Path
+path = Path('$REMOTE_CONF')
+if not path.exists():
+    raise SystemExit(0)
+lines = path.read_text().splitlines(True)
+out = []
+i = 0
+changed = False
+while i < len(lines):
+    line = lines[i]
+    if line.lstrip().startswith('[update_manager E3CNC]'):
+        changed = True
+        i += 1
+        while i < len(lines) and not lines[i].lstrip().startswith('['):
+            i += 1
+        while out and out[-1].strip() == '':
+            out.pop()
+        if out:
+            out.append('\n')
+        continue
+    out.append(line)
+    i += 1
+if changed:
+    path.write_text(''.join(out))
+    print('    removed legacy [update_manager E3CNC] section')
+else:
+    print('    no legacy [update_manager E3CNC] section found')
+PY"
 fi
 
 # ---------------------------------------------------------------------------

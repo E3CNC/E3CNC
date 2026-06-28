@@ -50,7 +50,7 @@ RUN mkdir -p /home/testbed/printer_test1_data/config/E3CNC/macros \
     && touch /home/testbed/printer_test1_data/config/printer.cfg \
     && printf 'MOONRAKER_ARGS="/home/testbed/moonraker/moonraker/moonraker.py -d /home/testbed/printer_test1_data"\n' > /home/testbed/printer_test1_data/systemd/moonraker.env \
     && printf 'KLIPPER_ARGS="/home/testbed/klipper/klippy/klippy.py /home/testbed/printer_test1_data/config/printer.cfg -I /home/testbed/printer_test1_data/comms/klippy.serial -l /home/testbed/printer_test1_data/logs/klippy.log -a /home/testbed/printer_test1_data/comms/klippy.sock"\n' > /home/testbed/printer_test1_data/systemd/klipper.env \
-    && printf 'test1\n' > /home/testbed/printer_test1_data/moonraker.asvc
+    && printf 'klipper_mcu\nwebcamd\nMoonCord\n' > /home/testbed/printer_test1_data/moonraker.asvc
 
 # ── Create Instance 2 (KIAUH-style test2) ────────────────────────────────
 RUN mkdir -p /home/testbed/printer_test2_data/config/E3CNC/macros \
@@ -61,6 +61,6 @@ RUN mkdir -p /home/testbed/printer_test2_data/config/E3CNC/macros \
     && touch /home/testbed/printer_test2_data/config/printer.cfg \
     && printf 'MOONRAKER_ARGS="/home/testbed/moonraker/moonraker/moonraker.py -d /home/testbed/printer_test2_data"\n' > /home/testbed/printer_test2_data/systemd/moonraker.env \
     && printf 'KLIPPER_ARGS="/home/testbed/klipper/klippy/klippy.py /home/testbed/printer_test2_data/config/printer.cfg -I /home/testbed/printer_test2_data/comms/klippy.serial -l /home/testbed/printer_test2_data/logs/klippy.log -a /home/testbed/printer_test2_data/comms/klippy.sock"\n' > /home/testbed/printer_test2_data/systemd/klipper.env \
-    && printf 'test2\n' > /home/testbed/printer_test2_data/moonraker.asvc
+    && printf 'klipper_mcu\nwebcamd\nMoonCord\n' > /home/testbed/printer_test2_data/moonraker.asvc
 
 CMD ["bash"]

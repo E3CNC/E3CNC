@@ -8,7 +8,7 @@
 [![Build Frontend](https://github.com/E3CNC/E3CNC/actions/workflows/build-frontend.yml/badge.svg?branch=main)](https://github.com/E3CNC/E3CNC/actions/workflows/build-frontend.yml)
 [![License](https://img.shields.io/github/license/E3CNC/E3CNC?style=flat&label=License&color=00FF00)](https://github.com/E3CNC/E3CNC/blob/main/LICENSE)
 
-A modern, responsive CNC controller interface for Klipper-based machines — forked from [Mainsail](https://github.com/mainsail-crew/mainsail) and retargeted from 3D printing to CNC machine control. Built with **Vue 3.5** and **Vuetify 3**.
+A modern, responsive CNC controller interface for Klipper-based machines — forked from [Mainsail](https://github.com/mainsail-crew/mainsail) and retargeted from 3D printing to CNC machine control. Built with **Vue 3.5** and **Vuetify 3**. E3CNC manages its own stack updates via the app menu and `e3cnc-cli` rather than Moonraker's update_manager. The monorepo now owns the frontend directly and carries vendored Moonraker and Klipper snapshots for fresh-install bootstrap work.
 
 ```bash
 git clone https://github.com/E3CNC/E3CNC.git ~/E3CNC && cd ~/E3CNC
@@ -29,6 +29,7 @@ git clone https://github.com/E3CNC/E3CNC.git ~/E3CNC && cd ~/E3CNC
 - **Fusion 360 Post Processor** — `E3CNC_Fusion360.cps` with CAM WCS Origin comments for viewer integration
 - **CNC-Safe Macros** — PAUSE/RESUME/CANCEL_PRINT with `rename_existing: BASE_*`, M3-M9 no-ops (no spindle wired), WCS-aware parking
 - **WCS Klipper Plugin** — full G10 L2/L20 support with JSON persistence
+- **Vendored Moonraker + Klipper Snapshots** — the repo now carries E3CNC-maintained upstream source snapshots for monorepo bootstrap/install work
 - **Moonraker CNC Agent** — guarded endpoints for spindle, coolant, WCS, and CNC settings
 - **Auto-Connect** — auto-discovers Moonraker on page load, single-printer auto-connect
 - **Floating Panels** — any dashboard panel can be torn off into a draggable, resizable window
@@ -36,16 +37,16 @@ git clone https://github.com/E3CNC/E3CNC.git ~/E3CNC && cd ~/E3CNC
 - **Keyboard Jog** — arrow key jogging with toggle
 - **State Persistence** — panel positions, editor files, dashboard scroll, grid settings survive reloads
 - **E3CNC Theme** — green #00FF00 branding with custom SVG logo, persisted to Moonraker DB
-- **Moonraker Update Manager** — add one section to `moonraker.conf` and updates are one-click; works alongside existing Mainsail installations
+- **In-App Stack Updates** — update, rollback, and release info from the E3CNC menu via Moonraker CNC-agent endpoints
 - **Ansible Deploy** — idempotent install/deploy/uninstall playbooks
-- **Semver Releases** — version tags on `main`, GitHub releases, Moonraker update manager integration
+- **Semver Releases** — version tags on `main` and GitHub releases
 
 ## Quick Start
 
 | Method | Command |
 |--------|---------|
-| **Install (existing Mainsail user)** | Add `[update_manager E3CNC]` block to `moonraker.conf`, restart Klipper via UI, then update |
-| **Install (full)** | `./e3cnc-cli install` |
+| **Install** | `./e3cnc-cli install` |
+| **Update from UI** | E3CNC top-corner menu → Update |
 | **Interactive menu** | `./e3cnc-cli` (with auto-loop after each command) |
 | **Deploy** | `./e3cnc-cli deploy` |
 | **Update / Redeploy** | `./e3cnc-cli update` |
@@ -78,7 +79,7 @@ Full docs on the [wiki](https://github.com/E3CNC/E3CNC/wiki):
 |------|---------|
 | `src/` | Mainsail frontend (Vue 3.5, Vuetify 3, TypeScript) |
 | `E3CNC/macros/` | Klipper CNC macros (homing override, PAUSE/RESUME, WCS) |
-| `E3CNC/extras/` | Klipper WCS plugin (`work_coordinate_systems.py`) |
+| `E3CNC/vendor/klipper/klippy/extras/` | Klipper WCS plugin (`work_coordinate_systems.py`) |
 | `E3CNC/moonraker-mcp/` | Moonraker MCP (MCP server + CNC agent component) |
 | `E3CNC/post_processors/` | Fusion 360 CAM post processors |
 | `ansible/` | Ansible playbooks for install/deploy/uninstall |

@@ -74,16 +74,5 @@ timeout: 30.0
 #      klipper-macros/ snippets.
 # ---------------------------------------------------------------------------
 
-[update_manager E3CNC]
-type: git_repo
-channel: dev
-path: ~/E3CNC
-origin: https://github.com/E3CNC/E3CNC.git
-primary_branch: main
-enable_node_updates: False
-is_system_service: False
-post_update_script: ~/E3CNC/scripts/post_update.sh
-info_tags:
-    desc=E3CNC UI
-managed_services: klipper moonraker
-refresh_interval: 24
+# E3CNC updates are handled by the in-app menu and ./e3cnc-cli.
+# New installs no longer add an [update_manager E3CNC] section here.

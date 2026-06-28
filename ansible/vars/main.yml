@@ -18,8 +18,8 @@ frontend:
   web_root: '{{ frontend_web_root }}'
 
 agent:
+  source_dir: '{{ repo.dest }}/vendor/moonraker/moonraker/components'
   vender_dir: '{{ moonraker_dir }}/moonraker/components'
-  source_dir: '{{ repo.dest }}/moonraker'
 
 klipper:
   extras_dir: '{{ klipper_dir }}/klippy/extras'
@@ -32,3 +32,10 @@ printer_data:
   printer_cfg: '{{ printer_data_dir }}/config/printer.cfg'
 
 moonraker_conf: '{{ printer_data_dir }}/config/moonraker.conf'
+
+bootstrap_moonraker_source_dir: '{{ repo.dest }}/vendor/moonraker'
+bootstrap_klipper_source_dir: '{{ repo.dest }}/vendor/klipper'
+bootstrap_frontend_web_root: '{{ ansible_env.HOME }}/e3cnc-web'
+bootstrap_nginx_site_name: 'e3cnc'
+bootstrap_skip_runtime_start: false
+bootstrap_skip_runtime_verification: false

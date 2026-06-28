@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.8.2 (2026-06-28)
+- **Vendor code restructured** — Moonraker components (cnc_agent, cnc_metadata, MCP) and Klipper extras (work_coordinate_systems.py) moved into `vendor/moonraker/` and `vendor/klipper/` so the release artifact contains the complete, pre-integrated stack
+- **CI builds full vendor stack** — `build-frontend.yml` now bundles entire `vendor/moonraker/` and `vendor/klipper/` directories instead of cherry-picking individual files
+- **Nginx co-existence** — removed `default_server` from listen directive, uses `server_name e3cnc.local` instead of catch-all `_`. Added `nginx -t` config validation before reload. No longer disables the default nginx site.
+- **Bootstrap integration test fix** — flattened `bootstrap.*` namespace in Ansible vars to prevent extra-var shadowing (root cause of `'bootstrap' is undefined` error)
+- **KIAUH multi-instance fix** — `_read_service_name()` now ignores multiline `.asvc` files and falls back to instance-name-derived defaults, preventing bogus service names like `moonraker-klipper_mcu`
+- **Moonraker update-manager removed** — E3CNC owns its own updates via in-app menu and `e3cnc-cli update`. Legacy `[update_manager E3CNC]` blocks are cleaned up automatically.
+
+## v0.8.1 (2026-06-28)
+- Fix `UnicodeEncodeError` in `print_banner()` on latin-1 terminals
+
+## v0.8.0 (2026-06-28)
+- **Single-deploy migration** — repo renamed `E3CNC_UI`→`E3CNC`, flattened layout, vendored Moonraker/Klipper upstream snapshots
+- **Stack artifact** — CI builds `e3cnc-stack-v*.tar.zst` containing frontend, Moonraker components, Klipper extras, macros, scripts, and manifest
+- **CLI rewrite** — `e3cnc-cli` now a unified stack-apply tool with `update`, `releases`, `rollback`, `prune`, and legacy commands
+- **Staged runtime activation** — releases stored in `~/e3cnc/releases/` with `current` symlink, journal, auto-rollback on health check failure
+- **7 health checks** — Moonraker API, CNC agent, metadata component, Klipper state, nginx config, web root, and metadata loaded verification
+- **Fresh-install bootstrap MVP** — new Ansible role bootstraps a clean machine from zero: base packages, vendored Moonraker/Klipper, venvs, systemd units, nginx, placeholder printer.cfg
+- **Web root rename** — `~/mainsail` → `~/e3cnc-web` for fresh bootstrap installs
+- **Nightly CI releases** — pre-built frontend published as GitHub release on every push to `main`, with `post_update_script` automation
+
 ## v0.7.11 (2026-06-25)
 - Comment out an existing `[update_manager mainsail]` block in `moonraker.conf` during install to avoid conflicts with `E3CNC`
 

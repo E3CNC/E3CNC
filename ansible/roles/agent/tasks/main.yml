@@ -14,11 +14,10 @@
 
 - name: Vendor cnc_agent __init__.py
   ansible.builtin.copy:
+    src: '{{ agent.source_dir }}/cnc_agent/__init__.py'
     dest: '{{ agent.vender_dir }}/cnc_agent/__init__.py'
-    content: |
-      from .cnc_agent import load_component
-      __all__ = ['load_component']
     mode: '0644'
+    remote_src: true
 
 - name: Ensure cnc_metadata component directory exists
   ansible.builtin.file:
@@ -35,8 +34,7 @@
 
 - name: Vendor cnc_metadata __init__.py
   ansible.builtin.copy:
+    src: '{{ agent.source_dir }}/cnc_metadata/__init__.py'
     dest: '{{ agent.vender_dir }}/cnc_metadata/__init__.py'
-    content: |
-      from .cnc_metadata import load_component
-      __all__ = ['load_component']
     mode: '0644'
+    remote_src: true

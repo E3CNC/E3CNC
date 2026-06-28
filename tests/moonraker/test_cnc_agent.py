@@ -6,8 +6,8 @@ import tempfile
 import unittest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-# cnc_agent/ is now at repo-root/moonraker/cnc_agent/
-SRC = os.path.abspath(os.path.join(HERE, "..", "..", "moonraker"))
+# cnc_agent/ is now at repo-root/vendor/moonraker/moonraker/components/cnc_agent/
+SRC = os.path.abspath(os.path.join(HERE, "..", "..", "vendor", "moonraker", "moonraker", "components"))
 sys.path.insert(0, SRC)
 
 from cnc_agent.cnc_agent import CncAgent

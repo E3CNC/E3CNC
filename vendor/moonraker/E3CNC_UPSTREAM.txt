@@ -1,0 +1,4 @@
+Upstream: https://github.com/Arksine/moonraker.git
+Commit: 659712321824d03ed8c2718b4583463bfc890abe
+Imported: 2026-06-28T18:43:20Z
+Strategy: vendor snapshot (no upstream git history)

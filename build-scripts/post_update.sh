@@ -1,15 +1,12 @@
 #!/usr/bin/env bash
-# Post-update hook for Moonraker's update_manager.
-# Runs after `git pull` on the E3CNC monorepo.
+# Compatibility wrapper for legacy Moonraker update_manager installs.
 #
 # Delegates to the e3cnc-cli single-deploy flow.
+# New E3CNC installs no longer register an [update_manager E3CNC] block,
+# but older installs may still call this script until migrated.
 #
 # Usage:
 #   ./build-scripts/post_update.sh
-#
-# Add to moonraker.conf:
-#   [update_manager E3CNC]
-#   post_update_script: ~/E3CNC/build-scripts/post_update.sh
 
 set -euo pipefail
 

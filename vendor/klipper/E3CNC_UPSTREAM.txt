@@ -1,0 +1,4 @@
+Upstream: https://github.com/Klipper3d/klipper.git
+Commit: d6ea62542d3f14a1faf55305c85ed0cbe361a233
+Imported: 2026-06-28T18:46:06Z
+Strategy: vendor snapshot (no upstream git history)

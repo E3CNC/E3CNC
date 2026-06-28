@@ -243,22 +243,15 @@ cd ~/E3CNC
 ./scripts/install_to_moonraker.sh
 ```
 
-## Updating via Moonraker Update Manager
+## Updating E3CNC
 
-> **Important:** Moonraker only *manages* an existing repo — it does not clone one from scratch. Before adding the `[update_manager E3CNC]` section to `moonraker.conf`, you must clone the repo manually:
->
-> ```sh
-> cd ~
-> git clone https://github.com/E3CNC/E3CNC.git
-> cd E3CNC
-> ./scripts/post_update.sh
-> ```
+E3CNC no longer relies on Moonraker's `update_manager` for its own stack updates.
 
-The Ansible install and bash script both register an `[update_manager E3CNC]` entry in `moonraker.conf`. After a git pull, the `post_update_script` automatically:
+Use one of these supported paths instead:
 
-1. Downloads the latest pre-built frontend (avoids running `vite build` on the printer)
-2. Re-vendors the CNC agent files into `moonraker/components/`
-3. Re-deploys the metadata extractor, WCS plugin, and macros
-4. Restarts Moonraker
+- **In-app:** E3CNC top-corner menu → **Update** / **Rollback**
+- **CLI:** `./e3cnc-cli update`, `./e3cnc-cli rollback`, `./e3cnc-cli releases`
 
-Once set up, clicking **Update** in Mainsail's Machine → Update Manager panel is all you need for future updates.
+The Moonraker CNC agent exposes the update/rollback endpoints used by the in-app menu, and `e3cnc-cli update` remains the source of truth for full-stack deployment.
+
+`build-scripts/post_update.sh` is kept as a compatibility wrapper around `./e3cnc-cli update --yes`, but new installs no longer register an `[update_manager E3CNC]` block in `moonraker.conf`.

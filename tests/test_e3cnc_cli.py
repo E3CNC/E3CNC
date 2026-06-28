@@ -498,8 +498,18 @@ class TestInstance:
         assert inst.klipper_service == "klipper"
         assert inst.moonraker_port == 7125
 
+    def test_instance_prefers_e3cnc_web_root_when_present(self, tmp_path):
+        """Fresh bootstrap installs should prefer the E3CNC web root over legacy mainsail paths."""
+        base = tmp_path / "printer_data"
+        base.mkdir()
+        (tmp_path / "mainsail").mkdir()
+        (tmp_path / "e3cnc-web").mkdir()
+
+        inst = Instance.from_printer_data(str(base), home=str(tmp_path))
+        assert inst.web_root == str(tmp_path / "e3cnc-web")
+
     def test_instance_from_kiauh_style_printer_data(self, tmp_path):
-        """KIAUH-style printer_<name>_data should derive shared dirs and service names."""
+        """KIAUH-style printer_<name>_data should derive service names from the instance, not moonraker.asvc lists."""
         base = tmp_path / "printer_test1_data"
         (base / "config").mkdir(parents=True)
         (base / "systemd").mkdir(parents=True)
@@ -510,7 +520,7 @@ class TestInstance:
         (base / "systemd" / "klipper.env").write_text(
             f'KLIPPER_ARGS="{tmp_path}/klipper/klippy/klippy.py {base}/config/printer.cfg -I {base}/comms/klippy.serial -l {base}/logs/klippy.log -a {base}/comms/klippy.sock"\n'
         )
-        (base / "moonraker.asvc").write_text("test1\n")
+        (base / "moonraker.asvc").write_text("klipper_mcu\nwebcamd\nMoonCord\n")
 
         inst = Instance.from_printer_data(str(base), home=str(tmp_path))
         assert inst.name == "test1"
@@ -520,6 +530,25 @@ class TestInstance:
         assert inst.moonraker_service == "moonraker-test1"
         assert inst.klipper_service == "klipper-test1"
         assert inst.moonraker_port == 7126
+
+    def test_instance_ignores_unrelated_single_line_moonraker_asvc(self, tmp_path):
+        """A single non-service token in moonraker.asvc should not override the derived moonraker service name."""
+        base = tmp_path / "printer_test2_data"
+        (base / "config").mkdir(parents=True)
+        (base / "systemd").mkdir(parents=True)
+        (base / "config" / "moonraker.conf").write_text("[server]\nport: 7127\n")
+        (base / "systemd" / "moonraker.env").write_text(
+            f'MOONRAKER_ARGS="{tmp_path}/moonraker/moonraker/moonraker.py -d {base}"\n'
+        )
+        (base / "systemd" / "klipper.env").write_text(
+            f'KLIPPER_ARGS="{tmp_path}/klipper/klippy/klippy.py {base}/config/printer.cfg -I {base}/comms/klippy.serial -l {base}/logs/klippy.log -a {base}/comms/klippy.sock"\n'
+        )
+        (base / "moonraker.asvc").write_text("klipper_mcu\n")
+
+        inst = Instance.from_printer_data(str(base), home=str(tmp_path))
+        assert inst.moonraker_service == "moonraker-test2"
+        assert inst.klipper_service == "klipper-test2"
+        assert inst.moonraker_port == 7127
 
     def test_instance_from_printer_data_second(self, tmp_path):
         """Legacy printer_data_2 naming still works."""

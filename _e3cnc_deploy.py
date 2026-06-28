@@ -792,6 +792,43 @@ def format_release_list(releases: List[Release]) -> str:
     return "\n".join(lines)
 
 
+def _remove_legacy_update_manager_block(conf_path: Path, dry_run: bool = False) -> bool:
+    """Remove a legacy [update_manager E3CNC] block from moonraker.conf if present."""
+    if not conf_path.exists():
+        return True
+
+    lines = conf_path.read_text().splitlines(True)
+    out: List[str] = []
+    i = 0
+    changed = False
+
+    while i < len(lines):
+        line = lines[i]
+        if line.lstrip().startswith("[update_manager E3CNC]"):
+            changed = True
+            i += 1
+            while i < len(lines) and not lines[i].lstrip().startswith("["):
+                i += 1
+            while out and out[-1].strip() == "":
+                out.pop()
+            if out:
+                out.append("\n")
+            continue
+        out.append(line)
+        i += 1
+
+    if not changed:
+        return True
+
+    if dry_run:
+        info(f"Would remove legacy [update_manager E3CNC] block from {conf_path}")
+        return True
+
+    conf_path.write_text("".join(out))
+    info(f"Removed legacy [update_manager E3CNC] block from {conf_path}")
+    return True
+
+
 # ── Runtime file sync ───────────────────────────────────────────────────────
 
 def sync_runtime_files(inst: Optional[Instance] = None, dry_run: bool = False) -> bool:
@@ -884,7 +921,11 @@ def sync_runtime_files(inst: Optional[Instance] = None, dry_run: bool = False) -
             script_dest.chmod(0o755)
         info("Synced metadata extractor")
 
-    # 6. Frontend (sync to web root)
+    # 6. Remove legacy Moonraker update_manager integration for E3CNC
+    if not _remove_legacy_update_manager_block(Path(active_inst.moonraker_conf), dry_run=dry_run):
+        all_ok = False
+
+    # 7. Frontend (sync to web root)
     fe_src = release_root / "frontend"
     fe_dest = Path(active_inst.web_root)
     if fe_src.is_dir():
