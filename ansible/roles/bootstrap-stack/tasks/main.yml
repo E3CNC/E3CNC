@@ -252,8 +252,8 @@
     mode: '0644'
     content: |
       server {
-          listen 80;
-          listen [::]:80;
+          listen 8080;
+          listen [::]:8080;
           server_name e3cnc.local;
 
           root {{ frontend.web_root }};
@@ -316,8 +316,50 @@
     - e3cnc_bootstrap_needed
     - not (bootstrap_skip_runtime_start | default(false) | bool)
 
+- name: Ensure avahi-utils is installed for mDNS publishing
+  ansible.builtin.apt:
+    name: avahi-utils
+    state: present
+  become: true
+  when: e3cnc_bootstrap_needed
+
+- name: Install Avahi e3cnc.local publisher service
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/avahi-publish-e3cnc.service
+    mode: '0644'
+    content: |
+      [Unit]
+      Description=Publish e3cnc.local via mDNS/Avahi
+      After=avahi-daemon.service
+      Requires=avahi-daemon.service
+      PartOf=avahi-daemon.service
+
+      [Service]
+      Type=simple
+      ExecStart=/usr/bin/avahi-publish -a e3cnc.local
+      ExecStop=/bin/sh -c '/usr/bin/avahi-publish -a e3cnc.local --remove || true'
+      Restart=on-failure
+      RestartSec=3
+      User=nobody
+
+      [Install]
+      WantedBy=multi-user.target
+  become: true
+  when: e3cnc_bootstrap_needed
+
 - name: Reload systemd after bootstrap unit installation
   ansible.builtin.systemd:
+    daemon_reload: true
+  become: true
+  when:
+    - e3cnc_bootstrap_needed
+    - not (bootstrap_skip_runtime_start | default(false) | bool)
+
+- name: Enable and start Avahi e3cnc publisher
+  ansible.builtin.systemd:
+    name: avahi-publish-e3cnc
+    enabled: true
+    state: restarted
     daemon_reload: true
   become: true
   when:

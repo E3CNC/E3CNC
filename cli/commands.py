@@ -135,8 +135,8 @@ def _show_post_install_guide(inst: Optional[Instance] = None) -> None:
     print()
     info("To access the web interface:")
     if inst:
-        print(f"    http://e3cnc.local/  (mDNS)")
-        print(f"    or use the machine's IP address")
+        print(f"    http://e3cnc.local:8080/  (mDNS)")
+        print(f"    or http://<ip>:8080/")
     print()
     info("Next steps:")
     print("    1. Configure printer.cfg with your machine's settings")
