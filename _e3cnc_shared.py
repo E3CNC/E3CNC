@@ -124,6 +124,7 @@ def _build_ansible_cmd(
     check: bool = False,
     verbose: bool = False,
     extra_vars: Optional[List[str]] = None,
+    tags: str = "",
 ) -> List[str]:
     """Build an ansible-playbook command with common flags."""
     cmd = ["ansible-playbook"]
@@ -136,6 +137,8 @@ def _build_ansible_cmd(
     if extra_vars:
         for ev in extra_vars:
             cmd.extend(["-e", ev])
+    if tags:
+        cmd.extend(["--tags", tags])
     return cmd
 
 
@@ -147,11 +150,12 @@ def run_ansible(
     verbose: bool = False,
     extra_vars: Optional[List[str]] = None,
     output_callback=None,
+    tags: str = "",
 ) -> int:
-    """Run an Ansible playbook. If output_callback is provided, call it
-    with each line of output instead of printing to stdout."""
+    """Run ansible-playbook and return the exit code."""
     cmd = _build_ansible_cmd(
-        playbook, inventory, check=check, verbose=verbose, extra_vars=extra_vars
+        playbook, inventory, check=check, verbose=verbose,
+        extra_vars=extra_vars, tags=tags,
     )
 
     if output_callback:
@@ -893,6 +897,7 @@ def run_ansible_playbook(
     label: str,
     output_callback=None,
     extra_vars: Optional[List[str]] = None,
+    tags: str = "",
 ) -> CmdResult:
     """Run one of the Ansible playbooks and return a CmdResult."""
     out: List[str] = []
@@ -913,6 +918,9 @@ def run_ansible_playbook(
     if extra_vars:
         _o(f"  Instance: {'  '.join(extra_vars)}")
 
+    if tags:
+        _o(f"  Tags: {tags}")
+
     if not remote_host:
         _ensure_local_sudo_access(f"{label.lower()} (Ansible become tasks)")
 
@@ -920,7 +928,7 @@ def run_ansible_playbook(
 
     rc = run_ansible(
         playbook, inventory, check=check_mode, verbose=verbose,
-        extra_vars=extra_vars, output_callback=output_callback,
+        extra_vars=extra_vars, output_callback=output_callback, tags=tags,
     )
 
     _o("")

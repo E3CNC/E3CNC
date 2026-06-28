@@ -265,6 +265,20 @@ class TestFreshInstallBootstrap:
         )
         assert "failed=0" in out, "Ansible playbook failed"
 
+        # Verify venvs are functional
+        print("\n  ── Verifying venvs ──")
+        mr_py = self._exec("test -f $HOME/moonraker/venv/bin/python && echo 'FOUND' || echo 'MISSING'")
+        kl_py = self._exec("test -f $HOME/klipper/venv/bin/python && echo 'FOUND' || echo 'MISSING'")
+        print(f"  {'✓' if 'FOUND' in mr_py else '✗'} Moonraker venv")
+        print(f"  {'✓' if 'FOUND' in kl_py else '✗'} Klipper venv")
+
+        # Check Moonraker can import its main module
+        mr_import = self._exec(
+            "export PATH=\"$HOME/.local/bin:$PATH\" && "
+            "$HOME/moonraker/venv/bin/python -c \"import moonraker; print('OK')\" 2>&1 || echo 'IMPORT FAILED'"
+        )
+        print(f"  {'✓' if 'OK' in mr_import else '✗'} Moonraker import check: {mr_import[:100]}")
+
         # ── Build Klipper simulator ──
         print("\n  ── Building Klipper simulator ──")
         out = self._exec(
@@ -333,16 +347,60 @@ class TestFreshInstallBootstrap:
         time.sleep(5)
         print(f"  ✓ Moonraker PID {mr_pid}")
 
-        # ── Verify API responses ──
+        # Wait for Klippy UDS socket before polling Moonraker API
+        print("  Waiting for Klippy UDS socket...")
+        for attempt in range(15):
+            sock = self._exec("test -S ~/printer_data/comms/klippy.sock && echo 'FOUND' || echo 'WAITING'")
+            if "FOUND" in sock:
+                print("  ✓ Klippy UDS socket ready")
+                break
+            if attempt == 5:
+                # Check Klippy log for errors after 10s
+                klog = self._exec("tail -10 ~/printer_data/logs/klippy.log 2>/dev/null || echo '(no log)'")
+                print(f"  ⚠ Klippy log after 10s:")
+                for line in klog.splitlines()[-5:]:
+                    print(f"    {line}")
+            time.sleep(2)
+        else:
+            print("  ⚠ Klippy UDS socket never appeared")
+
+        # Verify API responses
         print("\n  ── Verifying Moonraker API ──")
+
+        # Check Moonraker's own log for startup errors
+        mr_log = self._exec("tail -20 \"$HOME/printer_data/logs/moonraker.log\" 2>/dev/null || echo '(no moonraker log)'")
+        print(f"  ⚠ Moonraker log:")
+        for line in mr_log.splitlines()[-10:]:
+            print(f"    {line}")
+
+        # Check processes are alive
+        for proc_name, pid_var in [("socat simulator", sim_pid),
+                                     ("Klippy", klippy_pid),
+                                     ("Moonraker", mr_pid)]:
+            alive = self._exec(f"ps -p {pid_var} -o pid= 2>/dev/null && echo 'ALIVE' || echo 'DEAD'")
+            print(f"  {'✓' if 'ALIVE' in alive else '✗'} {proc_name} PID {pid_var}: {'alive' if 'ALIVE' in alive else 'DEAD'}")
+
+        # Peek at background logs for errors
+        bg_log = self._exec("tail -20 /tmp/bg.log 2>/dev/null || echo '(no log)'")
+        print(f"  ⚠ Background log (last 20 lines):")
+        for line in bg_log.splitlines()[-10:]:
+            print(f"    {line}")
+
+        # Wait for Moonraker API
         server_info = ""
-        for attempt in range(20):
+        for attempt in range(30):
             out = self._exec(
                 "curl -sf http://127.0.0.1:7125/server/info 2>/dev/null || echo 'RETRY'"
             )
             if "RETRY" not in out:
                 server_info = out
                 break
+            if attempt == 10:
+                # After 20s, check if Moonraker is even running
+                mr_check = self._exec(f"ps -p {mr_pid} -o pid= 2>/dev/null && echo 'ALIVE' || echo 'DEAD'")
+                if "DEAD" in mr_check:
+                    print("  ⚠ Moonraker process died — checking log for errors...")
+                    break
             time.sleep(2)
 
         assert server_info, "Moonraker API never responded"

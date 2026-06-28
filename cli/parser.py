@@ -15,7 +15,7 @@ def build_parser() -> argparse.ArgumentParser:
         epilog=f"""
 Examples:
   %(prog)s check                     Check dependencies
-  %(prog)s install                   Full install (local)
+  %(prog)s install                   Full install (bootstrap + download release)
   %(prog)s install --remote pi@cnc   Full install (remote)
   %(prog)s install --check           Dry-run (check mode)
   %(prog)s deploy                    Deploy frontend (download from release)
@@ -53,7 +53,7 @@ Examples:
     p = subparsers = parser.add_subparsers(dest="command", title="Commands")
 
     p.add_parser("install", parents=[shared_remote, shared_check, shared_yes, shared_instance],
-                 help="Full installation: bootstrap stack, extractor, config, macros, frontend")
+                 help="Full installation: bootstrap infrastructure + download release + activate")
     p.add_parser("deploy", parents=[shared_remote, shared_check, shared_instance],
                  help="Deploy frontend (download from GitHub release)")
     p.add_parser("update", parents=[shared_remote, shared_check, shared_yes, shared_instance],

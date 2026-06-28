@@ -1,19 +1,30 @@
 """CLI-specific helper functions — not in _e3cnc_shared."""
 
 import argparse
+import json as _json
 import os
 import re
 import shutil
 import subprocess
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple
 
 from _e3cnc_shared import (
     Style, ok, info, warn, fail,
     _ssh_run, _ensure_local_sudo_access,
     detect_instances, set_active_instance, get_active_instance,
     instance_extra_vars, Instance,
+)
+from _e3cnc_deploy import (
+    RELEASES_DIR, DEFAULT_KEEP_RELEASES,
+    find_stack_artifact_asset, download_artifact, verify_checksum,
+    extract_artifact, run_pre_flight_checks,
+    activate_release, deactivate_release, Journal,
+    install_pip_deps, run_migrations,
+    sync_runtime_files, update_systemd_paths, restart_services,
+    run_health_checks, prune_releases,
+    backup_deployment_state, rollback_to, rollback_previous, auto_rollback,
 )
 
 _DESTRUCTIVE = ("install", "update", "uninstall")
@@ -146,8 +157,13 @@ def _run_ansible_cmd(
     playbook: Path,
     args: argparse.Namespace,
     label: str,
+    extra_tags: str = "",
 ) -> None:
-    """Run an Ansible playbook with proper error handling and instance paths."""
+    """Run an Ansible playbook with proper error handling and instance paths.
+    
+    Args:
+        extra_tags: Comma-separated Ansible tags to limit which roles run.
+    """
     from _e3cnc_shared import run_ansible_playbook, header
 
     _require_ansible()
@@ -173,7 +189,7 @@ def _run_ansible_cmd(
     result = run_ansible_playbook(
         playbook, args.remote, args.check, args.verbose,
         label, output_callback=lambda line: print(line, end=""),
-        extra_vars=extra_vars,
+        extra_vars=extra_vars, tags=extra_tags,
     )
 
     print(f"  {Style.DIM}{'─' * 50}{Style.RESET}")
@@ -183,3 +199,114 @@ def _run_ansible_cmd(
         code = result.returncode if hasattr(result, 'returncode') else '?'
         fail(f"{label} failed (exit code {code})")
         sys.exit(1)
+
+
+def _download_and_activate_release(
+    inst: Optional[Instance] = None,
+    skip_backup: bool = False,
+    auto_yes: bool = False,
+) -> str:
+    """Download the latest stack artifact, verify, extract, sync, and restart services.
+
+    Used by both cmd_install and cmd_update. Returns the activated version string.
+    """
+    from _e3cnc_shared import step, header
+
+    RELEASES_DIR.mkdir(parents=True, exist_ok=True)
+
+    step_num = 1
+
+    def _step(label: str) -> None:
+        nonlocal step_num
+        step(step_num, 9, label)
+        step_num += 1
+
+    _step("Finding latest release")
+    asset = find_stack_artifact_asset()
+    if not asset:
+        fail("No stack artifact found. Create a release on GitHub first, or use a local build.")
+    version = asset.get("name", "").replace("e3cnc-stack-", "").replace(".tar.zst", "")
+    info(f"Found stack artifact: {asset.get('name', 'unknown')}")
+
+    _step("Downloading artifact")
+    download_dir = Path("/tmp") / "e3cnc-download"
+    download_dir.mkdir(parents=True, exist_ok=True)
+    artifact_path = download_artifact(asset, download_dir)
+    if not artifact_path:
+        fail("Download failed")
+
+    _step("Verifying checksum")
+    if not verify_checksum(artifact_path):
+        if auto_yes:
+            warn("Checksum mismatch — continuing (--yes set)")
+        else:
+            reply = input(
+                f"  {Style.YELLOW}Checksum mismatch. Continue anyway? [y/N] {Style.RESET}"
+            ).strip().lower()
+            if reply != "y":
+                fail("Cancelled")
+
+    _step("Running pre-flight checks")
+    try:
+        manifest = _json.loads(artifact_path.with_name("manifest.json").read_text()) if (
+            artifact_path.with_name("manifest.json").exists()
+        ) else {}
+    except (OSError, _json.JSONDecodeError):
+        manifest = {}
+    if not run_pre_flight_checks(manifest):
+        if not auto_yes:
+            reply = input(
+                f"  {Style.YELLOW}Pre-flight checks failed. Continue? [y/N] {Style.RESET}"
+            ).strip().lower()
+            if reply != "y":
+                fail("Cancelled")
+
+    # Backup only for updates (fresh install has nothing to back up)
+    if not skip_backup:
+        backup_deployment_state(inst)
+
+    _step("Extracting release")
+    release_dir = extract_artifact(artifact_path, RELEASES_DIR, version)
+    if not release_dir:
+        fail("Extraction failed")
+
+    _step("Activating new release")
+    journal = Journal.load()
+    if not activate_release(version, release_dir, journal):
+        fail("Activation failed")
+
+    info("Installing pip dependencies (optional)...")
+    if not install_pip_deps(release_dir):
+        info("Pip dependencies skipped — continuing")
+
+    info("Running config/schema migrations...")
+    run_migrations(release_dir, direction="up")
+
+    _step("Syncing runtime files to live paths")
+    if not sync_runtime_files(inst):
+        warn("Runtime file sync had issues — continuing")
+
+    _step("Restarting services")
+    update_systemd_paths(inst)
+    restart_services(inst)
+
+    _step("Running health checks")
+    results = run_health_checks(inst)
+    all_passed = all(r.passed for r in results)
+    for r in results:
+        if r.passed:
+            ok(f"{r.name}: {r.detail}")
+        else:
+            warn(f"{r.name}: {r.detail}")
+
+    _step("Finalizing")
+    if all_passed:
+        journal.last_known_good = version
+        journal.save()
+        ok(f"Release {version} activated")
+        prune_releases(DEFAULT_KEEP_RELEASES)
+        return version
+    else:
+        warn(f"Health checks failed — rolling back to {journal.previous}")
+        auto_rollback(journal)
+        fail("Release rolled back due to health check failures")

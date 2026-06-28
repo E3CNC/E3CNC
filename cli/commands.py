@@ -64,13 +64,26 @@ def _ensure_system_packages() -> None:
 
 
 def cmd_install(args) -> None:
-    """Full installation: bootstrap stack, extractor, config, macros, frontend."""
+    """Full installation: bootstrap infrastructure + download release + activate."""
+    from cli.helpers import _download_and_activate_release
+
     header("Prerequisites")
     _require_ansible()
     _ensure_system_packages()
-    _run_ansible_cmd(INSTALL_PLAYBOOK, args, "Install")
 
+    # Step 1: Bootstrap infrastructure (packages, venvs, systemd, nginx, moonraker config)
+    _run_ansible_cmd(INSTALL_PLAYBOOK, args, "Bootstrap infrastructure",
+                     extra_tags="bootstrap-stack,moonraker-config")
+
+    # Step 2: Download and activate the latest release
+    print()
+    header("Release")
+    info("Downloading latest stack artifact...")
     inst = _get_instance(args)
+    version = _download_and_activate_release(inst=inst, skip_backup=True, auto_yes=args.yes)
+    ok(f"E3CNC v{version} deployed")
+
+    # Step 3: Post-install guidance
     _show_post_install_guide(inst)
 
 
@@ -130,7 +143,7 @@ def _show_post_install_guide(inst: Optional[Instance] = None) -> None:
     print("    2. Build and flash Klipper firmware for your MCU")
     print("       (see vendor/klipper/docs/Installation.md)")
     print("    3. Restart Klipper: sudo systemctl start klipper")
-    print("    4. Run 'e3cnc-cli update' to ensure the latest release")
+    print("    4. Run 'e3cnc-cli update' for future releases")
     print()
     if not services_ok:
         warn("Some services failed to start — check logs with: e3cnc-cli logs")
@@ -145,114 +158,15 @@ def cmd_deploy(args) -> None:
 
 def cmd_update(args) -> None:
     """Full-stack update: download stack artifact, activate, verify."""
+    from cli.helpers import _download_and_activate_release
+
     header("Stack Update")
 
     if args.remote:
         warn("Remote update not yet supported — running locally")
 
     inst = _get_instance(args) if not args.remote else None
-
-    RELEASES_DIR.mkdir(parents=True, exist_ok=True)
-
-    step_num = 1
-
-    def _step(label):
-        nonlocal step_num
-        from _e3cnc_shared import step
-        step(step_num, 14, label)
-        step_num += 1
-
-    _step("Finding latest release")
-    asset = find_stack_artifact_asset()
-    if not asset:
-        fail("No stack artifact found. Create a release on GitHub first, or use the legacy update.")
-    version = asset.get("name", "").replace("e3cnc-stack-", "").replace(".tar.zst", "")
-    info(f"Found stack artifact: {asset.get('name', 'unknown')}")
-
-    _step("Downloading artifact")
-    download_dir = Path("/tmp") / "e3cnc-download"
-    download_dir.mkdir(parents=True, exist_ok=True)
-    artifact_path = download_artifact(asset, download_dir)
-    if not artifact_path:
-        fail("Download failed")
-
-    _step("Verifying checksum")
-    if not verify_checksum(artifact_path):
-        if args.yes:
-            warn("Checksum mismatch — continuing (--yes set)")
-        else:
-            reply = input(
-                f"  {Style.YELLOW}Checksum mismatch. Continue anyway? [y/N] {Style.RESET}"
-            ).strip().lower()
-            if reply != "y":
-                fail("Update cancelled")
-
-    _step("Running pre-flight checks")
-    import json as _json
-    try:
-        manifest = _json.loads(artifact_path.with_name("manifest.json").read_text()) if (
-            artifact_path.with_name("manifest.json").exists()
-        ) else {}
-    except (OSError, _json.JSONDecodeError):
-        manifest = {}
-    if not run_pre_flight_checks(manifest):
-        if not args.yes:
-            reply = input(
-                f"  {Style.YELLOW}Pre-flight checks failed. Continue? [y/N] {Style.RESET}"
-            ).strip().lower()
-            if reply != "y":
-                fail("Update cancelled")
-
-    _step("Backing up current state")
-    backup_deployment_state(inst)
-
-    _step("Extracting release")
-    release_dir = extract_artifact(artifact_path, RELEASES_DIR, version)
-    if not release_dir:
-        fail("Extraction failed")
-
-    _step("Activating new release")
-    journal = Journal.load()
-    if not activate_release(version, release_dir, journal):
-        fail("Activation failed")
-
-    _step("Installing pip dependencies")
-    if not install_pip_deps(release_dir):
-        info("Pip dependencies skipped — continuing")
-
-    _step("Running config/schema migrations")
-    run_migrations(release_dir, direction="up")
-
-    _step("Syncing runtime files to live paths")
-    if not sync_runtime_files(inst):
-        warn("Runtime file sync had issues — continuing")
-
-    _step("Updating systemd paths")
-    update_systemd_paths(inst)
-
-    _step("Restarting services")
-    restart_services(inst)
-
-    _step("Running health checks")
-    results = run_health_checks(inst)
-    all_passed = all(r.passed for r in results)
-    for r in results:
-        if r.passed:
-            ok(f"{r.name}: {r.detail}")
-        else:
-            warn(f"{r.name}: {r.detail}")
-
-    _step("Finalizing")
-    if all_passed:
-        journal.last_known_good = version
-        journal.save()
-        ok(f"Update to {version} complete")
-        prune_releases(DEFAULT_KEEP_RELEASES)
-    else:
-        warn(f"Health checks failed — rolling back to {journal.previous}")
-        from _e3cnc_deploy import auto_rollback
-        auto_rollback(journal)
-        fail("Update rolled back due to health check failures")
+    _download_and_activate_release(inst=inst, skip_backup=False, auto_yes=args.yes)
 
 
 def cmd_releases(args) -> None:
