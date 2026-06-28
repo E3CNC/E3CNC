@@ -1,18 +1,14 @@
 ---
-- name: Redeploy E3CNC — re-vendor agent, rebuild frontend, restart
+- name: Redeploy E3CNC — deploy extractor, macros, frontend, restart
   hosts: cnc
   gather_facts: true
   vars_files:
     - ../vars/main.yml
   roles:
-    - role: agent
-      tags: [agent]
     - role: extractor
       tags: [extractor]
     - role: moonraker-config
       tags: [moonraker-config]
-    - role: klipper-extras
-      tags: [klipper-extras]
     - role: macros
       tags: [macros]
     - role: frontend

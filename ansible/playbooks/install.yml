@@ -22,14 +22,10 @@
   roles:
     - role: bootstrap-stack
       tags: [bootstrap, bootstrap-stack]
-    - role: agent
-      tags: [agent]
     - role: extractor
       tags: [extractor]
     - role: moonraker-config
       tags: [moonraker-config]
-    - role: klipper-extras
-      tags: [klipper-extras]
     - role: macros
       tags: [macros]
     - role: frontend

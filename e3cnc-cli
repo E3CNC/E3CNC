@@ -1196,6 +1196,79 @@ def cmd_install(args: argparse.Namespace) -> None:
     _ensure_system_packages()
     _run_ansible_cmd(INSTALL_PLAYBOOK, args, "Install")
 
+    # Post-install guidance
+    inst = _get_instance(args)
+    _show_post_install_guide(inst)
+
+
+def _show_post_install_guide(inst: Optional[Instance] = None) -> None:
+    """Print a post-install summary with next steps."""
+    header("Install Summary")
+
+    services_ok = True
+
+    # Check nginx
+    nginx = subprocess.run(
+        ["systemctl", "is-active", "nginx"], capture_output=True, text=True
+    )
+    if nginx.returncode == 0:
+        ok("Nginx is running — serving frontend")
+    else:
+        warn("Nginx is not running — check: sudo systemctl start nginx")
+        services_ok = False
+
+    # Check Moonraker
+    if inst:
+        mr = subprocess.run(
+            ["systemctl", "is-active", inst.moonraker_service],
+            capture_output=True, text=True,
+        )
+        if mr.returncode == 0:
+            ok(f"Moonraker ({inst.moonraker_service}) is running")
+        else:
+            warn(f"Moonraker ({inst.moonraker_service}) is not running")
+            services_ok = False
+
+    # Check Klipper
+    if inst:
+        kl = subprocess.run(
+            ["systemctl", "is-active", inst.klipper_service],
+            capture_output=True, text=True,
+        )
+        if kl.returncode == 0:
+            ok(f"Klipper ({inst.klipper_service}) is running")
+        else:
+            warn(f"Klipper ({inst.klipper_service}) is not running — needs a real printer.cfg")
+
+    # Check if printer.cfg is a placeholder
+    if inst:
+        printer_cfg = Path(inst.printer_cfg)
+        if printer_cfg.exists():
+            content = printer_cfg.read_text()
+            if "E3CNC bootstrap placeholder" in content:
+                warn("printer.cfg is a bootstrap placeholder — needs a real machine config")
+            else:
+                ok("printer.cfg found")
+
+    # Frontend accessibility
+    print()
+    info("To access the web interface:")
+    if inst:
+        print(f"    http://e3cnc.local/  (mDNS)")
+        print(f"    or use the machine's IP address")
+    print()
+    info("Next steps:")
+    print("    1. Configure printer.cfg with your machine's settings")
+    print("    2. Build and flash Klipper firmware for your MCU")
+    print("       (see vendor/klipper/docs/Installation.md)")
+    print("    3. Restart Klipper: sudo systemctl start klipper")
+    print("    4. Run 'e3cnc-cli update' to ensure the latest release")
+    print()
+    if not services_ok:
+        warn("Some services failed to start — check logs with: e3cnc-cli logs")
+    else:
+        ok("Installation complete")
+
 
 def cmd_deploy(args: argparse.Namespace) -> None:
     """Deploy frontend only."""

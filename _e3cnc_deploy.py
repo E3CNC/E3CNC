@@ -850,10 +850,10 @@ def sync_runtime_files(inst: Optional[Instance] = None, dry_run: bool = False) -
     release_root = current.path
     all_ok = True
 
-    # 1. Moonraker components (cnc_agent, cnc_metadata)
+    # 1. Moonraker components (cnc_agent, cnc_metadata) — from vendor tree
     components = ["cnc_agent", "cnc_metadata"]
     for comp in components:
-        src = release_root / "moonraker" / comp
+        src = release_root / "vendor" / "moonraker" / "moonraker" / "components" / comp
         dest = Path(active_inst.moonraker_dir) / "moonraker" / "components" / comp
         if src.is_dir():
             dest.mkdir(parents=True, exist_ok=True)
@@ -868,8 +868,8 @@ def sync_runtime_files(inst: Optional[Instance] = None, dry_run: bool = False) -
             warn(f"Moonraker component source not found: {src}")
             all_ok = False
 
-    # 2. MCP server
-    mcp_src = release_root / "moonraker" / "mcp"
+    # 2. MCP server — from vendor tree
+    mcp_src = release_root / "vendor" / "moonraker" / "mcp"
     mcp_dest = Path(active_inst.moonraker_dir) / "moonraker" / "components" / "mcp"
     if mcp_src.is_dir():
         mcp_dest.mkdir(parents=True, exist_ok=True)
@@ -881,8 +881,8 @@ def sync_runtime_files(inst: Optional[Instance] = None, dry_run: bool = False) -
                     shutil.copy2(f, mcp_dest / f.name)
         info("Synced MCP server")
 
-    # 3. Klipper extras
-    extras_src = release_root / "klipper" / "extras"
+    # 3. Klipper extras — from vendor tree
+    extras_src = release_root / "vendor" / "klipper" / "klippy" / "extras"
     extras_dest = Path(active_inst.klipper_dir) / "klippy" / "extras"
     if extras_src.is_dir():
         extras_dest.mkdir(parents=True, exist_ok=True)
@@ -969,11 +969,11 @@ def update_systemd_paths(inst: Optional[Instance] = None, dry_run: bool = False)
     # Create systemd drop-in directory
     services = {
         active_inst.moonraker_service: {
-            "WorkingDirectory": current_path / "moonraker",
+            "WorkingDirectory": current_path / "vendor" / "moonraker",
         },
     }
     # Only update Klipper if extras are present in the release
-    klipper_extras = current.path / "klipper" / "extras"
+    klipper_extras = current.path / "vendor" / "klipper" / "klippy" / "extras"
     if klipper_extras.is_dir():
         services[active_inst.klipper_service] = {}
 
@@ -1064,8 +1064,8 @@ def install_pip_deps(release_dir: Optional[Path] = None, dry_run: bool = False) 
         warn("No release to install pip deps from")
         return False
 
-    wheels_dir = rdir / "moonraker" / "wheels"
-    req_file = rdir / "moonraker" / "requirements.txt"
+    wheels_dir = rdir / "vendor" / "moonraker" / "wheels"
+    req_file = rdir / "vendor" / "moonraker" / "requirements.txt"
 
     if not req_file.exists():
         info("No requirements.txt found — skipping pip install")
