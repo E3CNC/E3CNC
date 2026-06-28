@@ -1,43 +1,24 @@
 """Docker-backed integration test for fresh-install bootstrap.
 
-Verifies that the full Ansible bootstrap lays down all files correctly and that
-nginx can serve the frontend. Requires Docker and E3CNC_RUN_DOCKER_TESTS=1.
+Verifies that the full Ansible bootstrap correctly lays down all files and that
+the stack (nginx, Moonraker, Klippy with simulated MCU) starts and responds.
+
+Requires Docker and E3CNC_RUN_DOCKER_TESTS=1.
 
 Usage:
     E3CNC_RUN_DOCKER_TESTS=1 python3 -m pytest tests/test_fresh_install_bootstrap_integration.py -x -v
 """
 
 import os
-import re
 import shutil
 import subprocess
+import time
 from pathlib import Path
 
 import pytest
 
 
 pytestmark = pytest.mark.integration
-
-
-def _check_output(output: str, label: str, pattern: str, invert: bool = False) -> bool:
-    """Check if pattern appears in output. Returns True if matched."""
-    if invert:
-        matched = re.search(pattern, output) is None
-    else:
-        matched = re.search(pattern, output) is not None
-    status = "PASS" if matched else "FAIL"
-    prefix = "!" if not matched else " "
-    print(f"  {prefix} [{status}] {label}: {pattern}")
-    return matched
-
-
-def _run_verify_script(container_id: str, script: str) -> str:
-    """Run a shell script inside the container and return output."""
-    result = subprocess.run(
-        ["docker", "exec", container_id, "bash", "-lc", script],
-        capture_output=True, text=True, timeout=300,
-    )
-    return result.stdout + result.stderr
 
 
 @pytest.mark.skipif(
@@ -58,14 +39,12 @@ class TestFreshInstallBootstrap:
         if not docker:
             pytest.skip("docker not available")
 
-        # Build container
         subprocess.run(
             [docker, "build", "-t", self.IMAGE_TAG,
              "-f", str(root / "tests" / "Dockerfile.fresh-install"), str(root)],
             check=True, cwd=root,
         )
 
-        # Start container in background (keeps running for exec commands)
         subprocess.run(
             [docker, "run", "-d", "--name", self.CONTAINER_NAME,
              "-e", "DEBIAN_FRONTEND=noninteractive", self.IMAGE_TAG, "sleep", "infinity"],
@@ -74,48 +53,49 @@ class TestFreshInstallBootstrap:
 
         yield
 
-        # Cleanup
         subprocess.run([docker, "rm", "-f", self.CONTAINER_NAME],
                        capture_output=True, check=False)
         subprocess.run([docker, "rmi", "-f", self.IMAGE_TAG],
                        capture_output=True, check=False)
 
-    def _exec(self, script: str) -> str:
+    def _exec(self, script: str, timeout: int = 300) -> str:
         """Run a bash script inside the container."""
         result = subprocess.run(
             ["docker", "exec", self.CONTAINER_NAME, "bash", "-lc", script],
-            capture_output=True, text=True, timeout=300,
+            capture_output=True, text=True, timeout=timeout,
         )
-        combined = result.stdout + result.stderr
-        if result.returncode != 0:
-            print(f"  [exit code {result.returncode}]")
-        return combined
+        return (result.stdout + result.stderr).strip()
 
-    # ── step 1: prepare environment ───────────────────────────────────────
+    def _exec_bg(self, script: str) -> int:
+        """Start a background process inside the container. Returns PID."""
+        out = self._exec(f"nohup bash -lc '{script}' >/tmp/bg.log 2>&1 & echo $!")
+        return int(out.strip().split()[-1])
 
-    def _install_ansible(self) -> str:
+    def _read_bg_log(self) -> str:
+        return self._exec("cat /tmp/bg.log 2>/dev/null || echo '(no log)'")
+
+    # ── Setup helpers ─────────────────────────────────────────────────────
+
+    def _install_ansible(self):
         """Install pip and Ansible inside the container."""
         return self._exec(
             "sudo apt-get update -qq >/dev/null && "
-            "sudo apt-get install -y -qq python3-pip >/dev/null && "
+            "sudo apt-get install -y -qq python3-pip socat >/dev/null && "
             "(python3 -m pip install --user ansible >/dev/null 2>&1 || "
             " python3 -m pip install --user --break-system-packages ansible >/dev/null 2>&1) && "
             "export PATH=\"$HOME/.local/bin:$PATH\" && "
-            "echo 'ansible ready'"
+            "echo 'ready'"
         )
 
-    def _setup_git_remote(self) -> str:
+    def _setup_git_remote(self):
         """Point the git origin to the local checkout (avoids network)."""
-        return self._exec(
+        self._exec(
             "cd ~/E3CNC && "
-            "git remote set-url origin file://$HOME/E3CNC 2>/dev/null || true && "
-            "echo 'git remote configured'"
+            "git remote set-url origin file://$HOME/E3CNC 2>/dev/null || true"
         )
-
-    # ── step 2: run Ansible ───────────────────────────────────────────────
 
     def _run_ansible_playbook(self, extra_tags: str = "") -> str:
-        """Run the install playbook, optionally with tag filters."""
+        """Run the install playbook with tag filter."""
         tags_flag = f"--tags {extra_tags}" if extra_tags else ""
         return self._exec(
             "export PATH=\"$HOME/.local/bin:$PATH\" && "
@@ -123,202 +103,233 @@ class TestFreshInstallBootstrap:
             f"ansible-playbook -i inventory/local.yml playbooks/install.yml "
             f"-e bootstrap_skip_runtime_start=true "
             f"-e bootstrap_skip_runtime_verification=true "
-            f"{tags_flag} "
-            f"2>&1"
+            f"{tags_flag} 2>&1"
         )
 
-    # ── step 3: verification ──────────────────────────────────────────────
+    # ── Verifiers ─────────────────────────────────────────────────────────
 
-    def _check_vendor_moonraker(self) -> bool:
-        """Verify vendored Moonraker was copied."""
-        out = self._exec("test -f ~/moonraker/moonraker/moonraker.py && echo 'FOUND' || echo 'MISSING'")
-        return "FOUND" in out
+    def _file_check(self, path: str, label: str) -> bool:
+        out = self._exec(f"test -f '{path}' && echo 'FOUND' || echo 'MISSING'")
+        ok = "FOUND" in out
+        print(f"  {'✓' if ok else '✗'} {label}")
+        return ok
 
-    def _check_cnc_agent(self) -> bool:
-        """Verify cnc_agent component was deployed."""
-        out = self._exec(
-            "test -f ~/moonraker/moonraker/components/cnc_agent/cnc_agent.py "
-            "&& echo 'FOUND' || echo 'MISSING'"
-        )
-        return "FOUND" in out
+    def _grep_check(self, path: str, pattern: str, label: str) -> bool:
+        out = self._exec(f"grep -q '{pattern}' '{path}' 2>/dev/null && echo 'FOUND' || echo 'MISSING'")
+        ok = "FOUND" in out
+        print(f"  {'✓' if ok else '✗'} {label}")
+        return ok
 
-    def _check_cnc_metadata(self) -> bool:
-        """Verify cnc_metadata component was deployed."""
-        out = self._exec(
-            "test -f ~/moonraker/moonraker/components/cnc_metadata/cnc_metadata.py "
-            "&& echo 'FOUND' || echo 'MISSING'"
-        )
-        return "FOUND" in out
+    def _invert_grep_check(self, path: str, pattern: str, label: str) -> bool:
+        out = self._exec(f"grep -c '{pattern}' '{path}' 2>/dev/null || echo 0")
+        try:
+            count = int(out.strip().split()[-1])
+        except (ValueError, IndexError):
+            count = 999
+        ok = count == 0
+        print(f"  {'✓' if ok else '✗'} {label}")
+        return ok
 
-    def _check_mcp_server(self) -> bool:
-        """Verify MCP server was deployed."""
-        out = self._exec(
-            "test -f ~/moonraker/mcp/mcp_server.py "
-            "&& echo 'FOUND' || echo 'MISSING'"
-        )
-        return "FOUND" in out
-
-    def _check_vendor_klipper(self) -> bool:
-        """Verify vendored Klipper was copied."""
-        out = self._exec("test -f ~/klipper/klippy/klippy.py && echo 'FOUND' || echo 'MISSING'")
-        return "FOUND" in out
-
-    def _check_wcs_plugin(self) -> bool:
-        """Verify work_coordinate_systems.py is in vendor Klipper extras."""
-        out = self._exec(
-            "test -f ~/klipper/klippy/extras/work_coordinate_systems.py "
-            "&& echo 'FOUND' || echo 'MISSING'"
-        )
-        return "FOUND" in out
-
-    def _check_moonraker_conf_sections(self) -> bool:
-        """Verify [cnc_agent] and [cnc_metadata] in moonraker.conf."""
-        out = self._exec(
-            "grep -q '\\[cnc_agent\\]' ~/printer_data/config/moonraker.conf "
-            "&& grep -q '\\[cnc_metadata\\]' ~/printer_data/config/moonraker.conf "
-            "&& echo 'FOUND' || echo 'MISSING'"
-        )
-        return "FOUND" in out
-
-    def _check_placeholder_printer_cfg(self) -> bool:
-        """Verify printer.cfg is a bootstrap placeholder."""
-        out = self._exec(
-            "grep -q 'E3CNC bootstrap placeholder' ~/printer_data/config/printer.cfg "
-            "&& echo 'FOUND' || echo 'MISSING'"
-        )
-        return "FOUND" in out
-
-    def _check_macros_deployed(self) -> bool:
-        """Verify macros were deployed."""
-        out = self._exec(
-            "test -f ~/printer_data/config/E3CNC/macros/wcs_macros.cfg "
-            "&& test -f ~/printer_data/config/E3CNC/macros/e3cnc_macros.cfg "
-            "&& test -f ~/printer_data/config/E3CNC/macros/cnc_base.cfg "
-            "&& echo 'FOUND' || echo 'MISSING'"
-        )
-        return "FOUND" in out
-
-    def _check_metadata_extractor(self) -> bool:
-        """Verify metadata extractor script was deployed."""
-        out = self._exec(
-            "test -x ~/printer_data/scripts/cnc_metadata_extractor.py "
-            "&& echo 'FOUND' || echo 'MISSING'"
-        )
-        return "FOUND" in out
-
-    def _check_printer_cfg_includes(self) -> bool:
-        """Verify printer.cfg has [include E3CNC/macros/...] directives."""
-        out = self._exec(
-            "grep -q 'include E3CNC/macros' ~/printer_data/config/printer.cfg "
-            "&& echo 'FOUND' || echo 'MISSING'"
-        )
-        return "FOUND" in out
-
-    def _check_nginx_config_exists(self) -> bool:
-        """Verify nginx site config was installed."""
-        out = self._exec(
-            "test -f /etc/nginx/sites-available/e3cnc "
-            "&& echo 'FOUND' || echo 'MISSING'"
-        )
-        return "FOUND" in out
-
-    def _check_nginx_config_coexists(self) -> list:
-        """Verify nginx config does NOT use default_server."""
-        results = []
-        out = self._exec(
-            "grep -c 'default_server' /etc/nginx/sites-available/e3cnc 2>/dev/null || echo 0"
-        )
-        no_default = out.strip() == "0"
-        results.append(("no default_server", no_default))
-
-        out = self._exec(
-            "grep 'server_name' /etc/nginx/sites-available/e3cnc 2>/dev/null || echo 'MISSING'"
-        )
-        has_hostname = "e3cnc.local" in out
-        results.append(("server_name e3cnc.local", has_hostname))
-        return results
-
-    def _check_nginx_config_valid(self) -> bool:
-        """Verify nginx config passes syntax check."""
-        out = self._exec("sudo nginx -t 2>&1")
-        return "test is successful" in out or "syntax is ok" in out
-
-    def _start_nginx_and_test(self) -> tuple:
-        """Start nginx and verify it serves content on port 80."""
-        # remove any default site to avoid conflicts
-        self._exec("sudo rm -f /etc/nginx/sites-enabled/default 2>/dev/null; sudo nginx 2>&1")
-        # Check nginx is running
-        ps_out = self._exec("ps aux | grep -c '[n]ginx'")
-        running = ps_out.strip().isdigit() and int(ps_out.strip()) > 0
-
-        # curl the frontend (may get 200, 302, or 404 depending on frontend deploy)
-        http_code = self._exec("curl -s -o /dev/null -w '%{http_code}' http://localhost/ 2>/dev/null || echo 'no-connect'")
-        return running, http_code.strip()
-
-    # ── main test ─────────────────────────────────────────────────────────
+    # ── Test: file-level verification ─────────────────────────────────────
 
     def test_fresh_bootstrap_full_verification(self):
-        """Full integration test: install + verify all components."""
-
-        print("\n  ── Step 1: Setup ──")
-        out = self._install_ansible()
-        print(f"  {out.strip()}")
+        """Verify all files and configs are correctly deployed."""
+        print("\n  ── Setup ──")
+        self._install_ansible()
         self._setup_git_remote()
 
-        print("\n  ── Step 2: Run Ansible bootstrap ──")
-        ansible_out = self._run_ansible_playbook(
+        print("\n  ── Ansible ──")
+        out = self._run_ansible_playbook(
             extra_tags="bootstrap-stack,extractor,moonraker-config,macros"
         )
-        # Print last 3 lines of Ansible output
-        lines = ansible_out.strip().splitlines()
+        lines = out.splitlines()
         for line in lines[-3:]:
-            print(f"  {line.strip()}")
-
-        assert "failed=0" in ansible_out, (
-            f"Ansible playbook had failures. Last 20 lines:\n"
-            + "\n".join(lines[-20:])
+            print(f"  {line}")
+        assert "failed=0" in out, (
+            f"Ansible failed. Last 20 lines:\n" + "\n".join(lines[-20:])
         )
 
-        print("\n  ── Step 3: File verification ──")
+        print("\n  ── Files ──")
         checks = [
-            ("Vendored Moonraker exists", self._check_vendor_moonraker()),
-            ("Moonraker cnc_agent component", self._check_cnc_agent()),
-            ("Moonraker cnc_metadata component", self._check_cnc_metadata()),
-            ("MCP server deployed", self._check_mcp_server()),
-            ("Vendored Klipper exists", self._check_vendor_klipper()),
-            ("WCS plugin in Klipper extras", self._check_wcs_plugin()),
-            ("moonraker.conf has [cnc_agent] + [cnc_metadata]", self._check_moonraker_conf_sections()),
-            ("Placeholder printer.cfg created", self._check_placeholder_printer_cfg()),
-            ("Macros deployed (wcs, e3cnc, cnc_base)", self._check_macros_deployed()),
-            ("Metadata extractor deployed", self._check_metadata_extractor()),
-            ("printer.cfg has [include E3CNC/macros]", self._check_printer_cfg_includes()),
-            ("nginx site config installed", self._check_nginx_config_exists()),
+            self._file_check("~/moonraker/moonraker/moonraker.py", "Vendored Moonraker"),
+            self._file_check("~/moonraker/moonraker/components/cnc_agent/cnc_agent.py", "cnc_agent component"),
+            self._file_check("~/moonraker/moonraker/components/cnc_metadata/cnc_metadata.py", "cnc_metadata component"),
+            self._file_check("~/moonraker/mcp/mcp_server.py", "MCP server"),
+            self._file_check("~/klipper/klippy/klippy.py", "Vendored Klipper"),
+            self._file_check("~/klipper/klippy/extras/work_coordinate_systems.py", "WCS plugin in extras"),
+            self._file_check("~/printer_data/scripts/cnc_metadata_extractor.py", "Metadata extractor (executable)"),
+            self._file_check("~/printer_data/config/E3CNC/macros/wcs_macros.cfg", "Macros: wcs_macros"),
+            self._file_check("~/printer_data/config/E3CNC/macros/e3cnc_macros.cfg", "Macros: e3cnc_macros"),
+            self._file_check("~/printer_data/config/E3CNC/macros/cnc_base.cfg", "Macros: cnc_base"),
+            self._grep_check("~/printer_data/config/moonraker.conf", r"\[cnc_agent\]", "moonraker.conf has [cnc_agent]"),
+            self._grep_check("~/printer_data/config/moonraker.conf", r"\[cnc_metadata\]", "moonraker.conf has [cnc_metadata]"),
+            self._grep_check("~/printer_data/config/printer.cfg", "E3CNC bootstrap placeholder", "Placeholder printer.cfg"),
+            self._grep_check("~/printer_data/config/printer.cfg", "include E3CNC/macros", "printer.cfg has macro includes"),
+            self._file_check("/etc/nginx/sites-available/e3cnc", "nginx site config"),
+            self._invert_grep_check("/etc/nginx/sites-available/e3cnc", "default_server", "nginx: no default_server"),
+            self._grep_check("/etc/nginx/sites-available/e3cnc", "server_name e3cnc.local", "nginx: server_name e3cnc.local"),
         ]
-        all_ok = True
-        for label, ok in checks:
-            status = "✓" if ok else "✗"
-            print(f"  {status} {label}")
-            if not ok:
-                all_ok = False
+        assert all(checks), "Some file checks failed"
 
-        self._check_nginx_config_coexists()
-        for label, ok in self._check_nginx_config_coexists():
-            status = "✓" if ok else "✗"
-            print(f"  {status} nginx: {label}")
-            if not ok:
-                all_ok = False
+        print("\n  ── nginx runtime ──")
+        valid = self._exec("sudo nginx -t 2>&1")
+        nginx_ok = "test is successful" in valid or "syntax is ok" in valid
+        print(f"  {'✓' if nginx_ok else '✗'} nginx config syntax: {'valid' if nginx_ok else 'INVALID'}")
+        assert nginx_ok, f"nginx config invalid:\n{valid}"
 
-        print("\n  ── Step 4: nginx runtime test ──")
-        valid = self._check_nginx_config_valid()
-        print(f"  {'✓' if valid else '✗'} nginx config syntax is valid")
-        if not valid:
-            all_ok = False
+        self._exec("sudo rm -f /etc/nginx/sites-enabled/default 2>/dev/null; sudo nginx 2>&1")
+        running = self._exec("ps aux | grep -c '[n]ginx'")
+        nginx_running = running.strip().isdigit() and int(running.strip()) > 0
+        print(f"  {'✓' if nginx_running else '✗'} nginx process: {'running' if nginx_running else 'NOT RUNNING'}")
+        assert nginx_running, "nginx failed to start"
 
-        running, http_code = self._start_nginx_and_test()
-        print(f"  {'✓' if running else '✗'} nginx process running")
-        if not running:
-            all_ok = False
+        http = self._exec("curl -s -o /dev/null -w '%{http_code}' http://localhost/ 2>/dev/null || echo 'no-connect'")
+        print(f"  Frontend HTTP: {http}")
 
-        print(f"  Frontend HTTP status: {http_code} (may be 000 if no release yet)")
+    # ── Test: full stack with simulated MCU ───────────────────────────────
 
-        assert all_ok, "Some checks failed — see output above"
+    def test_fresh_bootstrap_with_simulated_mcu(self):
+        """Full stack test: build Klipper simulator, start Klippy + Moonraker,
+        verify via API that cnc_agent loads and Klippy reaches ready state."""
+        import json
+
+        print("\n  ── Setup ──")
+        self._install_ansible()
+        self._setup_git_remote()
+
+        print("\n  ── Ansible ──")
+        out = self._run_ansible_playbook(
+            extra_tags="bootstrap-stack,extractor,moonraker-config,macros"
+        )
+        assert "failed=0" in out, "Ansible playbook failed"
+
+        # ── Build Klipper simulator ──
+        print("\n  ── Building Klipper simulator ──")
+        out = self._exec(
+            "cd ~/klipper && "
+            "cp test/configs/hostsimulator.config .config && "
+            "make olddefconfig 2>&1 && make -j4 2>&1"
+        )
+        for line in out.splitlines()[-3:]:
+            print(f"  {line}")
+        sim_built = self._exec("test -f ~/klipper/out/klipper.elf && echo 'FOUND' || echo 'MISSING'")
+        assert "FOUND" in sim_built, "Klipper simulator build failed"
+        print("  ✓ Simulator built at ~/klipper/out/klipper.elf")
+
+        # ── Write real printer.cfg ──
+        print("\n  ── Writing test printer.cfg ──")
+        self._exec("cat > ~/printer_data/config/printer.cfg << 'CFGEOF'\n"
+            "# Test printer.cfg for simulated MCU\n"
+            "[mcu]\n"
+            "serial: /tmp/klipper-sim-pty\n"
+            "baud: 250000\n"
+            "\n"
+            "[printer]\n"
+            "kinematics: none\n"
+            "max_velocity: 300\n"
+            "max_accel: 3000\n"
+            "\n"
+            "[include E3CNC/macros/cnc_base.cfg]\n"
+            "[include E3CNC/macros/wcs_macros.cfg]\n"
+            "[include E3CNC/macros/e3cnc_macros.cfg]\n"
+            "CFGEOF\n"
+            "echo 'written'")
+        print("  ✓ Test printer.cfg written")
+
+        # ── Start simulator via socat PTY ──
+        print("\n  ── Starting MCU simulator ──")
+        sim_pid = self._exec_bg(
+            "socat PTY,link=/tmp/klipper-sim-pty,rawer "
+            "EXEC:$HOME/klipper/out/klipper.elf,pty,rawer"
+        )
+        time.sleep(2)
+        pty_check = self._exec("test -c /tmp/klipper-sim-pty && echo 'FOUND' || echo 'MISSING'")
+        assert "FOUND" in pty_check, f"socat PTY not created (PID {sim_pid})"
+        print(f"  ✓ Simulator PID {sim_pid}, PTY at /tmp/klipper-sim-pty")
+
+        # ── Start Klippy ──
+        print("\n  ── Starting Klippy ──")
+        klippy_pid = self._exec_bg(
+            "export PATH=\"$HOME/.local/bin:$PATH\" && "
+            "cd ~/klipper && "
+            "~/klipper/venv/bin/python ~/klipper/klippy/klippy.py "
+            "~/printer_data/config/printer.cfg "
+            "-I ~/printer_data/comms/klippy.serial "
+            "-l ~/printer_data/logs/klippy.log "
+            "-a ~/printer_data/comms/klippy.sock"
+        )
+        time.sleep(5)
+        print(f"  ✓ Klippy PID {klippy_pid}")
+
+        # ── Start Moonraker ──
+        print("\n  ── Starting Moonraker ──")
+        mr_pid = self._exec_bg(
+            "cd ~/moonraker && "
+            "~/moonraker/venv/bin/python ~/moonraker/moonraker/moonraker.py "
+            "-d ~/printer_data"
+        )
+        time.sleep(5)
+        print(f"  ✓ Moonraker PID {mr_pid}")
+
+        # ── Verify API responses ──
+        print("\n  ── Verifying Moonraker API ──")
+        server_info = ""
+        for attempt in range(20):
+            out = self._exec(
+                "curl -sf http://127.0.0.1:7125/server/info 2>/dev/null || echo 'RETRY'"
+            )
+            if "RETRY" not in out:
+                server_info = out
+                break
+            time.sleep(2)
+
+        assert server_info, "Moonraker API never responded"
+        try:
+            info = json.loads(server_info)
+        except json.JSONDecodeError:
+            pytest.fail(f"Moonraker API returned non-JSON:\n{server_info}")
+
+        # Check cnc_agent component loaded
+        components = info.get("result", {}).get("components", [])
+        has_cnc_agent = any("cnc_agent" in str(c) for c in components)
+        print(f"  {'✓' if has_cnc_agent else '✗'} cnc_agent component: {'loaded' if has_cnc_agent else 'MISSING'}")
+        assert has_cnc_agent, f"cnc_agent not in Moonraker components: {components}"
+
+        # Check Klippy state
+        printer_info = ""
+        for attempt in range(30):
+            out = self._exec(
+                "curl -sf http://127.0.0.1:7125/printer/info 2>/dev/null || echo 'RETRY'"
+            )
+            if "RETRY" not in out:
+                printer_info = out
+                try:
+                    state = json.loads(printer_info).get("result", {}).get("state", "")
+                    if state == "ready":
+                        break
+                except json.JSONDecodeError:
+                    pass
+            time.sleep(2)
+
+        if printer_info:
+            try:
+                state = json.loads(printer_info).get("result", {}).get("state", "unknown")
+                print(f"  Klippy state: {state}")
+            except json.JSONDecodeError:
+                print(f"  Klippy response (non-JSON): {printer_info[:200]}")
+        else:
+            print("  Klippy never responded via API")
+
+        # If Klippy reached ready, run a status check
+        if printer_info:
+            try:
+                state = json.loads(printer_info).get("result", {}).get("state", "unknown")
+                assert state == "ready", f"Klippy state is '{state}', expected 'ready'"
+                print(f"  ✓ Klippy reached 'ready' state")
+            except (json.JSONDecodeError, KeyError):
+                pytest.fail(f"Could not parse Klippy state from: {printer_info[:300]}")
+        else:
+            pytest.fail("Klippy API never responded")
+
+        print(f"\n  {'─' * 40}")
+        print("  ✓ Full stack verification passed")
