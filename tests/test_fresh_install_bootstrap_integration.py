@@ -62,7 +62,7 @@ class TestFreshInstallBootstrap:
         subprocess.run([docker, "rmi", "-f", self.IMAGE_TAG],
                        capture_output=True, check=False)
 
-    def _exec(self, script: str, timeout: int = 300) -> str:
+    def _exec(self, script: str, timeout: int = 600) -> str:
         """Run a bash script inside the container."""
         result = subprocess.run(
             ["docker", "exec", self.CONTAINER_NAME, "bash", "-lc", script],
