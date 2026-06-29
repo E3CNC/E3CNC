@@ -19,11 +19,15 @@ FROM ubuntu:24.04
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=UTC
 
-# Install bare minimum — NO ansible, NO bun, NO nvm, NO pip
+# Install bare minimum — NO ansible, NO bun, NO nvm
+# python3-pip and python3-venv are needed by the bootstrap-stack role
+# to create virtualenvs and pip-install Python deps (Klipper, Moonraker)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     curl \
     python3 \
+    python3-pip \
+    python3-venv \
     sudo \
     ca-certificates \
     socat \
