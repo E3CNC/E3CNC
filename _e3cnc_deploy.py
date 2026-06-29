@@ -745,8 +745,9 @@ def backup_deployment_state(inst: Optional[Instance] = None) -> Optional[Path]:
 
         # Raw Moonraker SQLite database (works even when Moonraker is down)
         db_dir = Path(active_inst.printer_data_dir) / "database"
-        for db_file in db_dir.glob("*.sqlite*"):
-            shutil.copy2(db_file, backup_dir / db_file.name)
+        for db_file in db_dir.glob("*"):
+            if db_file.is_file() and db_file.suffix in (".sqlite", ".db", ".sqlite3"):
+                shutil.copy2(db_file, backup_dir / db_file.name)
 
     # Journal
     if JOURNAL_PATH.exists():
