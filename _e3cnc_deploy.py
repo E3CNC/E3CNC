@@ -44,7 +44,7 @@ GITHUB_RELEASES = f"https://github.com/{GITHUB_REPO}/releases"
 # ── Constants ───────────────────────────────────────────────────────────────
 
 DEFAULT_KEEP_RELEASES = 3
-HEALTH_CHECK_RETRIES = 3
+HEALTH_CHECK_RETRIES = 6
 HEALTH_CHECK_BACKOFF = 5  # seconds
 
 
