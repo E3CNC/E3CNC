@@ -1,0 +1,37 @@
+# Version control
+.git/
+.gitattributes
+.gitignore
+
+# Node.js / frontend build artifacts
+node_modules/
+dist/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+
+# IDE and editor config
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build artifacts from Klipper
+vendor/klipper/out/
+
+# Logs
+*.log
+
+# Ansible vault secrets
+*.vault
+
+# Misc
+*.md~
+*.bak

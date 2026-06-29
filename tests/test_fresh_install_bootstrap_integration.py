@@ -77,14 +77,9 @@ class TestFreshInstallBootstrap:
     # ── Setup helpers ─────────────────────────────────────────────────────
 
     def _install_ansible(self):
-        """Install pip and Ansible inside the container."""
+        """Ansible is pre-installed in the Docker image. Just ensure socat is available."""
         return self._exec(
-            "sudo apt-get update -qq >/dev/null && "
-            "sudo apt-get install -y -qq python3-pip socat >/dev/null && "
-            "(python3 -m pip install --user ansible >/dev/null 2>&1 || "
-            " python3 -m pip install --user --break-system-packages ansible >/dev/null 2>&1) && "
-            "export PATH=\"$HOME/.local/bin:$PATH\" && "
-            "echo 'ready'"
+            "sudo apt-get install -y -qq socat >/dev/null 2>&1 && echo 'ready'"
         )
 
     def _setup_git_remote(self):

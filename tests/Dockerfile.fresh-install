@@ -19,7 +19,7 @@ FROM ubuntu:24.04
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=UTC
 
-# Install bare minimum — NO ansible, NO bun, NO nvm
+# Install base system packages
 # python3-pip and python3-venv are needed by the bootstrap-stack role
 # to create virtualenvs and pip-install Python deps (Klipper, Moonraker)
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -35,8 +35,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     avahi-utils \
     && rm -rf /var/lib/apt/lists/*
 
+# Pre-install ansible system-wide (avoid slow pip install in every test run)
+RUN pip3 install --break-system-packages ansible
+
 # Create a non-root user for testing (e3cnc-cli installs user-level tools)
-RUN useradd -m -s /bin/bash testbed && echo "testbed ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+RUN useradd -m -s /bin/bash testbed && \
+    echo "testbed ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 USER testbed
 WORKDIR /home/testbed
