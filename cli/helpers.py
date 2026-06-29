@@ -335,7 +335,7 @@ def _download_and_activate_release(
         fail("Release rolled back due to health check failures")
 
 
-def scan_serial_devices() -> list[dict]:
+def scan_serial_devices() -> 'list[dict]':
     """Scan for serial/MCU devices and return a list of device dicts.
 
     Each dict has: path, vendor, model, serial, is_klipper
@@ -420,7 +420,7 @@ def scan_serial_devices() -> list[dict]:
     return devices
 
 
-def _generate_cnc_printer_cfg(mcu_path: str | None = None) -> str:
+def _generate_cnc_printer_cfg(mcu_path: 'str | None' = None) -> str:
     """Generate a complete CNC printer.cfg with the detected MCU path.
 
     The output is a well-commented template. Sections marked with
@@ -599,7 +599,7 @@ resolution: 1.0            # G2/G3 arc resolution (mm)
 #   flash_help:  Instructions shown after building
 #   alias:       Matched against detected device model names for auto-suggest
 
-MCU_PRESETS: list[dict] = [
+MCU_PRESETS: 'list[dict]' = [
     {
         "id": "stm32f103-usb",
         "name": "STM32F103 (USB)",
@@ -685,7 +685,7 @@ MCU_PRESETS: list[dict] = [
 ]
 
 
-def _find_matching_preset(device: dict) -> int | None:
+def _find_matching_preset(device: dict) -> 'int | None':
     """Find the index of the best-matching preset for a detected device."""
     model = device.get("model", "").lower()
     for i, preset in enumerate(MCU_PRESETS):
