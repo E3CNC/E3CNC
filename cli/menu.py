@@ -27,7 +27,7 @@ def _switch_instance() -> None:
     print(f"  {Style.BOLD}Available CNC instances:{Style.RESET}")
     print()
     for i, inst in enumerate(instances):
-        dot = "\x1b[32m●\x1b[0m" if inst.is_running else "\x1b[90m○\x1b[0m"
+        dot = "\x1b[32m\u25cf\x1b[0m" if inst.is_running else "\x1b[90m\u25cb\x1b[0m"
         print(f"  {i + 1:>2}) {dot} {Style.BOLD}{inst.name}{Style.RESET}")
         print(f"      Config: {inst.config_dir}")
         print(f"      Service: {inst.moonraker_service}  Port: {inst.moonraker_port}")
@@ -58,6 +58,7 @@ def _run_menu_command(cmd: str) -> None:
         cmd_check, cmd_install, cmd_deploy, cmd_update, cmd_uninstall,
         cmd_status, cmd_backup, cmd_restore, cmd_diagnose, cmd_logs,
         cmd_releases, cmd_rollback, cmd_prune, cmd_instances, cmd_migrate,
+        cmd_detect_mcu, cmd_flash_mcu, cmd_init_config,
     )
 
     _DESTRUCTIVE = ("install", "update", "uninstall")
@@ -67,7 +68,7 @@ def _run_menu_command(cmd: str) -> None:
         print()
         try:
             answer = input(
-                f"  {Style.YELLOW}⚠ {labels.get(cmd, cmd)} is destructive. Continue? [y/N] {Style.RESET}"
+                f"  {Style.YELLOW}\u26a0 {labels.get(cmd, cmd)} is destructive. Continue? [y/N] {Style.RESET}"
             ).strip().lower()
         except (EOFError, KeyboardInterrupt):
             print()
@@ -87,6 +88,7 @@ def _run_menu_command(cmd: str) -> None:
     args.yes = True
     args.lines = 50
     args.instance = None
+    args.dry_run = False
     args.command = cmd
 
     dispatch = {
@@ -111,6 +113,14 @@ def _run_menu_command(cmd: str) -> None:
         "instances": cmd_instances,
         "inst": cmd_instances,
         "list": cmd_instances,
+        "detect-mcu": cmd_detect_mcu,
+        "detect": cmd_detect_mcu,
+        "scan": cmd_detect_mcu,
+        "flash-mcu": cmd_flash_mcu,
+        "flash": cmd_flash_mcu,
+        "build": cmd_flash_mcu,
+        "init-config": cmd_init_config,
+        "init": cmd_init_config,
     }
     handler = dispatch.get(cmd)
     if handler:
@@ -119,7 +129,6 @@ def _run_menu_command(cmd: str) -> None:
 
 def _interactive_menu() -> None:
     """Show an interactive numbered menu that loops until Quit."""
-    # Deferred import to avoid circular dependency at module level
     from cli.commands import cmd_migrate
 
     all_items = [
@@ -128,6 +137,10 @@ def _interactive_menu() -> None:
         ("[D] Deploy",      "deploy"),
         ("[U] Update",      "update"),
         ("[X] Uninstall",   "uninstall"),
+        ("",                ""),
+        ("[Dm] Detect MCU", "detect-mcu"),
+        ("[Fm] Flash MCU",  "flash-mcu"),
+        ("[Ic] Init Config","init-config"),
         ("",                ""),
         ("[Rl] Releases",   "releases"),
         ("[Rb] Rollback",   "rollback"),
