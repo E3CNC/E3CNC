@@ -65,6 +65,10 @@ Examples:
                  help="Check installation status of all components")
     p.add_parser("check", help="Check dependencies")
 
+    # MCU commands
+    p.add_parser("detect-mcu", aliases=["detect", "scan"],
+                 help="Scan for connected MCU/serial devices and identify them")
+
     # Single-deploy commands
     p.add_parser("releases", aliases=["rel"],
                  help="List installed releases")

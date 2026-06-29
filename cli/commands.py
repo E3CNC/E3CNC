@@ -139,11 +139,12 @@ def _show_post_install_guide(inst: Optional[Instance] = None) -> None:
         print(f"    or http://<ip>:8080/")
     print()
     info("Next steps:")
-    print("    1. Configure printer.cfg with your machine's settings")
-    print("    2. Build and flash Klipper firmware for your MCU")
+    print("    1. Run 'e3cnc-cli detect-mcu' to find your controller")
+    print("    2. Configure printer.cfg with your machine's settings")
+    print("    3. Build and flash Klipper firmware for your MCU")
     print("       (see vendor/klipper/docs/Installation.md)")
-    print("    3. Restart Klipper: sudo systemctl start klipper")
-    print("    4. Run 'e3cnc-cli update' for future releases")
+    print("    4. Restart Klipper: sudo systemctl start klipper")
+    print("    5. Run 'e3cnc-cli update' for future releases")
     print()
     if not services_ok:
         warn("Some services failed to start — check logs with: e3cnc-cli logs")
@@ -328,3 +329,52 @@ def cmd_logs(args) -> None:
     result = run_logs(args.remote, args.lines, output_callback=lambda line: print(line, end=""), inst=inst)
     if not result.success:
         sys.exit(1)
+
+
+def cmd_detect_mcu(args) -> None:
+    """Scan for connected MCU/serial devices and help identify the right one."""
+    from cli.helpers import scan_serial_devices
+
+    header("MCU Detection")
+
+    devices = scan_serial_devices()
+
+    if not devices:
+        info("No serial/MCU devices detected.")
+        print()
+        info("Common checks:")
+        print("  1. Is your controller board connected via USB?")
+        print("  2. Try: ls -la /dev/serial/by-id/")
+        print("  3. Try: ls -la /dev/ttyUSB* /dev/ttyACM* 2>/dev/null")
+        print("  4. Inside a VM/container? Serial passthrough may be needed.")
+        print("  5. On macOS? Run this on the actual Raspberry Pi / target machine.")
+        print()
+        info("If you see devices but they don't appear here,")
+        info("run 'sudo e3cnc-cli detect-mcu' for full access.")
+        return
+
+    print(f"  Found {len(devices)} device(s):")
+    print()
+    print(f"  {'#':<3} {'Device':<35} {'Vendor':<22} {'Model':<28} {'Serial'}")
+    print(f"  {'─'*3} {'─'*35} {'─'*22} {'─'*28} {'─'*20}")
+    for i, dev in enumerate(devices, 1):
+        marker = "◉" if dev.get("is_klipper") else "○"
+        print(f"  {i:<3} {dev['path']:<35} {dev['vendor']:<22} {dev['model']:<28} {dev['serial']:<20}  {marker}")
+
+    klipper_devs = [d for d in devices if d.get("is_klipper")]
+    if klipper_devs:
+        print()
+        info("◉ = Klipper firmware detected — ready to use")
+    else:
+        print()
+        info("○ = No Klipper firmware detected")
+        info("Run 'e3cnc-cli flash-mcu' to flash a controller board")
+
+    print()
+    info("To use a device, add to your printer.cfg:")
+    print("  [mcu]")
+    print(f"  serial: {devices[0]['path']}")
+
+    if klipper_devs:
+        print()
+        info(f"Suggested MCU: {klipper_devs[0]['path']} ({klipper_devs[0]['vendor']} {klipper_devs[0]['model']})")

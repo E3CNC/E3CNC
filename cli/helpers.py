@@ -310,3 +310,88 @@ def _download_and_activate_release(
         warn(f"Health checks failed — rolling back to {journal.previous}")
         auto_rollback(journal)
         fail("Release rolled back due to health check failures")
+
+
+def scan_serial_devices() -> list[dict]:
+    """Scan for serial/MCU devices and return a list of device dicts.
+
+    Each dict has: path, vendor, model, serial, is_klipper
+    Returns empty list if no devices found or if not on Linux.
+    """
+    import glob
+
+    devices = []
+
+    # 1. Scan udev-managed symlinks (most reliable — stable names)
+    serial_by_id = glob.glob("/dev/serial/by-id/*")
+    for sp in sorted(serial_by_id):
+        try:
+            real = os.path.realpath(sp)
+            name = os.path.basename(sp)
+            # Parse "usb-VENDOR_MODEL_SERIAL-ifXX" format
+            rest = name
+            if rest.startswith("usb-"):
+                rest = rest[4:]
+            if rest.startswith("pci-"):
+                rest = rest[4:]
+
+            # Split off the -ifXX port suffix
+            if "-if" in rest:
+                rest = rest[: rest.rindex("-if")]
+
+            # Split vendor_model_serial (underscore-separated)
+            parts = rest.split("_")
+            if len(parts) >= 3:
+                vendor = parts[0]
+                model = "_".join(parts[1:-1])
+                serial = parts[-1]
+            elif len(parts) == 2:
+                vendor = parts[0]
+                model = parts[1]
+                serial = ""
+            else:
+                vendor = parts[0] if parts else ""
+                model = ""
+                serial = ""
+
+            # Detect Klipper firmware
+            is_klipper = "klipper" in name.lower()
+
+            devices.append({
+                "path": sp,
+                "real": real,
+                "vendor": vendor or "Unknown",
+                "model": model or "Unknown",
+                "serial": serial or "N/A",
+                "is_klipper": is_klipper,
+            })
+        except (OSError, ValueError):
+            continue
+
+    # 2. Fallback: raw tty devices (no udev info available)
+    tty_devs = glob.glob("/dev/ttyUSB*") + glob.glob("/dev/ttyACM*")
+    existing = {d["real"] for d in devices}
+    for td in sorted(tty_devs):
+        real_td = os.path.realpath(td)
+        if real_td not in existing:
+            devices.append({
+                "path": td,
+                "real": real_td,
+                "vendor": "Unknown",
+                "model": f"Serial device ({os.path.basename(td)})",
+                "serial": "N/A",
+                "is_klipper": False,
+            })
+
+    # 3. Check for Klipper Linux MCU process socket
+    if os.path.exists("/tmp/klipper_host_mcu"):
+        devices.append({
+            "path": "/tmp/klipper_host_mcu",
+            "real": os.path.realpath("/tmp/klipper_host_mcu") if os.path.islink("/tmp/klipper_host_mcu") else "/tmp/klipper_host_mcu",
+            "vendor": "Klipper",
+            "model": "Linux MCU Process",
+            "serial": "virtual",
+            "is_klipper": True,
+        })
+
+    return devices

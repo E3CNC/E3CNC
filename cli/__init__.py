@@ -20,6 +20,7 @@ from cli.commands import (
     cmd_check, cmd_install, cmd_deploy, cmd_update, cmd_uninstall,
     cmd_status, cmd_backup, cmd_restore, cmd_diagnose, cmd_logs,
     cmd_releases, cmd_rollback, cmd_migrate, cmd_prune, cmd_instances,
+    cmd_detect_mcu,
 )
 
 
@@ -62,6 +63,9 @@ def main() -> None:
         "instances": cmd_instances,
         "inst": cmd_instances,
         "list": cmd_instances,
+        "detect-mcu": cmd_detect_mcu,
+        "detect": cmd_detect_mcu,
+        "scan": cmd_detect_mcu,
     }
 
     handler = dispatch.get(args.command)

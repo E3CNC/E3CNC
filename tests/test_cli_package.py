@@ -516,3 +516,99 @@ class TestMainDispatch:
                 with patch("sys.exit"):
                     main()
                     mock.assert_called_once()
+
+
+# ── MCU detection tests ────────────────────────────────────────────────────────
+
+
+class TestScanSerialDevices:
+    """Tests for cli.helpers.scan_serial_devices()."""
+
+    def test_returns_empty_when_no_devices(self):
+        """When no serial devices exist, return empty list."""
+        from cli.helpers import scan_serial_devices
+
+        with patch("glob.glob", return_value=[]):
+            with patch("os.path.exists", return_value=False):
+                result = scan_serial_devices()
+                assert result == []
+
+    def test_detects_klipper_device(self, tmp_path):
+        """A symlink with 'klipper' in the name should be marked is_klipper=True."""
+        from cli.helpers import scan_serial_devices
+
+        # Create a fake serial device tree
+        serial_dir = tmp_path / "serial" / "by-id"
+        serial_dir.mkdir(parents=True)
+
+        # Create a real tty to point to
+        real_tty = tmp_path / "ttyACM0"
+        real_tty.write_text("")
+
+        # Create symlink like udev does: usb-Klipper_stm32f103_12345-if00
+        symlink = serial_dir / "usb-Klipper_stm32f103_12345-if00"
+        symlink.symlink_to(real_tty)
+
+        with patch("glob.glob", return_value=[str(symlink)]):
+            with patch("os.path.exists", return_value=False):
+                result = scan_serial_devices()
+
+        assert len(result) == 1
+        assert result[0]["vendor"] == "Klipper"
+        assert result[0]["model"] == "stm32f103"
+        assert result[0]["serial"] == "12345"
+        assert result[0]["is_klipper"] is True
+
+    def test_parses_ftdi_device(self, tmp_path):
+        """FTDI-style device names should be parsed correctly."""
+        from cli.helpers import scan_serial_devices
+
+        serial_dir = tmp_path / "serial" / "by-id"
+        serial_dir.mkdir(parents=True)
+        real_tty = tmp_path / "ttyUSB0"
+        real_tty.write_text("")
+        symlink = serial_dir / "usb-FTDI_FT232R_USB_UART_A50285BI-if00-port0"
+        symlink.symlink_to(real_tty)
+
+        with patch("glob.glob", return_value=[str(symlink)]):
+            with patch("os.path.exists", return_value=False):
+                result = scan_serial_devices()
+
+        assert len(result) == 1
+        assert result[0]["vendor"] == "FTDI"
+        assert "FT232R" in result[0]["model"]
+        assert result[0]["serial"] == "A50285BI"
+        assert result[0]["is_klipper"] is False
+
+    def test_detects_linux_mcu_socket(self, tmp_path):
+        """When /tmp/klipper_host_mcu exists, include it as a Klipper device."""
+        from cli.helpers import scan_serial_devices
+
+        # Create the Linux MCU socket symlink
+        mcu_path = tmp_path / "klipper_host_mcu"
+        real_pty = tmp_path / "pts" / "0"
+        real_pty.parent.mkdir(parents=True)
+        real_pty.write_text("")
+        mcu_path.symlink_to(real_pty)
+
+        with patch("glob.glob", return_value=[]):
+            with patch("os.path.exists", return_value=True):
+                with patch("os.path.islink", return_value=True):
+                    with patch("os.path.realpath", return_value=str(real_pty)):
+                        result = scan_serial_devices()
+
+        assert len(result) == 1
+        assert result[0]["vendor"] == "Klipper"
+        assert result[0]["model"] == "Linux MCU Process"
+        assert result[0]["serial"] == "virtual"
+        assert result[0]["is_klipper"] is True
+
+    def test_detect_mcu_parses_correctly_in_parser(self):
+        """detect-mcu should be a valid subcommand."""
+        from cli.parser import build_parser
+
+        parser = build_parser()
+        choices = parser._subparsers._group_actions[0].choices
+        assert "detect-mcu" in choices
+        assert "detect" in choices
+        assert "scan" in choices
