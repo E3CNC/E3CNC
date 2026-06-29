@@ -163,7 +163,7 @@ class TestFreshInstallBootstrap:
     def _verify_frontend_response(self) -> tuple:
         """Curl the frontend and verify expected HTML content."""
         http = self._exec(
-            "curl -s -o /tmp/fe-body.txt -w '%{http_code}' http://localhost:8080/ 2>/dev/null || echo 'no-connect'"
+            "curl -s -o /tmp/fe-body.txt -w '%{http_code}' http://localhost/ 2>/dev/null || echo 'no-connect'"
         )
         status_ok = http.strip() == "200"
         html = self._exec("cat /tmp/fe-body.txt 2>/dev/null || echo ''")
