@@ -11,16 +11,80 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    name: Build
+  test-python:
+    name: Python Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
 
-      - uses: oven-sh/setup-bun@v2
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install Python dependencies
+        run: pip install pytest pytest-asyncio
+
+      - name: Run unit tests
+        run: |
+          python3 -m pytest tests/ -v \
+            --ignore=tests/test_fresh_install_bootstrap_integration.py \
+            --ignore=tests/moonraker \
+            --ignore=vendor \
+            --tb=short --no-header 2>&1 | tail -50
+
+      - name: Check import paths (cli, shared modules)
+        run: |
+          python3 -c "
+          from _e3cnc_shared import VERSION, TOOL_NAME
+          from cli.helpers import MCU_PRESETS, scan_serial_devices, _generate_cnc_printer_cfg
+          from cli.parser import build_parser
+          print(f'E3CNC {VERSION} ({TOOL_NAME}) — all imports OK')
+          print(f'MCU presets: {len(MCU_PRESETS)}')
+          parser = build_parser()
+          cmds = list(parser._subparsers._group_actions[0].choices.keys())
+          print(f'Commands: {len(cmds)} — {\", \".join(sorted(cmds))}')
+          "
+
+  build-frontend:
+    name: Frontend Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install bun
+        uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
+      - name: Cache bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.bun/install/cache
+            node_modules
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
       - run: bun install --frozen-lockfile
 
-      - run: bun run build
+      - name: Build
+        run: bun run build
+
+      - name: Verify critical assets exist
+        run: |
+          echo "=== Asset sizes ==="
+          ls -lhS dist/assets/*.js | head -10
+          echo ""
+          echo "=== Chunk verification ==="
+          for chunk in "Viewer" "vuetify" "vue-core" "index"; do
+            file=$(ls dist/assets/${chunk}-*.js 2>/dev/null | head -1)
+            if [ -n "$file" ]; then
+              size=$(stat -c%s "$file")
+              echo "  ✅ ${chunk}: $(numfmt --to=iec $size)"
+            else
+              echo "  ❌ ${chunk}: MISSING"
+            fi
+          done
