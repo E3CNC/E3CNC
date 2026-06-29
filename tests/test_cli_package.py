@@ -612,3 +612,82 @@ class TestScanSerialDevices:
         assert "detect-mcu" in choices
         assert "detect" in choices
         assert "scan" in choices
+
+
+# ── MCU flash tests ────────────────────────────────────────────────────────────
+
+
+class TestMCUPresets:
+    """Tests for cli.helpers MCU presets and build helpers."""
+
+    def test_presets_have_required_fields(self):
+        """All presets must have id, name, description, config, flash_help."""
+        from cli.helpers import MCU_PRESETS
+
+        for preset in MCU_PRESETS:
+            assert "id" in preset, f"Missing id in {preset.get('name', '?')}"
+            assert "name" in preset
+            assert "description" in preset
+            assert "config" in preset, f"Missing config in {preset['id']}"
+            assert preset["config"], f"Empty config in {preset['id']}"
+            assert "flash_help" in preset
+
+    def test_presets_have_unique_ids(self):
+        """Preset IDs must be unique."""
+        from cli.helpers import MCU_PRESETS
+
+        ids = [p["id"] for p in MCU_PRESETS]
+        assert len(ids) == len(set(ids)), f"Duplicate IDs: {ids}"
+
+    def test_find_matching_preset_returns_index(self):
+        """_find_matching_preset should return the right preset index for a device."""
+        from cli.helpers import _find_matching_preset, MCU_PRESETS
+
+        device = {"model": "stm32f103"}
+        idx = _find_matching_preset(device)
+        assert idx is not None
+        assert MCU_PRESETS[idx]["id"] == "stm32f103-usb"
+
+    def test_find_matching_preset_returns_none_for_unknown(self):
+        """_find_matching_preset returns None for unrecognized devices."""
+        from cli.helpers import _find_matching_preset
+
+        device = {"model": "SomeUnknownDevice"}
+        idx = _find_matching_preset(device)
+        assert idx is None
+
+    def test_build_klipper_firmware_fails_missing_dir(self):
+        """build_klipper_firmware should return False for non-existent dir."""
+        from cli.helpers import build_klipper_firmware
+
+        messages = []
+
+        def log(msg):
+            messages.append(msg)
+
+        result = build_klipper_firmware("stm32f103-usb", "/nonexistent/path", log)
+        assert result is False
+        assert any("not found" in m for m in messages)
+
+    def test_build_klipper_firmware_fails_unknown_preset(self):
+        """build_klipper_firmware should return False for unknown preset ID."""
+        from cli.helpers import build_klipper_firmware
+
+        messages = []
+
+        def log(msg):
+            messages.append(msg)
+
+        result = build_klipper_firmware("nonexistent-preset", "/tmp", log)
+        assert result is False
+        assert any("Unknown preset" in m for m in messages)
+
+    def test_flash_mcu_in_parser(self):
+        """flash-mcu should be a valid subcommand with aliases."""
+        from cli.parser import build_parser
+
+        parser = build_parser()
+        choices = parser._subparsers._group_actions[0].choices
+        assert "flash-mcu" in choices
+        assert "flash" in choices
+        assert "build" in choices

@@ -21,6 +21,7 @@ from cli.commands import (
     cmd_status, cmd_backup, cmd_restore, cmd_diagnose, cmd_logs,
     cmd_releases, cmd_rollback, cmd_migrate, cmd_prune, cmd_instances,
     cmd_detect_mcu,
+    cmd_flash_mcu,
 )
 
 
@@ -66,6 +67,9 @@ def main() -> None:
         "detect-mcu": cmd_detect_mcu,
         "detect": cmd_detect_mcu,
         "scan": cmd_detect_mcu,
+        "flash-mcu": cmd_flash_mcu,
+        "flash": cmd_flash_mcu,
+        "build": cmd_flash_mcu,
     }
 
     handler = dispatch.get(args.command)

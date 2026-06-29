@@ -378,3 +378,103 @@ def cmd_detect_mcu(args) -> None:
     if klipper_devs:
         print()
         info(f"Suggested MCU: {klipper_devs[0]['path']} ({klipper_devs[0]['vendor']} {klipper_devs[0]['model']})")
+
+
+def cmd_flash_mcu(args) -> None:
+    """Build and flash Klipper firmware for a connected MCU."""
+    from cli.helpers import (
+        scan_serial_devices, MCU_PRESETS,
+        _find_matching_preset, build_klipper_firmware,
+    )
+
+    header("Flash MCU")
+
+    # Step 1: Detect already-flashed Klipper devices
+    devices = scan_serial_devices()
+    klipper_devs = [d for d in devices if d.get("is_klipper")]
+    if klipper_devs:
+        info("Klipper firmware detected on:")
+        for d in klipper_devs:
+            print(f"    {d['path']}  ({d['vendor']} {d['model']})")
+        print()
+        info("Your MCU may already have Klipper firmware flashed.")
+        if not args.yes:
+            try:
+                reply = input(
+                    f"  {Style.YELLOW}Rebuild and reflash? [y/N] {Style.RESET}"
+                ).strip().lower()
+            except (EOFError, KeyboardInterrupt):
+                reply = "n"
+            if reply != "y":
+                info("Cancelled — your existing firmware is intact.")
+                return
+
+    # Step 2: Show MCU type selection
+    print()
+    info("Select your MCU type:")
+    print()
+
+    # Try to suggest a preset based on detected Klipper device model
+    suggested_idx = None
+    for dev in devices:
+        suggested_idx = _find_matching_preset(dev)
+        if suggested_idx is not None:
+            break
+
+    for i, preset in enumerate(MCU_PRESETS):
+        marker = "▸" if i == suggested_idx else " "
+        print(f"  {marker} {i + 1}. {preset['name']}")
+        print(f"       {preset['description']}")
+
+    print()
+    try:
+        choice = input(
+            f"  {Style.CYAN}Enter number (1-{len(MCU_PRESETS)}) [default: {(suggested_idx or 0) + 1}]: {Style.RESET}"
+        ).strip()
+    except (EOFError, KeyboardInterrupt):
+        print()
+        info("Cancelled")
+        return
+
+    if not choice:
+        idx = suggested_idx if suggested_idx is not None else 0
+    else:
+        try:
+            idx = int(choice) - 1
+            if idx < 0 or idx >= len(MCU_PRESETS):
+                fail(f"Invalid choice: {choice}")
+                return
+        except ValueError:
+            fail(f"Invalid choice: {choice}")
+            return
+
+    preset = MCU_PRESETS[idx]
+    print()
+    info(f"Building {preset['name']}...")
+
+    # Step 3: Build firmware
+    def _progress(msg):
+        print(f"  {Style.DIM}→ {msg}{Style.RESET}")
+
+    inst = _get_instance(args)
+    klipper_dir = inst.klipper_dir if inst else "~/klipper"
+
+    success = build_klipper_firmware(preset["id"], klipper_dir, _progress)
+    if not success:
+        fail("Firmware build failed")
+        print()
+        info("Common issues:")
+        print("  1. Missing toolchain — install: sudo apt install arm-none-eabi-gcc")
+        print("  2. Missing build tools — install: sudo apt install make")
+        print("  3. Klipper directory not found at", klipper_dir)
+        return
+
+    # Step 4: Show flash instructions
+    print()
+    header("Flash Instructions")
+    print()
+    for line in preset["flash_help"].split("\n"):
+        print(f"  {line}")
+    print()
+    info("Firmware files are in: ~/klipper/out/")
+    print()

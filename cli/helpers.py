@@ -395,3 +395,196 @@ def scan_serial_devices() -> list[dict]:
         })
 
     return devices
+
+
+# ── MCU firmware presets ──────────────────────────────────────────────────────
+
+# Each preset defines:
+#   name:        Human-readable label
+#   description: Short description of the board
+#   config:      List of Kconfig lines to write to .config (MCU + comm interface)
+#                make olddefconfig fills in the rest automatically
+#   flash_help:  Instructions shown after building
+#   alias:       Matched against detected device model names for auto-suggest
+
+MCU_PRESETS: list[dict] = [
+    {
+        "id": "stm32f103-usb",
+        "name": "STM32F103 (USB)",
+        "description": "Blue Pill / generic STM32F103 board via USB CDC",
+        "config": [
+            "CONFIG_LOW_LEVEL_OPTIONS=y",
+            "CONFIG_MACH_STM32=y",
+            "CONFIG_MACH_STM32F103=y",
+            "CONFIG_STM32_USB_PA11_PA12=y",
+        ],
+        "flash_help": "Put your board in DFU mode (BOOT0=HIGH, then power cycle),\n"
+                       "then run: make flash FLASH_DEVICE=0483:df11",
+        "alias": ["stm32f103"],
+    },
+    {
+        "id": "stm32f103-serial",
+        "name": "STM32F103 (Serial)",
+        "description": "Blue Pill / generic STM32F103 via USART1 (PA10/PA9)",
+        "config": [
+            "CONFIG_LOW_LEVEL_OPTIONS=y",
+            "CONFIG_MACH_STM32=y",
+            "CONFIG_MACH_STM32F103=y",
+            "CONFIG_STM32_SERIAL_USART1=y",
+        ],
+        "flash_help": "Use an external USB-serial adapter connected to PA10/PA9,\n"
+                       "then run: make serialflash FLASH_DEVICE=/dev/ttyUSB0",
+        "alias": ["stm32f103"],
+    },
+    {
+        "id": "stm32f407-usb",
+        "name": "STM32F407 (USB)",
+        "description": "STM32F407 board via USB CDC (common in CNC)",
+        "config": [
+            "CONFIG_LOW_LEVEL_OPTIONS=y",
+            "CONFIG_MACH_STM32=y",
+            "CONFIG_MACH_STM32F407=y",
+            "CONFIG_STM32_USB_PA11_PA12=y",
+        ],
+        "flash_help": "Put your board in DFU mode, then run:\n"
+                       "make flash FLASH_DEVICE=0483:df11",
+        "alias": ["stm32f407"],
+    },
+    {
+        "id": "stm32f446-usb",
+        "name": "STM32F446 (USB)",
+        "description": "STM32F446 board via USB CDC",
+        "config": [
+            "CONFIG_LOW_LEVEL_OPTIONS=y",
+            "CONFIG_MACH_STM32=y",
+            "CONFIG_MACH_STM32F446=y",
+            "CONFIG_STM32_USB_PA11_PA12=y",
+        ],
+        "flash_help": "Put your board in DFU mode, then run:\n"
+                       "make flash FLASH_DEVICE=0483:df11",
+        "alias": ["stm32f446"],
+    },
+    {
+        "id": "rp2040-usb",
+        "name": "RP2040 (USB)",
+        "description": "Raspberry Pi Pico or RP2040 board via USB",
+        "config": [
+            "CONFIG_LOW_LEVEL_OPTIONS=y",
+            "CONFIG_MACH_RPXXXX=y",
+            "CONFIG_MACH_RP2040=y",
+            "CONFIG_RP2040_USB=y",
+        ],
+        "flash_help": "Hold BOOTSEL while connecting USB, then copy\n"
+                       "out/klipper.uf2 to the RPI-RP2 mass storage device",
+        "alias": ["rp2040"],
+    },
+    {
+        "id": "linux",
+        "name": "Linux MCU Process",
+        "description": "Run Klipper as a Linux userspace process (dev/testing)",
+        "config": [
+            "CONFIG_LOW_LEVEL_OPTIONS=y",
+            "CONFIG_MACH_LINUX=y",
+        ],
+        "flash_help": "No flashing needed. The MCU binary is at out/klipper.elf.\n"
+                       "Run it directly: ./out/klipper.elf -I /tmp/klipper_host_mcu",
+        "alias": ["linux"],
+    },
+]
+
+
+def _find_matching_preset(device: dict) -> int | None:
+    """Find the index of the best-matching preset for a detected device."""
+    model = device.get("model", "").lower()
+    for i, preset in enumerate(MCU_PRESETS):
+        for alias in preset.get("alias", []):
+            if alias in model:
+                return i
+    return None
+
+
+def build_klipper_firmware(
+    preset_id: str,
+    klipper_dir: str = "~/klipper",
+    progress_callback=None,
+) -> bool:
+    """Build Klipper firmware for the given preset.
+
+    Returns True on success, False on failure.
+    """
+    import glob as _glob
+    import shutil as _shutil
+
+    preset = None
+    for p in MCU_PRESETS:
+        if p["id"] == preset_id:
+            preset = p
+            break
+    if not preset:
+        if progress_callback:
+            progress_callback(f"Unknown preset: {preset_id}")
+        return False
+
+    klipper_path = os.path.expanduser(klipper_dir)
+
+    if not os.path.exists(os.path.join(klipper_path, "klippy", "klippy.py")):
+        if progress_callback:
+            progress_callback(f"Klipper directory not found: {klipper_path}")
+        return False
+
+    def _log(msg):
+        if progress_callback:
+            progress_callback(msg)
+
+    # Write .config
+    config_path = os.path.join(klipper_path, ".config")
+    _log(f"Writing config for {preset['name']}...")
+    try:
+        with open(config_path, "w") as f:
+            for line in preset["config"]:
+                f.write(line + "\n")
+    except OSError as e:
+        _log(f"Failed to write config: {e}")
+        return False
+
+    # Run make olddefconfig to fill in defaults
+    _log("Resolving configuration defaults...")
+    result = subprocess.run(
+        ["make", "olddefconfig"],
+        cwd=klipper_path,
+        capture_output=True, text=True,
+    )
+    if result.returncode != 0:
+        _log(f"Config resolution failed:\n{result.stderr}")
+        return False
+
+    # Run make to build the firmware
+    _log("Building firmware (make -j4)...")
+    result = subprocess.run(
+        ["make", "-j4"],
+        cwd=klipper_path,
+        capture_output=True, text=True,
+    )
+    if result.returncode != 0:
+        _log(f"Build failed:\n{result.stderr[-500:]}")
+        return False
+
+    # Verify output
+    elf_path = os.path.join(klipper_path, "out", "klipper.elf")
+    bin_path = os.path.join(klipper_path, "out", "klipper.bin")
+    uf2_path = os.path.join(klipper_path, "out", "klipper.uf2")
+
+    outputs = []
+    if os.path.exists(elf_path):
+        outputs.append(f"out/klipper.elf ({round(os.path.getsize(elf_path) / 1024)} KB)")
+    if os.path.exists(bin_path):
+        outputs.append(f"out/klipper.bin ({round(os.path.getsize(bin_path) / 1024)} KB)")
+    if os.path.exists(uf2_path):
+        outputs.append(f"out/klipper.uf2 ({round(os.path.getsize(uf2_path) / 1024)} KB)")
+
+    if outputs:
+        _log(f"Build complete: {', '.join(outputs)}")
+        return True
+    else:
+        _log("Build completed but no output files found in out/")
+        return False

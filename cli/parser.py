@@ -68,6 +68,9 @@ Examples:
     # MCU commands
     p.add_parser("detect-mcu", aliases=["detect", "scan"],
                  help="Scan for connected MCU/serial devices and identify them")
+    p.add_parser("flash-mcu", aliases=["flash", "build"],
+                 parents=[shared_yes, shared_instance],
+                 help="Build and flash Klipper firmware for a connected MCU")
 
     # Single-deploy commands
     p.add_parser("releases", aliases=["rel"],
