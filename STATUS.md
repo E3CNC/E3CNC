@@ -123,13 +123,21 @@
 - `deploy.yml` simplified to call `download_frontend.sh` directly
 - Status: **implemented**
 
+### 12. Klipper Requirements File & Docker pip/venv Fix (June 29)
+- **Added** `vendor/klipper/scripts/klippy-requirements.txt` — matches upstream Klipper's pinned deps:
+  - `greenlet`, `cffi`, `pyserial`, `Jinja2`, `markupsafe`, `python-can`, `msgspec`
+- **Why:** Bootstrap role checks for this file to pip-install Klipper's venv. Without it, the step was silently skipped, leaving Klippy with missing modules at first start.
+- **Updated** `tests/Dockerfile.fresh-install` — added `python3-pip` and `python3-venv` to base packages
+- **Why:** Bootstrap creates virtualenvs and pip-installs requirements; these packages weren't in the base image
+- **Result:** `ansible-playbook install.yml` now runs clean (ok=42 changed=25 failed=0), all 17 file checks pass, nginx starts, Klipper venv has all deps, Moonraker imports cleanly
+
 ---
 
 ## Current State
 
 ### Git Status
-- Branch: `main`
-- Ahead of `origin/main` by **18 commits**
+| Branch: `main`
+- Ahead of `origin/main` by **19 commits**
 - Working tree: **clean**
 - Version: `0.8.2` (package.json, _e3cnc_shared.py, e3cnc-cli)
 
@@ -137,8 +145,8 @@
 | Suite | Count | Status |
 |---|---|---|
 | Python unit tests (pytest) | 99 | ✅ All passing |
-| Docker integration (test 1) | 17 checks | ✅ Passing |
-| Docker integration (test 2) | Simulated MCU | ❌ Timing issue |
+| Docker integration (test 1) | 17 checks | ✅ All passing, bootstrap runs clean |
+| Docker integration (test 2) | Simulated MCU | 🟡 Needs full-stack timeout tuning |
 | Cypress e2e | 8 specs | ✅ Passing |
 | Frontend build | — | ✅ 15.4s |
 | Lint | 0 errors | ✅ Clean |
@@ -152,10 +160,9 @@ No release has been created for `E3CNC` (the old `v2.x` tags are from the Mainsa
 **To create:** Tag `v0.8.2`, push, trigger `workflow_dispatch` on `build-frontend.yml`.
 
 #### 2. 🟡 Simulated MCU Integration Test
-Test 2 starts all processes (socat simulator, Klippy, Moonraker) but Moonraker's HTTP API never responds. All processes stay alive, Klippy creates its UDS socket. Likely causes:
-- Moonraker venv pip deps not fully installed
-- Moonraker startup timeout too short
-- Missing paths/config for Moonraker initialization
+Test 2 starts all processes (socat simulator, Klippy, Moonraker) but the 300s pytest runner timeout is too tight for the full sequence. Ansible runs clean (ok=42 changed=25 failed=0), all 17 file checks pass, nginx starts. The pip deps issue that blocked Moonraker is now fixed (Klipper requirements file added, Docker base image includes python3-pip/python3-venv). Remaining issues:
+- Full test (build simulator → socat PTY → Klippy → Moonraker → API poll) takes >180s, exceeding the default terminal timeout
+- Frontend verify test curls port 8080 but bootstrap nginx listens on port 80 (pre-existing test bug — separate from pip deps)
 
 #### 3. 🟡 TypeScript Errors (~1,400)
 - ~1,200 are `implicit any` in Vuex store files (Vuex + strict TS mismatch) — deferred
@@ -174,9 +181,10 @@ Cypress tests the UI against `vite preview` on the dev machine. They don't run a
 - After release exists, `download_frontend.sh` and `e3cnc-cli update` work
 - Requires user push permission
 
-### 2. 🔴 Fix Simulated MCU Integration Test
-- Debug Moonraker API startup (pip deps, timeout, logs)
-- Currently blocked on "Moonraker API never responded"
+### 2. 🟡 Simulated MCU Integration Test Timing
+- Debug the 300s timeout (build + start + verify takes >180s across serial steps)
+- Fix frontend port mismatch (test curls 8080, nginx listens on 80)
+- Pip deps issue now resolved (Klipper requirements file + Docker pip/venv)
 
 ### 3. 🟡 v1.0 Stabilization Work (EPIC #16)
 - Stabilize `/viewer` route (#10)
