@@ -279,25 +279,24 @@ class TestFreshInstallBootstrap:
         print(f"  {'✓' if 'OK' in mr_import else '✗'} Moonraker import check: {mr_import[:100]}")
 
         # ── Build Klipper simulator ──
-        print("\n  ── Building Klipper simulator ──")
+        print("\n  ── Building Klipper MCU simulator ──")
         out = self._exec(
             "cd ~/klipper && "
-            "cp test/configs/hostsimulator.config .config && "
+            "cp test/configs/linuxprocess.config .config && "
             "make olddefconfig 2>&1 && make -j4 2>&1"
         )
         for line in out.splitlines()[-3:]:
             print(f"  {line}")
         sim_built = self._exec("test -f ~/klipper/out/klipper.elf && echo 'FOUND' || echo 'MISSING'")
-        assert "FOUND" in sim_built, "Klipper simulator build failed"
-        print("  ✓ Simulator built at ~/klipper/out/klipper.elf")
+        assert "FOUND" in sim_built, "Klipper MCU build failed"
+        print("  ✓ Klipper MCU built at ~/klipper/out/klipper.elf")
 
-        # ── Write real printer.cfg ──
+        # ── Write real printer.cfg for Linux MCU ──
         print("\n  ── Writing test printer.cfg ──")
         self._exec("cat > ~/printer_data/config/printer.cfg << 'CFGEOF'\n"
-            "# Test printer.cfg for simulated MCU\n"
+            "# Test printer.cfg for Linux MCU process\n"
             "[mcu]\n"
-            "serial: /tmp/klipper-sim-pty\n"
-            "baud: 250000\n"
+            "serial: /tmp/klipper_host_mcu\n"
             "\n"
             "[printer]\n"
             "kinematics: none\n"
@@ -311,16 +310,15 @@ class TestFreshInstallBootstrap:
             "echo 'written'")
         print("  ✓ Test printer.cfg written")
 
-        # ── Start simulator via socat PTY ──
-        print("\n  ── Starting MCU simulator ──")
+        # ── Start Linux MCU process (creates its own PTY at /tmp/klipper_host_mcu) ──
+        print("\n  ── Starting Linux MCU ──")
         sim_pid = self._exec_bg(
-            "socat PTY,link=/tmp/klipper-sim-pty,rawer "
-            "EXEC:$HOME/klipper/out/klipper.elf,pty,rawer"
+            "nohup $HOME/klipper/out/klipper.elf -r -I /tmp/klipper_host_mcu"
         )
         time.sleep(2)
-        pty_check = self._exec("test -c /tmp/klipper-sim-pty && echo 'FOUND' || echo 'MISSING'")
-        assert "FOUND" in pty_check, f"socat PTY not created (PID {sim_pid})"
-        print(f"  ✓ Simulator PID {sim_pid}, PTY at /tmp/klipper-sim-pty")
+        pty_check = self._exec("test -L /tmp/klipper_host_mcu && echo 'FOUND' || echo 'MISSING'")
+        assert "FOUND" in pty_check, f"Linux MCU PTY not created (PID {sim_pid})"
+        print(f"  ✓ MCU PID {sim_pid}, PTY at /tmp/klipper_host_mcu")
 
         # ── Start Klippy ──
         print("\n  ── Starting Klippy ──")
@@ -373,7 +371,7 @@ class TestFreshInstallBootstrap:
             print(f"    {line}")
 
         # Check processes are alive
-        for proc_name, pid_var in [("socat simulator", sim_pid),
+        for proc_name, pid_var in [("linux MCU", sim_pid),
                                      ("Klippy", klippy_pid),
                                      ("Moonraker", mr_pid)]:
             alive = self._exec(f"ps -p {pid_var} -o pid= 2>/dev/null && echo 'ALIVE' || echo 'DEAD'")
