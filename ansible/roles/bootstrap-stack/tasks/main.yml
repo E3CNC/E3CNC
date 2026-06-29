@@ -260,8 +260,8 @@
     mode: '0644'
     content: |
       server {
-          listen 8080;
-          listen [::]:8080;
+          listen 80;
+          listen [::]:80;
           server_name e3cnc.local;
 
           root {{ frontend.web_root }};

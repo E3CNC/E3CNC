@@ -39,6 +39,10 @@ class TestFreshInstallBootstrap:
         if not docker:
             pytest.skip("docker not available")
 
+        # Clean up any leftover container/image from previous runs
+        subprocess.run([docker, "rm", "-f", self.CONTAINER_NAME],
+                       capture_output=True, check=False)
+
         subprocess.run(
             [docker, "build", "-t", self.IMAGE_TAG,
              "-f", str(root / "tests" / "Dockerfile.fresh-install"), str(root)],
