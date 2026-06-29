@@ -27,6 +27,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     sudo \
     ca-certificates \
     socat \
+    libsodium23 \
     avahi-utils \
     && rm -rf /var/lib/apt/lists/*
 

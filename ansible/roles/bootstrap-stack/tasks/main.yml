@@ -33,6 +33,7 @@
       - build-essential
       - libffi-dev
       - libssl-dev
+      - libsodium23
     state: present
     update_cache: true
   become: true
@@ -198,6 +199,13 @@
 
       [database]
       database_path: {{ printer_data_dir }}/database
+
+      [authorization]
+      cors_domains:
+          *
+      trusted_clients:
+          127.0.0.1
+          ::1
   when:
     - e3cnc_bootstrap_needed
     - not moonraker_conf_stat.stat.exists
