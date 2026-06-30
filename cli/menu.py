@@ -81,6 +81,8 @@ def _tui_menu() -> None:
             show_shortcut_hints=True,
             shortcut_key_highlight_style=("fg_yellow", "bold"),
             quit_keys=("q", "Q"),
+            clear_screen=False,
+            clear_menu_on_exit=True,
         )
 
         choice = menu.show()
@@ -93,13 +95,16 @@ def _tui_menu() -> None:
         cmd = cmd_map.get(entry, "")
         if cmd == "switch":
             _switch_instance()
+            _pause_after_output()
         elif cmd == "create-instance":
             _create_instance()
+            _pause_after_output()
         elif cmd == "quit":
             ok("Goodbye")
             break
         elif cmd:
             _run_menu_command(cmd)
+            _pause_after_output()
 
 
 def _numbered_menu() -> None:
@@ -201,6 +206,15 @@ def _run_menu_action(cmd: str) -> None:
         _create_instance()
     else:
         _run_menu_command(cmd)
+
+
+def _pause_after_output() -> None:
+    """Wait for Enter so the user can read command output before menu reappears."""
+    if sys.stdin.isatty():
+        try:
+            input(f"\n  {Style.DIM}Press Enter to return to menu...{Style.RESET}")
+        except (EOFError, KeyboardInterrupt):
+            print()
 
 
 def _run_menu_command(cmd: str) -> None:
