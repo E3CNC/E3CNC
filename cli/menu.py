@@ -98,7 +98,7 @@ def _tui_menu() -> None:
             title=title,
             status_bar=f"  {config}" if config else None,
             cycle_cursor=True,
-            show_shortcut_hints=True,
+            show_shortcut_hints=False,
             menu_highlight_style=("fg_green", "bold"),
             quit_keys=("q", "Q"),
             clear_screen=False,
