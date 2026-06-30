@@ -500,9 +500,11 @@ def cmd_status(args) -> None:
 
     # Show access URL
     if inst:
-        print(f"\n  {Style.GREEN}Web UI:{Style.RESET}     http://<host>/")
-        print(f"  {Style.GREEN}Admin:{Style.RESET}      http://<host>/admin")
-        print(f"  {Style.GREEN}API:{Style.RESET}        http://<host>:{inst.moonraker_port}/server/info")
+        import socket
+        hostname = socket.gethostname()
+        print(f"\n  {Style.GREEN}Web UI:{Style.RESET}     http://{inst.name}.{hostname}/")
+        print(f"  {Style.GREEN}Admin:{Style.RESET}      http://{hostname}/admin")
+        print(f"  {Style.GREEN}API:{Style.RESET}        http://{hostname}:{inst.moonraker_port}/server/info")
 
 
 def cmd_backup(args) -> None:
