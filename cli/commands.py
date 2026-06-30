@@ -80,6 +80,11 @@ def cmd_install(args) -> None:
     header("Release")
     info("Downloading latest stack artifact...")
     inst = _get_instance(args)
+    if args.check:
+        _download_and_activate_release(inst=inst, skip_backup=True, auto_yes=True, dry_run=True)
+        ok("Install check complete — no files were modified")
+        return
+
     version = _download_and_activate_release(inst=inst, skip_backup=True, auto_yes=args.yes)
     ok(f"E3CNC v{version} deployed")
 

@@ -266,8 +266,10 @@ def _download_and_activate_release(
                 fail("Cancelled")
 
     # Backup configs before anything destructive
-    if not skip_backup:
+    if not dry_run and not skip_backup:
         backup_deployment_state(inst)
+    elif dry_run and not skip_backup:
+        info("Skipping backup in dry-run mode")
 
     if dry_run:
         info("Dry-run complete — no files were modified.")
