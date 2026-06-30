@@ -695,6 +695,10 @@ def _create_new_instance() -> Optional[Instance]:
         return None
 
     name = _re.sub(r"[^a-z0-9-]", "", raw.lower().replace(" ", "-"))
+    # Strip common redundant prefixes
+    for prefix in ("e3cnc-", "e3cnc_", "moonraker-", "klipper-"):
+        if name.startswith(prefix) and len(name) > len(prefix):
+            name = name[len(prefix):]
     if not name:
         warn("Invalid name — use lowercase letters, numbers, and hyphens")
         return None
