@@ -361,8 +361,8 @@ def _switch_instance() -> None:
 
 
 def _create_instance() -> None:
-    """Interactively create a new instance."""
-    import re
+    """Interactively create a new instance using the shared helper."""
+    from _e3cnc_shared import _create_new_instance
 
     print()
     info("Creating a new E3CNC instance")
@@ -376,79 +376,6 @@ def _create_instance() -> None:
             print(f"    {dot} {inst.name}  ({inst.config_dir})")
         print()
 
-    try:
-        raw = input(f"  {Style.BOLD}Instance name: {Style.RESET}").strip()
-    except (EOFError, KeyboardInterrupt):
-        print()
-        return
-
-    name = re.sub(r"[^a-z0-9-]", "", raw.lower().replace(" ", "-"))
-    if not name:
-        warn("Invalid name — use lowercase letters, numbers, and hyphens")
-        return
-
-    if (INSTANCES_DIR / name).exists():
-        warn(f"Instance '{name}' already exists at {INSTANCES_DIR / name}")
-        return
-
-    inst = Instance.from_name(name)
-    set_active_instance(inst)
-
-    print()
-    info(f"Creating instance: {Style.BOLD}{name}{Style.RESET}")
-
-    data = INSTANCES_DIR / name / "data"
-    frontend = INSTANCES_DIR / name / "frontend"
-    for subdir in ["config", "config/E3CNC/macros", "logs", "database", "comms", "scripts", "gcodes"]:
-        (data / subdir).mkdir(parents=True, exist_ok=True)
-    frontend.mkdir(parents=True, exist_ok=True)
-    ok(f"Directories created at {INSTANCES_DIR / name}")
-
-    used_ports = {inst.moonraker_port for inst in existing}
-    port = 7125
-    while port in used_ports:
-        port += 1
-
-    conf_path = data / "config" / "moonraker.conf"
-    conf_path.write_text(f"""[server]
-host: 0.0.0.0
-port: {port}
-klippy_uds_address: {data / 'comms' / 'klippy.sock'}
-
-[file_manager]
-config_path: {data / 'config'}
-
-[database]
-database_path: {data / 'database'}
-
-[authorization]
-cors_domains:
-    *
-trusted_clients:
-    127.0.0.1
-    ::1
-
-[cnc_agent]
-
-[cnc_metadata]
-extractor_path: {data / 'scripts' / 'cnc_metadata_extractor.py'}
-timeout: 30
-""")
-    ok(f"moonraker.conf created (port {port})")
-
-    generate_admin_page()
-
-    printer_cfg = data / "config" / "printer.cfg"
-    printer_cfg.write_text("# E3CNC bootstrap placeholder printer.cfg\n")
-    ok("Placeholder printer.cfg created")
-
-    print()
-    info(f"Instance '{name}' created")
-    info(f"  Config: {conf_path}")
-    info(f"  Service: e3cnc-{name}-moonraker")
-    info(f"  Port: {port}")
-    print()
-    info("Next steps:")
-    print(f"  1. Run 'e3cnc-cli update' to deploy runtime files")
-    print(f"  2. Edit {printer_cfg} with your machine config")
-    info("To use this instance: e3cnc-cli --instance {name} <command>")
+    inst = _create_new_instance()
+    if inst:
+        set_active_instance(inst)
