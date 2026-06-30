@@ -46,7 +46,7 @@ def _ensure_sudo(why: str) -> None:
 def _run_supervisorctl(*args: str) -> subprocess.CompletedProcess:
     """Run supervisorctl with the given args. Returns the result."""
     cmd = ["sudo", "supervisorctl"] + list(args)
-    return subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+    return subprocess.run(cmd, capture_output=True, text=True, timeout=60)
 
 
 def _get_release_vendor_dir() -> Optional[Path]:
@@ -201,11 +201,18 @@ def restart_services(inst: Instance) -> bool:
     _ensure_sudo(f"restarting services for instance {inst.name}")
 
     # Register instance if not already registered
+    just_registered = False
     if not _config_path(inst).exists():
         info(f"No supervisor config found for '{inst.name}' — registering now...")
         if not register_instance(inst):
             warn("Failed to register instance with supervisor")
             return False
+        just_registered = True
+
+    # If we just registered (which already started the services), skip restart
+    if just_registered:
+        ok(f"Services for '{inst.name}' already started via registration")
+        return True
 
     for name in (f"e3cnc-{inst.name}-moonraker", f"e3cnc-{inst.name}-klipper"):
         result = _run_supervisorctl("restart", name)
