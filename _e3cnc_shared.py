@@ -595,6 +595,7 @@ def select_instance(instances: List[Instance]) -> Optional[Instance]:
 
         create_idx = len(instances) + 1
         print(f"  {create_idx:>2}) + Create new instance")
+        print()
         print(f"   q) Quit")
         print()
 
