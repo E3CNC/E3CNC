@@ -143,7 +143,15 @@ def register_instance(inst: Instance) -> bool:
     conf = _generate_config(inst)
     path = _config_path(inst)
     try:
-        path.write_text(conf)
+        # Use sudo tee to write as root
+        proc = subprocess.Popen(
+            ["sudo", "tee", str(path)], stdin=subprocess.PIPE,
+            stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
+        )
+        _, stderr = proc.communicate(input=conf.encode(), timeout=15)
+        if proc.returncode != 0:
+            warn(f"Failed to write supervisor config: {stderr.decode().strip()}")
+            return False
         ok(f"Supervisor config written: {path}")
     except OSError as e:
         warn(f"Failed to write supervisor config: {e}")
@@ -173,9 +181,9 @@ def unregister_instance(inst: Instance) -> bool:
     path = _config_path(inst)
     if path.exists():
         try:
-            path.unlink()
+            subprocess.run(["sudo", "rm", str(path)], check=True, capture_output=True, timeout=10)
             ok(f"Removed supervisor config: {path}")
-        except OSError as e:
+        except (OSError, subprocess.CalledProcessError) as e:
             warn(f"Failed to remove supervisor config: {e}")
 
     # Reload supervisor
