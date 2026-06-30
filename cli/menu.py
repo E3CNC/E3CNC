@@ -38,27 +38,19 @@ def _tui_menu() -> None:
     )
 
     all_items = [
-        ("",                               "",               ""),
-        ("── Maintenance ──",               "",               ""),
         ("[1] Status",                      "status",         "Check installation status"),
         ("[2] Install",                     "install",        "Bootstrap + download release"),
         ("[3] Deploy",                      "deploy",         "Deploy frontend from release"),
         ("[4] Update",                      "update",         "Full-stack update & verify"),
         ("[5] Uninstall",                   "uninstall",      "Remove all E3CNC components"),
-        ("",                               "",               ""),
-        ("── MCU ──",                       "",               ""),
         ("[6] Detect MCU",                  "detect-mcu",     "Scan for connected MCU devices"),
         ("[7] Flash MCU",                   "flash-mcu",      "Build & flash Klipper firmware"),
         ("[8] Init Config",                 "init-config",    "Generate CNC printer.cfg"),
-        ("",                               "",               ""),
-        ("── Instances ──",                 "",               ""),
         ("[9] Create Instance",             "create-instance","Create a new E3CNC instance"),
         ("[0] Releases",                    "releases",       "List installed releases"),
         ("[R] Rollback",                    "rollback",       "Roll back to a previous release"),
         ("[P] Prune",                       "prune",          "Remove old releases"),
-        ("[M] Migrate Instances",           "migrate-instances","Import KIAUH instances to new layout"),
-        ("",                               "",               ""),
-        ("── Tools ──",                     "",               ""),
+        ("[M] Migrate Instances",           "migrate-instances","Import KIAUH instances"),
         ("[I] Import KIAUH",                "import-instance","Copy KIAUH config into E3CNC layout"),
         ("[S] Instances",                   "instances",      "List all instances with URLs"),
         ("[C] Check Deps",                  "check",          "Verify system dependencies"),
@@ -69,22 +61,10 @@ def _tui_menu() -> None:
         ("[E] Restore",                     "restore",        "Restore from a backup"),
         ("[G] Diagnose",                    "diagnose",       "Run system diagnostics"),
         ("[O] Logs",                        "logs",           "Tail Moonraker & nginx logs"),
-        ("",                               "",               ""),
-        ("── Navigation ──",                "",               ""),
         ("[W] Switch Instance",             "switch",         "Change active instance"),
         ("[Q] Quit",                        "quit",           "Exit the CLI"),
     ]
-    entries = []
-    for item in all_items:
-        label, cmd, desc = item
-        if not label and not cmd:  # blank line — skip
-            continue
-        elif not cmd:  # section header
-            entries.append(f"[-] {label}")
-        elif desc:  # has description
-            entries.append(f"{label:24s}{desc}")
-        else:
-            entries.append(label)
+    entries = [f"{label:24s}{desc}" for label, cmd, desc in all_items if label and cmd]
     cmd_map = {item[0]: item[1] for item in all_items if item[1]}
 
     while True:
@@ -112,7 +92,7 @@ def _tui_menu() -> None:
             break
 
         entry = entries[choice]
-        cmd = cmd_map.get(entry, "")
+        cmd = all_items[choice][1] if choice < len(all_items) else ""
         if cmd == "switch":
             _switch_instance()
             _pause_after_output()
@@ -137,45 +117,34 @@ def _numbered_menu() -> None:
     )
 
     all_items = [
-        ("", ""),
-        ("── Maintenance ──", ""),
-        (" 1) Status",      "status"),
-        (" 2) Install",     "install"),
-        (" 3) Deploy",      "deploy"),
-        (" 4) Update",      "update"),
-        (" 5) Uninstall",   "uninstall"),
-        ("", ""),
-        ("── MCU ──",       ""),
-        (" 6) Detect MCU",  "detect-mcu"),
-        (" 7) Flash MCU",   "flash-mcu"),
-        (" 8) Init Config", "init-config"),
-        ("", ""),
-        ("── Instances ──", ""),
-        (" 9) Create Instance", "create-instance"),
-        ("10) Releases",    "releases"),
-        ("11) Rollback",    "rollback"),
-        ("12) Prune",       "prune"),
-        ("13) Migrate Instances", "migrate-instances"),
-        ("", ""),
-        ("── Tools ──",     ""),
-        ("14) Import KIAUH","import-instance"),
-        ("15) Instances",   "instances"),
-        ("16) Check Deps",  "check"),
-        ("17) Restart Svc", "restart"),
-        ("18) Admin Page",  "admin-page"),
-        ("19) CLI Log",     "clilog"),
-        ("20) Backup",      "backup"),
-        ("21) Restore",     "restore"),
-        ("22) Diagnose",    "diagnose"),
-        ("23) Logs",        "logs"),
-        ("", ""),
-        ("── Navigation ──",""),
-        ("24) Switch Instance", "switch"),
-        ("25) Quit",        "quit"),
+        ("[1] Status",      "status"),
+        ("[2] Install",     "install"),
+        ("[3] Deploy",      "deploy"),
+        ("[4] Update",      "update"),
+        ("[5] Uninstall",   "uninstall"),
+        ("[6] Detect MCU",  "detect-mcu"),
+        ("[7] Flash MCU",   "flash-mcu"),
+        ("[8] Init Config", "init-config"),
+        ("[9] Create Instance", "create-instance"),
+        ("[0] Releases",    "releases"),
+        ("[R] Rollback",    "rollback"),
+        ("[P] Prune",       "prune"),
+        ("[M] Migrate Instances", "migrate-instances"),
+        ("[I] Import KIAUH","import-instance"),
+        ("[S] Instances",   "instances"),
+        ("[C] Check Deps",  "check"),
+        ("[T] Restart Svc", "restart"),
+        ("[A] Admin Page",  "admin-page"),
+        ("[L] CLI Log",     "clilog"),
+        ("[B] Backup",      "backup"),
+        ("[E] Restore",     "restore"),
+        ("[G] Diagnose",    "diagnose"),
+        ("[O] Logs",        "logs"),
+        ("[W] Switch Instance", "switch"),
+        ("[Q] Quit",        "quit"),
     ]
-    # Build flat list of actionable items for number input
-    items = [(label, cmd) for label, cmd in all_items if label and cmd]
-    display = [(l, c) for l, c in all_items if l and c]
+    items = [(l, c) for l, c in all_items if l and c]
+    display = items
 
     # Description map for numbered menu
     descs = {
@@ -227,16 +196,10 @@ def _numbered_menu() -> None:
         print()
 
         idx = 0
-        for item in all_items:
-            label, cmd = item[0], item[1]
-            if not label and not cmd:  # blank line
-                print()
-            elif label and not cmd:  # section header
-                print(f"  {Style.DIM}{label}{Style.RESET}")
-            else:  # actionable item
-                idx += 1
-                desc = descs.get(cmd, "")
-                print(f"  {idx:>2}) {label:22s}{desc}")
+        for label, cmd in display:
+            idx += 1
+            desc = descs.get(cmd, "")
+            print(f"  {idx:>2}) {label:22s}{desc}")
 
         print()
         try:
