@@ -388,8 +388,8 @@ def _switch_instance() -> None:
         return
 
     if _has_tui and sys.stdin.isatty():
-        entries = [f"{'●' if inst.is_running else '○'} {inst.name}" for inst in instances]
-        entries.append("+ Create new instance")
+        entries = [f"[{i+1}] {'●' if inst.is_running else '○'} {inst.name}" for i, inst in enumerate(instances)]
+        entries.append(f"[{len(instances)+1}] + Create new instance")
         entries.append("[Q] Quit")
 
         menu = TerminalMenu(

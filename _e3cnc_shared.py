@@ -619,8 +619,8 @@ def select_instance(instances: List[Instance]) -> Optional[Instance]:
     if sys.stdin.isatty():
         try:
             from simple_term_menu import TerminalMenu as _TM
-            entries = [f"{'●' if inst.is_running else '○'} {inst.name}" for inst in instances]
-            entries.append("+ Create new instance")
+            entries = [f"[{i+1}] {'●' if inst.is_running else '○'} {inst.name}" for i, inst in enumerate(instances)]
+            entries.append(f"[{len(instances)+1}] + Create new instance")
             entries.append("[Q] Quit")
 
             menu = _TM(
