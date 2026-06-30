@@ -731,6 +731,8 @@ host: 0.0.0.0
 port: {port}
 klippy_uds_address: {data / 'comms' / 'klippy.sock'}
 
+# e3cnc_web_port: {_compute_web_port(name)}
+
 [file_manager]
 config_path: {data / 'config'}
 
@@ -1320,6 +1322,8 @@ host: 0.0.0.0
 port: {port}
 klippy_uds_address: {data_dir / 'comms' / 'klippy.sock'}
 
+# e3cnc_web_port: {_compute_web_port(data_dir.parent.name)}
+
 [file_manager]
 config_path: {data_dir / 'config'}
 
@@ -1340,17 +1344,38 @@ def _compute_web_port(name: str) -> int:
     """Compute the web port for an instance.
 
     'cnc' and 'default' get port 80. Other instances get 8080, 8081, ...
-    based on the count of existing instance directories.
+    Persisted in moonraker.conf as '# e3cnc_web_port: N' so it's stable.
     """
     if name in ("cnc", "default"):
         return 80
-    count = 0
+    # Check if already persisted
+    conf = INSTANCES_DIR / name / "data" / "config" / "moonraker.conf"
+    if conf.exists():
+        try:
+            text = conf.read_text()
+            m = re.search(r"(?m)^#\s*e3cnc_web_port:\s*(\d+)\s*$", text)
+            if m:
+                return int(m.group(1))
+        except OSError:
+            pass
+    # Compute new: count existing persisted ports from all instances
+    existing = {80}
     if INSTANCES_DIR.is_dir():
         for d in sorted(INSTANCES_DIR.iterdir()):
-            if d.is_dir() and not d.name.startswith(".") and d.name not in ("cnc", "default"):
-                if d.name != name:
-                    count += 1
-    return 8080 + count
+            if d.is_dir() and not d.name.startswith(".") and d.name != name:
+                c = d / "data" / "config" / "moonraker.conf"
+                if c.exists():
+                    try:
+                        t = c.read_text()
+                        mt = re.search(r"(?m)^#\s*e3cnc_web_port:\s*(\d+)\s*$", t)
+                        if mt:
+                            existing.add(int(mt.group(1)))
+                    except OSError:
+                        pass
+    for port in range(8080, 9000):
+        if port not in existing:
+            return port
+    return 8080
 
 
 def generate_nginx_config(inst: Instance) -> str:
