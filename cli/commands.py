@@ -503,7 +503,11 @@ def cmd_status(args) -> None:
         import socket
         hostname = socket.gethostname()
         port = inst.moonraker_port
-        print(f"\n  {Style.GREEN}Web UI:{Style.RESET}     http://{hostname}:{port}/")
+        web = inst.web_port
+        if web == 80:
+            print(f"\n  {Style.GREEN}Web UI:{Style.RESET}     http://{hostname}/")
+        else:
+            print(f"\n  {Style.GREEN}Web UI:{Style.RESET}     http://{hostname}:{web}/")
         print(f"  {Style.GREEN}Admin:{Style.RESET}      http://{hostname}/admin")
         print(f"  {Style.GREEN}API:{Style.RESET}        http://{hostname}:{port}/server/info")
 

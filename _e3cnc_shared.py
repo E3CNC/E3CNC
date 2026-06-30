@@ -454,6 +454,7 @@ class Instance:
     moonraker_service: str = "moonraker"
     klipper_service: str = "klipper"
     moonraker_port: int = 7125
+    web_port: int = 80
     is_running: bool = False
 
     @classmethod
@@ -510,6 +511,7 @@ class Instance:
             moonraker_service=f"e3cnc-{name}-moonraker",
             klipper_service=f"e3cnc-{name}-klipper",
             moonraker_port=port,
+            web_port=_compute_web_port(name),
             is_running=conf_file.exists(),
         )
 
@@ -763,6 +765,12 @@ timeout: 30
         from _e3cnc_supervisor import register_instance
         register_instance(new_inst)
     except ImportError:
+        pass
+
+    # Deploy nginx config for this instance
+    try:
+        deploy_nginx_config(new_inst)
+    except Exception:
         pass
 
     ok(f"Instance '{name}' created (port {port})")
@@ -1326,3 +1334,104 @@ trusted_clients:
     ::1
 """)
     return conf_path
+
+
+def _compute_web_port(name: str) -> int:
+    """Compute the web port for an instance.
+
+    'cnc' and 'default' get port 80. Other instances get 8080, 8081, ...
+    """
+    if name in ("cnc", "default"):
+        return 80
+    used = {inst.web_port for inst in detect_instances()}
+    for port in range(8080, 9000):
+        if port not in used:
+            return port
+    return 8080
+
+
+def generate_nginx_config(inst: Instance) -> str:
+    """Generate an nginx server block for an instance.
+
+    Each instance gets its own port for the web frontend, with
+    Moonraker API proxied to the instance's port.
+    """
+    return f"""# E3CNC instance: {inst.name}
+# Auto-generated — do not edit manually.
+
+server {{
+    listen {inst.web_port};
+    listen [::]:{inst.web_port};
+
+    root {inst.web_root};
+    index index.html;
+    server_name _;
+
+    location / {{
+        try_files $uri $uri/ /index.html;
+    }}
+
+    location /websocket {{
+        proxy_pass http://127.0.0.1:{inst.moonraker_port}/websocket;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_read_timeout 86400;
+    }}
+
+    location /printer/ {{
+        proxy_pass http://127.0.0.1:{inst.moonraker_port}/printer/;
+        proxy_set_header Host $host;
+    }}
+
+    location /api/ {{
+        proxy_pass http://127.0.0.1:{inst.moonraker_port}/api/;
+        proxy_set_header Host $host;
+    }}
+
+    location /server/ {{
+        proxy_pass http://127.0.0.1:{inst.moonraker_port}/server/;
+        proxy_set_header Host $host;
+    }}
+
+    location /access/ {{
+        proxy_pass http://127.0.0.1:{inst.moonraker_port}/access/;
+        proxy_set_header Host $host;
+    }}
+}}
+"""
+
+
+def deploy_nginx_config(inst: Instance) -> bool:
+    """Write nginx config for an instance and reload nginx."""
+    import subprocess as _subprocess
+
+    conf = generate_nginx_config(inst)
+    path = Path(f"/etc/nginx/sites-available/e3cnc-{inst.name}")
+    enabled = Path(f"/etc/nginx/sites-enabled/e3cnc-{inst.name}")
+
+    try:
+        proc = _subprocess.Popen(
+            ["sudo", "tee", str(path)], stdin=_subprocess.PIPE,
+            stdout=_subprocess.DEVNULL, stderr=_subprocess.PIPE,
+        )
+        _, stderr = proc.communicate(input=conf.encode(), timeout=15)
+        if proc.returncode != 0:
+            warn(f"Failed to write nginx config: {stderr.decode().strip()}")
+            return False
+        ok(f"Nginx config written: {path}")
+    except OSError as e:
+        warn(f"Failed to write nginx config: {e}")
+        return False
+
+    if not enabled.exists():
+        _subprocess.run(["sudo", "ln", "-sf", str(path), str(enabled)], check=True, timeout=10)
+
+    result = _subprocess.run(["sudo", "nginx", "-t"], capture_output=True, text=True, timeout=10)
+    if result.returncode != 0:
+        warn(f"Nginx config test failed: {result.stderr.strip()}")
+        return False
+
+    _subprocess.run(["sudo", "systemctl", "reload", "nginx"], check=True, timeout=15)
+    ok(f"Nginx reloaded — {inst.name} available on port {inst.web_port}")
+    return True
