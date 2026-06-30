@@ -488,7 +488,10 @@ def cmd_status(args) -> None:
     """Check installation status."""
     inst = None
     if not args.remote:
-        inst = _get_instance(args)
+        from _e3cnc_shared import get_active_instance
+        inst = get_active_instance()
+        if not inst or (args.instance and args.instance != inst.name):
+            inst = _get_instance(args)
         if inst and inst.name != "cnc":
             info(f"Using instance: {Style.BOLD}{inst.name}{Style.RESET}")
     header("Installation Status")
@@ -503,10 +506,7 @@ def cmd_status(args) -> None:
         except Exception:
             hostname = "<host>"
         port = inst.moonraker_port
-        if port == 7125:
-            print(f"\n  {Style.GREEN}Web UI:{Style.RESET}     http://{hostname}/")
-        else:
-            print(f"\n  {Style.GREEN}Web UI:{Style.RESET}     http://{hostname}:{port}/")
+        print(f"\n  {Style.GREEN}Web UI:{Style.RESET}     http://{hostname}:{port}/")
         print(f"  {Style.GREEN}Admin:{Style.RESET}      http://{hostname}/admin")
         print(f"  {Style.GREEN}API:{Style.RESET}        http://{hostname}:{port}/server/info")
 
