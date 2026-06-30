@@ -1357,6 +1357,11 @@ def generate_admin_page() -> None:
 
     instances = detect_instances()
     hostname = socket.gethostname()
+    # Use IP address for URLs (more reliable than mDNS hostname)
+    try:
+        ip = socket.gethostbyname(hostname)
+    except Exception:
+        ip = hostname
     current = get_current_release()
 
     cards = ""
@@ -1373,15 +1378,15 @@ def generate_admin_page() -> None:
         <span class="release-badge">{current.version if current else '—'}</span>
       </div>
       <div class="card-body">
-        <a class="url-link" href="http://{hostname}{web_port}/" target="_blank">http://{hostname}{web_port}/ ↗</a>
+        <a class="url-link" href="http://{ip}{web_port}/" target="_blank">http://{ip}{web_port}/ ↗</a>
         <div class="info-grid">
           <div class="info-item">
             <span class="label">API</span>
-            <span class="value mono"><a href="http://{hostname}:{inst.moonraker_port}/server/info" target="_blank">{hostname}:{inst.moonraker_port}</a></span>
+            <span class="value mono"><a href="http://{ip}:{inst.moonraker_port}/server/info" target="_blank">{ip}:{inst.moonraker_port}</a></span>
           </div>
           <div class="info-item">
             <span class="label">Admin</span>
-            <span class="value mono"><a href="/admin" target="_blank">{hostname}/admin</a></span>
+            <span class="value mono"><a href="/admin" target="_blank">admin</a></span>
           </div>
           <div class="info-item">
             <span class="label">Moonraker</span>
@@ -1448,7 +1453,7 @@ def generate_admin_page() -> None:
 </head>
 <body>
   <h1>E3CNC Admin</h1>
-  <p class="subtitle">{hostname} &mdash; v{VERSION}</p>
+  <p class="subtitle">{ip} &mdash; v{VERSION}</p>
   <div class="cards">
     {cards}
   </div>
