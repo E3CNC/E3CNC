@@ -362,10 +362,14 @@ def cmd_restart(args) -> None:
     """Restart services (Moonraker, Klipper) for an instance."""
     from _e3cnc_supervisor import _has_supervisor, restart_services
     from _e3cnc_deploy import restart_services as svc_restart
+    from _e3cnc_shared import get_active_instance
 
     header("Restart Services")
 
-    inst = _get_instance(args)
+    # Use globally active instance first (respects menu switch)
+    inst = get_active_instance()
+    if not inst or (args.instance and args.instance != inst.name):
+        inst = _get_instance(args)
     if not inst:
         fail("No instance selected")
 
