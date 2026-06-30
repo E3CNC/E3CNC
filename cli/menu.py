@@ -6,50 +6,122 @@ from _e3cnc_shared import (
     VERSION, TOOL_NAME, Style,
     print_banner, ok, info, warn, fail,
     get_active_instance, detect_instances, set_active_instance,
+    INSTANCES_DIR, Instance,
 )
+from _e3cnc_deploy import get_current_release, generate_admin_page
 
 
-def _switch_instance() -> None:
-    """Detect instances and let the user pick one."""
-    instances = detect_instances()
-    if not instances:
-        print(f"  {Style.YELLOW}No instances detected.{Style.RESET}")
-        input(f"  {Style.DIM}Press Enter...{Style.RESET}")
-        return
+def _interactive_menu() -> None:
+    """Display the interactive menu and dispatch user choices."""
+    from cli.commands import (
+        cmd_check, cmd_install, cmd_deploy, cmd_update, cmd_uninstall,
+        cmd_status, cmd_backup, cmd_restore, cmd_diagnose, cmd_logs,
+        cmd_releases, cmd_rollback, cmd_prune, cmd_instances, cmd_migrate,
+        cmd_detect_mcu, cmd_flash_mcu, cmd_init_config,
+    )
 
-    if len(instances) == 1:
-        set_active_instance(instances[0])
-        print(f"  {Style.GREEN}Using instance: {Style.BOLD}{instances[0].name}{Style.RESET}")
-        input(f"  {Style.DIM}Press Enter...{Style.RESET}")
-        return
+    all_items = [
+        ("[S] Status",      "status"),
+        ("[I] Install",     "install"),
+        ("[D] Deploy",      "deploy"),
+        ("[U] Update",      "update"),
+        ("[X] Uninstall",   "uninstall"),
+        ("",                ""),
+        ("[Dm] Detect MCU", "detect-mcu"),
+        ("[Fm] Flash MCU",  "flash-mcu"),
+        ("[Ic] Init Config","init-config"),
+        ("",                ""),
+        ("[Ci] Create Instance", "create-instance"),
+        ("[Rl] Releases",   "releases"),
+        ("[Rb] Rollback",   "rollback"),
+        ("[P] Prune",       "prune"),
+        ("",                ""),
+        ("[N] Instances",   "instances"),
+        ("[C] Check Deps",  "check"),
+        ("[B] Backup",      "backup"),
+        ("[Rr] Restore",    "restore"),
+        ("[G] Diagnose",    "diagnose"),
+        ("[L] Logs",        "logs"),
+        ("",                ""),
+        ("[W] Switch Instance", "switch"),
+        ("[Q] Quit",        "quit"),
+    ]
+    display = [(l, c) for l, c in all_items if l]
 
-    print()
-    print(f"  {Style.BOLD}Available CNC instances:{Style.RESET}")
-    print()
-    for i, inst in enumerate(instances):
-        dot = "\x1b[32m\u25cf\x1b[0m" if inst.is_running else "\x1b[90m\u25cb\x1b[0m"
-        print(f"  {i + 1:>2}) {dot} {Style.BOLD}{inst.name}{Style.RESET}")
-        print(f"      Config: {inst.config_dir}")
-        print(f"      Service: {inst.moonraker_service}  Port: {inst.moonraker_port}")
+    while True:
+        print_banner()
+        print(f"  {Style.BOLD}{Style.GREEN}{TOOL_NAME} v{VERSION}{Style.RESET}")
+
+        cur = get_active_instance()
+        if cur:
+            label = cur.name if cur.name != "cnc" else "default"
+            print(f"  {Style.DIM}Instance: {label}  ({cur.config_dir}){Style.RESET}")
+
+        print()
+        print(f"  {Style.BOLD}Select an action:{Style.RESET}")
         print()
 
-    try:
-        choice = input(f"  {Style.BOLD}Choose instance [1-{len(instances)}]{Style.RESET} ").strip()
-    except (EOFError, KeyboardInterrupt):
+        for i, (label, cmd) in enumerate(display):
+            print(f"  {i + 1:>2}) {label}")
+
         print()
-        return
+        try:
+            choice = input(f"  {Style.BOLD}Choice [1-{len(display)}]{Style.RESET} ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            break
 
-    try:
-        idx = int(choice) - 1
-        if 0 <= idx < len(instances):
-            set_active_instance(instances[idx])
-            print(f"  {Style.GREEN}Using instance: {Style.BOLD}{instances[idx].name}{Style.RESET}")
-        else:
-            print(f"  {Style.YELLOW}Invalid choice.{Style.RESET}")
-    except ValueError:
-        print(f"  {Style.YELLOW}Invalid choice.{Style.RESET}")
+        if not choice:
+            continue
 
-    input(f"  {Style.DIM}Press Enter...{Style.RESET}")
+        try:
+            idx = int(choice) - 1
+            if idx < 0 or idx >= len(display):
+                print(f"  {Style.YELLOW}Invalid choice: {choice}{Style.RESET}")
+                continue
+            _, cmd = display[idx]
+        except ValueError:
+            choice_lower = choice.lower()
+            cmd_map = {
+                "1": "e3cnc-cli", "s": "status",
+                "2": "install", "i": "install",
+                "3": "deploy", "d": "deploy",
+                "4": "update", "u": "update",
+                "5": "uninstall", "x": "uninstall",
+                "6": "detect-mcu",
+                "7": "flash-mcu",
+                "8": "init-config",
+                "9": "create-instance",
+                "10": "releases", "rl": "releases",
+                "11": "rollback", "rb": "rollback",
+                "12": "prune", "p": "prune",
+                "13": "instances", "n": "instances",
+                "14": "check", "c": "check",
+                "15": "backup", "b": "backup",
+                "16": "restore", "rr": "restore",
+                "17": "diagnose", "g": "diagnose",
+                "18": "logs", "l": "logs",
+                "19": "switch",
+                "20": "quit", "q": "quit",
+            }
+            cmd = cmd_map.get(choice_lower)
+            if not cmd:
+                print(f"  {Style.YELLOW}Invalid choice: {choice}{Style.RESET}")
+                continue
+
+        if cmd == "quit":
+            ok("Goodbye")
+            break
+
+        if cmd == "switch":
+            _switch_instance()
+            continue
+
+        if cmd == "create-instance":
+            _create_instance()
+            continue
+
+        _run_menu_command(cmd)
 
 
 def _run_menu_command(cmd: str) -> None:
@@ -123,95 +195,157 @@ def _run_menu_command(cmd: str) -> None:
         "init-config": cmd_init_config,
         "init": cmd_init_config,
     }
+
     handler = dispatch.get(cmd)
     if handler:
         handler(args)
+    else:
+        fail(f"Unknown command: {cmd}")
 
 
-def _interactive_menu() -> None:
-    """Show an interactive numbered menu that loops until Quit."""
-    from cli.commands import cmd_migrate
+def _switch_instance() -> None:
+    """Let the user switch the active instance interactively."""
+    from _e3cnc_shared import detect_instances
 
-    all_items = [
-        ("[S] Status",      "status"),
-        ("[I] Install",     "install"),
-        ("[D] Deploy",      "deploy"),
-        ("[U] Update",      "update"),
-        ("[X] Uninstall",   "uninstall"),
-        ("",                ""),
-        ("[Dm] Detect MCU", "detect-mcu"),
-        ("[Fm] Flash MCU",  "flash-mcu"),
-        ("[Ic] Init Config","init-config"),
-        ("",                ""),
-        ("[Rl] Releases",   "releases"),
-        ("[Rb] Rollback",   "rollback"),
-        ("[P] Prune",       "prune"),
-        ("",                ""),
-        ("[N] Instances",   "instances"),
-        ("[C] Check Deps",  "check"),
-        ("[B] Backup",      "backup"),
-        ("[Rr] Restore",    "restore"),
-        ("[G] Diagnose",    "diagnose"),
-        ("[L] Logs",        "logs"),
-        ("",                ""),
-        ("[W] Switch Instance", "switch"),
-        ("[Q] Quit",        "quit"),
-    ]
-    display = [(l, c) for l, c in all_items if l]
+    instances = detect_instances()
+    if not instances:
+        warn("No instances detected")
+        return
 
-    while True:
-        print_banner()
-        print(f"  {Style.BOLD}{Style.GREEN}{TOOL_NAME} v{VERSION}{Style.RESET}")
+    if len(instances) == 1:
+        set_active_instance(instances[0])
+        info(f"Switched to: {Style.BOLD}{instances[0].name}{Style.RESET}")
+        return
 
-        cur = get_active_instance()
-        if cur:
-            label = f"{cur.name}" if cur.name != "cnc" else "default"
-            print(f"  {Style.DIM}Instance: {label}  ({cur.config_dir}){Style.RESET}")
+    print()
+    print(f"  {Style.BOLD}Available instances:{Style.RESET}")
+    print()
+    for i, inst in enumerate(instances):
+        dot = "\x1b[32m\u25cf\x1b[0m" if inst.is_running else "\x1b[90m\u25cb\x1b[0m"
+        print(f"  {i + 1:>2}) {dot} {Style.BOLD}{inst.name}{Style.RESET}")
+        print(f"      Config: {inst.config_dir}")
 
+    print()
+    try:
+        choice = input(f"  {Style.BOLD}Choose instance [1-{len(instances)}]{Style.RESET} ").strip()
+    except (EOFError, KeyboardInterrupt):
         print()
-        print(f"  {Style.BOLD}Select an action:{Style.RESET}")
+        return
+
+    try:
+        idx = int(choice) - 1
+        if 0 <= idx < len(instances):
+            set_active_instance(instances[idx])
+            info(f"Switched to: {Style.BOLD}{instances[idx].name}{Style.RESET}")
+        else:
+            warn("Invalid choice")
+    except ValueError:
+        warn("Invalid choice")
+
+
+def _create_instance() -> None:
+    """Interactively create a new instance."""
+    from _e3cnc_shared import detect_instances, INSTANCES_DIR
+
+    print()
+    info("Creating a new E3CNC instance")
+    print()
+
+    # Show existing instances
+    existing = detect_instances()
+    if existing:
+        print(f"  {Style.BOLD}Existing instances:{Style.RESET}")
+        for inst in existing:
+            dot = "\x1b[32m\u25cf\x1b[0m" if inst.is_running else "\x1b[90m\u25cb\x1b[0m"
+            print(f"    {dot} {inst.name}  ({inst.config_dir})")
         print()
 
-        for i, (label, cmd) in enumerate(display):
-            print(f"  {i + 1:>2}) {label}")
-
+    # Prompt for name
+    try:
+        raw = input(f"  {Style.BOLD}Instance name: {Style.RESET}").strip()
+    except (EOFError, KeyboardInterrupt):
         print()
-        try:
-            choice = input(f"  {Style.BOLD}Choice [1-{len(display)}]{Style.RESET} ").strip()
-        except (EOFError, KeyboardInterrupt):
-            print()
-            break
+        return
 
-        if not choice:
-            continue
+    import re
+    name = re.sub(r"[^a-z0-9-]", "", raw.lower().replace(" ", "-"))
+    if not name:
+        warn("Invalid name — use lowercase letters, numbers, and hyphens")
+        return
 
-        try:
-            idx = int(choice) - 1
-            if idx < 0 or idx >= len(display):
-                print(f"  {Style.YELLOW}Invalid choice: {choice}{Style.RESET}")
-                continue
-            _, cmd = display[idx]
-        except ValueError:
-            choice_lower = choice.lower()
-            found = None
-            for l, c in display:
-                if c and l.lower().startswith(f"[{choice_lower}]"):
-                    found = c
-                    break
-            if not found:
-                print(f"  {Style.YELLOW}Invalid choice: {choice}{Style.RESET}")
-                continue
-            cmd = found
+    # Check if already exists
+    if (INSTANCES_DIR / name).exists():
+        warn(f"Instance '{name}' already exists at {INSTANCES_DIR / name}")
+        return
 
-        if cmd == "quit":
-            break
-        if cmd == "switch":
-            _switch_instance()
-            continue
-        if cmd == "":
-            continue
+    # Create the instance object and activate it
+    inst = Instance.from_name(name)
+    set_active_instance(inst)
 
-        _run_menu_command(cmd)
+    print()
+    info(f"Creating instance: {Style.BOLD}{name}{Style.RESET}")
 
-        print()
-        input(f"  {Style.DIM}Press Enter to return to menu...{Style.RESET}")
+    # Create directory structure
+    from _e3cnc_deploy import ADMIN_PAGE_DIR
+    data = INSTANCES_DIR / name / "data"
+    frontend = INSTANCES_DIR / name / "frontend"
+    for subdir in ["config", "config/E3CNC/macros", "logs", "database", "comms", "scripts", "gcodes"]:
+        (data / subdir).mkdir(parents=True, exist_ok=True)
+    frontend.mkdir(parents=True, exist_ok=True)
+    ok(f"Directories created at {INSTANCES_DIR / name}")
+
+    # Generate a minimal moonraker.conf
+    # Find an available port
+    used_ports = {inst.moonraker_port for inst in existing}
+    port = 7125
+    while port in used_ports:
+        port += 1
+
+    conf_path = data / "config" / "moonraker.conf"
+    conf_path.write_text(f"""[server]
+host: 0.0.0.0
+port: {port}
+klippy_uds_address: {data / 'comms' / 'klippy.sock'}
+
+[file_manager]
+config_path: {data / 'config'}
+
+[database]
+database_path: {data / 'database'}
+
+[authorization]
+cors_domains:
+    *
+trusted_clients:
+    127.0.0.1
+    ::1
+
+[cnc_agent]
+
+[cnc_metadata]
+extractor_path: {data / 'scripts' / 'cnc_metadata_extractor.py'}
+timeout: 30
+""")
+    ok(f"moonraker.conf created (port {port})")
+
+    # Generate admin page
+    generate_admin_page()
+
+    # Create a placeholder printer.cfg
+    printer_cfg = data / "config" / "printer.cfg"
+    printer_cfg.write_text("""# E3CNC bootstrap placeholder printer.cfg
+# Replace with your actual machine configuration.
+# Run 'e3cnc-cli init-config' to generate a CNC template.
+""")
+    ok(f"Placeholder printer.cfg created")
+
+    print()
+    info(f"Instance '{name}' created")
+    info(f"  Config: {conf_path}")
+    info(f"  Service: e3cnc-{name}-moonraker")
+    info(f"  Port: {port}")
+    print()
+    info("Next steps:")
+    print(f"  1. Run 'e3cnc-cli update' to deploy runtime files")
+    print(f"  2. Edit {printer_cfg} with your machine config")
+    info("To use this instance: e3cnc-cli --instance {name} <command>")
