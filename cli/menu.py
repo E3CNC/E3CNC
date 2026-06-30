@@ -309,6 +309,31 @@ def _switch_instance() -> None:
         info(f"Switched to: {Style.BOLD}{instances[0].name}{Style.RESET}")
         return
 
+    if _has_tui and sys.stdin.isatty():
+        entries = [f"{'●' if inst.is_running else '○'} {inst.name}" for inst in instances]
+        entries.append("+ Create new instance")
+        entries.append("[Q] Quit")
+
+        menu = TerminalMenu(
+            menu_entries=entries,
+            title="  Switch Instance",
+            cycle_cursor=True,
+            show_shortcut_hints=False,
+            menu_highlight_style=("fg_green", "bold"),
+            quit_keys=("q", "Q"),
+            clear_screen=False,
+        )
+        choice = menu.show()
+        if choice is None or choice == len(entries) - 1:
+            return
+        if choice == len(entries) - 2:
+            _create_instance()
+            return
+        set_active_instance(instances[choice])
+        info(f"Switched to: {Style.BOLD}{instances[choice].name}{Style.RESET}")
+        return
+
+    # Fallback: numbered input
     print()
     print(f"  {Style.BOLD}Available instances:{Style.RESET}")
     print()

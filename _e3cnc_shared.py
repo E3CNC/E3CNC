@@ -582,6 +582,35 @@ def select_instance(instances: List[Instance]) -> Optional[Instance]:
     if len(instances) == 1:
         return instances[0]
 
+    # Try TUI menu if available
+    if sys.stdin.isatty():
+        try:
+            from simple_term_menu import TerminalMenu as _TM
+            entries = [f"{'●' if inst.is_running else '○'} {inst.name}" for inst in instances]
+            entries.append("+ Create new instance")
+            entries.append("[Q] Quit")
+
+            menu = _TM(
+                menu_entries=entries,
+                title="  Multiple instances detected",
+                cycle_cursor=True,
+                show_shortcut_hints=False,
+                menu_highlight_style=("fg_green", "bold"),
+                quit_keys=("q", "Q"),
+                clear_screen=False,
+            )
+            choice = menu.show()
+            if choice is None or choice == len(entries) - 1:
+                print()
+                info("Goodbye")
+                sys.exit(0)
+            if choice == len(entries) - 2:
+                return _create_new_instance()
+            return instances[choice]
+        except ImportError:
+            pass
+
+    # Fallback: numbered input loop
     while True:
         print()
         print(f"  {Style.BOLD}Multiple instances detected:{Style.RESET}")
@@ -611,40 +640,56 @@ def select_instance(instances: List[Instance]) -> Optional[Instance]:
             sys.exit(0)
 
         if choice == str(create_idx):
-            # Create a new instance
-            print()
-            try:
-                raw = input(f"  {Style.BOLD}Instance name: {Style.RESET}").strip()
-            except (EOFError, KeyboardInterrupt):
-                print()
-                continue
+            return _create_new_instance()
 
-            name = _re.sub(r"[^a-z0-9-]", "", raw.lower().replace(" ", "-"))
-            if not name:
-                warn("Invalid name — use lowercase letters, numbers, and hyphens")
-                continue
+        try:
+            idx = int(choice) - 1
+            if 0 <= idx < len(instances):
+                return instances[idx]
+        except ValueError:
+            pass
 
-            if (INSTANCES_DIR / name).exists():
-                warn(f"Instance '{name}' already exists")
-                continue
+        warn(f"Invalid choice: {choice}")
 
-            new_inst = Instance.from_name(name)
 
-            # Create directory structure
-            data = INSTANCES_DIR / name / "data"
-            frontend = INSTANCES_DIR / name / "frontend"
-            for subdir in ["config", "config/E3CNC/macros", "logs", "database", "comms", "scripts", "gcodes"]:
-                (data / subdir).mkdir(parents=True, exist_ok=True)
-            frontend.mkdir(parents=True, exist_ok=True)
+def _create_new_instance() -> Optional[Instance]:
+    """Prompt for a name and create a new instance. Returns the new Instance or None."""
+    import re as _re
 
-            # Find available port
-            used_ports = {inst.moonraker_port for inst in instances}
-            port = 7125
-            while port in used_ports:
-                port += 1
+    print()
+    try:
+        raw = input(f"  {Style.BOLD}Instance name: {Style.RESET}").strip()
+    except (EOFError, KeyboardInterrupt):
+        print()
+        return None
 
-            conf_path = data / "config" / "moonraker.conf"
-            conf_path.write_text(f"""[server]
+    name = _re.sub(r"[^a-z0-9-]", "", raw.lower().replace(" ", "-"))
+    if not name:
+        warn("Invalid name — use lowercase letters, numbers, and hyphens")
+        return None
+
+    if (INSTANCES_DIR / name).exists():
+        warn(f"Instance '{name}' already exists")
+        return None
+
+    new_inst = Instance.from_name(name)
+
+    # Create directory structure
+    data = INSTANCES_DIR / name / "data"
+    frontend = INSTANCES_DIR / name / "frontend"
+    for subdir in ["config", "config/E3CNC/macros", "logs", "database", "comms", "scripts", "gcodes"]:
+        (data / subdir).mkdir(parents=True, exist_ok=True)
+    frontend.mkdir(parents=True, exist_ok=True)
+
+    # Find available port
+    all_instances = detect_instances()
+    used_ports = {inst.moonraker_port for inst in all_instances}
+    port = 7125
+    while port in used_ports:
+        port += 1
+
+    conf_path = data / "config" / "moonraker.conf"
+    conf_path.write_text(f"""[server]
 host: 0.0.0.0
 port: {port}
 klippy_uds_address: {data / 'comms' / 'klippy.sock'}
@@ -669,30 +714,18 @@ extractor_path: {data / 'scripts' / 'cnc_metadata_extractor.py'}
 timeout: 30
 """)
 
-            printer_cfg = data / "config" / "printer.cfg"
-            printer_cfg.write_text("# E3CNC bootstrap placeholder printer.cfg\n")
+    printer_cfg = data / "config" / "printer.cfg"
+    printer_cfg.write_text("# E3CNC bootstrap placeholder printer.cfg\n")
 
-            # Recreate new_inst with correct port and running state
-            new_inst = Instance.from_name(name)
+    try:
+        from _e3cnc_deploy import generate_admin_page
+        generate_admin_page()
+    except ImportError:
+        pass
 
-            try:
-                from _e3cnc_deploy import generate_admin_page
-                generate_admin_page()
-            except ImportError:
-                pass
-
-            ok(f"Instance '{name}' created (port {port})")
-            print()
-            return new_inst
-
-        try:
-            idx = int(choice) - 1
-            if 0 <= idx < len(instances):
-                return instances[idx]
-        except ValueError:
-            pass
-
-        warn(f"Invalid choice: {choice}")
+    ok(f"Instance '{name}' created (port {port})")
+    print()
+    return Instance.from_name(name)
 
 
 def get_active_instance() -> Optional[Instance]:
