@@ -10,7 +10,6 @@ from _e3cnc_shared import (
     VERSION, Style, ok, info, warn, fail, header,
     check_dependencies, check_status, Instance,
     run_backup, run_restore, run_diagnose, run_logs,
-    get_active_instance,
 )
 from _e3cnc_deploy import (
     find_stack_artifact_asset, download_artifact, verify_checksum,
@@ -371,10 +370,14 @@ def cmd_restart(args) -> None:
 
     header("Restart Services")
 
-    # Use globally active instance first (respects menu switch)
-    inst = get_active_instance()
-    if not inst or (args.instance and args.instance != inst.name):
+    # Use --instance flag first, then fall back to active instance
+    if args.instance:
         inst = _get_instance(args)
+    else:
+        from _e3cnc_shared import get_active_instance
+        inst = get_active_instance()
+        if not inst:
+            inst = _get_instance(args)
     if not inst:
         fail("No instance selected")
 
@@ -494,9 +497,13 @@ def cmd_status(args) -> None:
     inst = None
     if not args.remote:
         from _e3cnc_shared import get_active_instance
-        inst = get_active_instance()
-        if not inst or (args.instance and args.instance != inst.name):
+        # Use --instance flag first, then fall back to active instance
+        if args.instance:
             inst = _get_instance(args)
+        else:
+            inst = get_active_instance()
+            if not inst:
+                inst = _get_instance(args)
         if inst and inst.name != "cnc":
             info(f"Using instance: {Style.BOLD}{inst.name}{Style.RESET}")
     header("Installation Status")
