@@ -38,22 +38,26 @@ def _tui_menu() -> None:
     )
 
     all_items = [
+        ("",                               "",               ""),
         ("── Maintenance ──",               "",               ""),
         (" 1) Status",                      "status",         "Check installation status"),
         (" 2) Install",                     "install",        "Bootstrap + download release"),
         (" 3) Deploy",                      "deploy",         "Deploy frontend from release"),
         (" 4) Update",                      "update",         "Full-stack update & verify"),
         (" 5) Uninstall",                   "uninstall",      "Remove all E3CNC components"),
+        ("",                               "",               ""),
         ("── MCU ──",                       "",               ""),
         (" 6) Detect MCU",                  "detect-mcu",     "Scan for connected MCU devices"),
         (" 7) Flash MCU",                   "flash-mcu",      "Build & flash Klipper firmware"),
         (" 8) Init Config",                 "init-config",    "Generate CNC printer.cfg"),
+        ("",                               "",               ""),
         ("── Instances ──",                 "",               ""),
         (" 9) Create Instance",             "create-instance","Create a new E3CNC instance"),
         ("10) Releases",                    "releases",       "List installed releases"),
         ("11) Rollback",                    "rollback",       "Roll back to a previous release"),
         ("12) Prune",                       "prune",          "Remove old releases"),
         ("13) Migrate Instances",           "migrate-instances","Import KIAUH instances to new layout"),
+        ("",                               "",               ""),
         ("── Tools ──",                     "",               ""),
         ("14) Import KIAUH",                "import-instance","Copy KIAUH config into E3CNC layout"),
         ("15) Instances",                   "instances",      "List all instances with URLs"),
@@ -65,6 +69,7 @@ def _tui_menu() -> None:
         ("21) Restore",                     "restore",        "Restore from a backup"),
         ("22) Diagnose",                    "diagnose",       "Run system diagnostics"),
         ("23) Logs",                        "logs",           "Tail Moonraker & nginx logs"),
+        ("",                               "",               ""),
         ("── Navigation ──",                "",               ""),
         ("24) Switch Instance",             "switch",         "Change active instance"),
         ("25) Quit",                        "quit",           "Exit the CLI"),
@@ -129,22 +134,26 @@ def _numbered_menu() -> None:
     )
 
     all_items = [
+        ("", ""),
         ("── Maintenance ──", ""),
         (" 1) Status",      "status"),
         (" 2) Install",     "install"),
         (" 3) Deploy",      "deploy"),
         (" 4) Update",      "update"),
         (" 5) Uninstall",   "uninstall"),
+        ("", ""),
         ("── MCU ──",       ""),
         (" 6) Detect MCU",  "detect-mcu"),
         (" 7) Flash MCU",   "flash-mcu"),
         (" 8) Init Config", "init-config"),
+        ("", ""),
         ("── Instances ──", ""),
         (" 9) Create Instance", "create-instance"),
         ("10) Releases",    "releases"),
         ("11) Rollback",    "rollback"),
         ("12) Prune",       "prune"),
         ("13) Migrate Instances", "migrate-instances"),
+        ("", ""),
         ("── Tools ──",     ""),
         ("14) Import KIAUH","import-instance"),
         ("15) Instances",   "instances"),
@@ -156,10 +165,13 @@ def _numbered_menu() -> None:
         ("21) Restore",     "restore"),
         ("22) Diagnose",    "diagnose"),
         ("23) Logs",        "logs"),
+        ("", ""),
         ("── Navigation ──",""),
         ("24) Switch Instance", "switch"),
         ("25) Quit",        "quit"),
     ]
+    # Build flat list of actionable items for number input
+    items = [(label, cmd) for label, cmd in all_items if label and cmd]
     display = [(l, c) for l, c in all_items if l and c]
 
     # Description map for numbered menu
@@ -191,12 +203,12 @@ def _numbered_menu() -> None:
         "quit": "Exit the CLI",
     }
 
-    # Build shortcut map
+    # Build shortcut map — skip headers and blank lines
     shortcut_map = {}
-    for label, cmd in display:
-        if "[" in label and "]" in label:
-            key = label[label.index("[") + 1:label.index("]")]
-            shortcut_map[key.lower()] = cmd
+    for item in all_items:
+        c = item[1]
+        if c:
+            shortcut_map[c] = c
 
     while True:
         print_banner()
@@ -211,9 +223,17 @@ def _numbered_menu() -> None:
         print(f"  {Style.BOLD}Select an action:{Style.RESET}")
         print()
 
-        for i, (label, cmd) in enumerate(display):
-            desc = descs.get(cmd, "")
-            print(f"  {i + 1:>2}) {label:22s}{desc}")
+        idx = 0
+        for item in all_items:
+            label, cmd = item[0], item[1]
+            if not label and not cmd:  # blank line
+                print()
+            elif label and not cmd:  # section header
+                print(f"  {Style.DIM}{label}{Style.RESET}")
+            else:  # actionable item
+                idx += 1
+                desc = descs.get(cmd, "")
+                print(f"  {idx:>2}) {label:22s}{desc}")
 
         print()
         try:
@@ -228,8 +248,8 @@ def _numbered_menu() -> None:
         # Number
         try:
             idx = int(choice) - 1
-            if 0 <= idx < len(display):
-                cmd = display[idx][1]
+            if 0 <= idx < len(items):
+                cmd = items[idx][1]
                 _run_menu_action(cmd)
                 continue
         except ValueError:
