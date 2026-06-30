@@ -502,9 +502,10 @@ def cmd_status(args) -> None:
     if inst:
         import socket
         hostname = socket.gethostname()
-        print(f"\n  {Style.GREEN}Web UI:{Style.RESET}     http://{inst.name}.{hostname}/")
+        port = inst.moonraker_port
+        print(f"\n  {Style.GREEN}Web UI:{Style.RESET}     http://{hostname}:{port}/")
         print(f"  {Style.GREEN}Admin:{Style.RESET}      http://{hostname}/admin")
-        print(f"  {Style.GREEN}API:{Style.RESET}        http://{hostname}:{inst.moonraker_port}/server/info")
+        print(f"  {Style.GREEN}API:{Style.RESET}        http://{hostname}:{port}/server/info")
 
 
 def cmd_backup(args) -> None:
