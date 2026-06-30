@@ -358,6 +358,23 @@ def cmd_instances(args) -> None:
     info("Run 'e3cnc-cli update --instance <name>' to update")
 
 
+def cmd_restart(args) -> None:
+    """Restart services (Moonraker, Klipper) for an instance."""
+    from _e3cnc_supervisor import _has_supervisor, restart_services
+    from _e3cnc_deploy import restart_services as svc_restart
+
+    header("Restart Services")
+
+    inst = _get_instance(args)
+    if not inst:
+        fail("No instance selected")
+
+    if _has_supervisor():
+        restart_services(inst)
+    else:
+        svc_restart(inst)
+
+
 def cmd_admin_page(args) -> None:
     """Regenerate the admin page at ~/e3cnc/admin/index.html."""
     from _e3cnc_deploy import generate_admin_page

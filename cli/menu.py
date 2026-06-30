@@ -59,6 +59,7 @@ def _tui_menu() -> None:
         ("[e] Restore",        "restore",        ""),
         ("[g] Diagnose",       "diagnose",       ""),
         ("[l] Logs",           "logs",           ""),
+        ("[h] Restart Svc",   "restart",        ""),
         ("---",                "",               ""),
         ("[w] Switch Instance","switch",         ""),
         ("[q] Quit",           "quit",           ""),
@@ -225,6 +226,7 @@ def _run_menu_command(cmd: str) -> None:
         cmd_status, cmd_backup, cmd_restore, cmd_diagnose, cmd_logs,
         cmd_releases, cmd_rollback, cmd_prune, cmd_instances, cmd_migrate,
         cmd_detect_mcu, cmd_flash_mcu, cmd_init_config,
+        cmd_restart,
     )
 
     _DESTRUCTIVE = ("install", "update", "uninstall")
@@ -288,6 +290,7 @@ def _run_menu_command(cmd: str) -> None:
         "build": cmd_flash_mcu,
         "init-config": cmd_init_config,
         "init": cmd_init_config,
+        "restart": cmd_restart,
     }
 
     handler = dispatch.get(cmd)

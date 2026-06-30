@@ -107,6 +107,10 @@ def build_parser() -> argparse.ArgumentParser:
                             help="Migrate KIAUH instance layout to new ~/e3cnc/instances/{name} layout",
                             description="Migrate KIAUH-layout instances (printer_data, printer_*_data) to the new ~/e3cnc/instances/{name} layout.")
 
+    rest = p.add_parser("restart",
+                        parents=[shared_instance],
+                        help="Restart services (Moonraker, Klipper) for an instance")
+
     p.add_parser("admin-page",
                  help="Regenerate the admin page at /admin")
 
