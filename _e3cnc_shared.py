@@ -17,7 +17,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from dataclasses import dataclass
-from typing import List, NoReturn, Optional, Tuple
+from typing import List, NoReturn, Optional, Tuple, Set
 
 # ── Metadata ────────────────────────────────────────────────────────────────
 
@@ -36,6 +36,20 @@ DEPLOY_PLAYBOOK = PLAYBOOKS_DIR / "deploy.yml"
 UNINSTALL_PLAYBOOK = PLAYBOOKS_DIR / "uninstall.yml"
 REDEPLOY_PLAYBOOK = PLAYBOOKS_DIR / "redeploy.yml"
 LOCAL_INVENTORY = ANSIBLE_DIR / "inventory" / "local.yml"
+
+# ── Instance directory layout ──────────────────────────────────────────
+# Instances are stored under ~/e3cnc/instances/{name}/
+INSTANCES_DIR = Path.home() / "e3cnc" / "instances"
+INSTANCES_DIR.mkdir(parents=True, exist_ok=True)
+
+# Within each instance:
+#   data/config/      → config_dir, moonraker_conf, printer_cfg
+#   data/logs/        → moonraker_log
+#   data/scripts/     → scripts_dir
+#   data/database/    → database
+#   data/comms/       → communication sockets
+#   data/gcodes/      → uploaded gcode files
+#   frontend/         → web_root (nginx serves this)
 
 # ── ANSI styling (shared for both CLIs) ─────────────────────────────────────
 
@@ -389,7 +403,11 @@ BACKUP_EXCLUDES = ("node_modules", ".git", ".venv", "__pycache__", "*.pyc")
 
 @dataclass
 class Instance:
-    """Represents a detected Klipper/Moonraker instance."""
+    """Represents a detected Klipper/Moonraker instance.
+
+    Use from_name() for new-layout instances stored under ~/e3cnc/instances/{name}/.
+    Use from_printer_data() for legacy KIAUH-layout instances (migration only).
+    """
     name: str
     printer_data_dir: str
     config_dir: str
@@ -408,8 +426,68 @@ class Instance:
     is_running: bool = False
 
     @classmethod
+    def from_name(cls, name: str) -> "Instance":
+        """Create an Instance from a name, using the new directory layout.
+
+        Paths are deterministic:
+          ~/e3cnc/instances/{name}/data/config/
+          ~/e3cnc/instances/{name}/data/logs/
+          ~/e3cnc/instances/{name}/frontend/
+        """
+        base = INSTANCES_DIR / name
+        data = base / "data"
+        config = data / "config"
+
+        # Resolve moonraker/klipper dirs from current release (if any)
+        current_link = Path.home() / "e3cnc" / "current"
+        moonraker_dir = ""
+        klipper_dir = ""
+        if current_link.is_symlink():
+            current_path = current_link.resolve()
+            mdir = current_path / "vendor" / "moonraker"
+            if mdir.is_dir():
+                moonraker_dir = str(mdir)
+            kdir = current_path / "vendor" / "klipper"
+            if kdir.is_dir():
+                klipper_dir = str(kdir)
+
+        # Read port from moonraker.conf or use default
+        port = 7125
+        conf_file = config / "moonraker.conf"
+        if conf_file.exists():
+            try:
+                text = conf_file.read_text()
+                m = re.search(r"(?m)^port:\s*(\d+)\s*$", text)
+                if m:
+                    port = int(m.group(1))
+            except OSError:
+                pass
+
+        return cls(
+            name=name,
+            printer_data_dir=str(data),
+            config_dir=str(config),
+            moonraker_conf=str(conf_file),
+            moonraker_log=str(data / "logs" / "moonraker.log"),
+            scripts_dir=str(data / "scripts"),
+            macros_dir=str(config / "E3CNC" / "macros"),
+            E3CNC_dir=str(config / "E3CNC"),
+            printer_cfg=str(config / "printer.cfg"),
+            web_root=str(base / "frontend"),
+            moonraker_dir=moonraker_dir,
+            klipper_dir=klipper_dir,
+            moonraker_service=f"e3cnc-{name}-moonraker",
+            klipper_service=f"e3cnc-{name}-klipper",
+            moonraker_port=port,
+            is_running=conf_file.exists(),
+        )
+
+    @classmethod
     def from_printer_data(cls, base: str, web_root: str = "", home: str = "") -> "Instance":
-        """Create an Instance from a printer_data directory path."""
+        """Create an Instance from a printer_data directory path (legacy KIAUH layout).
+
+        Kept for migration support. New code should use from_name().
+        """
         printer_data_path = Path(base)
         config = f"{base}/config"
         home = home or str(Path.home())
@@ -450,14 +528,16 @@ class Instance:
         )
 
 
-_active_instance: Optional[Instance] = None
+# ── Migration detection (old KIAUH layout) ────────────────────────────────
 
+def _scan_kiauh_instances() -> List[Instance]:
+    """Scan for legacy KIAUH-layout instances (~/printer_data, ~/printer_*_data).
 
-def detect_instances() -> List[Instance]:
-    """Scan for Klipper/Moonraker instances on this machine."""
+    Used only by detect_instances() fallback and migrate_instances().
+    """
     instances: List[Instance] = []
     home = str(Path.home())
-    seen = set()
+    seen: Set[Path] = set()
 
     for pattern in ("printer_data", "printer_data_*", "printer_*_data"):
         for candidate in sorted(Path(home).glob(pattern)):
@@ -471,6 +551,28 @@ def detect_instances() -> List[Instance]:
     return instances
 
 
+# ── Active instance ────────────────────────────────────────────────────────
+
+_active_instance: Optional[Instance] = None
+
+
+def detect_instances() -> List[Instance]:
+    """Scan for instances — try new layout first, then fall back to KIAUH layout."""
+    instances: List[Instance] = []
+
+    # 1. New layout: list ~/e3cnc/instances/{name}/
+    if INSTANCES_DIR.is_dir():
+        for d in sorted(INSTANCES_DIR.iterdir()):
+            if d.is_dir() and not d.name.startswith("."):
+                instances.append(Instance.from_name(d.name))
+
+    if instances:
+        return instances
+
+    # 2. Fallback: KIAUH layout (for migration)
+    return _scan_kiauh_instances()
+
+
 def select_instance(instances: List[Instance]) -> Optional[Instance]:
     """Pick an instance interactively, or return the only one."""
     if not instances:
@@ -479,10 +581,10 @@ def select_instance(instances: List[Instance]) -> Optional[Instance]:
         return instances[0]
 
     print()
-    print(f"  {Style.BOLD}Multiple Klipper/Moonraker instances detected:{Style.RESET}")
+    print(f"  {Style.BOLD}Multiple instances detected:{Style.RESET}")
     print()
     for i, inst in enumerate(instances):
-        dot = "\x1b[32m●\x1b[0m" if inst.is_running else "\x1b[90m○\x1b[0m"
+        dot = "\x1b[32m\u25cf\x1b[0m" if inst.is_running else "\x1b[90m\u25cb\x1b[0m"
         print(f"  {i + 1:>2}) {dot} {Style.BOLD}{inst.name}{Style.RESET}")
         print(f"      Config: {inst.config_dir}")
         print(f"      Service: {inst.moonraker_service}  Port: {inst.moonraker_port}")
@@ -523,6 +625,7 @@ def set_active_instance(inst: Optional[Instance]) -> None:
 def instance_extra_vars(inst: Instance) -> List[str]:
     """Generate Ansible extra vars for a specific instance."""
     return [
+        f"instance_name={inst.name}",
         f"printer_data_dir={inst.printer_data_dir}",
         f"moonraker_dir={inst.moonraker_dir}",
         f"klipper_dir={inst.klipper_dir}",

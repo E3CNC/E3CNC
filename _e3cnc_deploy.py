@@ -25,7 +25,7 @@ from urllib.error import URLError
 
 from _e3cnc_shared import (
     Style, ok, info, warn, fail, step, header, TOOL_NAME, VERSION,
-    Instance, get_active_instance, detect_instances,
+    Instance, get_active_instance, detect_instances, INSTANCES_DIR,
 )
 
 # ── Paths ───────────────────────────────────────────────────────────────────
@@ -713,6 +713,151 @@ def migrate_layout(inst: Optional[Instance] = None, version: Optional[str] = Non
 
     ok("Migration complete — new layout active")
     return True
+
+
+# ── Instance layout migration ─────────────────────────────────────────────
+
+def migrate_instances(auto_yes: bool = False) -> int:
+    """Migrate KIAUH-layout instances to new ~/e3cnc/instances/{name} layout.
+
+    Returns count of migrated instances. Returns 0 if nothing to migrate.
+    """
+    from _e3cnc_shared import _scan_kiauh_instances
+
+    old_instances = _scan_kiauh_instances()
+    if not old_instances:
+        info("No KIAUH-layout instances found — nothing to migrate")
+        return 0
+
+    info(f"Found {len(old_instances)} KIAUH-layout instance(s) to migrate")
+    print()
+
+    migrated = 0
+    for inst in old_instances:
+        name = inst.name
+        # Map legacy names to new convention
+        if name == "cnc":
+            name = "default"
+        elif name.startswith("cnc_"):
+            name = name[4:]  # cnc_test1 -> test1
+
+        new_base = INSTANCES_DIR / name
+        new_data = new_base / "data"
+        new_config = new_data / "config"
+        new_frontend = new_base / "frontend"
+
+        if new_base.exists():
+            if not auto_yes:
+                reply = input(
+                    f"  {Style.YELLOW}Instance '{name}' already exists at {new_base}. Overwrite? [y/N] {Style.RESET}"
+                ).strip().lower()
+                if reply != "y":
+                    info(f"Skipping {name}")
+                    continue
+            else:
+                info(f"Instance '{name}' already exists — overwriting")
+
+        ok(f"Migrating: ~/{Path(inst.printer_data_dir).name} -> {name}")
+
+        # Create new directory structure
+        for subdir in ["config", "config/E3CNC/macros", "logs", "database", "comms", "scripts", "gcodes"]:
+            (new_data / subdir).mkdir(parents=True, exist_ok=True)
+        new_frontend.mkdir(parents=True, exist_ok=True)
+
+        # Move config files
+        old_config = Path(inst.config_dir)
+        if old_config.is_dir():
+            for item in old_config.iterdir():
+                dest = new_config / item.name
+                if item.is_dir():
+                    shutil.copytree(item, dest, dirs_exist_ok=True)
+                else:
+                    shutil.copy2(item, dest)
+            shutil.rmtree(old_config)
+        else:
+            warn(f"Config dir not found: {old_config}")
+
+        # Move logs
+        old_logs = Path(inst.printer_data_dir) / "logs"
+        if old_logs.is_dir():
+            for f in old_logs.iterdir():
+                shutil.copy2(f, new_data / "logs" / f.name)
+            shutil.rmtree(old_logs)
+
+        # Move database
+        old_db = Path(inst.printer_data_dir) / "database"
+        if old_db.is_dir():
+            shutil.copytree(old_db, new_data / "database", dirs_exist_ok=True)
+            shutil.rmtree(old_db)
+
+        # Move comms
+        old_comms = Path(inst.printer_data_dir) / "comms"
+        if old_comms.is_dir():
+            shutil.copytree(old_comms, new_data / "comms", dirs_exist_ok=True)
+            shutil.rmtree(old_comms)
+
+        # Move scripts
+        old_scripts = Path(inst.scripts_dir)
+        if old_scripts.is_dir():
+            shutil.copytree(old_scripts, new_data / "scripts", dirs_exist_ok=True)
+            shutil.rmtree(old_scripts)
+
+        # Move gcodes
+        old_gcodes = Path(inst.printer_data_dir) / "gcodes"
+        if old_gcodes.is_dir():
+            shutil.copytree(old_gcodes, new_data / "gcodes", dirs_exist_ok=True)
+            shutil.rmtree(old_gcodes)
+
+        # Move frontend
+        old_frontend = Path(inst.web_root)
+        if old_frontend.is_dir():
+            shutil.copytree(old_frontend, new_frontend, dirs_exist_ok=True)
+            shutil.rmtree(old_frontend)
+
+        # Update moonraker.conf paths
+        conf_file = new_config / "moonraker.conf"
+        if conf_file.exists():
+            text = conf_file.read_text()
+            # Update database path
+            text = re.sub(
+                r"database_path:\s*.+",
+                f"database_path: {new_data / 'database'}",
+                text,
+            )
+            # Update klippy_uds_address
+            text = re.sub(
+                r"klippy_uds_address:\s*.+",
+                f"klippy_uds_address: {new_data / 'comms' / 'klippy.sock'}",
+                text,
+            )
+            conf_file.write_text(text)
+            ok(f"Updated moonraker.conf paths for {name}")
+
+        # Remove old printer_data base dir
+        old_base = Path(inst.printer_data_dir)
+        if old_base.is_dir() and old_base.name.startswith("printer_"):
+            try:
+                shutil.rmtree(old_base)
+                info(f"Removed old {old_base.name}")
+            except OSError as e:
+                warn(f"Could not remove {old_base.name}: {e}")
+
+        migrated += 1
+        print()
+
+    if migrated:
+        ok(f"Migrated {migrated} instance(s) to ~/e3cnc/instances/{{name}}/")
+        info("Old systemd units and nginx sites still exist with old names.")
+        info("Run 'e3cnc-cli update' to refresh runtime files and restart services.")
+        info("Then manually remove old systemd units and nginx sites:")
+        info("  sudo systemctl disable --now <old-service-name>")
+        info("  sudo rm /etc/systemd/system/<old-service-name>.service")
+        info("  sudo rm /etc/nginx/sites-available/<old-site> /etc/nginx/sites-enabled/<old-site>")
+        info("  sudo systemctl daemon-reload")
+    else:
+        info("No instances migrated")
+
+    return migrated
 
 
 # ── State backup ────────────────────────────────────────────────────────────

@@ -66,6 +66,15 @@ def _ensure_system_packages() -> None:
 def cmd_install(args) -> None:
     """Full installation: bootstrap infrastructure + download release + activate."""
     from cli.helpers import _download_and_activate_release
+    from _e3cnc_shared import INSTANCES_DIR, set_active_instance
+
+    # Handle --name: set up instance before bootstrap creates directories
+    if args.name:
+        inst = Instance.from_name(args.name)
+        set_active_instance(inst)
+        info(f"Installing instance: {Style.BOLD}{args.name}{Style.RESET}")
+    else:
+        inst = _get_instance(args)
 
     header("Prerequisites")
     _require_ansible()
@@ -79,7 +88,6 @@ def cmd_install(args) -> None:
     print()
     header("Release")
     info("Downloading latest stack artifact...")
-    inst = _get_instance(args)
     if args.check:
         _download_and_activate_release(inst=inst, skip_backup=True, auto_yes=True, dry_run=True)
         ok("Install check complete — no files were modified")
@@ -252,6 +260,25 @@ def cmd_migrate(args) -> None:
         info("Run 'e3cnc-cli update' for future updates")
     else:
         fail("Migration failed — see errors above")
+
+
+def cmd_migrate_instances(args) -> None:
+    """Migrate KIAUH instance layout to new ~/e3cnc/instances/{name} layout."""
+    from _e3cnc_deploy import migrate_instances
+
+    header("Instance Layout Migration")
+    if not args.yes:
+        reply = input(
+            f"  {Style.YELLOW}This will migrate your KIAUH-layout instances to ~/e3cnc/instances/{{name}}/. Continue? [y/N] {Style.RESET}"
+        ).strip().lower()
+        if reply != "y":
+            fail("Migration cancelled")
+
+    migrated = migrate_instances(auto_yes=args.yes)
+    if migrated:
+        ok(f"Migrated {migrated} instance(s)")
+    else:
+        info("Nothing to migrate")
 
 
 def cmd_prune(args) -> None:

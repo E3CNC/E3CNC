@@ -12,17 +12,12 @@ def build_parser() -> argparse.ArgumentParser:
         prog=TOOL_NAME,
         description=f"{TOOL_NAME} — Unified CLI for installing, deploying, and managing E3CNC UI.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog=f"""
-Examples:
-  %(prog)s check                     Check dependencies
+        epilog=f"""Examples:
   %(prog)s install                   Full install (bootstrap + download release)
-  %(prog)s install --remote pi@cnc   Full install (remote)
-  %(prog)s install --check           Dry-run (check mode)
-  %(prog)s deploy                    Deploy frontend (download from release)
+  %(prog)s install --check           Dry-run / check mode
   %(prog)s update                    Download stack artifact, activate, verify
   %(prog)s uninstall                 Remove all components
   %(prog)s status                    Check installation status
-  %(prog)s status --remote cnc       Check remote status
   %(prog)s backup                    Create backup
   %(prog)s restore e3cnc-backup-20250301-120000
   %(prog)s diagnose                  Run diagnostics
@@ -48,11 +43,15 @@ Examples:
 
     shared_instance = argparse.ArgumentParser(add_help=False)
     shared_instance.add_argument("--instance", "-p", metavar="NAME", default=None,
-                                 help="CNC instance name (e.g., 'test2', 'cnc_2', or just '2')")
+                                 help="CNC instance name (e.g., 'test2', 'lab', or 'default')")
+
+    shared_instance_name = argparse.ArgumentParser(add_help=False)
+    shared_instance_name.add_argument("--name", metavar="NAME", default=None,
+                                      help="Instance name for bootstrap (creates ~/e3cnc/instances/{NAME})")
 
     p = subparsers = parser.add_subparsers(dest="command", title="Commands")
 
-    p.add_parser("install", parents=[shared_remote, shared_check, shared_yes, shared_instance],
+    p.add_parser("install", parents=[shared_remote, shared_check, shared_yes, shared_instance, shared_instance_name],
                  help="Full installation: bootstrap infrastructure + download release + activate")
     p.add_parser("deploy", parents=[shared_remote, shared_check, shared_instance],
                  help="Deploy frontend (download from GitHub release)")
@@ -102,6 +101,10 @@ Examples:
                        help="Migrate from old layout to single-deploy layout")
     mig.add_argument("--from-version", metavar="VER", default=None,
                      help="Specific version to migrate to (default: latest release)")
+
+    mig_inst = p.add_parser("migrate-instances",
+                            parents=[shared_yes],
+                            help="Migrate KIAUH instance layout to new ~/e3cnc/instances/{name} layout")
 
     bp = p.add_parser("backup", parents=[shared_remote, shared_instance],
                       help="Create a timestamped backup")

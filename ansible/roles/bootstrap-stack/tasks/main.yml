@@ -8,11 +8,27 @@
     - '{{ moonraker_conf }}'
   register: bootstrap_stack_stats
 
-- name: Derive bootstrap flags
+- name: Classify bootstrap state
   ansible.builtin.set_fact:
-    e3cnc_bootstrap_needed: '{{ (bootstrap_stack_stats.results | selectattr("stat.exists", "equalto", false) | list | length) > 0 }}'
+    e3cnc_bootstrap_all_present: '{{ (bootstrap_stack_stats.results | selectattr("stat.exists", "equalto", false) | list | length) == 0 }}'
+    e3cnc_bootstrap_partial_present: >-
+      {{ (bootstrap_stack_stats.results | selectattr("stat.exists", "equalto", false) | list | length) > 0 and (bootstrap_stack_stats.results | selectattr("stat.exists", "equalto", true) | list | length) > 0 }}
     e3cnc_skip_klippy_ready_check: false
     e3cnc_placeholder_printer_cfg: false
+    e3cnc_bootstrap_needed: true
+
+- name: Abort bootstrap when existing installation appears only partially present
+  ansible.builtin.fail:
+    msg: >
+      Partial existing installation detected (only some Moonraker/Klipper files present).
+      Auto-bootstrap will not overwrite an existing install. Verify your installation manually
+      or remove the existing tree before retrying install.
+  when: e3cnc_bootstrap_partial_present
+
+- name: Skip bootstrap entirely when all core files already exist
+  ansible.builtin.set_fact:
+    e3cnc_bootstrap_needed: false
+  when: e3cnc_bootstrap_all_present
 
 - name: Override frontend web root for fresh single-instance bootstrap installs
   ansible.builtin.set_fact:
@@ -206,6 +222,10 @@
       trusted_clients:
           127.0.0.1
           ::1
+
+      # Harden first-boot exposure after bootstrap:
+      # 1) enable Moonraker token auth (`moonraker-admin-token.sh create`)
+      # 2) restrict `trusted_clients` to known LAN CIDR(s)
   when:
     - e3cnc_bootstrap_needed
     - not moonraker_conf_stat.stat.exists

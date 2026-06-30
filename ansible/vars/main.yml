@@ -4,14 +4,18 @@ repo:
   dest: '{{ ansible_env.HOME }}/E3CNC'
   branch: main
 
+# E3CNC instance layout root — instances live under ~/e3cnc/instances/{name}
+e3cnc_root: '{{ ansible_env.HOME }}/e3cnc'
+
 # Instance-specific paths — overridden via CLI extra_vars for multi-instance.
 # Default to standard single-instance paths for a default install.
-printer_data_dir: '{{ ansible_env.HOME }}/printer_data'
+instance_name: 'default'
+printer_data_dir: '{{ e3cnc_root }}/instances/{{ instance_name }}/data'
 moonraker_dir: '{{ ansible_env.HOME }}/moonraker'
 klipper_dir: '{{ ansible_env.HOME }}/klipper'
-frontend_web_root: '{{ ansible_env.HOME }}/mainsail'
-moonraker_service: 'moonraker'
-klipper_service: 'klipper'
+frontend_web_root: '{{ e3cnc_root }}/instances/{{ instance_name }}/frontend'
+moonraker_service: 'e3cnc-{{ instance_name }}-moonraker'
+klipper_service: 'e3cnc-{{ instance_name }}-klipper'
 moonraker_port: 7125
 
 frontend:
@@ -35,7 +39,7 @@ moonraker_conf: '{{ printer_data_dir }}/config/moonraker.conf'
 
 bootstrap_moonraker_source_dir: '{{ repo.dest }}/vendor/moonraker'
 bootstrap_klipper_source_dir: '{{ repo.dest }}/vendor/klipper'
-bootstrap_frontend_web_root: '{{ ansible_env.HOME }}/e3cnc-web'
-bootstrap_nginx_site_name: 'e3cnc'
+bootstrap_frontend_web_root: '{{ frontend_web_root }}'
+bootstrap_nginx_site_name: 'e3cnc-{{ instance_name }}'
 bootstrap_skip_runtime_start: false
 bootstrap_skip_runtime_verification: false
