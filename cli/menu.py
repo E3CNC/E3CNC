@@ -117,6 +117,9 @@ def _interactive_menu() -> None:
     cur_idx = 0
     has_terminal = sys.stdin.isatty()
 
+    # Resolve active instance before raw mode so select_instance() has echo
+    cur = get_active_instance()
+
     if has_terminal:
         _setup_terminal()
 
@@ -125,7 +128,7 @@ def _interactive_menu() -> None:
             print_banner()
             print(f"  {Style.BOLD}{Style.GREEN}{TOOL_NAME} v{VERSION}{Style.RESET}")
 
-            cur = get_active_instance()
+            # Refresh instance after switch/create/run operations
             if cur:
                 label = cur.name if cur.name != "cnc" else "default"
                 print(f"  {Style.DIM}Instance: {label}  ({cur.config_dir}){Style.RESET}")
@@ -174,6 +177,7 @@ def _interactive_menu() -> None:
                         _create_instance()
                     else:
                         _run_menu_command(cmd)
+                    cur = get_active_instance()
                     _setup_terminal()
                     continue
 
@@ -192,6 +196,7 @@ def _interactive_menu() -> None:
                             _create_instance()
                         else:
                             _run_menu_command(cmd)
+                        cur = get_active_instance()
                         _setup_terminal()
                         continue
 
