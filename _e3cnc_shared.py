@@ -627,7 +627,7 @@ def select_instance(instances: List[Instance]) -> Optional[Instance]:
                 menu_entries=entries,
                 title="  Multiple instances detected",
                 cycle_cursor=True,
-                show_shortcut_hints=False,
+                show_shortcut_hints=True,
                 menu_highlight_style=("fg_green", "bold"),
                 quit_keys=("q", "Q"),
                 clear_screen=True,
