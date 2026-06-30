@@ -500,15 +500,9 @@ def cmd_status(args) -> None:
 
     # Show access URL
     if inst:
-        import socket
-        try:
-            hostname = socket.gethostname()
-        except Exception:
-            hostname = "<host>"
-        port = inst.moonraker_port
-        print(f"\n  {Style.GREEN}Web UI:{Style.RESET}     http://{hostname}/")
-        print(f"  {Style.GREEN}Admin:{Style.RESET}      http://{hostname}/admin")
-        print(f"  {Style.GREEN}API:{Style.RESET}        http://{hostname}:{port}/server/info")
+        print(f"\n  {Style.GREEN}Web UI:{Style.RESET}     http://<host>/")
+        print(f"  {Style.GREEN}Admin:{Style.RESET}      http://<host>/admin")
+        print(f"  {Style.GREEN}API:{Style.RESET}        http://<host>:{inst.moonraker_port}/server/info")
 
 
 def cmd_backup(args) -> None:
