@@ -314,19 +314,27 @@ def cmd_instances(args) -> None:
     insts = detect_instances()
     if not insts:
         info("No instances detected")
+        info("Install one with: e3cnc-cli install --name <name>")
         return
-    print(f"  {'Name':<12} {'Port':<8} {'Web Root':<30} {'Frontend URL'}")
-    print(f"  {'-'*12} {'-'*8} {'-'*30} {'-'*40}")
-    for i, inst in enumerate(insts):
-        dot = "\033[32m\u25cf\033[0m" if inst.is_running else "\033[31m\u25cf\033[0m"
-        port = inst.moonraker_port
-        if i == 0:
-            fe_url = "http://<host>"
-        else:
-            fe_url = f"http://<host>:{8080 + i}"
-        print(f"  {dot} {inst.name:<10} {port:<8} {Path(inst.web_root).name:<30} {fe_url}")
-    print()
+
+    # Check for current release version
+    from _e3cnc_deploy import get_current_release
+    current = get_current_release()
+    release_ver = current.version if current else "(no release)"
+
+    for inst in insts:
+        dot = "\033[32m\u25cf\033[0m" if inst.is_running else "\033[90m\u25cb\033[0m"
+        print(f"  {dot} {Style.BOLD}{inst.name}{Style.RESET}")
+        print(f"      Config:     {inst.config_dir}")
+        print(f"      Services:   {inst.moonraker_service}, {inst.klipper_service}")
+        print(f"      Port:       {inst.moonraker_port}")
+        print(f"      Web root:   {inst.web_root}")
+        print(f"      Data:       {inst.printer_data_dir}")
+        print(f"      Release:    {release_ver}")
+        print()
+
     info("Run 'e3cnc-cli status --instance <name>' for component details")
+    info("Run 'e3cnc-cli update --instance <name>' to update")
 
 
 def cmd_uninstall(args) -> None:
