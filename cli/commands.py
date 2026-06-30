@@ -360,7 +360,7 @@ def cmd_instances(args) -> None:
 
 def cmd_restart(args) -> None:
     """Restart services (Moonraker, Klipper) for an instance."""
-    from _e3cnc_supervisor import _has_supervisor, restart_services
+    from _e3cnc_supervisor import _has_supervisor, _config_path, restart_services
     from _e3cnc_deploy import restart_services as svc_restart
     from _e3cnc_shared import get_active_instance
 
@@ -373,8 +373,17 @@ def cmd_restart(args) -> None:
     if not inst:
         fail("No instance selected")
 
-    if _has_supervisor():
+    # Use supervisor if available AND instance has a supervisor config
+    if _has_supervisor() and _config_path(inst).exists():
         restart_services(inst)
+    elif _has_supervisor():
+        # Instance exists but not in supervisor → register it
+        from _e3cnc_supervisor import register_instance
+        if register_instance(inst):
+            ok(f"Instance '{inst.name}' registered and started with supervisor")
+        else:
+            warn(f"Falling back to systemd for '{inst.name}'...")
+            svc_restart(inst)
     else:
         svc_restart(inst)
 
