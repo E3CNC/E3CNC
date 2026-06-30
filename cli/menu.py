@@ -281,11 +281,10 @@ def _run_menu_action(cmd: str) -> None:
 
 def _pause_after_output() -> None:
     """Wait for Enter so the user can read command output before menu reappears."""
-    if sys.stdin.isatty():
-        try:
-            input(f"\n  {Style.DIM}Press Enter to return to menu...{Style.RESET}")
-        except (EOFError, KeyboardInterrupt):
-            print()
+    try:
+        input(f"\n  {Style.DIM}Press Enter to return to menu...{Style.RESET}")
+    except (EOFError, KeyboardInterrupt):
+        print()
 
 
 def _run_menu_command(cmd: str) -> None:
