@@ -38,40 +38,46 @@ def _tui_menu() -> None:
     )
 
     all_items = [
-        ("── Maintenance ──",      "",               ""),
-        (" 1) Status",             "status",         ""),
-        (" 2) Install",            "install",        ""),
-        (" 3) Deploy",             "deploy",         ""),
-        (" 4) Update",             "update",         ""),
-        (" 5) Uninstall",          "uninstall",      ""),
-        ("── MCU ──",              "",               ""),
-        (" 6) Detect MCU",         "detect-mcu",     ""),
-        (" 7) Flash MCU",          "flash-mcu",      ""),
-        (" 8) Init Config",        "init-config",    ""),
-        ("── Instances ──",        "",               ""),
-        (" 9) Create Instance",    "create-instance",""),
-        ("10) Releases",           "releases",       ""),
-        ("11) Rollback",           "rollback",       ""),
-        ("12) Prune",              "prune",          ""),
-        ("13) Migrate Instances",  "migrate-instances",""),
-        ("── Tools ──",            "",               ""),
-        ("14) Import KIAUH",       "import-instance",""),
-        ("15) Instances",          "instances",      ""),
-        ("16) Check Deps",         "check",          ""),
-        ("17) Restart Svc",        "restart",        ""),
-        ("18) Admin Page",         "admin-page",     ""),
-        ("19) CLI Log",            "clilog",         ""),
-        ("20) Backup",             "backup",         ""),
-        ("21) Restore",            "restore",        ""),
-        ("22) Diagnose",           "diagnose",       ""),
-        ("23) Logs",               "logs",           ""),
-        ("── Navigation ──",       "",               ""),
-        ("24) Switch Instance",    "switch",         ""),
-        ("25) Quit",               "quit",           ""),
+        ("── Maintenance ──",               "",               ""),
+        (" 1) Status",                      "status",         "Check installation status"),
+        (" 2) Install",                     "install",        "Bootstrap + download release"),
+        (" 3) Deploy",                      "deploy",         "Deploy frontend from release"),
+        (" 4) Update",                      "update",         "Full-stack update & verify"),
+        (" 5) Uninstall",                   "uninstall",      "Remove all E3CNC components"),
+        ("── MCU ──",                       "",               ""),
+        (" 6) Detect MCU",                  "detect-mcu",     "Scan for connected MCU devices"),
+        (" 7) Flash MCU",                   "flash-mcu",      "Build & flash Klipper firmware"),
+        (" 8) Init Config",                 "init-config",    "Generate CNC printer.cfg"),
+        ("── Instances ──",                 "",               ""),
+        (" 9) Create Instance",             "create-instance","Create a new E3CNC instance"),
+        ("10) Releases",                    "releases",       "List installed releases"),
+        ("11) Rollback",                    "rollback",       "Roll back to a previous release"),
+        ("12) Prune",                       "prune",          "Remove old releases"),
+        ("13) Migrate Instances",           "migrate-instances","Import KIAUH instances to new layout"),
+        ("── Tools ──",                     "",               ""),
+        ("14) Import KIAUH",                "import-instance","Copy KIAUH config into E3CNC layout"),
+        ("15) Instances",                   "instances",      "List all instances with URLs"),
+        ("16) Check Deps",                  "check",          "Verify system dependencies"),
+        ("17) Restart Svc",                 "restart",        "Restart Moonraker & Klipper"),
+        ("18) Admin Page",                  "admin-page",     "Generate admin overview page"),
+        ("19) CLI Log",                     "clilog",         "View CLI operation logs"),
+        ("20) Backup",                      "backup",         "Create timestamped backup"),
+        ("21) Restore",                     "restore",        "Restore from a backup"),
+        ("22) Diagnose",                    "diagnose",       "Run system diagnostics"),
+        ("23) Logs",                        "logs",           "Tail Moonraker & nginx logs"),
+        ("── Navigation ──",                "",               ""),
+        ("24) Switch Instance",             "switch",         "Change active instance"),
+        ("25) Quit",                        "quit",           "Exit the CLI"),
     ]
-    entries = [item[0] for item in all_items]
+    entries = []
+    for item in all_items:
+        if item[2]:  # has description
+            entries.append(f"{item[0]:24s}{item[2]}")
+        elif item[1]:  # has command but no description
+            entries.append(item[0])
+        else:  # header
+            entries.append(item[0])
     cmd_map = {item[0]: item[1] for item in all_items if item[1]}
-    entry_count = len([e for e in entries if e != "---"])
 
     while True:
         cur = get_active_instance()
@@ -156,6 +162,35 @@ def _numbered_menu() -> None:
     ]
     display = [(l, c) for l, c in all_items if l and c]
 
+    # Description map for numbered menu
+    descs = {
+        "status": "Check installation status",
+        "install": "Bootstrap + download release",
+        "deploy": "Deploy frontend from release",
+        "update": "Full-stack update & verify",
+        "uninstall": "Remove all E3CNC components",
+        "detect-mcu": "Scan for connected MCU devices",
+        "flash-mcu": "Build & flash Klipper firmware",
+        "init-config": "Generate CNC printer.cfg",
+        "create-instance": "Create a new E3CNC instance",
+        "releases": "List installed releases",
+        "rollback": "Roll back to a previous release",
+        "prune": "Remove old releases",
+        "migrate-instances": "Import KIAUH instances to new layout",
+        "import-instance": "Copy KIAUH config into E3CNC layout",
+        "instances": "List all instances with URLs",
+        "check": "Verify system dependencies",
+        "restart": "Restart Moonraker & Klipper",
+        "admin-page": "Generate admin overview page",
+        "clilog": "View CLI operation logs",
+        "backup": "Create timestamped backup",
+        "restore": "Restore from a backup",
+        "diagnose": "Run system diagnostics",
+        "logs": "Tail Moonraker & nginx logs",
+        "switch": "Change active instance",
+        "quit": "Exit the CLI",
+    }
+
     # Build shortcut map
     shortcut_map = {}
     for label, cmd in display:
@@ -177,7 +212,8 @@ def _numbered_menu() -> None:
         print()
 
         for i, (label, cmd) in enumerate(display):
-            print(f"  {i + 1:>2}) {label}")
+            desc = descs.get(cmd, "")
+            print(f"  {i + 1:>2}) {label:22s}{desc}")
 
         print()
         try:
