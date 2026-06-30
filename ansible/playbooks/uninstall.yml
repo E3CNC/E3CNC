@@ -55,10 +55,37 @@
         state: absent
       ignore_errors: true
 
+    - name: Remove nginx site for E3CNC bootstrap
+      ansible.builtin.file:
+        path: '{{ item.path }}'
+        state: absent
+      loop:
+        - path: '/etc/nginx/sites-available/{{ bootstrap_nginx_site_name }}'
+        - path: '/etc/nginx/sites-enabled/{{ bootstrap_nginx_site_name }}'
+      become: true
+      ignore_errors: true
+
+    - name: Remove Avahi mDNS publisher for E3CNC
+      ansible.builtin.file:
+        path: /etc/systemd/system/avahi-publish-e3cnc.service
+        state: absent
+      become: true
+      ignore_errors: true
+
+    - name: Remove stale E3CNC frontend web roots from fresh bootstrap
+      ansible.builtin.file:
+        path: '{{ item }}'
+        state: absent
+      loop:
+        - '{{ ansible_env.HOME }}/e3cnc-web'
+        - '{{ ansible_env.HOME }}/mainsail'
+      ignore_errors: true
+
     - name: Restart moonraker
       ansible.builtin.systemd:
         name: '{{ moonraker_service }}'
         state: restarted
       become: true
+      ignore_errors: true
       tags:
         - restart-services
