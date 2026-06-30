@@ -506,7 +506,7 @@ def cmd_status(args) -> None:
         except Exception:
             hostname = "<host>"
         port = inst.moonraker_port
-        print(f"\n  {Style.GREEN}Web UI:{Style.RESET}     http://{hostname}:{port}/")
+        print(f"\n  {Style.GREEN}Web UI:{Style.RESET}     http://{hostname}/")
         print(f"  {Style.GREEN}Admin:{Style.RESET}      http://{hostname}/admin")
         print(f"  {Style.GREEN}API:{Style.RESET}        http://{hostname}:{port}/server/info")
 
