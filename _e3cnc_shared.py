@@ -595,13 +595,19 @@ def select_instance(instances: List[Instance]) -> Optional[Instance]:
 
         create_idx = len(instances) + 1
         print(f"  {create_idx:>2}) + Create new instance")
+        print(f"   q) Quit")
         print()
 
         try:
-            choice = input(f"  {Style.BOLD}Choose instance [1-{create_idx}]{Style.RESET} ").strip()
+            choice = input(f"  {Style.BOLD}Choose instance [1-{create_idx} or q]{Style.RESET} ").strip().lower()
         except (EOFError, KeyboardInterrupt):
             print()
             return None
+
+        if choice in ("q", "quit", "exit"):
+            print()
+            info("Goodbye")
+            sys.exit(0)
 
         if choice == str(create_idx):
             # Create a new instance
