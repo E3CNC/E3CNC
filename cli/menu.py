@@ -51,7 +51,7 @@ def _tui_menu() -> None:
         ("[n] Create Instance","create-instance",""),
         ("[r] Releases",       "releases",       ""),
         ("[b] Rollback",       "rollback",       ""),
-        ("[p] Prune",          "prune",          ""),
+        ("[z] Prune",          "prune",          ""),
         ("---",                "",               ""),
         ("[t] Instances",      "instances",      ""),
         ("[k] Check Deps",     "check",          ""),
@@ -61,6 +61,9 @@ def _tui_menu() -> None:
         ("[g] Diagnose",       "diagnose",       ""),
         ("[l] Logs",           "logs",           ""),
         ("[h] Restart Svc",   "restart",        ""),
+        ("[y] Admin Page",    "admin-page",     ""),
+        ("[j] CLI Log",       "clilog",         ""),
+        ("[v] Migrate Insts", "migrate-instances",""),
         ("---",                "",               ""),
         ("[w] Switch Instance","switch",         ""),
         ("[q] Quit",           "quit",           ""),
@@ -141,6 +144,11 @@ def _numbered_menu() -> None:
         ("[Rr] Restore",    "restore"),
         ("[G] Diagnose",    "diagnose"),
         ("[L] Logs",        "logs"),
+        ("[Rh] Restart Svc", "restart"),
+        ("[Pi] Import",     "import-instance"),
+        ("[Ap] Admin Page", "admin-page"),
+        ("[Cl] CLI Log",    "clilog"),
+        ("[Mi] Migrate Instances", "migrate-instances"),
         ("",                ""),
         ("[W] Switch Instance", "switch"),
         ("[Q] Quit",        "quit"),
@@ -229,6 +237,9 @@ def _run_menu_command(cmd: str) -> None:
         cmd_detect_mcu, cmd_flash_mcu, cmd_init_config,
         cmd_restart,
         cmd_import_instance,
+        cmd_admin_page,
+        cmd_clilog,
+        cmd_migrate_instances,
     )
 
     _DESTRUCTIVE = ("install", "update", "uninstall")
@@ -294,6 +305,9 @@ def _run_menu_command(cmd: str) -> None:
         "init": cmd_init_config,
         "restart": cmd_restart,
         "import-instance": cmd_import_instance,
+        "admin-page": cmd_admin_page,
+        "clilog": cmd_clilog,
+        "migrate-instances": cmd_migrate_instances,
     }
 
     handler = dispatch.get(cmd)
