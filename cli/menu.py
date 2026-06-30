@@ -1,6 +1,10 @@
 """Interactive menu for the E3CNC CLI."""
 
 import sys
+import tty
+import termios
+import atexit
+from pathlib import Path
 
 from _e3cnc_shared import (
     VERSION, TOOL_NAME, Style,
@@ -9,6 +13,61 @@ from _e3cnc_shared import (
     INSTANCES_DIR, Instance,
 )
 from _e3cnc_deploy import get_current_release, generate_admin_page
+
+
+# ── Raw terminal input ─────────────────────────────────────────────────
+
+_old_term: list = []
+
+
+def _setup_terminal() -> None:
+    """Switch stdin to raw mode for single-key input."""
+    if not sys.stdin.isatty():
+        return
+    fd = sys.stdin.fileno()
+    _old_term.append(termios.tcgetattr(fd))
+    tty.setraw(fd)
+
+
+def _restore_terminal() -> None:
+    """Restore terminal to cooked mode."""
+    if _old_term:
+        for fd_term in _old_term:
+            try:
+                termios.tcsetattr(sys.stdin.fileno(), termios.TCSADRAIN, fd_term)
+            except (termios.error, OSError, ValueError):
+                pass
+        _old_term.clear()
+
+
+atexit.register(_restore_terminal)
+
+
+def _get_key() -> str:
+    """Read a single keypress. Returns escape sequences for arrows/enter."""
+    fd = sys.stdin.fileno()
+    try:
+        ch = sys.stdin.read(1)
+    except (OSError, ValueError):
+        return ""
+    if ch == "\x1b":
+        # Read the rest of the escape sequence (non-blocking)
+        import select
+        rest = ""
+        for _ in range(2):
+            if select.select([sys.stdin], [], [], 0.05)[0]:
+                try:
+                    rest += sys.stdin.read(1)
+                except (OSError, ValueError):
+                    break
+            else:
+                break
+        if rest:
+            return ch + rest
+    return ch
+
+
+# ── Menu ───────────────────────────────────────────────────────────────
 
 
 def _interactive_menu() -> None:
@@ -47,81 +106,93 @@ def _interactive_menu() -> None:
         ("[Q] Quit",        "quit"),
     ]
     display = [(l, c) for l, c in all_items if l]
+    cur_idx = 0
+    has_terminal = sys.stdin.isatty()
 
-    while True:
-        print_banner()
-        print(f"  {Style.BOLD}{Style.GREEN}{TOOL_NAME} v{VERSION}{Style.RESET}")
+    if has_terminal:
+        _setup_terminal()
 
-        cur = get_active_instance()
-        if cur:
-            label = cur.name if cur.name != "cnc" else "default"
-            print(f"  {Style.DIM}Instance: {label}  ({cur.config_dir}){Style.RESET}")
+    try:
+        while True:
+            print_banner()
+            print(f"  {Style.BOLD}{Style.GREEN}{TOOL_NAME} v{VERSION}{Style.RESET}")
 
-        print()
-        print(f"  {Style.BOLD}Select an action:{Style.RESET}")
-        print()
+            cur = get_active_instance()
+            if cur:
+                label = cur.name if cur.name != "cnc" else "default"
+                print(f"  {Style.DIM}Instance: {label}  ({cur.config_dir}){Style.RESET}")
 
-        for i, (label, cmd) in enumerate(display):
-            print(f"  {i + 1:>2}) {label}")
-
-        print()
-        try:
-            choice = input(f"  {Style.BOLD}Choice [1-{len(display)}]{Style.RESET} ").strip()
-        except (EOFError, KeyboardInterrupt):
             print()
-            break
+            print(f"  {Style.BOLD}Select an action:{Style.RESET}")
+            print()
 
-        if not choice:
-            continue
+            for i, (label, cmd) in enumerate(display):
+                if i == cur_idx and has_terminal:
+                    print(f"  {Style.GREEN}>{Style.RESET} {i + 1:>2}) {label}")
+                else:
+                    print(f"    {i + 1:>2}) {label}")
 
-        try:
-            idx = int(choice) - 1
-            if idx < 0 or idx >= len(display):
-                print(f"  {Style.YELLOW}Invalid choice: {choice}{Style.RESET}")
-                continue
-            _, cmd = display[idx]
-        except ValueError:
-            choice_lower = choice.lower()
-            cmd_map = {
-                "1": "e3cnc-cli", "s": "status",
-                "2": "install", "i": "install",
-                "3": "deploy", "d": "deploy",
-                "4": "update", "u": "update",
-                "5": "uninstall", "x": "uninstall",
-                "6": "detect-mcu",
-                "7": "flash-mcu",
-                "8": "init-config",
-                "9": "create-instance",
-                "10": "releases", "rl": "releases",
-                "11": "rollback", "rb": "rollback",
-                "12": "prune", "p": "prune",
-                "13": "instances", "n": "instances",
-                "14": "check", "c": "check",
-                "15": "backup", "b": "backup",
-                "16": "restore", "rr": "restore",
-                "17": "diagnose", "g": "diagnose",
-                "18": "logs", "l": "logs",
-                "19": "switch",
-                "20": "quit", "q": "quit",
-            }
-            cmd = cmd_map.get(choice_lower)
-            if not cmd:
-                print(f"  {Style.YELLOW}Invalid choice: {choice}{Style.RESET}")
+            print()
+            if has_terminal:
+                sys.stdout.write(f"  {Style.DIM}arrows to move, enter to select, q to quit{Style.RESET}")
+                sys.stdout.flush()
+
+            key = _get_key() if has_terminal else ""
+            if key == "q" or key == "Q":
+                ok("Goodbye")
+                break
+
+            if key == "\x1b[A":  # Up arrow
+                cur_idx = (cur_idx - 1) % len(display)
+                sys.stdout.write("\r\033[2K")
+                sys.stdout.flush()
                 continue
 
-        if cmd == "quit":
-            ok("Goodbye")
-            break
+            if key == "\x1b[B":  # Down arrow
+                cur_idx = (cur_idx + 1) % len(display)
+                sys.stdout.write("\r\033[2K")
+                sys.stdout.flush()
+                continue
 
-        if cmd == "switch":
-            _switch_instance()
-            continue
+            if key in ("\r", "\n"):  # Enter
+                _, cmd = display[cur_idx]
+                if cmd == "quit":
+                    ok("Goodbye")
+                    break
+                _restore_terminal()
+                if cmd == "switch":
+                    _switch_instance()
+                elif cmd == "create-instance":
+                    _create_instance()
+                else:
+                    _run_menu_command(cmd)
+                _setup_terminal()
+                continue
 
-        if cmd == "create-instance":
-            _create_instance()
-            continue
+            if key and key.isdigit():
+                idx = int(key) - 1
+                if 0 <= idx < len(display):
+                    cur_idx = idx
+                    _, cmd = display[idx]
+                    if cmd == "quit":
+                        ok("Goodbye")
+                        break
+                    _restore_terminal()
+                    if cmd == "switch":
+                        _switch_instance()
+                    elif cmd == "create-instance":
+                        _create_instance()
+                    else:
+                        _run_menu_command(cmd)
+                    _setup_terminal()
+                    continue
 
-        _run_menu_command(cmd)
+            if key in ("\x03",):  # Ctrl+C
+                print()
+                break
+
+    finally:
+        _restore_terminal()
 
 
 def _run_menu_command(cmd: str) -> None:
@@ -245,13 +316,12 @@ def _switch_instance() -> None:
 
 def _create_instance() -> None:
     """Interactively create a new instance."""
-    from _e3cnc_shared import detect_instances, INSTANCES_DIR
+    import re
 
     print()
     info("Creating a new E3CNC instance")
     print()
 
-    # Show existing instances
     existing = detect_instances()
     if existing:
         print(f"  {Style.BOLD}Existing instances:{Style.RESET}")
@@ -260,33 +330,27 @@ def _create_instance() -> None:
             print(f"    {dot} {inst.name}  ({inst.config_dir})")
         print()
 
-    # Prompt for name
     try:
         raw = input(f"  {Style.BOLD}Instance name: {Style.RESET}").strip()
     except (EOFError, KeyboardInterrupt):
         print()
         return
 
-    import re
     name = re.sub(r"[^a-z0-9-]", "", raw.lower().replace(" ", "-"))
     if not name:
         warn("Invalid name — use lowercase letters, numbers, and hyphens")
         return
 
-    # Check if already exists
     if (INSTANCES_DIR / name).exists():
         warn(f"Instance '{name}' already exists at {INSTANCES_DIR / name}")
         return
 
-    # Create the instance object and activate it
     inst = Instance.from_name(name)
     set_active_instance(inst)
 
     print()
     info(f"Creating instance: {Style.BOLD}{name}{Style.RESET}")
 
-    # Create directory structure
-    from _e3cnc_deploy import ADMIN_PAGE_DIR
     data = INSTANCES_DIR / name / "data"
     frontend = INSTANCES_DIR / name / "frontend"
     for subdir in ["config", "config/E3CNC/macros", "logs", "database", "comms", "scripts", "gcodes"]:
@@ -294,8 +358,6 @@ def _create_instance() -> None:
     frontend.mkdir(parents=True, exist_ok=True)
     ok(f"Directories created at {INSTANCES_DIR / name}")
 
-    # Generate a minimal moonraker.conf
-    # Find an available port
     used_ports = {inst.moonraker_port for inst in existing}
     port = 7125
     while port in used_ports:
@@ -328,16 +390,14 @@ timeout: 30
 """)
     ok(f"moonraker.conf created (port {port})")
 
-    # Generate admin page
     generate_admin_page()
 
-    # Create a placeholder printer.cfg
     printer_cfg = data / "config" / "printer.cfg"
     printer_cfg.write_text("""# E3CNC bootstrap placeholder printer.cfg
 # Replace with your actual machine configuration.
 # Run 'e3cnc-cli init-config' to generate a CNC template.
 """)
-    ok(f"Placeholder printer.cfg created")
+    ok("Placeholder printer.cfg created")
 
     print()
     info(f"Instance '{name}' created")
