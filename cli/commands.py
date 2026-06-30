@@ -350,6 +350,26 @@ def cmd_admin_page(args) -> None:
     info("Available at http://<host>/admin")
 
 
+def cmd_clilog(args) -> None:
+    """View the CLI log file at ~/e3cnc/cli.log."""
+    from _e3cnc_shared import LOG_FILE
+
+    header("CLI Log")
+    if not LOG_FILE.exists():
+        info("No CLI log file found yet")
+        return
+
+    lines = args.lines or 50
+    try:
+        text = LOG_FILE.read_text()
+        all_lines = text.strip().splitlines()
+        tail = all_lines[-lines:]
+        for line in tail:
+            print(f"  {line}")
+    except OSError as e:
+        warn(f"Failed to read log: {e}")
+
+
 def cmd_uninstall(args) -> None:
     """Remove all E3CNC components."""
     _run_ansible_cmd(UNINSTALL_PLAYBOOK, args, "Uninstall")

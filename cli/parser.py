@@ -110,6 +110,10 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_parser("admin-page",
                  help="Regenerate the admin page at /admin")
 
+    cli_log = p.add_parser("clilog",
+                           help="View the CLI log at ~/e3cnc/cli.log")
+    cli_log.add_argument("--lines", "-n", type=int, default=50)
+
     bp = p.add_parser("backup", parents=[shared_remote, shared_instance],
                       help="Create a timestamped backup")
 

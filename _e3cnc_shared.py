@@ -17,7 +17,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from dataclasses import dataclass
-from typing import List, NoReturn, Optional, Tuple, Set
+from typing import List, NoReturn, Optional, Tuple, Set, TextIO
 
 # ── Metadata ────────────────────────────────────────────────────────────────
 
@@ -36,6 +36,31 @@ DEPLOY_PLAYBOOK = PLAYBOOKS_DIR / "deploy.yml"
 UNINSTALL_PLAYBOOK = PLAYBOOKS_DIR / "uninstall.yml"
 REDEPLOY_PLAYBOOK = PLAYBOOKS_DIR / "redeploy.yml"
 LOCAL_INVENTORY = ANSIBLE_DIR / "inventory" / "local.yml"
+
+# ── Logging ──────────────────────────────────────────────────────────────
+LOG_FILE = Path.home() / "e3cnc" / "cli.log"
+_LOG_HANDLE: Optional[TextIO] = None
+
+
+def _ensure_log() -> TextIO:
+    """Get or create the log file handle. Opens in append mode."""
+    global _LOG_HANDLE
+    if _LOG_HANDLE is None:
+        LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
+        _LOG_HANDLE = LOG_FILE.open("a")
+    return _LOG_HANDLE
+
+
+def _log(level: str, msg: str) -> None:
+    """Write a timestamped line to the log file."""
+    try:
+        fh = _ensure_log()
+        ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+        fh.write(f"[{ts}] {level} {msg}\n")
+        fh.flush()
+    except OSError:
+        pass
+
 
 # ── Instance directory layout ──────────────────────────────────────────
 # Instances are stored under ~/e3cnc/instances/{name}/
@@ -73,28 +98,34 @@ class Style:
 
 def ok(msg: str) -> None:
     print(f"  {Style.GREEN}✓{Style.RESET} {msg}")
+    _log("OK", msg)
 
 
 def info(msg: str) -> None:
     print(f"  {Style.CYAN}→{Style.RESET} {msg}")
+    _log("INFO", msg)
 
 
 def warn(msg: str) -> None:
     print(f"  {Style.YELLOW}⚠{Style.RESET} {msg}", file=sys.stderr)
+    _log("WARN", msg)
 
 
 def fail(msg: str, code: int = 1) -> NoReturn:
     print(f"\n  {Style.RED}✗{Style.RESET} {msg}", file=sys.stderr)
+    _log("FAIL", msg)
     sys.exit(code)
 
 
 def step(num: int, total: int, label: str) -> None:
     print(f"\n  {Style.BOLD}[{num}/{total}]{Style.RESET} {label}")
+    _log("STEP", f"[{num}/{total}] {label}")
 
 
 def header(title: str) -> None:
     print(f"\n  {Style.BOLD}{Style.GREEN}{TOOL_NAME}{Style.RESET} — {title}\n")
     print(f"  {Style.DIM}Repository root: {HERE}{Style.RESET}")
+    _log("HEADER", title)
 
 
 # ── Banner ──────────────────────────────────────────────────────────────────
