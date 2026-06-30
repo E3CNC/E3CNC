@@ -372,7 +372,23 @@ def cmd_clilog(args) -> None:
 
 def cmd_uninstall(args) -> None:
     """Remove all E3CNC components."""
+    from _e3cnc_shared import INSTANCES_DIR, detect_instances
+    from _e3cnc_deploy import generate_admin_page
+
     _run_ansible_cmd(UNINSTALL_PLAYBOOK, args, "Uninstall")
+
+    # Clean up new-layout instance directory if it exists
+    inst = _get_instance(args)
+    if inst:
+        inst_dir = INSTANCES_DIR / inst.name
+        if inst_dir.is_dir():
+            import shutil
+            shutil.rmtree(inst_dir)
+            ok(f"Removed instance directory: {inst_dir}")
+
+    # Regenerate admin page
+    generate_admin_page()
+
     info("The ~/E3CNC repo checkout was NOT deleted.")
     info("To restore stock Mainsail, see: https://github.com/mainsail-crew/mainsail")
 
