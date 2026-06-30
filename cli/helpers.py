@@ -174,6 +174,9 @@ def _run_ansible_cmd(
     extra_vars = None
     if not args.remote:
         inst = _get_instance(args)
+        if not inst:
+            from _e3cnc_shared import get_active_instance
+            inst = get_active_instance()
         if inst:
             extra_vars = instance_extra_vars(inst)
             if inst.name != "cnc":
