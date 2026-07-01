@@ -32,7 +32,7 @@ export const getters: GetterTree<PrinterTempHistoryState, RootState> = {
     },
 
     getBoolDisplayPwmAxis: (state: PrinterTempHistoryState, getters: any) => {
-        const legends = getter['getSelectedLegends']
+        const legends = getters['getSelectedLegends']
 
         return (
             Object.keys(legends).find((key) => {

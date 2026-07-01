@@ -18,6 +18,7 @@ import { RootState } from '@/store/types'
 export const getDefaultState = (): ServerState => {
     return {
         klippy_connected: false,
+        connection_id: '',
         klippy_connected_timer: null,
         klippy_state: '',
         klippy_state_timer: null,

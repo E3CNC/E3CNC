@@ -7,7 +7,7 @@ export const getters: GetterTree<GuiWebcamState, RootState> = {
         return state.webcams.filter((webcam: GuiWebcamStateWebcam) => webcam.enabled)
     },
 
-    getWebcam: (_, getters) => (name: string) => {
+    getWebcam: (_state: GuiWebcamState, getters: any) => (name: string) => {
         const webcams = getters['getWebcams'] ?? []
 
         return webcams.find((webcam: GuiWebcamStateWebcam) => webcam.name === name)

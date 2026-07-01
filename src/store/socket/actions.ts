@@ -141,11 +141,11 @@ export const actions: ActionTree<SocketState, RootState> = {
         }
     },
 
-    addLoading({ commit }, payload: string) {
+    addLoading({ commit }: ActionContext<SocketState, RootState>, payload: string) {
         commit('addLoading', payload)
     },
 
-    removeLoading({ commit }, payload: string) {
+    removeLoading({ commit }: ActionContext<SocketState, RootState>, payload: string) {
         commit('removeLoading', payload)
     },
 

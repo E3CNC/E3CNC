@@ -17,11 +17,11 @@ export const actions: ActionTree<GuiNavigationState, RootState> = {
         })
     },
 
-    updatePos({ commit }, payload: GuiNavigationStateEntry) {
+    updatePos({ commit }: ActionContext<GuiNavigationState, RootState>, payload: GuiNavigationStateEntry) {
         commit('updatePos', payload)
     },
 
-    changeVisibility({ commit, dispatch }, payload: NaviPoint) {
+    changeVisibility({ commit, dispatch }: ActionContext<GuiNavigationState, RootState>, payload: NaviPoint) {
         commit('changeVisibility', payload)
         dispatch('upload')
     },

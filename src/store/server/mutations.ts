@@ -52,7 +52,7 @@ export const mutations: MutationTree<ServerState> = {
         state.system_cpu_usage = payload
     },
 
-    setKlippyConnectedTimer(state: ServerState, timer) {
+    setKlippyConnectedTimer(state: ServerState, timer: any) {
         state.klippy_connected_timer = timer
     },
 
@@ -69,7 +69,7 @@ export const mutations: MutationTree<ServerState> = {
         if ('requestParams' in payload) delete payload.requestParams
 
         Object.entries(payload).forEach(([key, value]) => {
-            state[key] = value
+            (state as Record<string, any>)[key] = value
         })
     },
 

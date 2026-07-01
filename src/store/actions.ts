@@ -4,7 +4,7 @@ import { ConfigJson, RootState } from './types'
 
 export const actions: ActionTree<RootState, RootState> = {
     switchToDashboard() {
-        if (router.currentRoute.fullPath !== '/') router.push('/')
+        if (router.currentRoute.value.fullPath !== '/') router.push('/')
     },
 
     changePrinter({ dispatch, getters }: ActionContext<RootState, RootState>, payload: any) {
@@ -30,7 +30,7 @@ export const actions: ActionTree<RootState, RootState> = {
     /**
      * This function will parse the config.json content and config mainsail
      */
-    async importConfigJson({ commit }, payload: ConfigJson) {
+    async importConfigJson({ commit }: ActionContext<RootState, RootState>, payload: ConfigJson) {
         type RootStateInstancesDbType = 'moonraker' | 'browser' | 'json'
         let instancesDB: RootStateInstancesDbType = payload.instancesDB ?? 'moonraker'
         if (import.meta.env.VUE_APP_INSTANCES_DB)

@@ -153,7 +153,7 @@ export const actions: ActionTree<GuiMaintenanceState, RootState> = {
         getSocket().emit('server.database.delete_item', { namespace: 'maintenance', key: payload })
     },
 
-    perform({ dispatch, state, rootState }, payload: { id: string; note: string }) {
+    perform({ dispatch, state, rootState }: ActionContext<GuiMaintenanceState, RootState>, payload: { id: string; note: string }) {
         const entry = state.entries[payload.id]
         if (!entry) return
 

@@ -21,7 +21,7 @@ export const mutations: MutationTree<FarmPrinterState> = {
         }
 
         Object.entries(payload).forEach(([key, value]) => {
-            state.socket[key] = value
+            (state.socket as Record<string, any>)[key] = value
         })
     },
 
@@ -52,7 +52,7 @@ export const mutations: MutationTree<FarmPrinterState> = {
         state.socket.wsData = wsData
     },
 
-    removeWsData(state: FarmPrinterState, index) {
+    removeWsData(state: FarmPrinterState, index: any) {
         const wsData = [...state.socket.wsData]
         wsData.splice(index, 1)
 

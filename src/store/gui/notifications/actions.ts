@@ -74,7 +74,7 @@ export const actions: ActionTree<GuiNotificationState, RootState> = {
 
         if (
             state.dismiss.filter(
-                (dismiss) =>
+                (dismiss: any) =>
                     dismiss.id === newDismiss.id &&
                     dismiss.category === newDismiss.category &&
                     dismiss.type === newDismiss.type

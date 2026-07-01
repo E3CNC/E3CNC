@@ -198,7 +198,7 @@ export const themes: Theme[] = [
         colorPrimary: '#00FF00',
         fontFamily: "'Ndot 57 Aligned', '0xProto Nerd Font Mono', monospace",
         letterSpacing: '0.1rem',
-        logo: { show: false },
+        logo: { show: false, light: false },
     },
     { name: 'mainsail', displayName: 'Mainsail', colorLogo: defaultLogoColor },
     {

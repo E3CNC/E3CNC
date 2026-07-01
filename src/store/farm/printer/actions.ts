@@ -7,7 +7,7 @@ export const actions: ActionTree<FarmPrinterState, RootState> = {
         commit('reset')
     },
 
-    connect({ state, commit, dispatch, getters, rootGetters: any }: ActionContext<FarmPrinterState, RootState>) {
+    connect({ state, commit, dispatch, getters, rootGetters }: ActionContext<FarmPrinterState, RootState>) {
         commit('setSocketData', { isConnecting: true })
         const socket = new WebSocket(getters.getSocketUrl)
 
@@ -64,7 +64,7 @@ export const actions: ActionTree<FarmPrinterState, RootState> = {
                         break
                 }
             } else if ('result' in data) {
-                const requestIndex = state.socket.wsData.findIndex((item) => item.id === data.id)
+                const requestIndex = state.socket.wsData.findIndex((item: any) => item.id === data.id)
 
                 if (
                     requestIndex !== -1 &&

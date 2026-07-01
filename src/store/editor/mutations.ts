@@ -8,11 +8,11 @@ export const mutations: MutationTree<EditorState> = {
         Object.assign(state, getDefaultState())
     },
 
-    updateCancelTokenSource(state: EditorState, source) {
+    updateCancelTokenSource(state: EditorState, source: any) {
         state.cancelToken = source
     },
 
-    updateLoaderState(state: EditorState, value) {
+    updateLoaderState(state: EditorState, value: any) {
         state.loaderBool = value
     },
 
@@ -39,11 +39,11 @@ export const mutations: MutationTree<EditorState> = {
         state.bool = true
     },
 
-    setFilename(state: EditorState, filename) {
+    setFilename(state: EditorState, filename: any) {
         state.filename = filename
     },
 
-    setPermissions(state: EditorState, filename) {
+    setPermissions(state: EditorState, filename: any) {
         state.permissions = filename
     },
 

@@ -37,7 +37,7 @@ export const actions: ActionTree<GuiWebcamState, RootState> = {
         )
     },
 
-    delete(_, payload: string) {
+    delete(_context: ActionContext<GuiWebcamState, RootState>, payload: string) {
         getSocket().emit('server.webcams.delete_item', { name: payload })
     },
 }

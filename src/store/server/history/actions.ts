@@ -30,7 +30,7 @@ export const actions: ActionTree<ServerHistoryState, RootState> = {
         if ('requestParams' in payload && (payload.requestParams?.start ?? 0) === 0) commit('resetJobs')
 
         payload.jobs?.forEach((job: ServerHistoryStateJob) => {
-            if (state.jobs.findIndex((stateJob) => stateJob.job_id === job.job_id) === -1) commit('addJob', job)
+            if (state.jobs.findIndex((stateJob: any) => stateJob.job_id === job.job_id) === -1) commit('addJob', job)
         })
 
         const start = payload.requestParams?.start ?? 0
@@ -99,7 +99,7 @@ export const actions: ActionTree<ServerHistoryState, RootState> = {
         }
     },
 
-    saveHistoryNote({ commit }, payload: { job_id: string; note: string }) {
+    saveHistoryNote({ commit }: ActionContext<ServerHistoryState, RootState>, payload: { job_id: string; note: string }) {
         getSocket().emit('server.database.post_item', {
             namespace: 'history_notes',
             key: payload.job_id,
