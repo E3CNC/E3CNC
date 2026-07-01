@@ -24,11 +24,11 @@ export const actions: ActionTree<ServerJobQueueState, RootState> = {
         await dispatch('socket/removeInitModule', 'server/jobQueue/init', { root: true })
     },
 
-    async addToQueue(_, filenames: string[]) {
+    async addToQueue(_context: ActionContext<ServerJobQueueState, RootState>, filenames: string[]) {
         getSocket().emit('server.job_queue.post_job', { filenames: filenames })
     },
 
-    changeCount({ dispatch, getters }, payload: { job_id: string; count: number }) {
+    changeCount({ dispatch, getters }: ActionContext<ServerJobQueueState, RootState>, payload: { job_id: string; count: number }) {
         const jobs: ServerJobQueueStateJob[] = getters['getJobs']
 
         const index = jobs.findIndex((job) => job.job_id === payload.job_id)
@@ -39,7 +39,7 @@ export const actions: ActionTree<ServerJobQueueState, RootState> = {
         dispatch('sendNewQueueList', { jobs })
     },
 
-    changePosition({ dispatch, getters }, payload: { oldIndex: number; newIndex: number }) {
+    changePosition({ dispatch, getters }: ActionContext<ServerJobQueueState, RootState>, payload: { oldIndex: number; newIndex: number }) {
         const jobs: ServerJobQueueStateJob[] = getters['getJobs']
 
         const job = jobs.splice(payload.oldIndex, 1)[0]
@@ -48,7 +48,7 @@ export const actions: ActionTree<ServerJobQueueState, RootState> = {
         dispatch('sendNewQueueList', { jobs })
     },
 
-    startByJobId({ dispatch, getters }, job_id: string) {
+    startByJobId({ dispatch, getters }: ActionContext<ServerJobQueueState, RootState>, job_id: string) {
         const jobs: ServerJobQueueStateJob[] = getters['getJobs']
 
         const index = jobs.findIndex((job) => job.job_id === job_id)
@@ -60,7 +60,7 @@ export const actions: ActionTree<ServerJobQueueState, RootState> = {
         dispatch('sendNewQueueList', { jobs, printStart: true })
     },
 
-    sendNewQueueList(_, payload: { jobs: ServerJobQueueStateJob[]; printStart?: boolean }) {
+    sendNewQueueList(_context: ActionContext<ServerJobQueueState, RootState>, payload: { jobs: ServerJobQueueStateJob[]; printStart?: boolean }) {
         const filenames = payload.jobs
             .map((job) => {
                 const numJobs = (job.combinedIds?.length ?? 0) + 1
@@ -85,7 +85,7 @@ export const actions: ActionTree<ServerJobQueueState, RootState> = {
         )
     },
 
-    deleteFromQueue(_, job_ids: string[]) {
+    deleteFromQueue(_context: ActionContext<ServerJobQueueState, RootState>, job_ids: string[]) {
         getSocket().emit('server.job_queue.delete_job', { job_ids })
     },
 

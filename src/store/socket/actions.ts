@@ -153,17 +153,17 @@ export const actions: ActionTree<SocketState, RootState> = {
         commit('clearLoadings')
     },
 
-    addInitModule({ commit }, payload: string) {
+    addInitModule({ commit }: ActionContext<SocketState, RootState>, payload: string) {
         commit('addInitModule', payload)
     },
 
     // remove only one module from init component like 'server/spoolman/getActiveSpoolId'
-    removeInitModule({ commit }, payload: string) {
+    removeInitModule({ commit }: ActionContext<SocketState, RootState>, payload: string) {
         commit('removeInitModule', payload)
     },
 
     // remove a complete init component like 'server/spoolman'
-    removeInitComponent({ commit }, payload: string) {
+    removeInitComponent({ commit }: ActionContext<SocketState, RootState>, payload: string) {
         commit('removeInitComponent', payload)
     },
 

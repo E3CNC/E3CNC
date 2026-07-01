@@ -191,7 +191,7 @@ export const actions: ActionTree<ServerState, RootState> = {
         commit('setKlippyStateTimer', null)
     },
 
-    checkKlippyState({ commit, dispatch }, payload: { state: string; state_message: string | null }) {
+    checkKlippyState({ commit, dispatch }: ActionContext<ServerState, RootState>, payload: { state: string; state_message: string | null }) {
         commit('setKlippyState', payload.state)
         commit('setKlippyMessage', payload.state_message)
 
@@ -288,7 +288,7 @@ export const actions: ActionTree<ServerState, RootState> = {
 
             if (
                 ['error', 'response'].includes(type) &&
-                !['/', '/console'].includes(router.currentRoute.path) &&
+                !['/', '/console'].includes(router.currentRoute.value.path) &&
                 message.startsWith('!! ')
             ) {
                 $toast.error(formatMessage)

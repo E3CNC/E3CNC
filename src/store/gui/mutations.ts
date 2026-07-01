@@ -34,12 +34,12 @@ export const mutations: MutationTree<GuiState> = {
         state.view.gcodefiles.hideMetadataColumns = array
     },
 
-    setGcodefilesShowHiddenFiles(state: GuiState, value) {
+    setGcodefilesShowHiddenFiles(state: GuiState, value: any) {
         state.view.gcodefiles.showHiddenFiles = value
     },
 
     setCurrentWebcam(state: GuiState, payload: any) {
-        state.view.webcam.currentCam[payload.page] = payload.value
+        (state.view.webcam.currentCam as Record<string, string>)[payload.page] = payload.value
     },
 
     setHistoryColumns(state: GuiState, data: any) {

@@ -57,7 +57,7 @@ export const actions: ActionTree<GuiNotificationState, RootState> = {
     },
 
     async storeDismiss(
-        { commit, dispatch, state },
+        { commit, dispatch, state }: ActionContext<GuiNotificationState, RootState>,
         payload: { entry_id: string; category: string; type: string; time: number | null }
     ) {
         let date = new Date().getTime()

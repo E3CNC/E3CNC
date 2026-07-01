@@ -8,7 +8,7 @@ import {
 import { RootState } from '@/store/types'
 
 export const getters: GetterTree<PrinterTempHistoryState, RootState> = {
-    getDatasetColor: (_, getters) => (name: string) => {
+    getDatasetColor: (_state: PrinterTempHistoryState, getters: any) => (name: string) => {
         const dataset = getters.getSeries(`${name}-temperature`)
 
         return dataset?.lineStyle?.color ?? null
@@ -31,7 +31,7 @@ export const getters: GetterTree<PrinterTempHistoryState, RootState> = {
         return output
     },
 
-    getBoolDisplayPwmAxis: (state: PrinterTempHistoryState, getter) => {
+    getBoolDisplayPwmAxis: (state: PrinterTempHistoryState, getters: any) => {
         const legends = getter['getSelectedLegends']
 
         return (
@@ -63,11 +63,11 @@ export const getters: GetterTree<PrinterTempHistoryState, RootState> = {
         return 0
     },
 
-    getAvgPower: (_, getters) => (name: string) => {
+    getAvgPower: (_state: PrinterTempHistoryState, getters: any) => (name: string) => {
         return getters['getAvg'](name, 'power')
     },
 
-    getAvgSpeed: (_, getters) => (name: string) => {
+    getAvgSpeed: (_state: PrinterTempHistoryState, getters: any) => (name: string) => {
         return getters['getAvg'](name, 'speed')
     },
 

@@ -31,7 +31,7 @@ export const actions: ActionTree<FileState, RootState> = {
         })
     },
 
-    getDirectory({ state, commit, getters }, payload: ApiGetDirectoryReturn) {
+    getDirectory({ state, commit, getters }: ActionContext<FileState, RootState>, payload: ApiGetDirectoryReturn) {
         const requestPath = (payload.requestParams?.path ?? '') as string
         const pathArray = requestPath.split('/')
         const root = pathArray.length ? pathArray[0] : requestPath
@@ -140,7 +140,7 @@ export const actions: ActionTree<FileState, RootState> = {
         }
     },
 
-    scanMetadata({ commit }, payload: { filename: string }) {
+    scanMetadata({ commit }: ActionContext<FileState, RootState>, payload: { filename: string }) {
         const rootPath = payload.filename.slice(0, payload.filename.indexOf('/'))
         if (rootPath === 'gcodes') {
             const requestFilename = payload.filename.slice(7)
@@ -153,7 +153,7 @@ export const actions: ActionTree<FileState, RootState> = {
         }
     },
 
-    getScanMetadata({ dispatch }, payload: { filename: string }) {
+    getScanMetadata({ dispatch }: ActionContext<FileState, RootState>, payload: { filename: string }) {
         if (payload !== undefined && payload.filename !== '') {
             dispatch('getMetadata', payload)
 
@@ -162,7 +162,7 @@ export const actions: ActionTree<FileState, RootState> = {
         }
     },
 
-    requestMetadata({ commit }, payload: { filename: string }[]) {
+    requestMetadata({ commit }: ActionContext<FileState, RootState>, payload: { filename: string }[]) {
         // request file metadata in batches to reduce the number of table re-renders when responses are received
         let messages: BatchMessage[] = []
         for (const { filename } of payload) {
@@ -312,7 +312,7 @@ export const actions: ActionTree<FileState, RootState> = {
         }
     },
 
-    async uploadFile({ commit, rootGetters }, payload: { file: File; path: string; root: 'gcodes' | 'config' }) {
+    async uploadFile({ commit, rootGetters }: ActionContext<FileState, RootState>, payload: { file: File; path: string; root: 'gcodes' | 'config' }) {
         const apiUrl = rootGetters['socket/getUrl']
         const formData = new FormData()
         formData.append('file', payload.file, payload.file.name)

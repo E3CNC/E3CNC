@@ -14,7 +14,7 @@ export const actions: ActionTree<EditorState, RootState> = {
     },
 
     downloadProgress(
-        { commit },
+        { commit }: ActionContext<EditorState, RootState>,
         payload: { progressEvent: AxiosProgressEvent; direction: string; filesize: number | null }
     ) {
         commit('updateLoader', {
@@ -75,7 +75,7 @@ export const actions: ActionTree<EditorState, RootState> = {
     },
 
     async saveFile(
-        { state, commit, getters, rootGetters: any, dispatch },
+        { state, commit, getters, rootGetters, dispatch }: ActionContext<EditorState, RootState>,
         payload: { content: string; restartServiceName: string | null }
     ) {
         const content = new Blob([payload.content], { type: 'text/plain' })

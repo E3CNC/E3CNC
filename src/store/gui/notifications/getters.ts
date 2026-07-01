@@ -141,7 +141,7 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
                     title: i18n.global
                         .t('App.Notifications.DependencyName', { name: dependency.serviceName })
                         .toString(),
-                    description: i18n
+                    description: i18n.global
                         .t('App.Notifications.DependencyDescription', {
                             name: dependency.serviceName,
                             installedVersion: dependency.installedVersion,
@@ -365,7 +365,7 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
                 id: `browserWarning/${minBrowserVersion.name}/${minBrowserVersion.version}`,
                 priority: 'critical',
                 title: i18n.global.t('App.Notifications.BrowserWarnings.Headline').toString(),
-                description: i18n
+                description: i18n.global
                     .t('App.Notifications.BrowserWarnings.Description', {
                         name: minBrowserVersion.name,
                         version: browser.version,

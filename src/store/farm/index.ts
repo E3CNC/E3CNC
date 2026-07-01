@@ -1,5 +1,5 @@
 import { printer } from '@/store/farm/printer'
-import { Module } from 'vuex'
+import { ActionContext, Module } from 'vuex'
 import { FarmState } from '@/store/farm/types'
 import { RootState } from '@/store/types'
 
@@ -39,8 +39,8 @@ export const farm: Module<FarmState, RootState> = {
     },
     actions: {
         registerPrinter({ commit, dispatch }: ActionContext<FarmState, RootState>, payload: any) {
-            if (!this.hasModule(['farm', payload.id])) {
-                this.registerModule(['farm', payload.id], printer)
+            if (!(this as any).hasModule(['farm', payload.id])) {
+                (this as any).registerModule(['farm', payload.id], printer)
                 commit('farm/' + payload.id + '/setSocketData', { ...payload, _namespace: payload.id }, { root: true })
 
                 if ('settings' in payload)
@@ -60,7 +60,7 @@ export const farm: Module<FarmState, RootState> = {
         unregisterPrinter({ state }: ActionContext<FarmState, RootState>, id: any) {
             if (id in state) {
                 state[id].socket?.instance?.close()
-                this.unregisterModule(['farm', id])
+                ;(this as any).unregisterModule(['farm', id])
             }
         },
     },
