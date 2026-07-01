@@ -110,7 +110,29 @@ A single store file's errors are almost all the same pattern (implicit `any` in 
 
 ---
 
-## 4. Work Log
+---
+
+## 4. Key Finding: Vuex ActionContext Type Limitation
+
+After attempting to fix store-layer errors by adding `ActionContext<State, RootState>` type annotations to destructured function parameters, I confirmed that **Vuex 4's `ActionContext<S, R>` type does not propagate to destructured binding elements** under TypeScript strict mode.
+
+```typescript
+// This looks correct but vue-tsc still reports "implicit any" on commit/dispatch/state
+saveSetting({ commit, state }: ActionContext<GuiState, RootState>, payload) {
+```
+
+The type annotation is syntactically valid but `ActionContext` uses index signatures that prevent the individual destructured bindings from being typed. The `commit`, `dispatch`, and `state` properties of `ActionContext` are declared as concrete named properties, but TypeScript strict mode still flags them when destructured from a complex generic type.
+
+**Three options:**
+1. **`noImplicitAny: false`** — kills 1,222 store errors instantly, keeps other strict checks.
+2. **Refactor all 82 store files** to use `context: ActionContext<S, R>` with `const { commit, dispatch } = context` inside function bodies. ~27 hours.
+3. **Fix the ~400 real errors** (test mocks + `.vue` components), leave store errors as documented limitation, set `noImplicitAny: false`.
+
+**Recommended: Option 3** — fix everything actionable, accept the vuex limitation.
+
+---
+
+## 5. Work Log
 
 | Date | Files fixed | Errors before | Errors after | Delta |
 |------|------------|--------------|-------------|-------|
