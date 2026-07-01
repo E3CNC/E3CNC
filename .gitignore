@@ -42,3 +42,7 @@ prd/
 e3cnc-backup-*/
 
 public/img/themes/sidebarLogo-ndot57*.svg
+*.coveragerc
+.coverage
+MagicMock/
+coverage_html_report/

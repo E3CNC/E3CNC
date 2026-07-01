@@ -1122,8 +1122,10 @@ class TestCmdInstall:
                     with patch("cli.commands.ok"):
                         with patch("_e3cnc_shared._create_new_instance"):
                             with patch("cli.commands.header"):
-                                cmd_install(_make_args(name="mytest", yes=True))
-                                mock_ansible.assert_called()
+                                with patch("cli.commands.subprocess.run") as mock_spr:
+                                    mock_spr.return_value = MagicMock(returncode=0)
+                                    cmd_install(_make_args(name="mytest", yes=True))
+                                    mock_ansible.assert_called()
 
 
 class TestCmdUpdate:
@@ -1233,3 +1235,152 @@ class TestMenuDispatchAllCommands:
             with patch("builtins.input", return_value="y"):
                 _run_menu_command(cmd)
                 mock.assert_called_once()
+
+
+# ── Commands not covered by the menu tests ────────────────────────────────
+
+
+class TestCmdDeploy:
+    """Tests for cli.commands.cmd_deploy()."""
+
+    def test_dispatches_ansible_cmd(self):
+        from cli.commands import cmd_deploy
+        with patch("cli.commands._get_instance", return_value=MagicMock(name="test")):
+            with patch("cli.commands._run_ansible_cmd") as mock_ansible:
+                with patch("cli.commands.header"):
+                    with patch("cli.commands.ok"):
+                        cmd_deploy(MagicMock(remote=None, check=False, verbose=False))
+                        mock_ansible.assert_called_once()
+
+
+class TestCmdRollback:
+    """Tests for cli.commands.cmd_rollback()."""
+
+    def test_fails_without_version(self):
+        from cli.commands import cmd_rollback
+        with patch("cli.commands._get_instance") as mock_gi:
+            inst = MagicMock(name="test")
+            inst.moonraker_port = 7125
+            inst.moonraker_service = "moonraker"
+            inst.klipper_service = "klipper"
+            inst.web_root = "/tmp/web"
+            inst.printer_data_dir = "/tmp/data"
+            mock_gi.return_value = inst
+            with patch("cli.commands.header"):
+                with patch("cli.commands.sync_runtime_files"):
+                    with patch("cli.commands.update_systemd_paths"):
+                        with patch("_e3cnc_shared._ensure_local_sudo_access"):
+                            with patch("cli.commands.run_health_checks", return_value=[]):
+                                with patch("cli.commands.rollback_previous", return_value=True):
+                                    cmd_rollback(MagicMock(version=None, remote=None))
+
+    def test_rolls_back_to_version(self):
+        from cli.commands import cmd_rollback
+        with patch("cli.commands._get_instance") as mock_gi:
+            inst = MagicMock(name="test")
+            inst.moonraker_port = 7125
+            inst.moonraker_service = "moonraker"
+            inst.klipper_service = "klipper"
+            inst.web_root = "/tmp/web"
+            inst.printer_data_dir = "/tmp/data"
+            mock_gi.return_value = inst
+            with patch("cli.commands.header"):
+                with patch("cli.commands.rollback_to") as mock_rb:
+                    mock_rb.return_value = True
+                    with patch("cli.commands.ok"):
+                        with patch("cli.commands.sync_runtime_files"):
+                            with patch("cli.commands.update_systemd_paths"):
+                                with patch("_e3cnc_shared._ensure_local_sudo_access"):
+                                    with patch("cli.commands.run_health_checks", return_value=[]):
+                                        cmd_rollback(MagicMock(version="v0.8.0", remote=None))
+
+
+class TestCmdMigrateInstances:
+    """Tests for cli.commands.cmd_migrate_instances()."""
+
+    def test_calls_migrate_layout(self):
+        from cli.commands import cmd_migrate_instances
+        with patch("cli.commands.header"):
+            with patch("cli.commands.detect_old_layout", return_value=False):
+                cmd_migrate_instances(MagicMock(check=False))
+
+
+class TestExtraPackages:
+    """Tests for cli.commands._ensure_system_packages()."""
+
+    def test_skips_when_packages_present(self):
+        from cli.commands import _ensure_system_packages
+        with patch("shutil.which", return_value="/usr/bin/curl"):
+            _ensure_system_packages()
+
+    def test_runs_apt_when_packages_missing(self):
+        from cli.commands import _ensure_system_packages
+        with patch("shutil.which", return_value=None):
+            with patch("cli.commands.subprocess.run") as mock_run:
+                mock_run.return_value = MagicMock(returncode=0)
+                with patch("_e3cnc_shared._ensure_local_sudo_access"):
+                    with patch("cli.commands.ok"):
+                        _ensure_system_packages()
+                        assert mock_run.called
+
+    def test_reports_install_failure(self):
+        from cli.commands import _ensure_system_packages
+        with patch("shutil.which", return_value=None):
+            with patch("cli.commands.subprocess.run") as mock_run:
+                mock_run.return_value = MagicMock(returncode=1)
+                with patch("_e3cnc_shared._ensure_local_sudo_access"):
+                    with patch("cli.commands.warn") as mock_warn:
+                        _ensure_system_packages()
+                        mock_warn.assert_called()
+
+
+class TestCmdRollbackExtra:
+    """Tests for cli.commands.cmd_rollback()."""
+
+    def test_fails_without_version(self):
+        from cli.commands import cmd_rollback
+        with patch("cli.commands._get_instance") as mock_gi:
+            inst = MagicMock(name="test")
+            inst.moonraker_port = 7125
+            inst.moonraker_service = "moonraker"
+            inst.klipper_service = "klipper"
+            inst.web_root = "/tmp/web"
+            inst.printer_data_dir = "/tmp/data"
+            mock_gi.return_value = inst
+            with patch("cli.commands.header"):
+                with patch("cli.commands.sync_runtime_files"):
+                    with patch("cli.commands.update_systemd_paths"):
+                        with patch("_e3cnc_shared._ensure_local_sudo_access"):
+                            with patch("cli.commands.run_health_checks", return_value=[]):
+                                with patch("cli.commands.rollback_previous", return_value=True):
+                                    cmd_rollback(MagicMock(version=None, remote=None))
+
+    def test_rolls_back_to_version(self):
+        from cli.commands import cmd_rollback
+        with patch("cli.commands._get_instance") as mock_gi:
+            inst = MagicMock(name="test")
+            inst.moonraker_port = 7125
+            inst.moonraker_service = "moonraker"
+            inst.klipper_service = "klipper"
+            inst.web_root = "/tmp/web"
+            inst.printer_data_dir = "/tmp/data"
+            mock_gi.return_value = inst
+            with patch("cli.commands.header"):
+                with patch("cli.commands.rollback_to") as mock_rb:
+                    mock_rb.return_value = True
+                    with patch("cli.commands.ok"):
+                        with patch("cli.commands.sync_runtime_files"):
+                            with patch("cli.commands.update_systemd_paths"):
+                                with patch("_e3cnc_shared._ensure_local_sudo_access"):
+                                    with patch("cli.commands.run_health_checks", return_value=[]):
+                                        cmd_rollback(MagicMock(version="v0.8.0", remote=None))
+
+
+class TestCmdCheckExtra:
+    """Tests for cli.commands.cmd_check()."""
+
+    def test_does_not_crash(self):
+        from cli.commands import cmd_check
+        with patch("cli.commands.header"):
+            with patch("cli.commands.check_dependencies", return_value=(True, "")):
+                cmd_check(MagicMock())

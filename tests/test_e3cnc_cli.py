@@ -567,9 +567,10 @@ class TestInstance:
 
         with patch("_e3cnc_shared.Path.home") as mock_home:
             mock_home.return_value = tmp_path
-            instances = detect_instances()
-            assert len(instances) == 1
-            assert instances[0].name == "cnc"
+            with patch("_e3cnc_shared.INSTANCES_DIR", tmp_path / "e3cnc" / "instances"):
+                instances = detect_instances()
+                assert len(instances) == 1
+                assert instances[0].name == "cnc"
 
     def test_detect_instances_multiple(self, tmp_path):
         """detect_instances should support default, legacy, and KIAUH-style dirs."""
@@ -580,16 +581,18 @@ class TestInstance:
 
         with patch("_e3cnc_shared.Path.home") as mock_home:
             mock_home.return_value = tmp_path
-            instances = detect_instances()
-            assert len(instances) == 3
-            assert [inst.name for inst in instances] == ["cnc", "cnc_2", "test1"]
+            with patch("_e3cnc_shared.INSTANCES_DIR", tmp_path / "e3cnc" / "instances"):
+                instances = detect_instances()
+                assert len(instances) == 3
+                assert [inst.name for inst in instances] == ["cnc", "cnc_2", "test1"]
 
     def test_detect_instances_none(self, tmp_path):
         """detect_instances with no printer_data dirs."""
         with patch("_e3cnc_shared.Path.home") as mock_home:
             mock_home.return_value = tmp_path
-            instances = detect_instances()
-            assert len(instances) == 0
+            with patch("_e3cnc_shared.INSTANCES_DIR", tmp_path / "e3cnc" / "instances"):
+                instances = detect_instances()
+                assert len(instances) == 0
 
     def test_detect_instances_skips_missing_config(self, tmp_path):
         """Skip instance dirs that don't have a moonraker.conf."""
@@ -599,9 +602,10 @@ class TestInstance:
 
         with patch("_e3cnc_shared.Path.home") as mock_home:
             mock_home.return_value = tmp_path
-            instances = detect_instances()
-            assert len(instances) == 1
-            assert instances[0].name == "test2"
+            with patch("_e3cnc_shared.INSTANCES_DIR", tmp_path / "e3cnc" / "instances"):
+                instances = detect_instances()
+                assert len(instances) == 1
+                assert instances[0].name == "test2"
 
     def test_select_instance_single(self):
         """Single instance should be auto-selected without prompt."""
@@ -633,15 +637,16 @@ class TestInstance:
 
         with patch("_e3cnc_shared.Path.home") as mock_home:
             mock_home.return_value = tmp_path
+            with patch("_e3cnc_shared.INSTANCES_DIR", tmp_path / "e3cnc" / "instances"):
 
-            # First call should detect
-            inst1 = get_active_instance()
-            assert inst1 is not None
-            assert inst1.name == "cnc"
+                # First call should detect
+                inst1 = get_active_instance()
+                assert inst1 is not None
+                assert inst1.name == "cnc"
 
-            # Second call should return cached (no re-scan)
-            inst2 = get_active_instance()
-            assert inst2 is inst1
+                # Second call should return cached (no re-scan)
+                inst2 = get_active_instance()
+                assert inst2 is inst1
 
         # Cleanup
         set_active_instance(None)

@@ -90,3 +90,23 @@
 - Skip systemd drop-in when non-root
 - Update wiki Installation page
 - TypeScript error reduction
+
+---
+
+## Installation Edge-Case Review (Jun 2026)
+
+Gaps identified during install-process audit across Ansible, `e3cnc-cli`, and `e3cnc-cli install`/`update`.
+
+### High
+1. **Remote install/update workflow is inconsistent** – `cmd_update` and `cmd_migrate` explicitly warn "remote not yet supported", but `README.md` still documents `./e3cnc-cli install --remote pi@cnc`. Reconcile docs or implement remote support.
+2. **Bootstrap too aggressive on partial existing installs** – bootstrap runs if *any* of `moonraker`, `klippy`, or `moonraker.conf` is missing, so a half-broken existing install gets treated as fresh and may overwrite healthy components. Add degraded-install repair path or stricter gating.
+3. **Uninstall leaves orphan system config** – `uninstall.yml` removes E3CNC files but does not remove the nginx site (`/etc/nginx/sites-available/e3cnc`), Avahi publisher (`avahi-publish-e3cnc.service`), or stale `mainsail` web-root mappings. Cleanup is incomplete.
+
+### Medium
+4. **Fresh-bootstrap security defaults are weak** – the baseline `moonraker.conf` generated in bootstrap sets `CORS *` and has no auth/token setup; combined with mDNS publication of `e3cnc.local`, the UI may be unintentionally exposed before the user configures auth.
+5. **Theme writes bypass health-check failures** – `redeploy.yml` posts theme/logo/primary color values to Moonraker unconditionally after restart, with retries but no `failed_when`/`when` gating. If Moonraker never comes up, these still report success.
+6. **`--dry-run` contract not enforced uniformly** – README/STATUS claim `update --dry-run` is safe/preview-only, but the install-side parity (`--check`) and some prereq paths may still mutate state. Document exact no-op guarantees.
+
+### Low
+7. **Rollback on missing release dir not guarded** – `_e3cnc_deploy.py` swaps the `current` symlink but does not validate that the target release directory still exists before rollback; a concurrent prune can leave a dangling `current`.
+8. **Post-install health-check failure path lacks recovery guidance** – `cmd_install` runs health checks after artifact activation, but a failure only rolls back the stack artifact and leaves the bootstrapped services/runtime in an undefined state. Add explicit follow-up guidance or uninstall hook.

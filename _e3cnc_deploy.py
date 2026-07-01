@@ -257,10 +257,11 @@ def verify_checksum(artifact_path: Path) -> bool:
         warn(f"No checksum file found at {checksum_path}")
         return False
 
-    expected = checksum_path.read_text().strip().split()[0]
-    if not expected:
+    parts = checksum_path.read_text().strip().split()
+    if not parts:
         warn(f"Empty checksum in {checksum_path}")
         return False
+    expected = parts[0]
 
     import hashlib
     h = hashlib.sha256()
