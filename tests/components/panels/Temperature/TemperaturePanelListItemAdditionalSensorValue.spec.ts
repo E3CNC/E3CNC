@@ -72,7 +72,7 @@ describe('TemperaturePanelListItemAdditionalSensorValue.vue', () => {
 
     it('hides when value is null', () => {
         const wrapper = mount(TemperaturePanelListItemAdditionalSensorValue, {
-            props: { printerObject: { temperature: null }, objectName: 'sensor', keyName: 'temperature' },
+            props: { printerObject: { temperature: null as any }, objectName: 'sensor', keyName: 'temperature' },
             global: { plugins: [makeStore()] },
         })
         expect(wrapper.text()).toBe('')

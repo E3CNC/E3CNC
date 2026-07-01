@@ -834,7 +834,7 @@ describe('server mutations', () => {
     it('updateServiceState updates an existing service state', () => {
         state.system_info = { service_state: { moonraker: 'inactive' } } as any
         mutations.updateServiceState(state, { moonraker: 'active' })
-        expect(state.system_info.service_state.moonraker).toBe('active')
+        expect((state.system_info as NonNullable<typeof state.system_info>).service_state.moonraker).toBe('active')
     })
 
     it('addFailedInitComponent prevents duplicates', () => {

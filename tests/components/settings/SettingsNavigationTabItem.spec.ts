@@ -47,6 +47,8 @@ describe('SettingsNavigationTabItem.vue', () => {
                 naviPoint: {
                     title: 'Dashboard',
                     type: 'route',
+                    icon: '',
+                    position: 0,
                     visible: true,
                     to: '/dashboard',
                 },
@@ -62,6 +64,8 @@ describe('SettingsNavigationTabItem.vue', () => {
                 naviPoint: {
                     title: 'External',
                     type: 'link',
+                    icon: '',
+                    position: 0,
                     visible: true,
                     href: 'https://example.com',
                 },
@@ -78,6 +82,8 @@ describe('SettingsNavigationTabItem.vue', () => {
                 naviPoint: {
                     title: 'Dashboard',
                     type: 'route',
+                    icon: '',
+                    position: 0,
                     visible: true,
                     to: '/dashboard',
                 },
@@ -95,6 +101,8 @@ describe('SettingsNavigationTabItem.vue', () => {
                 naviPoint: {
                     title: 'Dashboard',
                     type: 'route',
+                    icon: '',
+                    position: 0,
                     visible: true,
                     to: '/dashboard',
                 },
@@ -111,6 +119,8 @@ describe('SettingsNavigationTabItem.vue', () => {
                 naviPoint: {
                     title: 'Dashboard',
                     type: 'route',
+                    icon: '',
+                    position: 0,
                     visible: true,
                     to: '/dashboard',
                 },
@@ -128,6 +138,8 @@ describe('SettingsNavigationTabItem.vue', () => {
                 naviPoint: {
                     title: 'Dashboard',
                     type: 'route',
+                    icon: '',
+                    position: 0,
                     visible: false,
                     to: '/dashboard',
                 },
@@ -143,6 +155,8 @@ describe('SettingsNavigationTabItem.vue', () => {
                 naviPoint: {
                     title: 'Dashboard',
                     type: 'route',
+                    icon: '',
+                    position: 0,
                     visible: true,
                     to: '/dashboard',
                 },

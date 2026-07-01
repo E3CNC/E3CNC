@@ -63,8 +63,10 @@ describe('UpdateHint.vue', () => {
         owner: 'Klipper3d',
         repo_name: 'klipper',
         branch: 'master',
-        commits_behind: [{ sha: 'abc', subject: 'fix', message: 'fix', author: 'dev', date: 1700000000 }],
+        commits_behind: [{ sha: 'abc', subject: 'fix', message: 'fix', author: 'dev', date: 1700000000, tag: null }],
         configured_type: 'git_repo',
+        version: 'v0.11.0',
+        remote_version: 'v0.12.0',
     }
 
     it('does not render dialog when modelValue is false', () => {

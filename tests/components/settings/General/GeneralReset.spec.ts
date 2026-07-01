@@ -5,7 +5,7 @@ import { createI18n } from 'vue-i18n'
 import { ref } from 'vue'
 
 let mockLoadings = ref([])
-let mockMoonrakerComponents = ref([])
+let mockMoonrakerComponents = ref<string[]>([])
 const mockLoadFn = vi.fn().mockResolvedValue([
     { value: 'general', label: 'General' },
     { value: 'webcams', label: 'Webcams' },

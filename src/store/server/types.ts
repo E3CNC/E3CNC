@@ -55,6 +55,7 @@ export interface ServerState {
     }
     dbNamespaces: string[]
     websocket_count: number
+    connection_id: string
     moonraker_version: string
 
     console_cleared_this_session?: boolean

@@ -15,6 +15,7 @@ export interface GuiWebcamStateWebcam {
         | 'mjpegstreamer-adaptive'
         | 'uv4l-mjpeg'
         | 'webrtc-camerastreamer'
+        | 'webrtc-go2rtc'
         | 'webrtc-janus'
         | 'webrtc-mediamtx'
     enabled: boolean

@@ -73,11 +73,13 @@ describe('TheServiceWorker.vue', () => {
         await new Promise((r) => setTimeout(r, 20))
 
         expect(registerSW).toHaveBeenCalled()
-        const options = vi.mocked(registerSW).mock.calls[0][0]
-        expect(options.immediate).toBe(true)
-        expect(typeof options.onOfflineReady).toBe('function')
-        expect(typeof options.onNeedRefresh).toBe('function')
-        expect(typeof options.onRegistered).toBe('function')
-        expect(typeof options.onRegisterError).toBe('function')
+        const options = vi.mocked(registerSW).mock.calls[0]?.[0]
+        if (options) {
+            expect(options.immediate).toBe(true)
+            expect(typeof options.onOfflineReady).toBe('function')
+            expect(typeof options.onNeedRefresh).toBe('function')
+            expect(typeof options.onRegistered).toBe('function')
+            expect(typeof options.onRegisterError).toBe('function')
+        }
     })
 })

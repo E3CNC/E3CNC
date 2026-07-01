@@ -39,6 +39,7 @@ describe('GitCommitsListDayCommit.vue', () => {
         message: 'Fixed a critical bug in the system',
         author: 'developer1',
         date: oneHourAgo,
+        tag: null,
     }
 
     const mockRepo = {
@@ -46,6 +47,9 @@ describe('GitCommitsListDayCommit.vue', () => {
         owner: 'testowner',
         repo_name: 'testrepo',
         branch: 'master',
+        configured_type: 'git_repo',
+        version: 'v1.0',
+        remote_version: 'v1.1',
     }
 
     it('renders without crashing', () => {
