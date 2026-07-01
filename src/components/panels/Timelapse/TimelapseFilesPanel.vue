@@ -87,7 +87,7 @@
                 v-model="selectedFiles"
                 :items="displayFiles"
                 class="files-table"
-                :headers="headers"
+                :headers="headers as any"
                 :custom-sort="sortFiles"
                 :sort-by="v3SortBy"
                 :items-per-page="countPerPage"
@@ -99,14 +99,10 @@
                 item-key="filename"
                 :search="search"
                 :custom-filter="advancedSearch"
-                mobile-breakpoint="0"
+                :mobile-breakpoint="0"
                 show-select
                 @update:sort-by="setSortBy"
                 @update:items-per-page="setCountPerPage">
-                <template #items>
-                    <td v-for="header in headers" :key="header.value">{{ header.text }}</td>
-                </template>
-
                 <template #no-data>
                     <div class="text-center font-italic">{{ $t('Timelapse.Empty') }}</div>
                 </template>
@@ -120,7 +116,7 @@
                     </tr>
                 </template>
 
-                <template #item="{ index, item, isSelected, select }">
+                <template #item="{ index, item, isSelected, toggleSelect }">
                     <tr
                         :key="`${index} ${item.filename}`"
                         v-longpress:600="{ handler: showContextMenu, args: [item] }"
@@ -134,7 +130,7 @@
                                 density="compact"
                                 hide-details
                                 class="pa-0 mr-0"
-                                @click.stop="select(!isSelected)"></v-checkbox>
+                                @click.stop="toggleSelect(item, index)"></v-checkbox>
                         </td>
                         <td class="px-0 text-center" style="width: 32px">
                             <template v-if="item.isDirectory">
@@ -174,12 +170,12 @@
                         </td>
                         <td class=" ">{{ item.filename }}</td>
                         <td
-                            v-if="headers.find((header) => header.value === 'size').visible"
+                            v-if="headers.find((header) => header.key === 'size')?.visible ?? false"
                             class="text-no-wrap text-right">
-                            {{ item.isDirectory ? '--' : formatFilesize(item.size) }}
+                            {{ item.isDirectory ? '--' : formatFilesize(item.size ?? 0) }}
                         </td>
-                        <td v-if="headers.find((header) => header.value === 'modified').visible" class="text-right">
-                            {{ formatDateTime(item.modified) }}
+                        <td v-if="headers.find((header) => header.key === 'modified')?.visible ?? false" class="text-right">
+                            {{ formatDateTime(item.modified.getTime()) }}
                         </td>
                     </tr>
                 </template>
@@ -239,7 +235,7 @@
                         :label="$t('Timelapse.Name')"
                         required
                         :rules="nameInputRules"
-                        @update:error="(bool) => (isInvalidName = bool)"
+                        @update:error="(bool: boolean) => (isInvalidName = bool)"
                         @keypress.enter="renameFileAction"></v-text-field>
                 </v-card-text>
                 <v-card-actions>
@@ -268,7 +264,7 @@
                         :label="$t('Timelapse.Name')"
                         required
                         :rules="nameInputRules"
-                        @update:error="(bool) => (isInvalidName = bool)"
+                        @update:error="(bool: boolean) => (isInvalidName = bool)"
                         @keypress.enter="createDirectoryAction"></v-text-field>
                 </v-card-text>
                 <v-card-actions>
@@ -297,7 +293,7 @@
                         :label="$t('Timelapse.Name')"
                         required
                         :rules="nameInputRules"
-                        @update:error="(bool) => (isInvalidName = bool)"
+                        @update:error="(bool: boolean) => (isInvalidName = bool)"
                         @keyup.enter="renameDirectoryAction"></v-text-field>
                 </v-card-text>
                 <v-card-actions>
@@ -481,14 +477,14 @@ function existsFilename(name: string) {
     return files.value.findIndex((file) => file.filename === name) >= 0
 }
 
-const headers = computed(() => [
-    { text: '', value: '', align: 'left', configable: false, visible: true, sortable: false },
-    { text: 'Name', value: 'filename', align: 'left', configable: false, visible: true },
-    { text: 'Filesize', value: 'size', align: 'right', configable: true, visible: true },
+const headers = computed<any[]>(() => [
+    { title: '', key: '', align: 'left', configable: false, visible: true, sortable: false },
+    { title: 'Name', key: 'filename', align: 'left', configable: false, visible: true },
+    { title: 'Filesize', key: 'size', align: 'end' as const, configable: true, visible: true },
     {
-        text: 'Last Modified',
-        value: 'modified',
-        align: 'right',
+        title: 'Last Modified',
+        key: 'modified',
+        align: 'end' as const,
         configable: true,
         visible: true,
     },
@@ -506,7 +502,7 @@ const sortBy = computed(() => store.state.gui.view.timelapse.sortBy ?? 'modified
 const sortDesc = computed(() => store.state.gui.view.timelapse.sortDesc ?? true)
 
 // Vuetify 3 expects sort-by as array of { key, order } objects
-const v3SortBy = computed(() => [{ key: sortBy.value, order: sortDesc.value ? 'desc' : 'asc' }])
+const v3SortBy = computed(() => [{ key: sortBy.value, order: sortDesc.value ? ('desc' as const) : ('asc' as const) }])
 
 function setSortBy(newVal: { key: string; order?: 'asc' | 'desc' }[]) {
     if (!newVal || !newVal.length) return

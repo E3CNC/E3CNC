@@ -220,7 +220,7 @@ async function readStream() {
                 }
 
                 if (image.value && !skipFrame) {
-                    const objectURL = URL.createObjectURL(new Blob([imageBuffer], { type: 'image/jpeg' }))
+                    const objectURL = URL.createObjectURL(new Blob([imageBuffer as BlobPart], { type: 'image/jpeg' }))
                     image.value.src = objectURL
                     skipFrame = true
 

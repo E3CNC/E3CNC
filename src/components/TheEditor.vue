@@ -172,11 +172,10 @@
             <template v-else>
                 <v-progress-linear class="mt-2" indeterminate></v-progress-linear>
             </template>
-            <template #actions="{ props }">
+            <template #actions>
                 <v-btn
                     color="error"
                     variant="text"
-                    v-bind="props"
                     style="min-width: auto"
                     rounded="0"
                     @click="cancelDownload">

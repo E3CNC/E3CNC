@@ -144,12 +144,12 @@ const smallThumbnail = computed(() => {
     return thumbnail ? createThumbnailUrl(thumbnail) : false
 })
 
-const bigThumbnail = computed(() => {
-    if ((props.job.metadata?.thumbnails?.length ?? 0) < 1) return false
+const bigThumbnail = computed<string | undefined>(() => {
+    if ((props.job.metadata?.thumbnails?.length ?? 0) < 1) return undefined
 
     const thumbnail = props.job.metadata?.thumbnails?.find((thumb) => thumb.width >= thumbnailBigMin)
 
-    return thumbnail ? createThumbnailUrl(thumbnail) : false
+    return thumbnail ? createThumbnailUrl(thumbnail) : undefined
 })
 
 const statusIcon = computed(() => convertPrintStatusIcon(props.job.status))

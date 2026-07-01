@@ -1,7 +1,7 @@
 <template>
     <responsive
         :breakpoints="{
-            mobile: (el) => el.width <= 395,
+            mobile: (el: { width: number }) => el.width <= 395,
         }">
         <template #default="{ el }">
             <v-table class="temperature-panel-table">

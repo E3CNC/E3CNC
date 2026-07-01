@@ -27,7 +27,7 @@
     <v-icon v-else :class="thumbnailFallbackClass">{{ mdiFile }}</v-icon>
 </template>
 <script setup lang="ts">
-import { computed, ref, watch, withDefaults } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useBase } from '@/composables/useBase'
 import type { FileStateGcodefile } from '@/store/files/types'
@@ -97,8 +97,8 @@ const bigThumbnailUrl = computed(() => {
     return buildUrl(bigThumbnail.value.relative_path)
 })
 
-const displayThumbnailUrl = computed(() =>
-    props.variant === 'card' ? (bigThumbnailUrl.value ?? smallThumbnailUrl.value) : smallThumbnailUrl.value
+const displayThumbnailUrl = computed<string | undefined>(() =>
+    (props.variant === 'card' ? (bigThumbnailUrl.value ?? smallThumbnailUrl.value) : smallThumbnailUrl.value) ?? undefined
 )
 
 const displayThumbnailFailed = computed(() =>

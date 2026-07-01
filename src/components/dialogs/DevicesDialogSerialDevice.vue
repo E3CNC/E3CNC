@@ -18,12 +18,12 @@
             </v-row>
             <v-row v-if="device.path_by_id ?? false">
                 <v-col>
-                    <textfield-with-copy :label="$t('DevicesDialog.PathById')" :value="device.path_by_id" />
+                    <textfield-with-copy :label="$t('DevicesDialog.PathById')" :value="device.path_by_id ?? ''" />
                 </v-col>
             </v-row>
             <v-row v-if="device.path_by_hardware ?? false">
                 <v-col>
-                    <textfield-with-copy :label="$t('DevicesDialog.PathByHardware')" :value="device.path_by_hardware" />
+                    <textfield-with-copy :label="$t('DevicesDialog.PathByHardware')" :value="device.path_by_hardware ?? ''" />
                 </v-col>
             </v-row>
         </v-card-text>

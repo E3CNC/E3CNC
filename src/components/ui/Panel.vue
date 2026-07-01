@@ -89,7 +89,7 @@ const slots = useSlots()
 let panelEl: HTMLElement | null = null
 
 function setPanelRef(el: unknown) {
-    panelEl = el?.$el ?? el ?? null
+    panelEl = (el as any)?.$el ?? (el as any) ?? null
 }
 
 const floatingData = computed<PanelFloatingState | null>(
@@ -155,7 +155,7 @@ const cardStyle = computed(() => {
         height,
         maxHeight: height,
         display: 'flex',
-        flexDirection: 'column',
+        flexDirection: 'column' as const,
     }
 })
 
@@ -167,7 +167,7 @@ const floatingCardStyle = computed(() => ({
     height: floatState.height + 'px',
     zIndex: floatState.zIndex,
     display: 'flex',
-    flexDirection: 'column',
+    flexDirection: 'column' as const,
     transition: isAnimating.value ? 'left 300ms ease-in-out, top 300ms ease-in-out' : 'none',
 }))
 
@@ -314,7 +314,7 @@ function onResizeEnd() {
 // --- Store helpers ---
 function nextZIndex(): number {
     const panels = store.state.gui.dashboard.floatingPanels
-    return Math.max(0, ...Object.values(panels).map((p: PanelFloatingState) => p.zIndex)) + 1
+    return Math.max(0, ...Object.values(panels).map((p: any) => p.zIndex)) + 1
 }
 
 function bringToFront() {

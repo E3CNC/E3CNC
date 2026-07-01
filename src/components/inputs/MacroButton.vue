@@ -37,7 +37,7 @@
                                 <v-text-field
                                     v-model="params[name].value"
                                     :label="name"
-                                    :placeholder="params[name].default"
+                                    :placeholder="params[name].default?.toString() ?? ''"
                                     :persistent-placeholder="true"
                                     hide-details
                                     variant="outlined"
@@ -78,7 +78,7 @@
                                     <v-text-field
                                         v-model="params[name].value"
                                         :label="name"
-                                        :placeholder="params[name].default"
+                                        :placeholder="params[name].default?.toString() ?? ''"
                                         :persistent-placeholder="true"
                                         hide-details
                                         variant="outlined"

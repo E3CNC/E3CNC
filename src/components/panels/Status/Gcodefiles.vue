@@ -63,7 +63,7 @@ const gcodeFiles = computed(() => {
 })
 
 function calcContentTdWidth() {
-    const element = filesGcodeCard.value?.$el ?? filesGcodeCard.value
+    const element = (filesGcodeCard.value as any)?.$el ?? filesGcodeCard.value
     if (element) {
         contentTdWidth.value = element.clientWidth - 48 - 48 - 32
     }
@@ -80,7 +80,7 @@ function handleResize() {
 
 onMounted(() => {
     resizeObserver = new ResizeObserver(() => handleResize())
-    const element = filesGcodeCard.value?.$el ?? filesGcodeCard.value
+    const element = (filesGcodeCard.value as any)?.$el ?? filesGcodeCard.value
     if (element) {
         resizeObserver.observe(element)
     }

@@ -19,12 +19,12 @@
                         @click="ledOn">
                         {{ mdiLightbulbOutline }}
                     </v-icon>
-                    <v-icon v-else-if="type.includes('fan')" size="small" :class="fanClasses">{{ mdiFan }}</v-icon>
-                    <span>{{ convertName(name) }}</span>
+                    <v-icon v-else-if="(type ?? '').includes('fan')" size="small" :class="fanClasses">{{ mdiFan }}</v-icon>
+                    <span>{{ convertName(name ?? '') }}</span>
                     <v-spacer />
-                    <small v-if="rpm !== null" :class="rpmClasses">{{ Math.round(rpm ?? 0) }} RPM</small>
+                    <small v-if="rpm !== null" :class="rpmClasses">{{ Math.round(Number(rpm ?? 0)) }} RPM</small>
                     <span v-if="!controllable" class="font-weight-bold">
-                        {{ Math.round(parseFloat(value) * 100) }} %
+                        {{ Math.round(value * 100) }} %
                     </span>
                     <v-icon v-if="controllable && !pwm" @click="switchOutputPin">
                         {{ value ? mdiToggleSwitch : mdiToggleSwitchOffOutline }}
@@ -41,7 +41,7 @@
                             variant="outlined"
                             density="compact"
                             class="_slider-input pt-1"
-                            @blur="inputValue = Math.round(parseFloat(sliderValue) * 100)"
+                            @blur="inputValue = Math.round(sliderValue * 100)"
                             @focus="$event.target.select()"
                             @keydown="checkInvalidChars" />
                     </form>
@@ -70,7 +70,7 @@
                         :min="0.0"
                         :max="1.0"
                         :step="0.01"
-                        :color="sliderValue < offBelow && sliderValue > 0 ? 'error' : undefined"
+                        :color="sliderValue < (offBelow ?? 0) && sliderValue > 0 ? 'error' : undefined"
                         hide-details
                         @change="changeSliderValue">
                         <template #prepend>
@@ -212,7 +212,7 @@ function decrement(): void {
 
 function increment(): void {
     let newVal = value.value < 1.0 ? Math.round((value.value + 0.01) * 100) / 100 : 1.0
-    if (value.value < (props.offBelow ?? 0)) newVal = props.offBelow
+    if (value.value < (props.offBelow ?? 0)) newVal = props.offBelow ?? 0
     sendCmd(newVal)
 }
 

@@ -8,7 +8,7 @@
         :close-on-content-click="false"
         origin="center center"
         transition="slide-y-transition"
-        :min-width="isMobile ? '100%' : null">
+        :min-width="isMobile ? '100%' : undefined">
         <template #activator="{ props }">
             <v-btn :icon="boolMenu ? mdiBell : mdiBellOutline" rounded="0" class="minwidth-0" v-bind="props">
                 <v-badge
@@ -18,7 +18,7 @@
                     overlap />
             </v-btn>
         </template>
-        <v-card flat :min-width="300" :max-width="isMobile ? null : 400">
+        <v-card flat :min-width="300" :max-width="isMobile ? undefined : 400">
             <template v-if="notifications.length">
                 <OverlayScrollbarsComponent class="announcement-menu__scrollbar">
                     <v-card-text>

@@ -77,6 +77,7 @@ declare module '@sindarius/gcodeviewer' {
         bed: ViewerBed
         axes: ViewerAxes
         buildObjects: ViewerBuildObjects
+        scene: any
 
         init(): Promise<void>
         resize(): void

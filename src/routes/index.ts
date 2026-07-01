@@ -6,7 +6,9 @@ import Files from '../pages/Files.vue'
 import History from '../pages/History.vue'
 import Timelapse from '../pages/Timelapse.vue'
 import Machine from '../pages/Machine.vue'
-import { AsyncComponent, Component } from 'vue'
+import { Component, defineAsyncComponent } from 'vue'
+
+import type { RouteRecordRaw } from 'vue-router'
 
 import {
     mdiMonitorDashboard,
@@ -133,7 +135,7 @@ export interface AppRoute {
     path: string
     redirect?: string
     icon?: string
-    component: Component | AsyncComponent | null
+    component: Component | typeof defineAsyncComponent | null
     alwaysShow: boolean
     showInNavi: boolean
     registeredDirectory?: string

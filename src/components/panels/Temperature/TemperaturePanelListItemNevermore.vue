@@ -25,13 +25,14 @@
             </div>
         </td>
         <temperature-panel-list-item-edit
-            v-model="showEditDialog"
+            :show-dialog="showEditDialog"
             :object-name="objectName"
             :name="name"
             :format-name="formatName"
-            additional-sensor-name="nevermore"
+            :additional-sensor-name="'nevermore'"
             :icon="mdiFan"
-            :color="color" />
+            :color="color"
+            @update:model-value="showEditDialog = $event" />
     </tr>
 </template>
 
@@ -61,7 +62,7 @@ const name = computed(() => {
 
 const formatName = computed(() => convertName(name.value))
 
-const color = computed(() => store.state.gui?.view?.tempchart?.datasetSettings?.[props.objectName]?.color ?? '#ffffff')
+const color = computed<string>(() => (store.state.gui?.view?.tempchart?.datasetSettings?.[props.objectName]?.color as string | undefined) ?? '#ffffff')
 
 const iconColor = computed(() => {
     if (state.value === null || state.value > 0) return `${color.value}${opacityHeaterActive}`

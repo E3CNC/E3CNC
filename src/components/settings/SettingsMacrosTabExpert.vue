@@ -58,7 +58,7 @@
                     <div class="macrogroup-edit-body">
                         <settings-row :title="$t('Settings.MacrosTab.Name')">
                             <v-text-field
-                                v-model="editGroup.name"
+                                v-model="editGroup!.name"
                                 hide-details="auto"
                                 :rules="[rules.required, rules.groupUnique]"
                                 density="compact"
@@ -68,7 +68,7 @@
                         <v-divider class="my-2" />
                         <settings-row :title="$t('Settings.MacrosTab.Color')">
                             <v-select
-                                v-model="editGroup.color"
+                                v-model="editGroup!.color"
                                 :items="groupColors"
                                 item-title="text"
                                 item-value="value"
@@ -85,12 +85,12 @@
                                     <template #activator="{ props: activatorProps }">
                                         <v-btn
                                             v-bind="activatorProps"
-                                            :color="editGroup.colorCustom"
+                                            :color="editGroup?.colorCustom"
                                             class="minwidth-0 px-5"
                                             small />
                                     </template>
                                     <v-color-picker
-                                        :value="editGroup.colorCustom"
+                                        :value="editGroup?.colorCustom"
                                         hide-mode-switch
                                         mode="rgba"
                                         @update:model-value="updateGroupOptionColorCustom" />
@@ -159,9 +159,9 @@
                                             <v-icon class="handle">{{ mdiDragVertical }}</v-icon>
                                         </div>
                                         <div class="macrogroup-item__content">
-                                            <div class="macrogroup-item__name">{{ macro.name }}</div>
+                                            <div class="macrogroup-item__name">{{ (macro as any).name }}</div>
                                             <div class="macrogroup-item__description">
-                                                {{ getMacroDescription(macro.name) }}
+                                                {{ getMacroDescription((macro as any).name) }}
                                             </div>
                                         </div>
                                         <div class="macrogroup-item__actions">
@@ -173,7 +173,7 @@
                                                             variant="outlined"
                                                             v-bind="activatorProps"
                                                             class="minwidth-0 px-2"
-                                                            @click="changeColorMacroFromGroup(macro)">
+                                                            @click="changeColorMacroFromGroup(macro as any)">
                                                             <v-icon size="small" start>{{ mdiPalette }}</v-icon>
                                                             {{ $t('Settings.MacrosTab.Group') }}
                                                         </v-btn>
@@ -187,12 +187,12 @@
                                                             variant="outlined"
                                                             v-bind="activatorProps"
                                                             class="minwidth-0 px-2"
-                                                            :color="macro.showInStandby ? '' : 'secondary'"
+                                                            :color="(macro as any).showInStandby ? '' : 'secondary'"
                                                             @click="
                                                                 updateMacroFromGroup(
                                                                     macro,
                                                                     'showInStandby',
-                                                                    !macro.showInStandby
+                                                                    !(macro as any).showInStandby
                                                                 )
                                                             ">
                                                             <v-icon size="small">{{ mdiSleep }}</v-icon>
@@ -207,12 +207,12 @@
                                                             variant="outlined"
                                                             v-bind="activatorProps"
                                                             class="minwidth-0 px-2"
-                                                            :color="macro.showInPause ? '' : 'secondary'"
+                                                            :color="(macro as any).showInPause ? '' : 'secondary'"
                                                             @click="
                                                                 updateMacroFromGroup(
                                                                     macro,
                                                                     'showInPause',
-                                                                    !macro.showInPause
+                                                                    !(macro as any).showInPause
                                                                 )
                                                             ">
                                                             <v-icon size="small">{{ mdiPause }}</v-icon>
@@ -227,12 +227,12 @@
                                                             variant="outlined"
                                                             v-bind="activatorProps"
                                                             class="minwidth-0 px-2"
-                                                            :color="macro.showInPrinting ? '' : 'secondary'"
+                                                            :color="(macro as any).showInPrinting ? '' : 'secondary'"
                                                             @click="
                                                                 updateMacroFromGroup(
                                                                     macro,
                                                                     'showInPrinting',
-                                                                    !macro.showInPrinting
+                                                                    !(macro as any).showInPrinting
                                                                 )
                                                             ">
                                                             <v-icon size="small">{{ mdiPrinter3dNozzle }}</v-icon>
@@ -249,7 +249,7 @@
                                                         v-bind="activatorProps"
                                                         class="minwidth-0 px-2"
                                                         color="error"
-                                                        @click="removeMacroFromGroup(macro)">
+                                                        @click="removeMacroFromGroup(macro as any)">
                                                         <v-icon size="small">{{ mdiDelete }}</v-icon>
                                                     </v-btn>
                                                 </template>
@@ -306,7 +306,7 @@
                                     <v-divider v-if="index" class="my-2" />
                                     <settings-row
                                         :title="macro.name"
-                                        :sub-title="macro.description"
+                                        :sub-title="macro.description ?? undefined"
                                         :dynamic-slot-width="true">
                                         <v-btn
                                             size="small"
@@ -651,7 +651,7 @@ function changeColorMacroFromGroup(macro: GuiMacrosStateMacrogroupMacro) {
     if (index > maxIndex) index = 0
     const newColor = macroColors.value[index].value
 
-    updateMacroFromGroup(macro, 'color', newColor)
+    updateMacroFromGroup(macro as any, 'color', newColor)
 }
 
 function removeMacroFromGroup(macro: GuiMacrosStateMacrogroupMacro) {

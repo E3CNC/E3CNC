@@ -5,7 +5,7 @@ export const ToastPlugin: Plugin = {
         // Lazy-load vue-toast-notification and install as a plugin
         ;(async () => {
             const mod = await import('vue-toast-notification')
-            const plugin = mod.default ?? mod.ToastPlugin ?? mod
+            const plugin = mod.default ?? (mod as any).ToastPlugin ?? mod
             app.use(plugin as Plugin, {
                 duration: 3000,
                 position: 'top-right',

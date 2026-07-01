@@ -302,10 +302,10 @@ function clickUpdate() {
 async function doUpdate() {
     try {
         if (['klipper', 'moonraker'].includes(props.repo.name)) {
-            await socket.emitAndWait('machine.update.' + props.repo.name, {})
+            await (socket.emitAndWait as any)('machine.update.' + props.repo.name, {})
             return
         }
-        await socket.emitAndWait('machine.update.client', { name: props.repo.name })
+        await (socket.emitAndWait as any)('machine.update.client', { name: props.repo.name })
     } catch (e) {
         const $toast = useToast()
         const err = e as { message?: string }

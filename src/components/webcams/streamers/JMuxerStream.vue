@@ -57,7 +57,7 @@ function play() {
     const targetFps = props.camSettings.target_fps || 10
 
     jmuxer = new JMuxer({
-        node: video.value,
+        node: video.value!,
         mode: 'video',
         flushingTime: 0,
         fps: targetFps,

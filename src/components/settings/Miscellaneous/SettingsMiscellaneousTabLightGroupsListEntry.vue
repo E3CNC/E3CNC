@@ -38,7 +38,7 @@ const subTitle = computed(() =>
 )
 
 function editGroup() {
-    emit('edit-group', (props.group as GuiMiscellaneousStateEntryLightgroup).id)
+    emit('edit-group', ((props.group as any).id ?? '') as string)
 }
 
 function deleteGroup() {

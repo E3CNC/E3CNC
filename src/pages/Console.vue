@@ -123,7 +123,7 @@ watch(autoscroll, (newVal: boolean) => {
 })
 
 function commandClick(msg: string): void {
-    gcodeCommandField.value?.setGcode(msg)
+    ;(gcodeCommandField.value as any)?.setGcode(msg)
 }
 
 onMounted(() => {
@@ -134,7 +134,7 @@ function scrollToBottom() {
     nextTick(() => {
         if (!consoleScroll.value) return
 
-        const overlayscroll = consoleScroll.value.osInstance()
+        const overlayscroll = (consoleScroll.value as any).osInstance()
         overlayscroll?.scroll({ y: '100%' })
     })
 }

@@ -81,7 +81,7 @@ function onKeyDown(event: KeyboardEvent): void {
     }
 }
 
-function doSend(cmd: KeyboardEvent) {
+function doSend(cmd: KeyboardEvent | MouseEvent) {
     if (cmd.shiftKey) {
         gcode.value += '\n'
         return

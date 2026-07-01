@@ -19,13 +19,13 @@
             @blur="value = target.toString()"
             @focus="$event.target.select()"
             @keydown="checkInvalidChars">
-            <template v-if="defaultValue !== null" #append>
-                <v-icon @click="resetToDefault">{{ value !== defaultValue.toString() ? mdiRestart : '' }}</v-icon>
+            <template v-if="(defaultValue ?? null) !== null" #append>
+                <v-icon @click="resetToDefault">{{ (defaultValue != null && value !== defaultValue.toString()) ? mdiRestart : '' }}</v-icon>
             </template>
-            <template v-if="hasSpinner" #append-outer>
+            <template v-if="hasSpinner" #append-inner>
                 <div class="_spin_button_group">
                     <v-btn
-                        :disabled="(value >= max && max !== null) || error || disabled"
+                        :disabled="(max !== null && inputValue >= max) || error || disabled"
                         class="mt-n3"
                         icon
                         variant="plain"
@@ -34,7 +34,7 @@
                         <v-icon>{{ mdiChevronUp }}</v-icon>
                     </v-btn>
                     <v-btn
-                        :disabled="value <= min || error || disabled"
+                        :disabled="inputValue <= min || error || disabled"
                         class="mb-n3"
                         icon
                         variant="plain"

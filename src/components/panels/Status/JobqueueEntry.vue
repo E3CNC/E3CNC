@@ -7,7 +7,7 @@
             <v-icon class="handle">{{ mdiDragVertical }}</v-icon>
         </v-col>
         <v-col class="v-col-auto d-flex flex-column justify-center pr-0 py-0">
-            <gcodefiles-thumbnail :item="job" />
+            <gcodefiles-thumbnail :item="job as any" />
         </v-col>
         <v-col class="py-1" style="min-width: 0; font-size: 0.875rem">
             <div class="text-truncate">

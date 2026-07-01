@@ -79,8 +79,7 @@ export const mutations: MutationTree<GuiState> = {
             ...(state.dashboard[payload.layoutname as keyof GuiStateDashboard] as GuiStateLayoutoption[]),
         ]
         layoutArray.splice(payload.index, 1)
-        state.dashboard[payload.layoutname as keyof GuiStateDashboard] =
-            layoutArray as unknown as GuiStateLayoutoption[]
+        ;(state.dashboard as any)[payload.layoutname as keyof GuiStateDashboard] = layoutArray
     },
 
     setFloatingPanels(state: GuiState, payload: Record<string, PanelFloatingState>) {
@@ -119,6 +118,6 @@ export const mutations: MutationTree<GuiState> = {
             return
         }
 
-        state.view.tempchart.datasetSettings[payload.objectName].additionalSensors[payload.dataset] = payload.value
+        ;(state.view.tempchart.datasetSettings as any)[payload.objectName].additionalSensors[payload.dataset] = payload.value
     },
 }

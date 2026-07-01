@@ -33,7 +33,7 @@
                 <div class="gcode-card__sub">
                     <span class="gcode-card__size">{{ formattedSize }}</span>
                     <span class="gcode-card__sep">·</span>
-                    <span>{{ formatDateTime(item.modified) }}</span>
+                    <span>{{ formatDateTime(item.modified?.getTime() ?? 0) }}</span>
                 </div>
                 <div class="gcode-card__chips">
                     <v-chip v-if="item.slicer" x-small variant="outlined" class="mr-1 gcode-card__chip">

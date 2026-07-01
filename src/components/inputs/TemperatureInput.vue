@@ -11,10 +11,10 @@
                 hide-spin-buttons
                 class="_temp-input"
                 :style="inputStyle"
-                @blur="value = target"
+                @blur="value = target ?? 0"
                 @focus="$event.target.select()" />
         </form>
-        <v-menu v-if="presets" :offset-y="true" left title="Preheat">
+        <v-menu v-if="temperaturePresets.length" :offset-y="true" left title="Preheat">
             <template #activator="{ props: menuProps }">
                 <v-btn
                     :disabled="['printing', 'paused'].includes(printer_state)"
@@ -29,13 +29,13 @@
             </template>
             <v-list density="compact" class="py-0">
                 <v-list-item
-                    v-for="preset of presets"
+                    v-for="preset of temperaturePresets"
                     :key="preset.index"
                     link
                     style="min-height: 32px"
                     @click="doSend(`${command} ${attributeName}=${name} TARGET=${preset.value}`)">
                     <div class="_preset">
-                        <v-icon v-if="preset.value === 0" else color="primary" size="small" class="_preset-icon">
+                        <v-icon v-if="preset.value === 0" color="primary" size="small" class="_preset-icon">
                             {{ mdiSnowflake }}
                         </v-icon>
                         <v-icon v-else size="small" class="_preset-icon">{{ mdiFire }}</v-icon>
@@ -48,9 +48,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { inject } from 'vue'
 import { useBase } from '@/composables/useBase'
 import { useControl } from '@/composables/useControl'
 import { mdiSnowflake, mdiFire, mdiMenuDown } from '@mdi/js'
@@ -58,7 +57,7 @@ import { mdiSnowflake, mdiFire, mdiMenuDown } from '@mdi/js'
 const { t } = useI18n()
 const { printer_state } = useBase()
 const { doSend } = useControl()
-const $toast = inject('$toast')
+const $toast = inject<{ error: (message: string) => void }>(`$toast`)
 
 const props = defineProps<{
     name: string
@@ -72,6 +71,13 @@ const props = defineProps<{
 }>()
 
 const value = ref<number | string>(0)
+
+const temperaturePresets = computed(() =>
+    (props.presets ?? []).map((value, index) => ({
+        index,
+        value,
+    }))
+)
 
 const inputStyle = computed(() => {
     const PER_DIGIT = 10
@@ -122,8 +128,8 @@ onMounted(() => {
 
 watch(
     () => props.target,
-    (newVal: number) => {
-        value.value = newVal
+    (newVal: number | undefined) => {
+        value.value = newVal ?? 0
     }
 )
 </script>

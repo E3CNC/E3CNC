@@ -1,9 +1,7 @@
 <template>
     <v-dialog :model-value="application !== ''" persistent max-width="800" class="mx-0">
         <v-card :loading="!complete">
-            <template #progress>
-                <v-progress-linear color="primary" indeterminate></v-progress-linear>
-            </template>
+            <v-progress-linear color="primary" indeterminate></v-progress-linear>
             <v-toolbar flat density="compact">
                 <v-toolbar-title>
                     <span class="subheading">
@@ -37,8 +35,7 @@
                                 disable-pagination
                                 class="updaterLog"
                                 :custom-sort="customSort"
-                                sort-by="date"
-                                :sort-desc="true"
+                                :sort-by="[{ key: 'date', order: 'desc' }]"
                                 color="primary">
                                 <template #no-data>
                                     <div class="py-2">{{ $t('App.UpdateDialog.Empty') }}</div>
@@ -157,7 +154,7 @@ function close() {
 
 watch(messages, () => {
     setTimeout(() => {
-        updaterLogScroll.value?.osInstance()?.scroll({ y: '100%' })
+        ;(updaterLogScroll.value as any)?.osInstance()?.scroll({ y: '100%' })
     }, 50)
 })
 </script>

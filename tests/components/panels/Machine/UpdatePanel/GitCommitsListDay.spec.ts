@@ -29,7 +29,7 @@ describe('GitCommitsListDay.vue', () => {
         vi.clearAllMocks()
     })
 
-    const mockGroupedCommits = {
+    const mockGroupedCommits: any = {
         date: new Date('2024-01-15'),
         commits: [
             { sha: 'abc123', subject: 'Fix bug', message: 'Fixed a bug', author: 'dev', date: 1705276800 },
@@ -37,11 +37,14 @@ describe('GitCommitsListDay.vue', () => {
         ],
     }
 
-    const mockRepo = {
+    const mockRepo: any = {
         name: 'test_repo',
         owner: 'testowner',
         repo_name: 'testrepo',
         branch: 'master',
+        configured_type: 'github',
+        version: '1.0.0',
+        remote_version: '1.0.1',
     }
 
     it('renders without crashing', () => {

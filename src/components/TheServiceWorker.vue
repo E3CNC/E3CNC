@@ -33,7 +33,7 @@ function onRegistered() {
     window.console.debug('PWA is registered')
 }
 
-function onRegisterError(error: Error) {
+function onRegisterError(error: unknown) {
     window.console.error('PWA registration error:', error)
 }
 

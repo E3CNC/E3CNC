@@ -52,7 +52,7 @@ export class WebSocketClient {
                     modulename &&
                     wait.action?.startsWith('server/') &&
                     initableServerComponents.includes(modulename) &&
-                    (this.store?.state as Record<string, unknown>)?.socket?.['initializationList']?.length
+                    ((this.store?.state as Record<string, unknown>)?.socket as any)?.['initializationList']?.length
                 ) {
                     const component = wait.action.replace('server/', '').split('/')[0]
                     window.console.error(`init server component ${component} failed`)

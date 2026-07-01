@@ -36,16 +36,16 @@ import { mdiFolderOpen } from '@mdi/js'
 const store = useStore()
 const { currentPath, files, selectedFiles, setSelectedFiles } = useGcodeFiles()
 
-const directories = computed(() => files.value.filter((file) => file.isDirectory))
+const directories = computed(() => files.value.filter((file: FileStateGcodefile): boolean => file.isDirectory))
 
 const filesOnly = computed(() => {
-    const output = files.value.filter((file) => !file.isDirectory) as FileStateGcodefile[]
-    const requestItems = output.filter((file) => !file.metadataRequested && !file.metadataPulled)
+    const output = files.value.filter((file: FileStateGcodefile): boolean => !file.isDirectory)
+    const requestItems = output.filter((file: FileStateGcodefile) => !file.metadataRequested && !file.metadataPulled)
 
     if (requestItems.length) {
         store.dispatch(
             'files/requestMetadata',
-            requestItems.map((file) => ({
+            requestItems.map((file: FileStateGcodefile) => ({
                 filename: 'gcodes/' + file.full_filename,
             }))
         )
@@ -63,7 +63,7 @@ function isItemSelected(item: { filename: string }) {
 function selectItem(item: { filename: string }, value: boolean) {
     const fullName = 'gcodes' + currentPath.value + '/' + item.filename
     const current = selectedFiles.value ?? []
-    const next = value ? [...new Set([...current, fullName])] : current.filter((f) => f !== fullName)
+    const next = value ? [...new Set([...current, fullName])] : current.filter((f: string): boolean => f !== fullName)
     setSelectedFiles(next)
 }
 </script>

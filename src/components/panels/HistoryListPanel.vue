@@ -116,7 +116,7 @@
             v-model:items-per-page="countPerPage"
             :items="entries"
             class="history-jobs-table"
-            :headers="filteredHeaders"
+            :headers="filteredHeaders as any"
             disable-sort
             :footer-props="{
                 itemsPerPageText: $t('History.Jobs'),
@@ -126,7 +126,7 @@
             item-key="select_id"
             :search="search"
             :custom-filter="advancedSearch"
-            mobile-breakpoint="0"
+            :mobile-breakpoint="0"
             show-select>
             <template #no-data>
                 <div class="text-center">{{ $t('History.Empty') }}</div>
@@ -157,21 +157,21 @@
                 </span>
             </template>
 
-            <template #item="{ item, isSelected, select }">
+            <template #item="{ item, isSelected, toggleSelect }">
                 <history-list-entry-job
                     v-if="item.type === 'job'"
                     :key="item.select_id"
-                    :is-selected="isSelected(item)"
+                    :is-selected="isSelected(item as any)"
                     :item="item"
                     :table-fields="tableFields"
-                    @select="select" />
+                    @select="() => toggleSelect(item as any)" />
                 <history-list-entry-maintenance
                     v-else-if="item.type === 'maintenance'"
                     :key="item.select_id"
-                    :is-selected="isSelected(item)"
+                    :is-selected="isSelected(item as any)"
                     :item="item"
                     :table-fields="tableFields"
-                    @select="select" />
+                    @select="() => toggleSelect(item as any)" />
             </template>
         </v-data-table>
         <confirmation-dialog

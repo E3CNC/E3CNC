@@ -107,7 +107,6 @@ import { caseInsensitiveSort } from '@/plugins/helpers'
 import type { GuiMiscellaneousStateEntryPreset } from '@/store/gui/miscellaneous/types'
 import type { ColorPickerProps } from '@jaames/iro/dist/ColorPicker.d'
 import iro from '@jaames/iro'
-import type { IroColor } from '@irojs/iro-core'
 
 interface ColorData {
     red: number | null
@@ -187,11 +186,11 @@ const entry = computed(() => {
 })
 
 const presets = computed(() => {
-    if (!entry.value?.lightgroups) return []
+    if (!entry.value?.presets) return []
     const output: GuiMiscellaneousStateEntryPreset[] = []
-    Object.keys(entry.value.presets).forEach((key) => {
-        const preset = entry.value.presets[key]
-        output.push({ ...preset, id: key })
+    Object.keys(entry.value.presets ?? {}).forEach((key) => {
+        const preset = entry.value?.presets?.[key]
+        if (preset) output.push({ ...preset, id: key })
     })
     return caseInsensitiveSort(output, 'name')
 })
@@ -247,7 +246,7 @@ function debounce(fn: (...args: unknown[]) => void, time: number) {
     }
 }
 
-const onColorRGBChanged = debounce((payload: IroColor) => {
+const onColorRGBChanged = debounce((payload: any) => {
     const color: ColorData = {
         red: payload.red,
         green: payload.green,
@@ -257,7 +256,7 @@ const onColorRGBChanged = debounce((payload: IroColor) => {
     colorChanged(color)
 }, 250)
 
-const onColorWhiteChanged = debounce((payload: IroColor) => {
+const onColorWhiteChanged = debounce((payload: any) => {
     const color: ColorData = {
         red: red.value,
         green: green.value,

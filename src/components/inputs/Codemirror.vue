@@ -14,7 +14,7 @@ import { useBase } from '@/composables/useBase'
 import { useTheme } from '@/composables/useTheme'
 import { basicSetup } from 'codemirror'
 import { EditorView, keymap, WidgetType, Decoration, DecorationSet } from '@codemirror/view'
-import { EditorState, StateEffect, StateField } from '@codemirror/state'
+import { EditorState, StateEffect, StateField, Range } from '@codemirror/state'
 import { vscodeDark, vscodeLight } from '@uiw/codemirror-theme-vscode'
 import { StreamLanguage } from '@codemirror/language'
 import { klipper_config } from '@/plugins/StreamParserKlipperConfig'
@@ -82,7 +82,7 @@ function initialize() {
         setCmValue(props.modelValue ?? props.code ?? props.value ?? content ?? '')
         syncAnnotations(props.validationErrors)
 
-        emit('ready', codemirror)
+        ;(emit as any)('ready', codemirror)
     })
 }
 
@@ -158,7 +158,7 @@ const annotationField = StateField.define<DecorationSet>({
         for (const e of tr.effects) {
             if (e.is(annotationEffect)) {
                 const sorted = [...e.value].sort((a, b) => a.line - b.line)
-                const decorations: Decoration[] = []
+                const decorations: Range<Decoration>[] = []
                 for (const ann of sorted) {
                     if (ann.line < 1 || ann.line > tr.state.doc.lines) continue
                     const line = tr.state.doc.line(ann.line)

@@ -14,7 +14,7 @@
         <v-card-text class="px-0 py-2">
             <div v-for="(mcu, index) of mcus" :key="mcu.name">
                 <v-divider v-if="index" class="my-2" />
-                <system-panel-mcu :mcu="mcu" />
+                <system-panel-mcu :mcu="{ ...mcu }" />
             </div>
             <div v-if="hostStats">
                 <v-divider v-if="mcus.length" class="my-2" />
@@ -43,7 +43,7 @@ const dialogDevices = ref(false)
 const mcus = computed(() => {
     if (!klipperReadyForGui.value) return []
     const mcusList = store.getters['printer/getMcus'] ?? []
-    return caseInsensitiveSort(mcusList, 'name')
+    return caseInsensitiveSort(mcusList, 'name') as any
 })
 
 const hostStats = computed(() => store.getters['server/getHostStats'] ?? null)

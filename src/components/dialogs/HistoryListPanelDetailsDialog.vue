@@ -108,7 +108,7 @@ const entries = computed(() => {
         },
         {
             name: t('History.FilamentUsed').toString(),
-            value: `${Math.round(props.job.metadata?.filament_used ?? 0)} mm`,
+            value: `${Math.round(props.job.filament_used ?? 0)} mm`,
             exists: props.job.metadata && 'filament_used' in props.job.metadata,
         },
         {

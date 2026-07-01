@@ -2,13 +2,13 @@
     <settings-miscellaneous-tab-light-groups-form
         v-if="page === 'form'"
         :type="type"
-        :name="name"
-        :group-id="groupId"
+        :name="name ?? ''"
+        :group-id="groupId ?? ''"
         @close="openPage('')" />
     <settings-miscellaneous-tab-light-groups-list
         v-else
         :type="type"
-        :name="name"
+        :name="name ?? ''"
         @create-group="openPage('form')"
         @edit-group="editGroup"
         @close="close" />

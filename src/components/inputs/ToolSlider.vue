@@ -65,11 +65,11 @@
                     hide-details
                     @change="changeSlider">
                     <template #prepend>
-                        <v-icon :disabled="isLocked || _value <= min" @click="decrement">{{ mdiMinus }}</v-icon>
+                        <v-icon :disabled="isLocked || _value <= (min ?? 0)" @click="decrement">{{ mdiMinus }}</v-icon>
                     </template>
 
                     <template #append>
-                        <v-icon :disabled="isLocked || (_value >= max && !dynamicRange)" @click="increment">
+                        <v-icon :disabled="isLocked || (_value >= (max ?? 100) && !dynamicRange)" @click="increment">
                             {{ mdiPlus }}
                         </v-icon>
                     </template>
@@ -176,9 +176,10 @@ watch(
 
 watch(
     () => props.max,
-    (newVal: number) => {
+    (to: number | undefined) => {
+        if (to === undefined) return
         processedMax.value =
-            newVal > _value.value ? newVal : Math.ceil(_value.value / dynamicStep.value) * dynamicStep.value
+            to > _value.value ? to : Math.ceil(_value.value / dynamicStep.value) * dynamicStep.value
     },
     { immediate: true }
 )

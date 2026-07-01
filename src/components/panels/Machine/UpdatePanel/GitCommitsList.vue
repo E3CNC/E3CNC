@@ -21,7 +21,7 @@
                         <git-commits-list-day
                             v-for="group of groupedCommits"
                             :key="group.date.getTime()"
-                            :repo="repo"
+                            :repo="repo!"
                             :grouped-commits="group" />
                         <v-timeline-item
                             v-if="displayFullHistoryWaring"
@@ -107,7 +107,7 @@ const lastCommit = computed(() => commitsBehind.value.slice(-1)[0])
 
 const linkToGithub = computed(
     () =>
-        `https://github.com/${props.repo?.owner}/${props.repo?.repo_name}/commits/${props.repo?.branch}/?after=${lastCommit.value?.sha}+0`
+        `https://github.com/${props.repo?.owner}/${props.repo?.repo_name}/commits/${props.repo?.branch}/?after=${lastCommit.value!.sha}+0`
 )
 
 const overlayScrollbarsStyle = computed(() => {

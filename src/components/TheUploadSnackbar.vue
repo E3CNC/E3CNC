@@ -6,12 +6,11 @@
         {{ percent }} % @ {{ speed }}/s
         <br />
         <v-progress-linear class="mt-2" :model-value="percent"></v-progress-linear>
-        <template #actions="{ props }">
+        <template #actions>
             <v-btn
                 :icon="mdiClose"
                 color="error"
                 variant="text"
-                v-bind="props"
                 style="min-width: auto"
                 @click="cancelUpload" />
         </template>

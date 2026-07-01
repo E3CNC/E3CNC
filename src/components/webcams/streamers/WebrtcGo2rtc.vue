@@ -36,7 +36,7 @@ const video = ref<HTMLVideoElement | null>(null)
 let pc: RTCPeerConnection | null = null
 let ws: WebSocket | null = null
 const restartPause = 2000
-let restartTimeout: ReturnType<typeof setTimeout> | null = null
+let restartTimeout: number | null = null
 const status = ref('connecting')
 const aspectRatio = ref<number | null>(null)
 

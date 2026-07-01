@@ -257,13 +257,13 @@ watch(activeTab, async () => {
 })
 
 function scrollToTop() {
-    const viewport = settingsScroll.value?.osInstance()?.elements().viewport
+    const viewport = (settingsScroll.value as any)?.osInstance()?.elements()?.viewport
 
     if (viewport) viewport.scrollTop = 0
 }
 
 function scrollActiveTabIntoView() {
-    const viewport = settingsTabsScroll.value?.osInstance()?.elements().viewport
+    const viewport = (settingsTabsScroll.value as any)?.osInstance()?.elements()?.viewport
     const activeTabButton = viewport?.querySelector('.v-tab-item--selected') as HTMLElement | null
 
     activeTabButton?.scrollIntoView({ block: 'nearest' })
@@ -271,7 +271,7 @@ function scrollActiveTabIntoView() {
 
 function scrollSelectedSettingsElementIntoView() {
     requestAnimationFrame(() => {
-        const viewport = settingsScroll.value?.osInstance()?.elements().viewport
+        const viewport = (settingsScroll.value as any)?.osInstance()?.elements()?.viewport
         if (!viewport) return
 
         const selectedElements = Array.from(

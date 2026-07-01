@@ -104,7 +104,7 @@
                         :step="feedStep"
                         :disabled="isFeedSliderDisabled"
                         class="feed-slider"
-                        @input="feedrateXY = Number($event.target.value)"
+                        @input="feedrateXY = Number(($event.target as HTMLInputElement).value)"
                         @change="saveFeedrates" />
                 </v-col>
                 <v-col cols="6">
@@ -116,7 +116,7 @@
                         :step="feedStep"
                         :disabled="isFeedSliderDisabled"
                         class="feed-slider"
-                        @input="feedrateZ = Number($event.target.value)"
+                        @input="feedrateZ = Number(($event.target as HTMLInputElement).value)"
                         @change="saveFeedrates" />
                 </v-col>
             </v-row>
@@ -138,7 +138,7 @@
                         max="300"
                         step="5"
                         class="feed-slider"
-                        @input="onFeedOverrideInput(Number($event.target.value))" />
+                        @input="onFeedOverrideInput(Number(($event.target as HTMLInputElement).value))" />
                 </v-col>
             </v-row>
 

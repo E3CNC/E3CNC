@@ -13,13 +13,13 @@
                 <v-card-text>
                     <v-text-field
                         ref="inputField"
-                        v-model="input"
+                        v-model.number="input"
                         :label="$t('Files.Count')"
                         required
                         hide-spin-buttons
                         type="number"
                         :rules="rules.count">
-                        <template #append-outer>
+                        <template #append-inner>
                             <div class="_spin_button_group">
                                 <v-btn
                                     class="mt-n3"
@@ -77,17 +77,17 @@ const showDialog = computed({
 const inputField = ref<FocusableRef | null>(null)
 
 const isValid = ref(false)
-const input = ref('1')
+const input = ref(1)
 
 const rules = {
     count: [
-        (value: string) => !!value || t('JobQueue.InvalidCountEmpty'),
-        (value: string) => parseInt(value, 10) > 0 || t('JobQueue.InvalidCountGreaterZero'),
+        (value: number) => !!value || t('JobQueue.InvalidCountEmpty'),
+        (value: number) => value > 0 || t('JobQueue.InvalidCountGreaterZero'),
     ],
 }
 
 async function addBatchToQueueAction() {
-    const array = Array(parseInt(input.value)).fill(props.filename)
+    const array = Array(input.value).fill(props.filename)
 
     await store.dispatch('server/jobQueue/addToQueue', array)
 
@@ -101,7 +101,7 @@ function closeDialog() {
 }
 
 function resetFormState() {
-    input.value = '1'
+    input.value = 1
 }
 
 watch(showDialog, (newVal: boolean) => {

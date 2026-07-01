@@ -7,8 +7,8 @@
         card-class="machine-settings-panel">
         <responsive
             :breakpoints="{
-                small: (el) => el.width < 375,
-                medium: (el) => el.width >= 375,
+                small: (el: { width: number }) => el.width < 375,
+                medium: (el: { width: number }) => el.width >= 375,
             }">
             <template #default="{ el }">
                 <v-card-text class="pt-5">

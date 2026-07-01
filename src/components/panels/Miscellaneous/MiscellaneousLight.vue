@@ -3,7 +3,7 @@
         v-if="isSingleChannelLight"
         :name="name"
         type="led"
-        :rpm="null"
+        :rpm="undefined"
         :controllable="true"
         :pwm="true"
         :target="singleChannelTarget"

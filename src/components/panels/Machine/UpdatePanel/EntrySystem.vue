@@ -72,7 +72,7 @@ const btnText = computed(() => {
 
 async function doUpdate() {
     try {
-        await socket.emitAndWait('machine.update.system', {})
+        await (socket.emitAndWait as any)('machine.update.system', {})
     } catch (e) {
         const $toast = useToast()
         const err = e as { message?: string }

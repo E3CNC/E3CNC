@@ -38,7 +38,7 @@
 import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { useStore } from 'vuex'
 import { useBase } from '@/composables/useBase'
-import { execBash } from '@/store/files/cncApi'
+import { execBash } from '@/store/files/cncApi';
 import Panel from '@/components/ui/Panel.vue'
 import { mdiBash, mdiCog, mdiTrashCan } from '@mdi/js'
 import { useToast } from 'vue-toast-notification'

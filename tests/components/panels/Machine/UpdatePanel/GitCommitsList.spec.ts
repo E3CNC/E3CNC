@@ -64,7 +64,7 @@ describe('GitCommitsList.vue', () => {
         vi.clearAllMocks()
     })
 
-    const mockRepo = {
+    const mockRepo: any = {
         name: 'test_repo',
         owner: 'testowner',
         repo_name: 'testrepo',

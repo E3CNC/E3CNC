@@ -95,8 +95,8 @@ const gcodeInputFileAccept = computed(() => {
     return validGcodeExtensions
 })
 
-const selectedFilePaths = computed(() =>
-    (selectedFiles.value ?? []).filter((item): item is string => typeof item === 'string' && item.length > 0)
+const selectedFilePaths = computed<string[]>(() =>
+    (selectedFiles.value ?? []).filter((item: unknown): item is string => typeof item === 'string' && item.length > 0)
 )
 
 const deleteSelectedText = computed(() => {
@@ -125,14 +125,15 @@ function downloadSelectedFiles() {
 }
 
 async function uploadFile() {
-    if (fileUpload.value?.files === null || fileUpload.value?.files.length === 0) return
+    const uploadInput = fileUpload.value
+    if (!uploadInput || uploadInput.files === null || uploadInput.files.length === 0) return
 
-    const files = [...fileUpload.value.files]
-    fileUpload.value.value = ''
+    const files = [...(fileUpload.value?.files ?? [])]
+    if (fileUpload.value) fileUpload.value.value = ''
 
     store.dispatch('socket/addLoading', { name: 'gcodeUpload' })
     store.dispatch('files/uploadSetCurrentNumber', 0)
-    store.dispatch('files/uploadSetMaxNumber', fileUpload.value.files.length)
+    store.dispatch('files/uploadSetMaxNumber', fileUpload.value?.files?.length ?? 0)
 
     for (const file of files) {
         store.dispatch('files/uploadIncrementCurrentNumber')
@@ -158,7 +159,7 @@ function refreshFileList() {
 }
 
 function deleteSelectedFiles(): void {
-    selectedFilePaths.value.forEach((path) => {
+    selectedFilePaths.value.forEach((path: string) => {
         socket.emit('server.files.delete_file', { path }, { action: 'files/getDeleteFile' })
     })
 

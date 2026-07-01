@@ -2,13 +2,13 @@
     <settings-miscellaneous-tab-light-presets-form
         v-if="page === 'form'"
         :type="type"
-        :name="name"
-        :preset-id="presetId"
+        :name="name ?? ''"
+        :preset-id="(presetId ?? '') as string"
         @close="openPage('')" />
     <settings-miscellaneous-tab-light-presets-list
         v-else
         :type="type"
-        :name="name"
+        :name="(name ?? '') as string"
         @create-preset="openPage('form')"
         @edit-preset="editPreset"
         @close="close" />

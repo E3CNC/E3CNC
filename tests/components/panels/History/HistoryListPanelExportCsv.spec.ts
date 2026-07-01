@@ -47,8 +47,8 @@ describe('HistoryListPanelExportCsv.vue', () => {
     it('renders without crashing', () => {
         const wrapper: any = mount(HistoryListPanelExportCsv, {
             props: {
-                headers: [{ value: 'filename', visible: true, text: 'Filename' }],
-                tableFields: [{ value: 'status', visible: true, text: 'Status' }],
+                headers: [{ value: 'filename', visible: true, text: 'Filename', align: 'start', configable: true }],
+                tableFields: [{ value: 'status', visible: true, text: 'Status', align: 'start', configable: true }],
             },
             global: {
                 mocks: {

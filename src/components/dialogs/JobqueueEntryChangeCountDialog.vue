@@ -1,9 +1,9 @@
 <template>
-    <v-dialog v-model="showDialog" max-width="400">
+    <v-dialog v-model="showDialog" :max-width="400" @click:outside="closeDialog" @keydown.esc="closeDialog">
         <panel
             :title="$t('JobQueue.ChangeCount')"
-            :icon="mdiCounter"
             card-class="jobqueue-change-count-dialog"
+            :icon="mdiCounter"
             :margin-bottom="false">
             <template #buttons>
                 <v-btn :icon="mdiCloseThick" rounded="0" @click="closeDialog" />
@@ -12,14 +12,14 @@
             <v-card-text>
                 <v-text-field
                     ref="inputField"
-                    v-model="count"
+                    v-model.number="count"
                     :label="$t('JobQueue.Count')"
                     required
-                    :rules="countInputRules"
                     hide-spin-buttons
                     type="number"
+                    :rules="countInputRules"
                     @keyup.enter="update">
-                    <template #append-outer>
+                    <template #append-inner>
                         <div class="_spin_button_group">
                             <v-btn class="mt-n3" :icon="mdiChevronUp" variant="plain" size="small" @click="count++" />
                             <v-btn
@@ -69,8 +69,7 @@ const inputField = ref<FocusableRef | null>(null)
 const count = ref(1)
 
 const countInputRules = [
-    (value: string) => !!value || t('JobQueue.InvalidCountEmpty'),
-    (value: string) => parseInt(value) > 0 || t('JobQueue.InvalidCountGreaterZero'),
+    (value: number) => value > 0 || t('JobQueue.InvalidCountGreaterZero'),
 ]
 
 function update() {
@@ -89,9 +88,18 @@ function closeDialog() {
 watch(showDialog, (newVal: boolean) => {
     if (!newVal) return
 
-    count.value = (props.job.combinedIds?.length ?? 0) + 1
+    count.value = 1
     setTimeout(() => {
         inputField.value?.focus()
     })
 })
 </script>
+
+<style scoped>
+._spin_button_group {
+    width: 24px;
+    margin-top: -6px;
+    margin-left: -6px;
+    margin-bottom: -6px;
+}
+</style>

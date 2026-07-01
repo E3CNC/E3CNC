@@ -14,7 +14,7 @@
         <img
             v-if="(status === 'loading' || status === 'pending') && imgSrc"
             :src="imgSrc"
-            :crossorigin="imgCrossOrigin"
+            :crossorigin="(imgCrossOrigin ?? undefined) as any"
             style="position: absolute; width: 1px; height: 1px; opacity: 0.01; pointer-events: none"
             @load="onImageLoaded"
             @error="onImageError" />

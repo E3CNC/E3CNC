@@ -43,5 +43,5 @@ import { useBase } from '@/composables/useBase'
 import Panel from '@/components/ui/Panel.vue'
 import { mdiInformation, mdiAlertCircle } from '@mdi/js'
 
-const { klipperState, existsPrinterConfig, missingConfigs, mainsailCfgExists } = useBase()
+const { klipperState, existsPrinterConfig, missingConfigs, mainsailCfgExists } = useBase() as any
 </script>

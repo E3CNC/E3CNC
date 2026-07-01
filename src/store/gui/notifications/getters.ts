@@ -304,11 +304,11 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
                 // add possible translations
                 if (warning.type === 'deprecated_value') {
                     title = i18n.global.t('App.Notifications.KlipperWarnings.DeprecatedValueHeadline').toString()
-                    description = i18n.global.t('App.Notifications.KlipperWarnings.DeprecatedValue', warning).toString()
+                    description = i18n.global.t('App.Notifications.KlipperWarnings.DeprecatedValue', warning as any).toString()
                 } else if (warning.type === 'deprecated_option') {
                     title = i18n.global.t('App.Notifications.KlipperWarnings.DeprecatedOptionHeadline').toString()
                     description = i18n.global
-                        .t('App.Notifications.KlipperWarnings.DeprecatedOption', warning)
+                        .t('App.Notifications.KlipperWarnings.DeprecatedOption', warning as any)
                         .toString()
                 } else if (warning.type === 'runtime_warning') {
                     title = i18n.global.t('App.Notifications.KlipperWarnings.KlipperRuntimeWarning').toString()

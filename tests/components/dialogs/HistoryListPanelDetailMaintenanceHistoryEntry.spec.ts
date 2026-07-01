@@ -48,7 +48,7 @@ function makeStore(overrides: Record<string, any> = {}) {
     })
 }
 
-function baseItem() {
+function baseItem(): any {
     return {
         start_time: 1000000,
         end_time: 2000000,

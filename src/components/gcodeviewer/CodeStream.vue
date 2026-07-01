@@ -65,9 +65,9 @@ watch(
 
 watch(
     () => props.currentline,
-    (to: number) => {
-        if (editorView && props.shown) {
-            const line = editorView.state.doc.lineAt(to)
+    (to: number | undefined) => {
+        if (editorView && props.shown && to !== undefined) {
+            const line = editorView.state.doc.lineAt(to!)
             editorView.dispatch({
                 selection: {
                     anchor: line.from,

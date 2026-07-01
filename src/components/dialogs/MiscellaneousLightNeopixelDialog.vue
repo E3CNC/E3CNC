@@ -303,14 +303,14 @@ const colorRGBW = computed(() => {
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
-function debounce(fn: (...args: unknown[]) => void, time: number) {
+function debounce(fn: (...args: any[]) => void, time: number) {
     return (...args: unknown[]) => {
         if (debounceTimer) clearTimeout(debounceTimer)
         debounceTimer = setTimeout(() => fn(...args), time)
     }
 }
 
-const onColorRGBChanged = debounce((value: IroColor) => {
+const onColorRGBChanged = debounce((value: any) => {
     if (value.red === targetRed.value && value.green === targetGreen.value && value.blue === targetBlue.value) return
 
     const color: ColorData = {
@@ -323,7 +323,7 @@ const onColorRGBChanged = debounce((value: IroColor) => {
     updateColor(color)
 }, 500)
 
-const onColorWhiteChanged = debounce((value: IroColor) => {
+const onColorWhiteChanged = debounce((value: any) => {
     if (value.alpha === targetWhite.value) return
 
     const color: ColorData = {
@@ -336,7 +336,7 @@ const onColorWhiteChanged = debounce((value: IroColor) => {
     updateColor(color)
 }, 500)
 
-const onColorInput = debounce((payload: { name: string; value: number }) => {
+const onColorInput = debounce((payload: any) => {
     const color: ColorData = {
         red: targetRed.value,
         green: targetGreen.value,

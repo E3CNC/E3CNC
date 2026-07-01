@@ -118,7 +118,7 @@ const { toggleFilter, clearConsole } = _console
 
 const store = useStore()
 
-const miniConsoleScroll = ref<OverlayScrollbarsComponent | null>(null)
+const miniConsoleScroll = ref<typeof OverlayScrollbarsComponent | null>(null)
 const gcodeCommandField = ref<typeof ConsoleTextarea | null>(null)
 
 const consoleHeight = computed(() => store.state.gui.console.height ?? 300)

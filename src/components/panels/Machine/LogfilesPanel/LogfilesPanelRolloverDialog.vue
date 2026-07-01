@@ -75,8 +75,8 @@ watch(showDialog, (val) => {
     emit('update:model-value', val)
 })
 
-function setSelectedRolloverLogs(val: string[]) {
-    selectedRolloverLogs.value = val
+function setSelectedRolloverLogs(val: string[] | null) {
+    selectedRolloverLogs.value = val ?? []
 }
 
 const loadingRolloverLogs = ref(false)

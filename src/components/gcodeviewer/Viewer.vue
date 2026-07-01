@@ -4,7 +4,7 @@
             <template #buttons>
                 <v-btn
                     v-show="reloadRequired"
-                    :icon="display.xs"
+                    :icon="display.xs.value"
                     variant="text"
                     rounded="0"
                     color="info"
@@ -215,12 +215,11 @@
                 <strong>{{ loadedFile }}</strong>
             </div>
             <v-progress-linear class="mt-2" :model-value="loadingPercent"></v-progress-linear>
-            <template #actions="{ props: snackbarProps }">
+            <template #actions>
                 <v-btn
                     :icon="mdiClose"
                     color="red"
                     variant="text"
-                    v-bind="snackbarProps"
                     style="min-width: auto"
                     @click="cancelRendering()" />
             </template>
@@ -243,12 +242,11 @@
                 </div>
                 <v-progress-linear class="mt-2" indeterminate />
             </template>
-            <template #actions="{ props: downloadProps }">
+            <template #actions>
                 <v-btn
                     :icon="mdiClose"
                     color="red"
                     variant="text"
-                    v-bind="downloadProps"
                     style="min-width: auto"
                     @click="cancelDownload" />
             </template>
@@ -384,8 +382,14 @@ const appliedPreviewOffset = ref({ X: 0, Y: 0, Z: 0 })
 const appliedPreviewAxesOffset = ref({ X: 0, Y: 0, Z: 0 })
 const appliedPreviewToolOffset = ref({ X: 0, Y: 0, Z: 0 })
 const stockBoxBounds = ref<StockBoxBounds | null>(null)
+const excludeObject = ref({
+    name: '',
+    bool: false,
+})
+
 const camWcsOrigin = ref<CamWcsOrigin | null>(null)
 const initialCameraAdjusted = ref(false)
+
 const primaryViewerColor = computed(() => normalizeThemeColor(theme.current.value.colors.primary ?? '#4caf50'))
 
 const resizeObserver = ref<ResizeObserver | null>(null)

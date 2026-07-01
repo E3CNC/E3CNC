@@ -36,7 +36,7 @@
             </v-menu>
         </template>
         <v-hover>
-            <template #default="{ hover }">
+            <template #default="{ isHovering }">
                 <div>
                     <v-img ref="imageDiv" :height="imageHeight" :src="printer_image" class="d-flex align-end">
                         <div
@@ -92,7 +92,7 @@
                         </v-container>
                     </v-card-text>
                     <v-fade-transition>
-                        <v-overlay v-if="hover" absolute :z-index="4">
+                        <v-overlay v-if="isHovering" absolute :z-index="4">
                             <v-btn color="primary" @click="clickPrinter">
                                 {{
                                     printer.socket.isConnected
@@ -122,7 +122,7 @@ const props = defineProps<{
     printer: FarmPrinterState
 }>()
 
-const { convertWebcamIcon, sidebarBgImage } = useWebcam()
+const { convertWebcamIcon, sidebarBgImage } = useWebcam() as any
 
 const store = useStore()
 

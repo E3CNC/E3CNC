@@ -31,7 +31,7 @@
                             @change="uploadFile" />
                         <v-btn
                             v-for="button in filteredToolbarButtons"
-                            :key="button.loadingName"
+                            :key="button.loadingName ?? button.text"
                             class="machine-configfiles-panel__tool-btn ml-3"
                             :color="button.color"
                             variant="text"
@@ -122,7 +122,7 @@
                     itemsPerPageAllText: $t('Machine.ConfigFilesPanel.AllFiles'),
                     itemsPerPageOptions: [10, 25, 50, 100, -1],
                 }"
-                mobile-breakpoint="0"
+                :mobile-breakpoint="0"
                 item-key="filename">
                 <template #header.filename>
                     <span class="cursor-pointer text-no-wrap" @click="toggleSort('filename')">
@@ -157,9 +157,9 @@
                     <tr
                         class="file-list-cursor"
                         @click="clickRowGoBack"
-                        @dragover="dragOverFilelist($event, { isDirectory: true, filename: '..' })"
+                        @dragover="dragOverFilelist($event, parentDirectoryItem)"
                         @dragleave="dragLeaveFilelist"
-                        @drop.prevent.stop="dragDropFilelist($event, { isDirectory: true, filename: '..' })">
+                        @drop.prevent.stop="dragDropFilelist($event, parentDirectoryItem)">
                         <td class="px-0 text-center" style="width: 32px">
                             <v-icon>{{ mdiFolderUpload }}</v-icon>
                         </td>
@@ -189,75 +189,71 @@
                         </td>
                         <td class=" ">{{ item.filename }}</td>
                         <td class="text-no-wrap text-right">
-                            {{ item.isDirectory ? '--' : formatFilesize(item.size) }}
+                            {{ item.isDirectory ? '--' : formatFilesize(item.size ?? 0) }}
                         </td>
                         <td class="text-no-wrap text-center text-caption text-grey" style="width: 80px">
                             {{ item.isDirectory ? 'folder' : getFileTypeLabel(item.filename) }}
                         </td>
-                        <td class="text-right">{{ formatDateTime(item.modified) }}</td>
+                        <td class="text-right">{{ formatDateTime(item.modified.getTime()) }}</td>
                     </tr>
                 </template>
-                <template
-                    #footer="{ itemsPerPageOptions, itemsPerPage, updateItemsPerPage, page, pageCount, updateOptions }">
+                <template #bottom>
                     <div class="v-data-table-footer">
                         <div class="v-data-table-footer__items-per-page">
                             <span class="v-data-table-footer__items-per-page--label">
                                 {{ $t('Machine.ConfigFilesPanel.Files') }}
                             </span>
                             <v-select
-                                :model-value="itemsPerPage"
-                                :items="
-                                    itemsPerPageOptions.map((o: any) =>
-                                        o === -1
-                                            ? { title: $t('Machine.ConfigFilesPanel.AllFiles'), value: -1 }
-                                            : { title: String(o), value: o }
-                                    )
-                                "
+                                v-model="countPerPage"
+                                :items="itemsPerPageOptions.map((o: number) =>
+                                    o === -1
+                                        ? { title: $t('Machine.ConfigFilesPanel.AllFiles'), value: -1 }
+                                        : { title: String(o), value: o }
+                                )"
                                 variant="plain"
                                 density="compact"
                                 hide-details
                                 class="v-data-table-footer__items-per-page--select"
-                                aria-label="Items per page"
-                                @update:model-value="(v: any) => updateItemsPerPage(v)" />
+                                aria-label="Items per page" />
                         </div>
                         <div class="v-data-table-footer__info">
-                            <span>{{ getPageText(page, itemsPerPage, itemsLength) }}</span>
+                            <span>{{ getPageText(currentPage, countPerPage, itemsLength) }}</span>
                         </div>
                         <div class="v-data-table-footer__pagination">
                             <v-btn
                                 icon
                                 variant="plain"
                                 density="comfortable"
-                                :disabled="page <= 1"
+                                :disabled="currentPage <= 1"
                                 aria-label="First page"
-                                @click="updateOptions({ page: 1 })">
+                                @click="currentPage = 1">
                                 <v-icon>$first</v-icon>
                             </v-btn>
                             <v-btn
                                 icon
                                 variant="plain"
                                 density="comfortable"
-                                :disabled="page <= 1"
+                                :disabled="currentPage <= 1"
                                 aria-label="Previous page"
-                                @click="updateOptions({ page: page - 1 })">
+                                @click="currentPage = Math.max(1, currentPage - 1)">
                                 <v-icon>$prev</v-icon>
                             </v-btn>
                             <v-btn
                                 icon
                                 variant="plain"
                                 density="comfortable"
-                                :disabled="page >= pageCount"
+                                :disabled="currentPage >= pageCount"
                                 aria-label="Next page"
-                                @click="updateOptions({ page: page + 1 })">
+                                @click="currentPage = Math.min(pageCount, currentPage + 1)">
                                 <v-icon>$next</v-icon>
                             </v-btn>
                             <v-btn
                                 icon
                                 variant="plain"
                                 density="comfortable"
-                                :disabled="page >= pageCount"
+                                :disabled="currentPage >= pageCount"
                                 aria-label="Last page"
-                                @click="updateOptions({ page: pageCount })">
+                                @click="currentPage = pageCount">
                                 <v-icon>$last</v-icon>
                             </v-btn>
                         </div>
@@ -534,9 +530,9 @@
             {{ Math.round(uploadSnackbar.percent) }} % @ {{ formatFilesize(Math.round(uploadSnackbar.speed)) }}/s
             <br />
             <v-progress-linear class="mt-2" :model-value="uploadSnackbar.percent" />
-            <template #actions="{ props }">
-                <v-btn color="error" variant="text" v-bind="props" style="min-width: auto" @click="cancelUpload">
-                    <v-icon class="0">{{ mdiClose }}</v-icon>
+            <template #actions>
+                <v-btn color="error" variant="text" style="min-width: auto" @click="cancelUpload">
+                    <v-icon>{{ mdiClose }}</v-icon>
                 </v-btn>
             </template>
         </v-snackbar>
@@ -673,7 +669,7 @@ interface draggingFile {
 const store = useStore()
 const { t } = useI18n()
 const socket = useSocket()
-const { apiUrl, formatDateTime } = useBase()
+const { loadings, apiUrl, formatDateTime } = useBase()
 const { machineButtonCol } = useTheme()
 const toast = useToast()
 
@@ -684,6 +680,12 @@ const inputDialogCreateDirectoryName = ref<FocusableRef | null>(null)
 const inputDialogRenameDirectoryName = ref<FocusableRef | null>(null)
 const fileUpload = ref<HTMLInputElement | null>(null)
 
+const parentDirectoryItem: FileStateFile = {
+    isDirectory: true,
+    filename: '..',
+    modified: new Date(0),
+    permissions: 'r',
+}
 const currentPage = ref(1)
 
 const contextMenu = reactive<contextMenu>({
@@ -926,10 +928,15 @@ function getSortIcon(key: string): string {
 const headers = computed(() => [
     { title: '', key: 'icon', sortable: false },
     { title: t('Machine.ConfigFilesPanel.Name'), key: 'filename', sortable: false },
-    { title: t('Machine.ConfigFilesPanel.Filesize'), key: 'size', align: 'end', sortable: false },
+    { title: t('Machine.ConfigFilesPanel.Filesize'), key: 'size', align: 'end' as const, sortable: false },
     { title: t('Machine.ConfigFilesPanel.Type'), key: 'filetype', sortable: false },
-    { title: t('Machine.ConfigFilesPanel.LastModified'), key: 'modified', align: 'end', sortable: false },
+    { title: t('Machine.ConfigFilesPanel.LastModified'), key: 'modified', align: 'end' as const, sortable: false },
 ])
+const itemsLength = computed(() => sortedFiles.value.length)
+const itemsPerPageOptions = [10, 25, 50, 100, -1] as const
+const pageCount = computed(() =>
+    countPerPage.value === -1 ? 1 : Math.max(1, Math.ceil(itemsLength.value / countPerPage.value))
+)
 
 const selectedFiles = computed({
     get: () => store.state.gui.view.configfiles.selectedFiles ?? [],
@@ -1399,10 +1406,10 @@ onMounted(() => {
                     const parentText = input
                         .closest('.v-data-table-footer__items-per-page')
                         ?.querySelector('span')?.textContent
-                    input.setAttribute('aria-label', parentText?.trim() || input.placeholder || 'Form field')
+                    input.setAttribute('aria-label', parentText?.trim() || (input as HTMLInputElement).placeholder || 'Form field')
                 }
-                if (!input.id && !input.name) {
-                    input.setAttribute('name', 'field-' + Math.random().toString(36).slice(2, 8))
+                if (!(input as HTMLInputElement).id && !(input as HTMLInputElement).name) {
+                    ;(input as HTMLInputElement).setAttribute('name', 'field-' + Math.random().toString(36).slice(2, 8))
                 }
             })
         document.querySelectorAll('[aria-labelledby]').forEach((el) => {

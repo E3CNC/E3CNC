@@ -58,7 +58,7 @@ const vuetify = createVuetify({
 const app = createApp(App)
 
 // Provide the same global properties Vue 2 plugins expected
-app.config.globalProperties.$vuetify = vuetify
+app.config.globalProperties.$vuetify = vuetify as any
 
 const initLoad = async () => {
     try {

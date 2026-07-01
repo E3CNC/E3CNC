@@ -37,11 +37,11 @@ export function useCncProfile() {
     const safety = computed(() => asObject(profile.value.safety))
 
     const machineName = computed(() => String(profile.value.name ?? ''))
-    const spindleEnabled = computed(() => capabilities.value.spindle?.enabled !== false)
-    const coolantChannelCount = computed(() => Number(capabilities.value.coolant?.channels ?? 0))
+    const spindleEnabled = computed(() => (capabilities.value as any)?.spindle?.enabled !== false)
+    const coolantChannelCount = computed(() => Number((capabilities.value as any)?.coolant?.channels ?? 0))
     const coolantEnabled = computed(() => coolantChannelCount.value > 0)
-    const probeEnabled = computed(() => capabilities.value.probe?.enabled === true)
-    const toolSetterEnabled = computed(() => capabilities.value.tool_setter?.enabled === true)
+    const probeEnabled = computed(() => (capabilities.value as any)?.probe?.enabled === true)
+    const toolSetterEnabled = computed(() => (capabilities.value as any)?.tool_setter?.enabled === true)
 
     const showMachineCoords = computed(() => frontend.value.show_machine_coords !== false)
     const showWorkCoords = computed(() => frontend.value.show_work_coords !== false)

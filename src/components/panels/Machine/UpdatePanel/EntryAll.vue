@@ -46,7 +46,7 @@ function clickUpdate() {
 
 async function updateAll() {
     try {
-        await socket.emitAndWait('machine.update.full', {})
+        await (socket.emitAndWait as any)('machine.update.full', {})
     } catch (e) {
         const $toast = useToast()
         const err = e as { message?: string }

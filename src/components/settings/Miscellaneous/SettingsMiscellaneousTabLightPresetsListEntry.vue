@@ -60,7 +60,7 @@ const subTitle = computed(() => {
 })
 
 function editPreset() {
-    emit('edit-preset', (props.preset as GuiMiscellaneousStateEntryPreset).id)
+    emit('edit-preset', ((props.preset as any).id ?? '') as string)
 }
 
 function deletePreset() {

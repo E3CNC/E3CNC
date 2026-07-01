@@ -115,9 +115,11 @@ const groups = computed(() => {
     if (!entry.value?.lightgroups) return []
     const output: GuiMiscellaneousStateEntryLightgroup[] = []
     Object.keys(entry.value.lightgroups).forEach((id) => {
-        const lightgroup = entry.value.lightgroups[id]
-        lightgroup.id = id
-        output.push(lightgroup)
+        const lightgroup = entry.value?.lightgroups?.[id]
+        if (lightgroup) {
+            lightgroup.id = id
+            output.push(lightgroup)
+        }
     })
     return caseInsensitiveSort(output, 'name')
 })
@@ -143,7 +145,7 @@ function close() {
 
 function revalidateForm() {
     nextTick(() => {
-        form.value?.validate()
+        ;(form.value as any)?.validate?.()
     })
 }
 
@@ -175,6 +177,6 @@ function updateGroup() {
 }
 
 function existsGroupName(name: string) {
-    return groups.value.findIndex((g: GuiMacrosStateMacrogroup) => g.name === name && g.id !== props.groupId) >= 0
+    return groups.value.findIndex((g: any) => g.name === name && g.id !== props.groupId) >= 0
 }
 </script>
