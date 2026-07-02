@@ -5,51 +5,36 @@
   vars_files:
     - ../vars/main.yml
   tasks:
-    - name: Remove vendored cnc_agent component
-      ansible.builtin.file:
-        path: '{{ agent.vender_dir }}/cnc_agent'
-        state: absent
-
-    - name: Remove vendored cnc_metadata component
-      ansible.builtin.file:
-        path: '{{ agent.vender_dir }}/cnc_metadata'
-        state: absent
-
-    - name: Remove cnc_metadata_extractor.py
+    - name: Remove cnc_metadata_extractor.py from E3CNC instance
       ansible.builtin.file:
         path: '{{ printer_data.scripts_dir }}/cnc_metadata_extractor.py'
         state: absent
 
-    - name: Remove [cnc_agent] section header from moonraker.conf
+    - name: Remove [cnc_agent] section header from E3CNC instance moonraker.conf
       ansible.builtin.lineinfile:
         path: '{{ moonraker_conf }}'
         line: '[cnc_agent]'
         state: absent
 
-    - name: Remove extractor_path from [cnc_metadata] section
+    - name: Remove extractor_path from [cnc_metadata] in E3CNC instance moonraker.conf
       ansible.builtin.lineinfile:
         path: '{{ moonraker_conf }}'
         regexp: '^extractor_path:'
         state: absent
 
-    - name: Remove timeout from [cnc_metadata] section
+    - name: Remove timeout from [cnc_metadata] in E3CNC instance moonraker.conf
       ansible.builtin.lineinfile:
         path: '{{ moonraker_conf }}'
         regexp: '^timeout:'
         state: absent
 
-    - name: Remove work_coordinate_systems.py from klippy/extras/
-      ansible.builtin.file:
-        path: '{{ klipper.extras_dir }}/work_coordinate_systems.py'
-        state: absent
-
-    - name: Remove E3CNC directory from printer_data/config/
+    - name: Remove E3CNC macros/config directory from instance
       ansible.builtin.file:
         path: '{{ printer_data.E3CNC_dir }}'
         state: absent
       ignore_errors: true
 
-    - name: Remove nginx site for E3CNC bootstrap
+    - name: Remove nginx site for E3CNC
       ansible.builtin.file:
         path: '{{ item.path }}'
         state: absent
@@ -66,20 +51,28 @@
       become: true
       ignore_errors: true
 
-    - name: Remove stale E3CNC frontend web roots from fresh bootstrap
+    - name: Remove E3CNC frontend web roots
       ansible.builtin.file:
         path: '{{ item }}'
         state: absent
       loop:
-        - '{{ ansible_env.HOME }}/e3cnc-web'
-        - '{{ ansible_env.HOME }}/mainsail'
+        - '{{ frontend.web_root }}'
       ignore_errors: true
 
-    - name: Restart moonraker
-      ansible.builtin.systemd:
-        name: '{{ moonraker_service }}'
-        state: restarted
+    - name: Remove E3CNC instance directory
+      ansible.builtin.file:
+        path: '{{ e3cnc_root }}'
+        state: absent
+      ignore_errors: true
+
+    - name: Remove nginx and Avahi systemd files
+      ansible.builtin.file:
+        path: '{{ item }}'
+        state: absent
+      loop:
+        - /etc/nginx/sites-available/e3cnc-*
+        - /etc/nginx/sites-enabled/e3cnc-*
+        - /etc/systemd/system/avahi-publish-e3cnc.service
+        - /etc/supervisor/conf.d/e3cnc-*.conf
       become: true
       ignore_errors: true
-      tags:
-        - restart-services

@@ -1161,33 +1161,37 @@ class TestCmdUninstall:
         """When supervisor is available, unregister the instance."""
         from cli.commands import cmd_uninstall
 
-        with patch("cli.commands._run_ansible_cmd"):
+        with patch("_e3cnc_shared.run_ansible_playbook"):
             with patch("cli.commands._get_instance") as mock_gi:
                 inst = mock_detect_instances[0]
                 mock_gi.return_value = inst
-                with patch("_e3cnc_supervisor.unregister_instance") as mock:
-                    with patch("_e3cnc_deploy.generate_admin_page"):
-                        with patch("cli.commands.ok"):
-                            with patch("shutil.rmtree"):
-                                cmd_uninstall(_make_args(instance="test1"))
-                                mock.assert_called_once_with(inst)
+                with patch("builtins.input", return_value="y"):
+                    with patch("_e3cnc_supervisor.unregister_instance") as mock:
+                        with patch("_e3cnc_deploy.generate_admin_page"):
+                            with patch("cli.commands.ok"):
+                                with patch("shutil.rmtree"):
+                                    cmd_uninstall(_make_args(instance="test1"))
+                                    mock.assert_called_once_with(inst)
 
     def test_removes_instance_directory(self, mock_detect_instances):
         """Uninstall should remove the instance directory from new layout."""
         from cli.commands import cmd_uninstall
 
-        with patch("cli.commands._run_ansible_cmd"):
-            with patch("cli.commands._get_instance") as mock_gi:
-                inst = mock_detect_instances[0]
-                mock_gi.return_value = inst
-                with patch("_e3cnc_supervisor.unregister_instance"):
-                    with patch("_e3cnc_deploy.generate_admin_page"):
-                        with patch("cli.commands.ok"):
-                            with patch("_e3cnc_shared.INSTANCES_DIR") as mock_dir:
-                                mock_dir.__truediv__.return_value.is_dir.return_value = True
-                                with patch("shutil.rmtree") as mock_rm:
-                                    cmd_uninstall(_make_args(instance="test1"))
-                                    mock_rm.assert_called_once()
+        with patch("_e3cnc_shared.run_ansible_playbook"):
+            with patch("_e3cnc_shared.detect_instances", return_value=mock_detect_instances):
+                with patch("cli.commands._get_instance") as mock_gi:
+                    inst = mock_detect_instances[0]
+                    mock_gi.return_value = inst
+                    with patch("builtins.input", return_value="y"):
+                        with patch("_e3cnc_supervisor.unregister_instance"):
+                            with patch("_e3cnc_deploy.generate_admin_page"):
+                                with patch("cli.commands.ok"):
+                                    with patch("_e3cnc_shared.INSTANCES_DIR") as mock_dir:
+                                        mock_dir.is_dir.return_value = True
+                                        mock_dir.__truediv__.return_value.is_dir.return_value = True
+                                        with patch("shutil.rmtree") as mock_rm:
+                                            cmd_uninstall(_make_args(instance="test1"))
+                                            mock_rm.assert_called_once()
 
 
 class TestMainDispatchAllCommands:

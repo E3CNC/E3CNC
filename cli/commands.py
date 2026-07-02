@@ -463,22 +463,107 @@ def cmd_clilog(args) -> None:
 
 
 def cmd_uninstall(args) -> None:
-    """Remove all E3CNC components."""
-    from _e3cnc_shared import INSTANCES_DIR, detect_instances
+    """Remove one or all E3CNC instances."""
+    from _e3cnc_shared import INSTANCES_DIR, detect_instances, instance_extra_vars, run_ansible_playbook
     from _e3cnc_deploy import generate_admin_page
 
-    _run_ansible_cmd(UNINSTALL_PLAYBOOK, args, "Uninstall")
+    # Only uninstall new-layout E3CNC instances (under ~/e3cnc/instances/)
+    all_instances = [i for i in detect_instances() if INSTANCES_DIR.is_dir() and (INSTANCES_DIR / i.name).is_dir()]
 
-    # Unregister from supervisor if available
-    inst = _get_instance(args)
-    if inst:
+    if not all_instances:
+        warn("No E3CNC instances found under ~/e3cnc/instances/")
+        return
+
+    # Determine which instances to uninstall
+    targets: list[Instance] = []
+    if args.instance:
+        inst = _get_instance(args)
+        if inst:
+            targets = [inst]
+    elif len(all_instances) == 1:
+        targets = all_instances
+    else:
+        print()
+        header("Select instances to uninstall")
+        print(f"  {Style.DIM}Found {len(all_instances)} E3CNC instance(s){Style.RESET}")
+        print()
+        for idx, inst in enumerate(all_instances, 1):
+            label = f"  [{idx}] {inst.name}"
+            if inst.is_running:
+                label += f"  {Style.GREEN}(running){Style.RESET}"
+            print(label)
+        print(f"  [a] All")
+        print(f"  [{len(all_instances)+1}] Cancel")
+        print()
+        try:
+            choice = input(f"  Select instance to uninstall [1-{len(all_instances)}, a, {len(all_instances)+1}]: ").strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            info("Cancelled")
+            return
+
+        if choice == "a":
+            targets = list(all_instances)
+        elif choice == str(len(all_instances) + 1) or choice == "":
+            info("Cancelled")
+            return
+        else:
+            try:
+                idx = int(choice) - 1
+                if 0 <= idx < len(all_instances):
+                    targets = [all_instances[idx]]
+                else:
+                    warn("Invalid selection")
+                    return
+            except ValueError:
+                warn("Invalid selection")
+                return
+
+    if not targets:
+        return
+
+    # Confirm before proceeding
+    names = ", ".join(i.name for i in targets)
+    if not args.yes:
+        plural = "s" if len(targets) > 1 else ""
+        try:
+            reply = input(f"  Remove E3CNC instance{plural} '{names}'? This cannot be undone. [y/N] ").strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            info("Cancelled")
+            return
+        if reply != "y":
+            info("Cancelled")
+            return
+
+    for inst in targets:
+        print()
+        header(f"Uninstalling: {inst.name}")
+        ok(f"Instance: {inst.name}")
+        ok(f"Config:    {inst.moonraker_conf}")
+        ok(f"Data:      {inst.printer_data_dir}")
+
+        # Run ansible uninstall playbook for this instance
+        extra_vars = instance_extra_vars(inst)
+        ok(f"Running Ansible uninstall playbook for '{inst.name}'...")
+        run_ansible_playbook(
+            UNINSTALL_PLAYBOOK, remote_host=args.remote,
+            check_mode=args.check, verbose=False,
+            label=f"Uninstall {inst.name}",
+            extra_vars=extra_vars,
+        )
+
+        # Unregister from supervisor if available
         try:
             from _e3cnc_supervisor import unregister_instance
             unregister_instance(inst)
+            ok(f"Unregistered '{inst.name}' from supervisor")
         except ImportError:
             pass
+        except Exception as e:
+            warn(f"Could not unregister from supervisor: {e}")
 
-        # Clean up new-layout instance directory
+        # Remove instance directory
         inst_dir = INSTANCES_DIR / inst.name
         if inst_dir.is_dir():
             import shutil
@@ -486,7 +571,9 @@ def cmd_uninstall(args) -> None:
             ok(f"Removed instance directory: {inst_dir}")
 
     # Regenerate admin page
+    print()
     generate_admin_page()
+    ok("Uninstall complete")
 
     info("The ~/E3CNC repo checkout was NOT deleted.")
     info("To restore stock Mainsail, see: https://github.com/mainsail-crew/mainsail")
