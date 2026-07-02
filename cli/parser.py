@@ -93,6 +93,13 @@ def build_parser() -> argparse.ArgumentParser:
     prn.add_argument("--dry-run", "-n", action="store_true",
                      help="Show what would be pruned without deleting")
 
+    prb = p.add_parser("prune-backups",
+                       help="Remove old backups")
+    prb.add_argument("--keep", type=int, default=5,
+                     help="Number of backups to keep (default: 5)")
+    prb.add_argument("--dry-run", "-n", action="store_true",
+                     help="Show what would be pruned without deleting")
+
     p.add_parser("instances", aliases=["inst", "list"],
                  help="List detected instances with ports and frontend URLs")
 

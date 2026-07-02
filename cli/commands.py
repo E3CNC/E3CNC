@@ -20,7 +20,7 @@ from _e3cnc_deploy import (
     run_health_checks,
     rollback_to, rollback_previous,
     prune_releases, format_release_list,
-    backup_deployment_state, migrate_layout, detect_old_layout,
+    backup_deployment_state, prune_backups, migrate_layout, detect_old_layout,
     RELEASES_DIR, DEFAULT_KEEP_RELEASES,
 )
 
@@ -308,6 +308,12 @@ def cmd_prune(args) -> None:
     """Prune old releases."""
     header("Prune Releases")
     prune_releases(keep=args.keep, dry_run=args.dry_run)
+
+
+def cmd_prune_backups(args) -> None:
+    """Prune old backups."""
+    header("Prune Backups")
+    prune_backups(keep=args.keep, dry_run=args.dry_run)
 
 
 def cmd_instances(args) -> None:

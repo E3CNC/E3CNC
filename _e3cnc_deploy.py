@@ -44,6 +44,7 @@ GITHUB_RELEASES = f"https://github.com/{GITHUB_REPO}/releases"
 # ── Constants ───────────────────────────────────────────────────────────────
 
 DEFAULT_KEEP_RELEASES = 3
+DEFAULT_KEEP_BACKUPS = 5
 HEALTH_CHECK_RETRIES = 6
 HEALTH_CHECK_BACKOFF = 5  # seconds
 
@@ -692,6 +693,38 @@ def prune_releases(keep: int = DEFAULT_KEEP_RELEASES, dry_run: bool = False) -> 
         ok(f"Pruned {len(pruned)} old release(s)")
     elif not pruned:
         info("No releases to prune")
+    return pruned
+
+
+def prune_backups(keep: int = DEFAULT_KEEP_BACKUPS, dry_run: bool = False) -> List[str]:
+    """Remove old backups, keeping the N most recent. Returns list of pruned backup names."""
+    if not BACKUPS_DIR.is_dir():
+        return []
+
+    # Sort backups by directory name (timestamps sort lexicographically)
+    backups = sorted(
+        [d for d in BACKUPS_DIR.iterdir() if d.is_dir()],
+        key=lambda p: p.name,
+        reverse=True,
+    )
+
+    if len(backups) <= keep:
+        return []
+
+    pruned: List[str] = []
+    for b in backups[keep:]:
+        size = sum(f.stat().st_size for f in b.rglob("*") if f.is_file()) if b.is_dir() else 0
+        if dry_run:
+            info(f"Would prune {b.name} ({_format_size(size)})")
+        else:
+            shutil.rmtree(b)
+            info(f"Pruned {b.name} ({_format_size(size)})")
+        pruned.append(b.name)
+
+    if not dry_run and pruned:
+        ok(f"Pruned {len(pruned)} old backup(s)")
+    elif not pruned:
+        info("No backups to prune")
     return pruned
 
 

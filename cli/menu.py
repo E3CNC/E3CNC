@@ -33,7 +33,7 @@ def _tui_menu() -> None:
     from cli.commands import (
         cmd_check, cmd_install, cmd_deploy, cmd_update, cmd_uninstall,
         cmd_status, cmd_backup, cmd_restore, cmd_diagnose, cmd_logs,
-        cmd_releases, cmd_rollback, cmd_prune, cmd_instances, cmd_migrate,
+        cmd_releases, cmd_rollback, cmd_prune, cmd_prune_backups, cmd_instances, cmd_migrate,
         cmd_detect_mcu, cmd_flash_mcu, cmd_init_config,
     )
 
@@ -50,6 +50,7 @@ def _tui_menu() -> None:
         ("[r] Releases",                    "releases",       "List installed releases"),
         ("[b] Rollback",                    "rollback",       "Roll back to a previous release"),
         ("[p] Prune",                       "prune",          "Remove old releases"),
+        ("[z] Prune Backups",               "prune-backups",  "Remove old backups"),
         ("[g] Migrate Insts",               "migrate-instances","Import KIAUH instances"),
         ("[h] Import KIAUH",                "import-instance","Copy KIAUH config into E3CNC layout"),
         ("[t] Instances",                   "instances",      "List all instances with URLs"),
@@ -112,7 +113,7 @@ def _numbered_menu() -> None:
     from cli.commands import (
         cmd_check, cmd_install, cmd_deploy, cmd_update, cmd_uninstall,
         cmd_status, cmd_backup, cmd_restore, cmd_diagnose, cmd_logs,
-        cmd_releases, cmd_rollback, cmd_prune, cmd_instances, cmd_migrate,
+        cmd_releases, cmd_rollback, cmd_prune, cmd_prune_backups, cmd_instances, cmd_migrate,
         cmd_detect_mcu, cmd_flash_mcu, cmd_init_config,
     )
 
@@ -129,6 +130,7 @@ def _numbered_menu() -> None:
         ("[r] Releases",    "releases"),
         ("[b] Rollback",    "rollback"),
         ("[p] Prune",       "prune"),
+        ("[z] Prune Backups", "prune-backups"),
         ("[g] Migrate Insts", "migrate-instances"),
         ("[h] Import KIAUH","import-instance"),
         ("[t] Instances",   "instances"),
@@ -160,6 +162,7 @@ def _numbered_menu() -> None:
         "releases": "List installed releases",
         "rollback": "Roll back to a previous release",
         "prune": "Remove old releases",
+        "prune-backups": "Remove old backups",
         "migrate-instances": "Import KIAUH instances to new layout",
         "import-instance": "Copy KIAUH config into E3CNC layout",
         "instances": "List all instances with URLs",
@@ -255,7 +258,7 @@ def _run_menu_command(cmd: str) -> None:
     from cli.commands import (
         cmd_check, cmd_install, cmd_deploy, cmd_update, cmd_uninstall,
         cmd_status, cmd_backup, cmd_restore, cmd_diagnose, cmd_logs,
-        cmd_releases, cmd_rollback, cmd_prune, cmd_instances, cmd_migrate,
+        cmd_releases, cmd_rollback, cmd_prune, cmd_prune_backups, cmd_instances, cmd_migrate,
         cmd_detect_mcu, cmd_flash_mcu, cmd_init_config,
         cmd_restart,
         cmd_import_instance,
@@ -313,6 +316,7 @@ def _run_menu_command(cmd: str) -> None:
         "rel": cmd_releases,
         "rollback": cmd_rollback,
         "prune": cmd_prune,
+        "prune-backups": cmd_prune_backups,
         "migrate": cmd_migrate,
         "migrate-layout": cmd_migrate,
         "instances": cmd_instances,
