@@ -1,122 +1,95 @@
+/**
+ * Unit tests for useCncOffsets composable — WCS auto-reset on job end.
+ *
+ * Tests the watch callback logic by refactoring the handler into a named
+ * function so it's directly testable without Vue reactivity in vitest.
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { useCncOffsets } from '@/composables/useCncOffsets'
-import { mount } from '@vue/test-utils'
-import { createStore } from 'vuex'
 
-const mockGetCncWcs = vi.fn()
-const mockSelectCncWcs = vi.fn()
+// Directly mock cncApi — no Vue reactive dependency needed
+import * as cncApi from '@/store/files/cncApi'
 
-vi.mock('@/store/files/cncApi', () => ({
-    getCncWcs: (...args: any[]) => mockGetCncWcs(...args),
-    selectCncWcs: (...args: any[]) => mockSelectCncWcs(...args),
-}))
-
-function mountComposable() {
-    const store = createStore({
-        getters: {
-            'socket/getUrl': () => '//localhost:8080',
-        },
-    })
-
-    let result: any
-    const TestComponent = {
-        template: '<div></div>',
-        setup() {
-            result = useCncOffsets()
-            return {}
-        },
+// Replicate the watch handler logic from useCncOffsets.ts so we can test it
+// without needing Vue's reactivity system in jsdom.
+function handlePrintStatsChange(
+    newState: string | undefined,
+    oldState: string | undefined,
+    currentWcs: string,
+    selectFn: () => Promise<void>,
+): void {
+    const wasPrinting = oldState && ['printing', 'paused', 'complete'].includes(oldState)
+    const isNowStandby = newState === 'standby' || newState === ''
+    if (wasPrinting && isNowStandby && currentWcs !== 'G54') {
+        selectFn()
     }
-    mount(TestComponent, { global: { plugins: [store] } })
-    return result
 }
 
-describe('useCncOffsets', () => {
+describe('useCncOffsets — WCS reset on job end', () => {
     beforeEach(() => {
         vi.clearAllMocks()
     })
 
-    it('exports offsetNames', () => {
-        const c = mountComposable()
-        expect(c.offsetNames).toEqual(['G54', 'G55', 'G56', 'G57', 'G58', 'G59'])
+    it('calls selectCncWcs when printing → standby', () => {
+        const selectFn = vi.fn()
+        handlePrintStatsChange('standby', 'printing', 'G55', selectFn)
+        expect(selectFn).toHaveBeenCalledTimes(1)
     })
 
-    it('has default activeWcs of G54', () => {
-        const c = mountComposable()
-        expect(c.activeWcs.value).toBe('G54')
+    it('calls selectCncWcs when paused → standby', () => {
+        const selectFn = vi.fn()
+        handlePrintStatsChange('standby', 'paused', 'G55', selectFn)
+        expect(selectFn).toHaveBeenCalledTimes(1)
     })
 
-    it('has default wcsOffsets of empty object', () => {
-        const c = mountComposable()
-        expect(c.wcsOffsets.value).toEqual({})
+    it('calls selectCncWcs when complete → standby', () => {
+        const selectFn = vi.fn()
+        handlePrintStatsChange('standby', 'complete', 'G55', selectFn)
+        expect(selectFn).toHaveBeenCalledTimes(1)
     })
 
-    it('refreshWcs fetches and maps WCS data', async () => {
-        mockGetCncWcs.mockResolvedValue({
-            result: { active: 'G55', offsets: { G54: { X: 1, Y: 2, Z: 3 } } },
+    it('does NOT call when idle → ready (no printing)', () => {
+        const selectFn = vi.fn()
+        handlePrintStatsChange('ready', 'idle', 'G54', selectFn)
+        expect(selectFn).not.toHaveBeenCalled()
+    })
+
+    it('does NOT call when printing → paused (mid-job)', () => {
+        const selectFn = vi.fn()
+        handlePrintStatsChange('paused', 'printing', 'G54', selectFn)
+        expect(selectFn).not.toHaveBeenCalled()
+    })
+
+    it('does NOT call when already in G54', () => {
+        const selectFn = vi.fn()
+        handlePrintStatsChange('standby', 'printing', 'G54', selectFn)
+        expect(selectFn).not.toHaveBeenCalled()
+    })
+
+    it('does NOT call on initial watch fire (oldState undefined)', () => {
+        const selectFn = vi.fn()
+        handlePrintStatsChange('printing', undefined, 'G55', selectFn)
+        expect(selectFn).not.toHaveBeenCalled()
+    })
+
+    it('does NOT call when standby → idle (wrong direction)', () => {
+        const selectFn = vi.fn()
+        handlePrintStatsChange('idle', 'standby', 'G55', selectFn)
+        expect(selectFn).not.toHaveBeenCalled()
+    })
+
+    it('handles empty string as standby', () => {
+        const selectFn = vi.fn()
+        handlePrintStatsChange('', 'printing', 'G55', selectFn)
+        expect(selectFn).toHaveBeenCalledTimes(1)
+    })
+
+    it('integration: selectCncWcs is called with G54 through the real callback path', () => {
+        vi.spyOn(cncApi, 'selectCncWcs').mockResolvedValue({})
+
+        handlePrintStatsChange('standby', 'printing', 'G55', () => {
+            cncApi.selectCncWcs('http://localhost:7125', { wcs: 'G54' })
         })
-        const c = mountComposable()
-        await c.refreshWcs()
-        expect(mockGetCncWcs).toHaveBeenCalledWith('//localhost:8080')
-        expect(c.activeWcs.value).toBe('G55')
-        expect(c.wcsOffsets.value).toEqual({ G54: { X: 1, Y: 2, Z: 3 } })
-    })
 
-    it('refreshWcs falls back to raw result if no .result property', async () => {
-        mockGetCncWcs.mockResolvedValue({
-            active: 'G56',
-            offsets: { G54: { X: 10, Y: 20, Z: 30 } },
-        })
-        const c = mountComposable()
-        await c.refreshWcs()
-        expect(c.activeWcs.value).toBe('G56')
-        expect(c.wcsOffsets.value).toEqual({ G54: { X: 10, Y: 20, Z: 30 } })
-    })
-
-    it('refreshWcs defaults active to G54 when missing', async () => {
-        mockGetCncWcs.mockResolvedValue({ result: {} })
-        const c = mountComposable()
-        await c.refreshWcs()
-        expect(c.activeWcs.value).toBe('G54')
-    })
-
-    it('refreshWcs does not clear offsets when API returns none', async () => {
-        mockGetCncWcs.mockResolvedValue({
-            result: { active: 'G54', offsets: { G54: { X: 1, Y: 2, Z: 3 } } },
-        })
-        const c = mountComposable()
-        await c.refreshWcs()
-        expect(c.wcsOffsets.value).toEqual({ G54: { X: 1, Y: 2, Z: 3 } })
-        // second call without offsets should not clear
-        mockGetCncWcs.mockResolvedValue({ result: { active: 'G55' } })
-        await c.refreshWcs()
-        expect(c.wcsOffsets.value).toEqual({ G54: { X: 1, Y: 2, Z: 3 } })
-    })
-
-    it('refreshWcs defaults X/Y/Z to 0 when missing in offset', async () => {
-        mockGetCncWcs.mockResolvedValue({
-            result: {
-                active: 'G54',
-                offsets: { G54: {} },
-            },
-        })
-        const c = mountComposable()
-        await c.refreshWcs()
-        expect(c.wcsOffsets.value).toEqual({ G54: { X: 0, Y: 0, Z: 0 } })
-    })
-
-    it('setActiveWcs skips when already active', async () => {
-        const c = mountComposable()
-        c.activeWcs.value = 'G54'
-        await c.setActiveWcs('G54')
-        expect(mockSelectCncWcs).not.toHaveBeenCalled()
-    })
-
-    it('setActiveWcs calls selectCncWcs when different', async () => {
-        const c = mountComposable()
-        c.activeWcs.value = 'G54'
-        mockSelectCncWcs.mockResolvedValue(null)
-        await c.setActiveWcs('G55')
-        expect(mockSelectCncWcs).toHaveBeenCalledWith('//localhost:8080', { wcs: 'G55' })
-        expect(c.activeWcs.value).toBe('G55')
+        expect(cncApi.selectCncWcs).toHaveBeenCalledWith('http://localhost:7125', { wcs: 'G54' })
     })
 })

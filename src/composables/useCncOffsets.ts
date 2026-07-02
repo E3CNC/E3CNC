@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useStore } from 'vuex'
 import { getCncWcs, selectCncWcs } from '@/store/files/cncApi'
 
@@ -30,6 +30,29 @@ export function useCncOffsets() {
         await selectCncWcs(store.getters['socket/getUrl'], { wcs })
         activeWcs.value = wcs
     }
+
+    // Watch for job end: when print_stats transitions to 'standby' after
+    // being in 'printing', 'paused', or 'complete', reset WCS to G54.
+    // Klipper resets gcode state on job end, effectively reverting to
+    // machine coordinates (G53). Sending G54 re-establishes the default WCS
+    // so the jog panel doesn't move in machine coordinates.
+    watch(
+        () => store.state.printer.print_stats?.state,
+        (newState, oldState) => {
+            const wasPrinting =
+                oldState && ['printing', 'paused', 'complete'].includes(oldState)
+            const isNowStandby = newState === 'standby' || newState === ''
+            if (wasPrinting && isNowStandby && activeWcs.value !== 'G54') {
+                selectCncWcs(store.getters['socket/getUrl'], { wcs: 'G54' })
+                    .then(() => {
+                        activeWcs.value = 'G54'
+                    })
+                    .catch(() => {
+                        // silently ignore — WCS reset is best-effort
+                    })
+            }
+        }
+    )
 
     return {
         offsetNames,
