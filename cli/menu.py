@@ -1,5 +1,4 @@
 """Interactive menu for the E3CNC CLI."""
-
 import sys
 
 from _e3cnc_shared import (
@@ -37,45 +36,41 @@ def _interactive_menu() -> None:
         _numbered_menu()
 
 
+# Menu item definition shared by TUI and numbered menus
+_ALL_COMMANDS = [
+    ("[s] Status",                      "status",         "Check installation status"),
+    ("[i] Install",                     "install",        "Bootstrap + download release"),
+    ("[d] Deploy",                      "deploy",         "Deploy frontend from release"),
+    ("[u] Update",                      "update",         "Full-stack update & verify"),
+    ("[x] Uninstall",                   "uninstall",      "Remove all E3CNC components"),
+    ("[m] Detect MCU",                  "detect-mcu",     "Scan for connected MCU devices"),
+    ("[f] Flash MCU",                   "flash-mcu",      "Build & flash Klipper firmware"),
+    ("[c] Init Config",                 "init-config",    "Generate CNC printer.cfg"),
+    ("[n] Create Instance",             "create-instance","Create a new E3CNC instance"),
+    ("[r] Releases",                    "releases",       "List installed releases"),
+    ("[b] Rollback",                    "rollback",       "Roll back to a previous release"),
+    ("[p] Prune",                       "prune",          "Remove old releases"),
+    ("[v] Prune Backups",               "prune-backups",  "Remove old backups"),
+    ("[g] Migrate Insts",               "migrate-instances","Import KIAUH instances"),
+    ("[h] Import KIAUH",                "import-instance","Copy KIAUH config into E3CNC layout"),
+    ("[t] Instances",                   "instances",      "List all instances with URLs"),
+    ("[k] Check Deps",                  "check",          "Verify system dependencies"),
+    ("[e] Restart Svc",                 "restart",        "Restart Moonraker & Klipper"),
+    ("[a] Admin Page",                  "admin-page",     "Generate admin overview page"),
+    ("[l] CLI Log",                     "clilog",         "View CLI operation logs"),
+    ("[y] Backup",                      "backup",         "Create timestamped backup"),
+    ("[o] Restore",                     "restore",        "Restore from a backup"),
+    ("[w] Diagnose",                    "diagnose",       "Run system diagnostics"),
+    ("[j] Logs",                        "logs",           "Tail Moonraker & nginx logs"),
+    ("[q] Switch Instance",             "switch",         "Change active instance"),
+    ("[z] Quit",                        "quit",           "Exit the CLI"),
+]
+
+
 def _tui_menu() -> None:
     """Full TUI menu with arrow keys, using simple-term-menu."""
-    from cli.commands import (
-        cmd_check, cmd_install, cmd_deploy, cmd_update, cmd_uninstall,
-        cmd_status, cmd_backup, cmd_restore, cmd_diagnose, cmd_logs,
-        cmd_releases, cmd_rollback, cmd_prune, cmd_prune_backups, cmd_instances, cmd_migrate,
-        cmd_detect_mcu, cmd_flash_mcu, cmd_init_config,
-    )
-
-    all_items = [
-        ("[s] Status",                      "status",         "Check installation status"),
-        ("[i] Install",                     "install",        "Bootstrap + download release"),
-        ("[d] Deploy",                      "deploy",         "Deploy frontend from release"),
-        ("[u] Update",                      "update",         "Full-stack update & verify"),
-        ("[x] Uninstall",                   "uninstall",      "Remove all E3CNC components"),
-        ("[m] Detect MCU",                  "detect-mcu",     "Scan for connected MCU devices"),
-        ("[f] Flash MCU",                   "flash-mcu",      "Build & flash Klipper firmware"),
-        ("[c] Init Config",                 "init-config",    "Generate CNC printer.cfg"),
-        ("[n] Create Instance",             "create-instance","Create a new E3CNC instance"),
-        ("[r] Releases",                    "releases",       "List installed releases"),
-        ("[b] Rollback",                    "rollback",       "Roll back to a previous release"),
-        ("[p] Prune",                       "prune",          "Remove old releases"),
-        ("[v] Prune Backups",               "prune-backups",  "Remove old backups"),
-        ("[g] Migrate Insts",               "migrate-instances","Import KIAUH instances"),
-        ("[h] Import KIAUH",                "import-instance","Copy KIAUH config into E3CNC layout"),
-        ("[t] Instances",                   "instances",      "List all instances with URLs"),
-        ("[k] Check Deps",                  "check",          "Verify system dependencies"),
-        ("[e] Restart Svc",                 "restart",        "Restart Moonraker & Klipper"),
-        ("[a] Admin Page",                  "admin-page",     "Generate admin overview page"),
-        ("[l] CLI Log",                     "clilog",         "View CLI operation logs"),
-        ("[y] Backup",                      "backup",         "Create timestamped backup"),
-        ("[o] Restore",                     "restore",        "Restore from a backup"),
-        ("[w] Diagnose",                    "diagnose",       "Run system diagnostics"),
-        ("[j] Logs",                        "logs",           "Tail Moonraker & nginx logs"),
-        ("[q] Switch Instance",             "switch",         "Change active instance"),
-        ("[z] Quit",                        "quit",           "Exit the CLI"),
-    ]
-    entries = [f"{label:24s}{desc}" for label, cmd, desc in all_items if label and cmd]
-    cmd_map = {item[0]: item[1] for item in all_items if item[1]}
+    entries = [f"{label:24s}{desc}" for label, cmd, desc in _ALL_COMMANDS if label and cmd]
+    cmd_map = {item[0]: item[1] for item in _ALL_COMMANDS if item[1]}
 
     while True:
         cur = get_active_instance()
@@ -102,7 +97,7 @@ def _tui_menu() -> None:
             break
 
         entry = entries[choice]
-        cmd = all_items[choice][1] if choice < len(all_items) else ""
+        cmd = _ALL_COMMANDS[choice][1] if choice < len(_ALL_COMMANDS) else ""
         if cmd == "switch":
             _switch_instance()
             _pause_after_output()
@@ -119,77 +114,16 @@ def _tui_menu() -> None:
 
 def _numbered_menu() -> None:
     """Fallback numbered menu for piped/non-TTY use or when simple-term-menu is missing."""
-    from cli.commands import (
-        cmd_check, cmd_install, cmd_deploy, cmd_update, cmd_uninstall,
-        cmd_status, cmd_backup, cmd_restore, cmd_diagnose, cmd_logs,
-        cmd_releases, cmd_rollback, cmd_prune, cmd_prune_backups, cmd_instances, cmd_migrate,
-        cmd_detect_mcu, cmd_flash_mcu, cmd_init_config,
-    )
+    from cli.commands import COMMAND_HANDLERS
 
-    all_items = [
-        ("[s] Status",      "status"),
-        ("[i] Install",     "install"),
-        ("[d] Deploy",      "deploy"),
-        ("[u] Update",      "update"),
-        ("[x] Uninstall",   "uninstall"),
-        ("[m] Detect MCU",  "detect-mcu"),
-        ("[f] Flash MCU",   "flash-mcu"),
-        ("[c] Init Config", "init-config"),
-        ("[n] Create Instance", "create-instance"),
-        ("[r] Releases",    "releases"),
-        ("[b] Rollback",    "rollback"),
-        ("[p] Prune",       "prune"),
-        ("[v] Prune Backups", "prune-backups"),
-        ("[g] Migrate Insts", "migrate-instances"),
-        ("[h] Import KIAUH","import-instance"),
-        ("[t] Instances",   "instances"),
-        ("[k] Check Deps",  "check"),
-        ("[e] Restart Svc", "restart"),
-        ("[a] Admin Page",  "admin-page"),
-        ("[l] CLI Log",     "clilog"),
-        ("[y] Backup",      "backup"),
-        ("[o] Restore",     "restore"),
-        ("[w] Diagnose",    "diagnose"),
-        ("[j] Logs",        "logs"),
-        ("[q] Switch Instance", "switch"),
-        ("[z] Quit",        "quit"),
-    ]
-    items = [(l, c) for l, c in all_items if l and c]
+    items = [(l, c) for l, c, d in _ALL_COMMANDS if l and c]
     display = items
 
-    # Description map for numbered menu
-    descs = {
-        "status": "Check installation status",
-        "install": "Bootstrap + download release",
-        "deploy": "Deploy frontend from release",
-        "update": "Full-stack update & verify",
-        "uninstall": "Remove all E3CNC components",
-        "detect-mcu": "Scan for connected MCU devices",
-        "flash-mcu": "Build & flash Klipper firmware",
-        "init-config": "Generate CNC printer.cfg",
-        "create-instance": "Create a new E3CNC instance",
-        "releases": "List installed releases",
-        "rollback": "Roll back to a previous release",
-        "prune": "Remove old releases",
-        "prune-backups": "Remove old backups",
-        "migrate-instances": "Import KIAUH instances to new layout",
-        "import-instance": "Copy KIAUH config into E3CNC layout",
-        "instances": "List all instances with URLs",
-        "check": "Verify system dependencies",
-        "restart": "Restart Moonraker & Klipper",
-        "admin-page": "Generate admin overview page",
-        "clilog": "View CLI operation logs",
-        "backup": "Create timestamped backup",
-        "restore": "Restore from a backup",
-        "diagnose": "Run system diagnostics",
-        "logs": "Tail Moonraker & nginx logs",
-        "switch": "Change active instance",
-        "quit": "Exit the CLI",
-    }
+    descs = {cmd: desc for _, cmd, desc in _ALL_COMMANDS if cmd}
 
     # Build shortcut map — extract [x] from labels like "[s] Status" → "s"
     shortcut_map = {}
-    for label, cmd in all_items:
+    for label, cmd in items:
         if cmd and label and label.startswith("[") and "]" in label:
             key = label[1:label.index("]")].strip().lower()
             if key:
@@ -201,8 +135,8 @@ def _numbered_menu() -> None:
 
         cur = get_active_instance()
         if cur:
-            label = cur.name if cur.name != "cnc" else "default"
-            print(f"  {Style.DIM}Instance: {label}  ({cur.config_dir}){Style.RESET}")
+            iname = cur.name if cur.name != "cnc" else "default"
+            print(f"  {Style.DIM}Instance: {iname}  ({cur.config_dir}){Style.RESET}")
 
         print()
         print(f"  {Style.BOLD}Select an action:{Style.RESET}")
@@ -264,18 +198,8 @@ def _pause_after_output() -> None:
 
 
 def _run_menu_command(cmd: str) -> None:
-    """Run a command from the menu using a fake args namespace."""
-    from cli.commands import (
-        cmd_check, cmd_install, cmd_deploy, cmd_update, cmd_uninstall,
-        cmd_status, cmd_backup, cmd_restore, cmd_diagnose, cmd_logs,
-        cmd_releases, cmd_rollback, cmd_prune, cmd_prune_backups, cmd_instances, cmd_migrate,
-        cmd_detect_mcu, cmd_flash_mcu, cmd_init_config,
-        cmd_restart,
-        cmd_import_instance,
-        cmd_admin_page,
-        cmd_clilog,
-        cmd_migrate_instances,
-    )
+    """Run a command from the menu using a shared args factory."""
+    from cli.commands import COMMAND_HANDLERS, menu_args_factory
 
     _DESTRUCTIVE = ("install", "update", "uninstall")
     labels = {"install": "Install", "update": "Update", "uninstall": "Uninstall"}
@@ -293,61 +217,9 @@ def _run_menu_command(cmd: str) -> None:
             print(f"  {Style.DIM}Cancelled{Style.RESET}")
             return
 
-    class _Fake:
-        pass
+    args = menu_args_factory(cmd)
 
-    args = _Fake()
-    args.remote = None
-    args.check = False
-    args.verbose = False
-    args.backup_dir = ""
-    args.yes = True
-    args.lines = 50
-    args.instance = None
-    args.dry_run = False
-    args.keep = 3
-    args.name = None
-    args.command = cmd
-
-    dispatch = {
-        "check": cmd_check,
-        "install": cmd_install,
-        "deploy": cmd_deploy,
-        "update": cmd_update,
-        "uninstall": cmd_uninstall,
-        "status": cmd_status,
-        "backup": cmd_backup,
-        "restore": cmd_restore,
-        "diagnose": cmd_diagnose,
-        "diag": cmd_diagnose,
-        "doctor": cmd_diagnose,
-        "logs": cmd_logs,
-        "releases": cmd_releases,
-        "rel": cmd_releases,
-        "rollback": cmd_rollback,
-        "prune": cmd_prune,
-        "prune-backups": cmd_prune_backups,
-        "migrate": cmd_migrate,
-        "migrate-layout": cmd_migrate,
-        "instances": cmd_instances,
-        "inst": cmd_instances,
-        "list": cmd_instances,
-        "detect-mcu": cmd_detect_mcu,
-        "detect": cmd_detect_mcu,
-        "scan": cmd_detect_mcu,
-        "flash-mcu": cmd_flash_mcu,
-        "flash": cmd_flash_mcu,
-        "build": cmd_flash_mcu,
-        "init-config": cmd_init_config,
-        "init": cmd_init_config,
-        "restart": cmd_restart,
-        "import-instance": cmd_import_instance,
-        "admin-page": cmd_admin_page,
-        "clilog": cmd_clilog,
-        "migrate-instances": cmd_migrate_instances,
-    }
-
-    handler = dispatch.get(cmd)
+    handler = COMMAND_HANDLERS.get(cmd)
     if handler:
         handler(args)
     else:

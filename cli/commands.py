@@ -876,3 +876,71 @@ def cmd_init_config(args) -> None:
     print("  5. Restart Klipper: sudo systemctl restart klipper")
     print("  6. Connect to the web interface")
     print()
+
+
+# ── Command registry ────────────────────────────────────────────────────────
+# Single source of truth for all CLI commands and their handlers.
+# Used by cli/__init__.py (dispatch) and cli/menu.py (TUI + numbered menus).
+
+COMMAND_HANDLERS = {
+    "check": cmd_check,
+    "install": cmd_install,
+    "deploy": cmd_deploy,
+    "update": cmd_update,
+    "uninstall": cmd_uninstall,
+    "status": cmd_status,
+    "backup": cmd_backup,
+    "restore": cmd_restore,
+    "diagnose": cmd_diagnose,
+    "diag": cmd_diagnose,
+    "doctor": cmd_diagnose,
+    "logs": cmd_logs,
+    "releases": cmd_releases,
+    "rel": cmd_releases,
+    "rollback": cmd_rollback,
+    "prune": cmd_prune,
+    "prune-backups": cmd_prune_backups,
+    "migrate": cmd_migrate,
+    "migrate-layout": cmd_migrate,
+    "migrate-instances": cmd_migrate_instances,
+    "admin-page": cmd_admin_page,
+    "clilog": cmd_clilog,
+    "restart": cmd_restart,
+    "import-instance": cmd_import_instance,
+    "instances": cmd_instances,
+    "inst": cmd_instances,
+    "list": cmd_instances,
+    "detect-mcu": cmd_detect_mcu,
+    "detect": cmd_detect_mcu,
+    "scan": cmd_detect_mcu,
+    "flash-mcu": cmd_flash_mcu,
+    "flash": cmd_flash_mcu,
+    "build": cmd_flash_mcu,
+    "init-config": cmd_init_config,
+    "init": cmd_init_config,
+}
+
+
+def menu_args_factory(command: str) -> object:
+    """Create a menu-style args namespace for dispatching a command.
+
+    Returns a simple object with all attributes that command handlers
+    may access, defaulted to safe values. Called from the TUI and
+    numbered menus instead of constructing _Fake() manually.
+    """
+    from types import SimpleNamespace
+    return SimpleNamespace(
+        remote=None,
+        check=False,
+        verbose=False,
+        backup_dir="",
+        yes=True,
+        lines=50,
+        instance=None,
+        dry_run=False,
+        keep=3,
+        name=None,
+        version=None,
+        from_version=None,
+        command=command,
+    )

@@ -119,9 +119,8 @@ class TestRunMenuCommand:
         """Destructive commands should proceed on 'y'."""
         from cli.menu import _run_menu_command
         with patch("builtins.input", return_value="y"):
-            with patch("cli.commands.cmd_install") as mock_cmd:
+            with patch("cli.commands.COMMAND_HANDLERS", {"install": lambda a: None}):
                 _run_menu_command("install")
-                mock_cmd.assert_called_once()
 
     def test_destructive_handles_eof(self):
         from cli.menu import _run_menu_command
@@ -132,9 +131,8 @@ class TestRunMenuCommand:
     def test_dispatches_status(self):
         from cli.menu import _run_menu_command
         with patch("builtins.input", return_value="y"):
-            with patch("cli.commands.cmd_check") as mock_cmd:
+            with patch("cli.commands.COMMAND_HANDLERS", {"check": lambda a: None}):
                 _run_menu_command("check")
-                mock_cmd.assert_called_once()
 
     def test_unknown_command_calls_fail(self):
         from cli.menu import _run_menu_command

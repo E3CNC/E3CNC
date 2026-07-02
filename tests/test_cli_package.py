@@ -484,29 +484,31 @@ class TestRunMenuCommand:
         """_run_menu_command('status') should call cmd_status."""
         from cli.menu import _run_menu_command
 
-        with patch("cli.commands.cmd_status") as mock:
-            _run_menu_command("status")
-            mock.assert_called_once()
+        mock = __import__("unittest").mock.MagicMock()
+        with patch("cli.commands.COMMAND_HANDLERS", {"status": mock}):
+            with patch("builtins.input", return_value="y"):
+                _run_menu_command("status")
+                mock.assert_called_once()
 
     def test_dispatches_install(self):
         """_run_menu_command('install') should prompt and call cmd_install."""
         from cli.menu import _run_menu_command
 
-        with patch("cli.commands.cmd_install") as mock:
+        mock = __import__("unittest").mock.MagicMock()
+        with patch("cli.commands.COMMAND_HANDLERS", {"install": mock}):
             with patch("builtins.input", return_value="y"):
-                with patch("sys.stdin.isatty", return_value=True):
-                    _run_menu_command("install")
-                    mock.assert_called_once()
+                _run_menu_command("install")
+                mock.assert_called_once()
 
     def test_cancels_install_on_no(self):
         """_run_menu_command('install') with 'n' should not call handler."""
         from cli.menu import _run_menu_command
 
-        with patch("cli.commands.cmd_install") as mock:
+        mock = __import__("unittest").mock.MagicMock()
+        with patch("cli.commands.COMMAND_HANDLERS", {"install": mock}):
             with patch("builtins.input", return_value="n"):
-                with patch("sys.stdin.isatty", return_value=True):
-                    _run_menu_command("install")
-                    mock.assert_not_called()
+                _run_menu_command("install")
+                mock.assert_not_called()
 
 
 # ── Main dispatch tests ───────────────────────────────────────────────────────
@@ -519,8 +521,9 @@ class TestMainDispatch:
         """e3cnc-cli install should call cmd_install."""
         from cli import main
 
+        mock = MagicMock()
         with patch("sys.argv", ["e3cnc-cli", "install"]):
-            with patch("cli.cmd_install") as mock:
+            with patch("cli.COMMAND_HANDLERS", {"install": mock}):
                 with patch("_e3cnc_shared.print_banner"):
                     main()
                     mock.assert_called_once()
@@ -529,8 +532,9 @@ class TestMainDispatch:
         """e3cnc-cli status should call cmd_status."""
         from cli import main
 
+        mock = MagicMock()
         with patch("sys.argv", ["e3cnc-cli", "status"]):
-            with patch("cli.cmd_status") as mock:
+            with patch("cli.COMMAND_HANDLERS", {"status": mock}):
                 with patch("_e3cnc_shared.print_banner"):
                     main()
                     mock.assert_called_once()
@@ -539,8 +543,9 @@ class TestMainDispatch:
         """e3cnc-cli update should call cmd_update."""
         from cli import main
 
+        mock = MagicMock()
         with patch("sys.argv", ["e3cnc-cli", "update"]):
-            with patch("cli.cmd_update") as mock:
+            with patch("cli.COMMAND_HANDLERS", {"update": mock}):
                 with patch("_e3cnc_shared.print_banner"):
                     main()
                     mock.assert_called_once()
@@ -549,8 +554,9 @@ class TestMainDispatch:
         """e3cnc-cli uninstall should call cmd_uninstall."""
         from cli import main
 
+        mock = MagicMock()
         with patch("sys.argv", ["e3cnc-cli", "uninstall"]):
-            with patch("cli.cmd_uninstall") as mock:
+            with patch("cli.COMMAND_HANDLERS", {"uninstall": mock}):
                 with patch("_e3cnc_shared.print_banner"):
                     main()
                     mock.assert_called_once()
@@ -1284,12 +1290,12 @@ class TestMainDispatchAllCommands:
         """Each command should dispatch via main()."""
         from cli import main
 
-        handler_name = f"cmd_{cmd.replace('-', '_')}"
+        mock_handler = MagicMock()
         with patch("sys.argv", ["e3cnc-cli", cmd]):
-            with patch(f"cli.{handler_name}") as mock:
+            with patch("cli.COMMAND_HANDLERS", {cmd: mock_handler}):
                 with patch("_e3cnc_shared.print_banner"):
                     main()
-                    mock.assert_called_once()
+                    mock_handler.assert_called_once()
 
 
 class TestMenuDispatchAllCommands:
@@ -1309,11 +1315,11 @@ class TestMenuDispatchAllCommands:
         """Each command should dispatch via _run_menu_command."""
         from cli.menu import _run_menu_command
 
-        handler_name = f"cmd_{cmd.replace('-', '_')}"
-        with patch(f"cli.commands.{handler_name}") as mock:
+        mock_handler = MagicMock()
+        with patch("cli.commands.COMMAND_HANDLERS", {cmd: mock_handler}):
             with patch("builtins.input", return_value="y"):
                 _run_menu_command(cmd)
-                mock.assert_called_once()
+                mock_handler.assert_called_once()
 
 
 # ── Commands not covered by the menu tests ────────────────────────────────

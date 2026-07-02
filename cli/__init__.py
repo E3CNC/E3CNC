@@ -2,7 +2,6 @@
 
 Entry point for the CLI. Delegates to submodules for commands, parser, and menu.
 """
-
 import sys
 
 from _e3cnc_shared import (
@@ -16,18 +15,7 @@ from _e3cnc_deploy import (
 from cli.parser import build_parser
 from cli.menu import _interactive_menu
 from cli.helpers import _require_ansible, _validate_ssh, _get_instance
-from cli.commands import (
-    cmd_check, cmd_install, cmd_deploy, cmd_update, cmd_uninstall,
-    cmd_status, cmd_backup, cmd_restore, cmd_diagnose, cmd_logs,
-    cmd_releases, cmd_rollback, cmd_migrate, cmd_migrate_instances, cmd_prune, cmd_prune_backups, cmd_instances,
-    cmd_admin_page,
-    cmd_clilog,
-    cmd_restart,
-    cmd_import_instance,
-    cmd_detect_mcu,
-    cmd_flash_mcu,
-    cmd_init_config,
-)
+from cli.commands import COMMAND_HANDLERS
 
 
 def main() -> None:
@@ -47,45 +35,7 @@ def main() -> None:
             _require_ansible()
         _validate_ssh(args.remote)
 
-    dispatch = {
-        "check": cmd_check,
-        "install": cmd_install,
-        "deploy": cmd_deploy,
-        "update": cmd_update,
-        "uninstall": cmd_uninstall,
-        "status": cmd_status,
-        "backup": cmd_backup,
-        "restore": cmd_restore,
-        "diagnose": cmd_diagnose,
-        "diag": cmd_diagnose,
-        "doctor": cmd_diagnose,
-        "logs": cmd_logs,
-        "releases": cmd_releases,
-        "rel": cmd_releases,
-        "rollback": cmd_rollback,
-        "prune": cmd_prune,
-        "prune-backups": cmd_prune_backups,
-        "migrate": cmd_migrate,
-        "migrate-layout": cmd_migrate,
-        "migrate-instances": cmd_migrate_instances,
-        "admin-page": cmd_admin_page,
-        "clilog": cmd_clilog,
-        "restart": cmd_restart,
-        "import-instance": cmd_import_instance,
-        "instances": cmd_instances,
-        "inst": cmd_instances,
-        "list": cmd_instances,
-        "detect-mcu": cmd_detect_mcu,
-        "detect": cmd_detect_mcu,
-        "scan": cmd_detect_mcu,
-        "flash-mcu": cmd_flash_mcu,
-        "flash": cmd_flash_mcu,
-        "build": cmd_flash_mcu,
-        "init-config": cmd_init_config,
-        "init": cmd_init_config,
-    }
-
-    handler = dispatch.get(args.command)
+    handler = COMMAND_HANDLERS.get(args.command)
     if handler:
         handler(args)
     else:
