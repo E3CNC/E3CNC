@@ -7,6 +7,10 @@ export const offsetNames = ['G54', 'G55', 'G56', 'G57', 'G58', 'G59']
 const activeWcs = ref('G54')
 const wcsOffsets = ref<Record<string, { X: number; Y: number; Z: number }>>({})
 
+// Saved WCS before the job started — restored on job end instead of always
+// defaulting to G54. This allows users working in e.g. G56 to stay in G56.
+let savedWcs: string | null = null
+
 export function useCncOffsets() {
     const store = useStore()
 
@@ -31,21 +35,30 @@ export function useCncOffsets() {
         activeWcs.value = wcs
     }
 
-    // Watch for job end: when print_stats transitions to 'standby' after
-    // being in 'printing', 'paused', or 'complete', reset WCS to G54.
+    // Watch for job start → save the active WCS so we can restore it later.
+    // Watch for job end → restore to the saved WCS (or G54 if none saved).
     // Klipper resets gcode state on job end, effectively reverting to
-    // machine coordinates (G53). Sending G54 re-establishes the default WCS
-    // so the jog panel doesn't move in machine coordinates.
+    // machine coordinates (G53). Restoring the saved WCS brings the jogs
+    // back to the work coordinate system the user was using.
     watch(
         () => store.state.printer.print_stats?.state,
         (newState, oldState) => {
+            // Job started: save current WCS
+            if (newState === 'printing' && (!oldState || oldState === 'standby' || oldState === '')) {
+                savedWcs = activeWcs.value
+                return
+            }
+
+            // Job ended: restore saved WCS
             const wasPrinting =
                 oldState && ['printing', 'paused', 'complete'].includes(oldState)
             const isNowStandby = newState === 'standby' || newState === ''
-            if (wasPrinting && isNowStandby && activeWcs.value !== 'G54') {
-                selectCncWcs(store.getters['socket/getUrl'], { wcs: 'G54' })
+            const restoreTo = savedWcs ?? 'G54'
+
+            if (wasPrinting && isNowStandby && activeWcs.value !== restoreTo) {
+                selectCncWcs(store.getters['socket/getUrl'], { wcs: restoreTo })
                     .then(() => {
-                        activeWcs.value = 'G54'
+                        activeWcs.value = restoreTo
                     })
                     .catch(() => {
                         // silently ignore — WCS reset is best-effort
