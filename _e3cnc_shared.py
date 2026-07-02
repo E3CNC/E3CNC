@@ -691,9 +691,13 @@ def _create_new_instance() -> Optional[Instance]:
 
     print()
     try:
-        raw = input(f"  {Style.BOLD}Instance name: {Style.RESET}").strip()
+        raw = input(f"  {Style.BOLD}Instance name (Enter to cancel): {Style.RESET}").strip()
     except (EOFError, KeyboardInterrupt):
         print()
+        return None
+
+    if not raw:
+        info("Cancelled")
         return None
 
     name = _re.sub(r"[^a-z0-9-]", "", raw.lower().replace(" ", "-"))
