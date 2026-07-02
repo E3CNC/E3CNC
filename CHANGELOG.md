@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.9.2 (2026-07-01)
+- **WCS auto-reset on job end** — when a job finishes or cancels, the UI now auto-selects G54 (default WCS) to prevent jog moves in machine coordinates (G53) that caused Z-axis crashes. Closes [issue #18](https://github.com/E3CNC/E3CNC/issues/18).
+- **Safer FINISH_JOB macro** — replaced absolute G53 Z25 lift with relative Z10 lift and removed G53 XY park. Tool now lifts 10mm and stays above the work instead of potentially moving into tall stock or dragging across fixtures.
+- **Safer CANCEL_PRINT macro** — removed G90 G0 X0 Y0 park that moved to machine origin (G53) after Klipper reset, which could crash into fixtures. Now just lifts Z10 and stops.
+- **All macros documented** — every G-code command in `e3cnc_macros.cfg`, `wcs_macros.cfg`, and `macro_labels.cfg` now has inline comments.
+- **10 unit tests** for WCS reset logic covering all print_stats transition combinations.
+
+## v0.9.1 (2026-07-01)
+- **Zero TypeScript errors** — resolved all 1,638 TS errors across store (1,222), tests (237), and components (179).
+- **Store layer**: ActionContext, MutationTree, GetterTree type annotations across 82 files.
+- **Test layer**: fixture typing + VTU v2 inference dead-end patches across 14 files.
+- **Component layer**: Vuetify 3 slot renames, null safety, template type casts, event type unions across 73 `.vue` files.
+- **Build**: `vue-tsc --noEmit` and `vite build` both pass clean.
+
 ## v0.9.0 (2026-06-30)
 - **Interactive TUI menu** — full-screen menu with semi-graphical display, keyboard shortcuts (`[s]` Status, `[i]` Install, etc.), arrow key navigation, and inline descriptions for all 25 commands
 - **Supervisor process management** — new `_e3cnc_supervisor.py` module manages Moonraker/Klipper via `supervisord` instead of systemd. Automatic registration on install/import, fallback to systemd when supervisor unavailable. Bootstrap stack Ansible role installs supervisor package.
