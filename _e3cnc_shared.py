@@ -21,7 +21,7 @@ from typing import List, NoReturn, Optional, Tuple, Set, TextIO
 
 # ── Metadata ────────────────────────────────────────────────────────────────
 
-VERSION = "0.9.4"
+VERSION = "0.9.5"
 TOOL_NAME = "e3cnc-cli"
 
 # ── Paths (relative to this script's location) ─────────────────────────────

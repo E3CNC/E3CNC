@@ -1,5 +1,5 @@
 # Changelog
-## v0.9.4 (2026-07-02)
+## v0.9.5 (2026-07-02)
 - **WCS preview Y-axis fix** — new `reverse_y_preview` profile setting (in `machine_profile.yaml`) fixes the SVG preview for machines homing at Y_max with `homing_positive_dir: False`. When `reverse_y_preview: true`, Y-axis maps min→top, max→bottom, matching the physical machine orientation.
 - **Release pipeline automation** — CI now triggers on `git push origin v*` tags, creating full releases with zip + stack artifact + checksum. Push-to-main creates nightly pre-releases. Stack artifact search falls back through older releases if the latest one doesn't have one.
 - **Nightly pre-releases** — every push to `main` creates/updates a `nightly-main-YYYYMMDD` pre-release with the frontend zip.
