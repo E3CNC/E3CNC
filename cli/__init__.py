@@ -19,7 +19,7 @@ from cli.helpers import _require_ansible, _validate_ssh, _get_instance
 from cli.commands import (
     cmd_check, cmd_install, cmd_deploy, cmd_update, cmd_uninstall,
     cmd_status, cmd_backup, cmd_restore, cmd_diagnose, cmd_logs,
-    cmd_releases, cmd_rollback, cmd_migrate, cmd_migrate_instances, cmd_prune, cmd_instances,
+    cmd_releases, cmd_rollback, cmd_migrate, cmd_migrate_instances, cmd_prune, cmd_prune_backups, cmd_instances,
     cmd_admin_page,
     cmd_clilog,
     cmd_restart,
@@ -64,6 +64,7 @@ def main() -> None:
         "rel": cmd_releases,
         "rollback": cmd_rollback,
         "prune": cmd_prune,
+        "prune-backups": cmd_prune_backups,
         "migrate": cmd_migrate,
         "migrate-layout": cmd_migrate,
         "migrate-instances": cmd_migrate_instances,
