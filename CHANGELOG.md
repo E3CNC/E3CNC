@@ -1,11 +1,12 @@
 # Changelog
 
 ## v0.9.2 (2026-07-01)
-- **WCS auto-reset on job end** — when a job finishes or cancels, the UI now auto-selects G54 (default WCS) to prevent jog moves in machine coordinates (G53) that caused Z-axis crashes. Closes [issue #18](https://github.com/E3CNC/E3CNC/issues/18).
+- **WCS auto-reset on job end** — when a job finishes or cancels, the UI now auto-selects the previously active WCS (saved at job start) instead of always defaulting to G54. Prevents jog moves in machine coordinates (G53) that caused Z-axis crashes. Closes [issue #18](https://github.com/E3CNC/E3CNC/issues/18).
 - **Safer FINISH_JOB macro** — replaced absolute G53 Z25 lift with relative Z10 lift and removed G53 XY park. Tool now lifts 10mm and stays above the work instead of potentially moving into tall stock or dragging across fixtures.
 - **Safer CANCEL_PRINT macro** — removed G90 G0 X0 Y0 park that moved to machine origin (G53) after Klipper reset, which could crash into fixtures. Now just lifts Z10 and stops.
 - **All macros documented** — every G-code command in `e3cnc_macros.cfg`, `wcs_macros.cfg`, and `macro_labels.cfg` now has inline comments.
 - **10 unit tests** for WCS reset logic covering all print_stats transition combinations.
+- **Version centralization** — `package.json` is now the single source of truth for version. New `bump-version.sh` script syncs it to `_e3cnc_shared.py` and inserts a stub entry in CHANGELOG.md on each bump. CLI version bumped from 0.8.4 to 0.9.2 to match frontend.
 
 ## v0.9.1 (2026-07-01)
 - **Zero TypeScript errors** — resolved all 1,638 TS errors across store (1,222), tests (237), and components (179).
