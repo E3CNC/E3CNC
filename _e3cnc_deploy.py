@@ -1339,10 +1339,14 @@ def ensure_sudoers(dry_run: bool = False) -> bool:
     path = Path(SUDOERS_PATH)
 
     if path.exists():
-        existing = path.read_text()
-        if existing.strip() == content.strip():
-            return True  # already up to date
-        info(f"Updating {SUDOERS_PATH}...")
+        try:
+            existing = path.read_text()
+            if existing.strip() == content.strip():
+                return True  # already up to date
+            info(f"Updating {SUDOERS_PATH}...")
+        except PermissionError:
+            # File exists but owned by root — assume it's correct, skip
+            return True
 
     if dry_run:
         info(f"Would install sudoers drop-in at {SUDOERS_PATH} for user '{user}'")
