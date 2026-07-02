@@ -354,6 +354,56 @@ class TestNumberedMenu:
                 with patch("builtins.input", side_effect=KeyboardInterrupt()):
                     _numbered_menu()  # Should handle gracefully
 
+    def test_accepts_shortcut_letter(self):
+        """Typing a shortcut letter should dispatch the correct command."""
+        from cli.menu import _numbered_menu
+        with patch("cli.menu.get_active_instance", return_value=None):
+            with patch("cli.menu.print_banner"):
+                with patch("builtins.input", side_effect=["s", KeyboardInterrupt()]):
+                    with patch("cli.menu._run_menu_action") as mock_action:
+                        _numbered_menu()
+                    assert any(
+                        c[0][0] == "status" for c in mock_action.call_args_list
+                    ), "shortcut 's' should dispatch 'status'"
+
+    def test_accepts_shortcut_letter_case_insensitive(self):
+        """Shortcut letters should work regardless of case."""
+        from cli.menu import _numbered_menu
+        with patch("cli.menu.get_active_instance", return_value=None):
+            with patch("cli.menu.print_banner"):
+                with patch("builtins.input", side_effect=["S", KeyboardInterrupt()]):
+                    with patch("cli.menu._run_menu_action") as mock_action:
+                        _numbered_menu()
+                    assert any(
+                        c[0][0] == "status" for c in mock_action.call_args_list
+                    ), "uppercase 'S' should also dispatch 'status'"
+
+    def test_rejects_invalid_shortcut(self):
+        """Typing an invalid shortcut letter should show a warning and continue."""
+        from cli.menu import _numbered_menu
+        with patch("cli.menu.get_active_instance", return_value=None):
+            with patch("cli.menu.print_banner"):
+                with patch("builtins.input", side_effect=["zz", KeyboardInterrupt()]):
+                    with patch("cli.menu.print") as mock_print:
+                        _numbered_menu()
+                    invalid_calls = [
+                        c for c in mock_print.call_args_list
+                        if "Invalid" in str(c)
+                    ]
+                    assert len(invalid_calls) >= 1, "Should warn on invalid shortcut"
+
+    def test_multiple_shortcut_letters(self):
+        """Multi-letter shortcuts should still work (mt for migrate-instances)."""
+        from cli.menu import _numbered_menu
+        with patch("cli.menu.get_active_instance", return_value=None):
+            with patch("cli.menu.print_banner"):
+                with patch("builtins.input", side_effect=["g", KeyboardInterrupt()]):
+                    with patch("cli.menu._run_menu_action") as mock_action:
+                        _numbered_menu()
+                    assert any(
+                        c[0][0] == "migrate-instances" for c in mock_action.call_args_list
+                    ), "shortcut 'g' should dispatch 'migrate-instances'"
+
 
 # ── _menu_title ──────────────────────────────────────────────────────
 

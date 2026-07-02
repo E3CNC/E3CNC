@@ -187,12 +187,13 @@ def _numbered_menu() -> None:
         "quit": "Exit the CLI",
     }
 
-    # Build shortcut map — skip headers and blank lines
+    # Build shortcut map — extract [x] from labels like "[s] Status" → "s"
     shortcut_map = {}
-    for item in all_items:
-        c = item[1]
-        if c:
-            shortcut_map[c] = c
+    for label, cmd in all_items:
+        if cmd and label and label.startswith("[") and "]" in label:
+            key = label[1:label.index("]")].strip().lower()
+            if key:
+                shortcut_map[key] = cmd
 
     while True:
         print_banner()
