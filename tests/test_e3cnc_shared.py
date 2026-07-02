@@ -185,6 +185,13 @@ class TestCreateNewInstance:
             with patch("_e3cnc_shared.warn"):
                 assert _create_new_instance() is None
 
+    def test_empty_input_shows_cancelled_message(self):
+        """Empty input should print 'Cancelled' and return None."""
+        with patch("builtins.input", return_value=""):
+            with patch("_e3cnc_shared.info") as mock_info:
+                assert _create_new_instance() is None
+                mock_info.assert_any_call("Cancelled")
+
     def test_rejects_existing_name(self):
         inst_path = Path("/tmp") / "e3cnc" / "instances" / "dupname"
         with patch("_e3cnc_shared.INSTANCES_DIR", Path("/tmp") / "e3cnc" / "instances"):

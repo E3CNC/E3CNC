@@ -166,6 +166,15 @@ class TestBuildParser:
         assert "redeploy" in choices
         assert choices["redeploy"] is choices["update"]
 
+    def test_prune_backups_has_correct_arguments(self):
+        """prune-backups should have --keep and --dry-run."""
+        from cli.parser import build_parser
+        parser = build_parser()
+        prb = parser._subparsers._group_actions[0].choices["prune-backups"]
+        actions = {a.dest for a in prb._actions}
+        assert "keep" in actions
+        assert "dry_run" in actions
+
 
 # ── _format_version ─────────────────────────────────────────────────
 
@@ -1096,6 +1105,33 @@ class TestCmdPrune:
         with patch("cli.commands.prune_releases", return_value=(0, 0)) as mock:
             cmd_prune(_make_args(keep=3, dry_run=True))
             mock.assert_called_once()
+
+
+class TestCmdPruneBackups:
+    """Tests for cli.commands.cmd_prune_backups()."""
+
+    def test_calls_prune_backups(self):
+        """cmd_prune_backups should call prune_backups."""
+        from cli.commands import cmd_prune_backups
+
+        with patch("cli.commands.prune_backups"):
+            cmd_prune_backups(_make_args(keep=5, dry_run=False))
+
+    def test_dry_run_passed_through(self):
+        """With --dry-run, prune_backups should be called with dry_run=True."""
+        from cli.commands import cmd_prune_backups
+
+        with patch("cli.commands.prune_backups") as mock:
+            cmd_prune_backups(_make_args(keep=5, dry_run=True))
+            mock.assert_called_once_with(keep=5, dry_run=True)
+
+    def test_keep_passed_through(self):
+        """With --keep 10, prune_backups should be called with keep=10."""
+        from cli.commands import cmd_prune_backups
+
+        with patch("cli.commands.prune_backups") as mock:
+            cmd_prune_backups(_make_args(keep=10, dry_run=False))
+            mock.assert_called_once_with(keep=10, dry_run=False)
 
 
 class TestCmdImportInstance:
