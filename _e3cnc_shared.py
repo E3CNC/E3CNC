@@ -839,7 +839,7 @@ def run_backup(remote_host: Optional[str] = None, output_callback=None, inst: Op
     active_inst = inst or get_active_instance() or _default_instance(str(Path.home()))
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
     prefix = f"e3cnc-backup-{active_inst.name}-" if active_inst.name != "cnc" else "e3cnc-backup-"
-    backup_dir = HERE / f"{prefix}{timestamp}"
+    backup_dir = Path.home() / "e3cnc" / "backups" / f"{prefix}{timestamp}"
     backup_dir.mkdir(parents=True, exist_ok=True)
 
     _o(f"Backing up frontend ({active_inst.web_root})...")
@@ -895,17 +895,17 @@ def _run_remote_backup(host: str, output_callback=None, inst: Optional[Instance]
 
     _o(f"Creating backup on remote host {host}...")
     cmds = "; ".join([
-        f"mkdir -p ~/{backup_name}",
-        f"if [ -d '{active_inst.web_root}' ]; then cp -a '{active_inst.web_root}' ~/{backup_name}/frontend; fi",
-        f"if [ -d '{active_inst.config_dir}' ]; then cp -a '{active_inst.config_dir}' ~/{backup_name}/config; fi",
-        "if [ -f ~/wcs_offsets.json ]; then cp -a ~/wcs_offsets.json ~/{backup_name}/; fi",
-        f"echo '{{\"createdAt\":\"{datetime.now(timezone.utc).isoformat()}\",\"tool\":\"{TOOL_NAME}\",\"version\":\"{VERSION}\",\"instance\":\"{active_inst.name}\"}}' > ~/{backup_name}/manifest.json",
+        f"mkdir -p ~/e3cnc/backups/{backup_name}",
+        f"if [ -d '{active_inst.web_root}' ]; then cp -a '{active_inst.web_root}' ~/e3cnc/backups/{backup_name}/frontend; fi",
+        f"if [ -d '{active_inst.config_dir}' ]; then cp -a '{active_inst.config_dir}' ~/e3cnc/backups/{backup_name}/config; fi",
+        "if [ -f ~/wcs_offsets.json ]; then cp -a ~/wcs_offsets.json ~/e3cnc/backups/{backup_name}/; fi",
+        f"echo '{{\\\"createdAt\\\":\\\"{datetime.now(timezone.utc).isoformat()}\\\",\\\"tool\\\":\\\"{TOOL_NAME}\\\",\\\"version\\\":\\\"{VERSION}\\\",\\\"instance\\\":\\\"{active_inst.name}\\\"}}' > ~/e3cnc/backups/{backup_name}/manifest.json",
         f"echo '{backup_name}'",
     ])
     result = _ssh_run(host, cmds)
     if result.returncode == 0:
-        _o(f"  ✓ Remote backup created at ~/{backup_name} on {host}")
-        _o(f"  To restore: e3cnc-cli restore {backup_name} --remote {host}")
+        _o(f"  ✓ Remote backup created at ~/e3cnc/backups/{backup_name} on {host}")
+        _o(f"  To restore: e3cnc-cli restore e3cnc/backups/{backup_name} --remote {host}")
         return CmdResult(True, "\n".join(out), "Remote Backup")
     _o(f"  ✗ Remote backup failed: {result.stderr}")
     return CmdResult(False, "\n".join(out), "Remote Backup")
@@ -924,7 +924,11 @@ def run_restore(backup_dir_name: str, remote_host: Optional[str] = None, auto_ye
     active_inst = inst or get_active_instance() or _default_instance(str(Path.home()))
     backup_path = Path(backup_dir_name)
     if not backup_path.is_absolute():
-        candidates = [HERE / backup_dir_name, Path.cwd() / backup_dir_name]
+        candidates = [
+            HERE / backup_dir_name,
+            Path.home() / "e3cnc" / "backups" / backup_dir_name,
+            Path.cwd() / backup_dir_name,
+        ]
         for c in candidates:
             if c.is_dir():
                 backup_path = c
@@ -1005,11 +1009,11 @@ def _run_remote_restore(host: str, backup_name: str, output_callback=None, inst:
     _o = lambda m: (out.append(m), output_callback(m + "\n") if output_callback else None)
 
     active_inst = inst or _default_instance(_get_remote_home(host))
-    _o(f"Restoring from ~/{backup_name} on {host}...")
+    _o(f"Restoring from ~/e3cnc/backups/{backup_name} on {host}...")
     cmds = "; ".join([
-        f"if [ -d ~/{backup_name}/frontend ]; then rm -rf '{active_inst.web_root}' && cp -a ~/{backup_name}/frontend '{active_inst.web_root}'; fi",
-        f"if [ -d ~/{backup_name}/config ]; then cp -a ~/{backup_name}/config/* '{active_inst.config_dir}/'; fi",
-        f"if [ -f ~/{backup_name}/wcs_offsets.json ]; then cp -a ~/{backup_name}/wcs_offsets.json ~/wcs_offsets.json; fi",
+        f"if [ -d ~/e3cnc/backups/{backup_name}/frontend ]; then rm -rf '{active_inst.web_root}' && cp -a ~/e3cnc/backups/{backup_name}/frontend '{active_inst.web_root}'; fi",
+        f"if [ -d ~/e3cnc/backups/{backup_name}/config ]; then cp -a ~/e3cnc/backups/{backup_name}/config/* '{active_inst.config_dir}/'; fi",
+        f"if [ -f ~/e3cnc/backups/{backup_name}/wcs_offsets.json ]; then cp -a ~/e3cnc/backups/{backup_name}/wcs_offsets.json ~/wcs_offsets.json; fi",
         f"sudo systemctl restart {active_inst.moonraker_service}",
     ])
     result = _ssh_run(host, cmds)
