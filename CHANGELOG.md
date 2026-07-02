@@ -1,4 +1,10 @@
 # Changelog
+## v0.9.6 (2026-07-02)
+- **bump-version.sh commits before tagging** — the script now creates a git commit with the version bump before creating the tag. Previously the tag pointed at the old commit, so release builds had the wrong version.
+- **Fixed `vv0.9.5` in version display** — `get_active_release_version()` returns versions with a `v` prefix (e.g. `v0.9.5`), which clashed with the hardcoded `v` in `_format_version()`. Stripped the prefix before display.
+- **Fixed PermissionError reading sudoers file** — `ensure_sudoers()` now catches `PermissionError` when trying to read `/etc/sudoers.d/e3cnc` (root-owned `0440`). Treats it as "already configured" and skips.
+- All v0.9.5 changes carry forward (see below)
+
 ## v0.9.5 (2026-07-02)
 - **WCS preview Y-axis fix** — new `reverse_y_preview` profile setting (in `machine_profile.yaml`) fixes the SVG preview for machines homing at Y_max with `homing_positive_dir: False`. When `reverse_y_preview: true`, Y-axis maps min→top, max→bottom, matching the physical machine orientation.
 - **Release pipeline automation** — CI now triggers on `git push origin v*` tags, creating full releases with zip + stack artifact + checksum. Push-to-main creates nightly pre-releases. Stack artifact search falls back through older releases if the latest one doesn't have one.
