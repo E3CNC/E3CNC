@@ -1,6 +1,11 @@
 name: Create Release
 
 'on':
+  push:
+    tags:
+      - 'v*'
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       version_tag:
@@ -41,13 +46,35 @@ jobs:
             VERSION="v$(node -p "require('./package.json').version")"
           fi
 
-          if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Invalid release version: $VERSION" >&2
-            exit 1
-          fi
-
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
           echo "Using release version: $VERSION"
+
+      - name: Detect trigger type
+        id: trigger
+        shell: bash
+        run: |
+          # Determine what kind of run this is
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref_type }}" == "tag" ]]; then
+            echo "TYPE=release" >> $GITHUB_OUTPUT
+            echo "Trigger: tag push (${{ github.ref_name }}) → full release"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "TYPE=release" >> $GITHUB_OUTPUT
+            echo "Trigger: manual dispatch → full release"
+          else
+            echo "TYPE=nightly" >> $GITHUB_OUTPUT
+            echo "Trigger: branch push → nightly pre-release"
+          fi
+
+      - name: Validate release version
+        if: steps.trigger.outputs.TYPE == 'release'
+        shell: bash
+        run: |
+          VERSION='${{ steps.version.outputs.VERSION }}'
+          if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "ERROR: Invalid release version: $VERSION"
+            exit 1
+          fi
+          echo "Release version $VERSION is valid."
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
@@ -65,9 +92,11 @@ jobs:
           cd dist && zip -r ../E3CNC-${{ steps.version.outputs.VERSION }}.zip . && cd ..
 
       - name: Install zstd
+        if: steps.trigger.outputs.TYPE == 'release'
         run: sudo apt-get update -qq && sudo apt-get install -y -qq zstd
 
       - name: Build stack artifact
+        if: steps.trigger.outputs.TYPE == 'release'
         shell: bash
         run: |
           VERSION='${{ steps.version.outputs.VERSION }}'
@@ -111,7 +140,8 @@ jobs:
 
           echo "Stack artifact built: e3cnc-stack-${VERSION}.tar.zst ($(du -h "e3cnc-stack-${VERSION}.tar.zst" | cut -f1))"
 
-      - name: Upload stack artifact
+      - name: Upload stack artifact (CI artifact, release builds only)
+        if: steps.trigger.outputs.TYPE == 'release'
         uses: actions/upload-artifact@v5
         with:
           name: stack-artifact
@@ -130,17 +160,31 @@ jobs:
         run: echo "SHA_SHORT=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: Write release notes
+        if: steps.trigger.outputs.TYPE == 'release'
         run: |
           VERSION='${{ steps.version.outputs.VERSION }}'
-          echo "### Auto-built from commit ${{ github.sha }}" > release-notes.md
-          echo "" >> release-notes.md
-          echo "---" >> release-notes.md
-          echo "### What's Changed" >> release-notes.md
+          echo "### What's Changed" > release-notes.md
           echo "" >> release-notes.md
           python3 build-scripts/_get_changelog_entry.py "$VERSION" >> release-notes.md 2>/dev/null \
             || echo "  See the [CHANGELOG](https://github.com/E3CNC/E3CNC/blob/main/CHANGELOG.md) for details." >> release-notes.md
 
-      - name: Publish release
+      - name: Guard — stack artifact must exist before publishing
+        if: steps.trigger.outputs.TYPE == 'release'
+        shell: bash
+        run: |
+          VERSION='${{ steps.version.outputs.VERSION }}'
+          STACK_ARTIFACT="e3cnc-stack-${VERSION}.tar.zst"
+          if [[ ! -f "$STACK_ARTIFACT" ]]; then
+            echo "ERROR: Stack artifact not found: $STACK_ARTIFACT"
+            echo "The publish step requires the stack artifact. Something went wrong in the build."
+            echo "Available files:"
+            ls -la *.tar.zst* 2>/dev/null || echo "  (none)"
+            exit 1
+          fi
+          echo "Stack artifact exists: $STACK_ARTIFACT ($(du -h "$STACK_ARTIFACT" | cut -f1))"
+
+      - name: Publish release (tag / manual dispatch)
+        if: steps.trigger.outputs.TYPE == 'release'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -166,4 +210,31 @@ jobs:
               "$ASSET" \
               "$STACK_ARTIFACT" \
               "$STACK_CHECKSUM"
+          fi
+
+      - name: Publish nightly pre-release (branch push)
+        if: steps.trigger.outputs.TYPE == 'nightly'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          DATE_TAG="nightly-main-$(date -u +%Y%m%d)"
+          ASSET="E3CNC-${{ steps.version.outputs.VERSION }}.zip"
+
+          echo "Publishing nightly: $DATE_TAG"
+
+          if gh release view "$DATE_TAG" >/dev/null 2>&1; then
+            echo "Updating existing nightly: $DATE_TAG"
+            gh release upload "$DATE_TAG" "$ASSET" --clobber
+            gh release edit "$DATE_TAG" \
+              --title "$DATE_TAG (${{ steps.commit.outputs.SHA_SHORT }})" \
+              --notes "Nightly build from main branch — commit ${{ github.sha }}" \
+              --prerelease
+          else
+            echo "Creating nightly: $DATE_TAG"
+            gh release create "$DATE_TAG" \
+              --title "$DATE_TAG (${{ steps.commit.outputs.SHA_SHORT }})" \
+              --notes "Nightly build from main branch — commit ${{ github.sha }}" \
+              --prerelease \
+              --target main \
+              "$ASSET"
           fi

@@ -176,10 +176,32 @@ def _github_api_request(endpoint: str) -> Optional[Dict[str, Any]]:
 
 
 def get_latest_release_assets() -> Optional[List[Dict[str, Any]]]:
-    """Get assets from the latest GitHub release."""
+    """Get assets from the latest GitHub release that has a stack artifact.
+
+    Iterates through releases (newest first) until one with assets is found
+    or the list is exhausted. This handles the case where the latest release
+    tag was created without running the CI build.
+    """
     data = _github_api_request("releases/latest")
     if data and "assets" in data:
-        return data["assets"]
+        assets = data["assets"]
+        # Fast path: latest release has assets
+        if any(a.get("name", "").startswith("e3cnc-stack-") and a["name"].endswith(".tar.zst") for a in assets):
+            return assets
+    # Slow path: iterate recent releases to find one with a stack artifact
+    all_releases_data = _github_api_request("releases?per_page=10")
+    all_releases = all_releases_data if isinstance(all_releases_data, list) else []
+    for release in all_releases:
+        if not isinstance(release, dict):
+            continue
+        if release.get("draft") or release.get("prerelease"):
+            continue  # Skip nightlies and drafts
+        assets = release.get("assets", [])
+        if isinstance(assets, list) and any(
+            isinstance(a, dict) and (n := a.get("name", ""), n.startswith("e3cnc-stack-") and n.endswith(".tar.zst"))[1]
+            for a in assets
+        ):
+            return assets
     return None
 
 
@@ -698,7 +720,9 @@ def migrate_layout(inst: Optional[Instance] = None, version: Optional[str] = Non
     else:
         asset = find_stack_artifact_asset()
     if not asset:
-        warn("No stack artifact found. Create a release on GitHub first.")
+        warn("No stack artifact found in any recent GitHub release.")
+        info("To create a release with artifacts, run:")
+        info("  gh workflow run build-frontend.yml -f version_tag=<tag>")
         return False
 
     artifact_ver = asset.get("name", "").replace("e3cnc-stack-", "").replace(".tar.zst", "")

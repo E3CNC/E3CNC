@@ -51,6 +51,8 @@ export function useCncProfile() {
     const requireConfirmForSpindleStart = computed(() => safety.value.require_confirm_for_spindle_start !== false)
     const requireHomingBeforeOffsets = computed(() => safety.value.require_homing_before_offsets !== false)
 
+    const reverseYPreview = computed(() => frontend.value.reverse_y_preview === true)
+
     async function load() {
         const apiUrl = store.getters['socket/getUrl']
         if (!apiUrl) return
@@ -59,9 +61,19 @@ export function useCncProfile() {
 
     onMounted(() => {
         if (!cncState.value) {
-            void load()
+            void load().catch(() => { /* ignore */ })
         }
     })
+
+    // Retry loading when the socket URL becomes available (initially empty on mount)
+    watch(
+        () => store.getters['socket/getUrl'],
+        (url) => {
+            if (url && url !== '//:80/' && !cncState.value) {
+                void load().catch(() => { /* ignore — retried on next watch trigger if needed */ })
+            }
+        }
+    )
 
     return {
         cncState,
@@ -82,6 +94,7 @@ export function useCncProfile() {
         requireConfirmForZeroReset,
         requireConfirmForSpindleStart,
         requireHomingBeforeOffsets,
+        reverseYPreview,
         load,
     }
 }

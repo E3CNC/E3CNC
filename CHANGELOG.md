@@ -1,4 +1,11 @@
 # Changelog
+## v0.9.4 (2026-07-02)
+- **WCS preview Y-axis fix** — new `reverse_y_preview` profile setting (in `machine_profile.yaml`) fixes the SVG preview for machines homing at Y_max with `homing_positive_dir: False`. Previously the SVG Y-axis was unconditionally flipped (min→bottom, max→top), causing click-to-move commands to go the wrong direction. When `reverse_y_preview: true`, Y-axis maps min→top, max→bottom, matching the physical machine orientation.
+- **Release pipeline automation** — CI workflow now triggers on `git push origin v*` tags, creating full releases with zip + stack artifact + checksum. Push-to-main creates nightly pre-releases. Stack artifact search now falls back through recent releases if the latest one doesn't have one.
+- **`bump-version.sh` creates git tags** — after bumping version files, the script now creates a `v<newver>` tag. Pushing the tag triggers the CI. Added `--no-tag` flag to skip.
+- **`package-lock.json` version synced** — `bump-version.sh` now also updates `package-lock.json`. The lockfile was stale at 0.8.4.
+- **Robust profile loading** — `useCncProfile` composable now handles socket URL not being available at mount time, with a retry watcher. All `load()` calls wrapped in `.catch()` to prevent unhandled promise rejections.
+
 
 ## v0.9.3 (2026-07-02)
 - **Version centralization** — `package.json` is now the single source of truth for version. New `bump-version.sh` syncs `_e3cnc_shared.py` and inserts a changelog stub on each bump.

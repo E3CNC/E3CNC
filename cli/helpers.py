@@ -231,7 +231,8 @@ def _download_and_activate_release(
     _step("Finding latest release")
     asset = find_stack_artifact_asset()
     if not asset:
-        fail("No stack artifact found. Create a release on GitHub first, or use a local build.")
+        warn("No stack artifact found in any recent GitHub release.")
+        fail("Trigger the release CI to build artifacts, then retry:\n    gh workflow run build-frontend.yml -f version_tag=<tag>")
     version = asset.get("name", "").replace("e3cnc-stack-", "").replace(".tar.zst", "")
     info(f"Found stack artifact: {asset.get('name', 'unknown')}")
 

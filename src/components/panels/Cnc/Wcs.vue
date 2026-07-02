@@ -113,19 +113,14 @@
                             <rect
                                 v-if="stockSizes[entry.name]"
                                 :x="toSvgX(entry.offsetX)"
-                                :y="toSvgY(entry.offsetY + stockSizes[entry.name].height)"
+                                :y="stockRectY(entry.offsetY, stockSizes[entry.name].height)"
                                 :width="
                                     Math.max(
                                         0,
                                         toSvgX(entry.offsetX + stockSizes[entry.name].width) - toSvgX(entry.offsetX)
                                     )
                                 "
-                                :height="
-                                    Math.max(
-                                        0,
-                                        toSvgY(entry.offsetY) - toSvgY(entry.offsetY + stockSizes[entry.name].height)
-                                    )
-                                "
+                                :height="stockRectHeight(entry.offsetY, stockSizes[entry.name].height)"
                                 fill="none"
                                 :stroke="entry.color"
                                 stroke-width="1.5"
@@ -133,7 +128,7 @@
                             <text
                                 v-if="stockSizes[entry.name]"
                                 :x="toSvgX(entry.offsetX + stockSizes[entry.name].width / 2)"
-                                :y="toSvgY(entry.offsetY + stockSizes[entry.name].height) - 4"
+                                :y="stockTextY(entry.offsetY, stockSizes[entry.name].height)"
                                 text-anchor="middle"
                                 :fill="entry.color"
                                 font-size="7"
@@ -164,13 +159,13 @@
                                 :x1="toSvgX(cursorInfo.x)"
                                 :y1="padding"
                                 :x2="toSvgX(cursorInfo.x)"
-                                :y2="Math.max(padding, toSvgY(cursorInfo.y + gridStep))"
+                                :y2="Math.max(padding, cursorUpY(cursorInfo.y))"
                                 stroke="rgba(var(--v-theme-on-surface), 0.45)"
                                 stroke-width="1"
                                 stroke-dasharray="3 3" />
                             <line
                                 :x1="toSvgX(cursorInfo.x)"
-                                :y1="Math.min(padding + plotHeight, toSvgY(cursorInfo.y - gridStep))"
+                                :y1="Math.min(padding + plotHeight, cursorDownY(cursorInfo.y))"
                                 :x2="toSvgX(cursorInfo.x)"
                                 :y2="padding + plotHeight"
                                 stroke="rgba(var(--v-theme-on-surface), 0.45)"
@@ -636,7 +631,7 @@ import { getCursorTooltipPosition, previewCursorStyle } from '@/components/panel
 
 const toast = useToast()
 const { klipperReadyForGui } = useBase()
-const { showWorkCoords, requireConfirmForZeroReset, requireHomingBeforeOffsets } = useCncProfile()
+const { showWorkCoords, requireConfirmForZeroReset, requireHomingBeforeOffsets, reverseYPreview } = useCncProfile()
 const store = useStore()
 
 const padding = 24
@@ -929,6 +924,11 @@ function toSvgY(machineY: number): number {
     const range = machineMaxY.value - machineMinY.value
     const h = plotHeight.value
     if (range === 0) return padding + h
+    if (reverseYPreview.value) {
+        // No flip: min → SVG top, max → SVG bottom
+        return padding + ((machineY - machineMinY.value) / range) * h
+    }
+    // Flipped (default): min → SVG bottom, max → SVG top
     return padding + h - ((machineY - machineMinY.value) / range) * h
 }
 
@@ -995,7 +995,9 @@ function svgPointToMachine(svgX: number, svgY: number): { x: number; y: number }
 
     const h = plotHeight.value
     const machineX = ((svgX - padding) / plotWidth) * rangeX + machineMinX.value
-    const machineY = ((padding + h - svgY) / h) * rangeY + machineMinY.value
+    const machineY = reverseYPreview.value
+        ? ((svgY - padding) / h) * rangeY + machineMinY.value
+        : ((padding + h - svgY) / h) * rangeY + machineMinY.value
 
     return { x: machineX, y: machineY }
 }
@@ -1004,6 +1006,37 @@ function snapToGridValue(val: number): number {
     const step = gridStep.value
     return Math.round(val / step) * step
 }
+
+// ── Template helpers for reverse Y ├───
+
+function stockRectY(offsetY: number, height: number): number {
+    if (reverseYPreview.value) return toSvgY(offsetY)
+    return toSvgY(offsetY + height)
+}
+function stockRectHeight(offsetY: number, height: number): number {
+    const y0 = toSvgY(offsetY)
+    const y1 = toSvgY(offsetY + height)
+    return reverseYPreview.value
+        ? Math.max(0, y1 - y0)
+        : Math.max(0, y0 - y1)
+}
+function stockTextY(offsetY: number, height: number): number {
+    // Label sits just above the top edge of the stock rect
+    if (reverseYPreview.value) return toSvgY(offsetY) - 4
+    return toSvgY(offsetY + height) - 4
+}
+function cursorUpY(y: number): number {
+    // SVG "up" direction (toward padding)
+    if (reverseYPreview.value) return toSvgY(y - gridStep.value)
+    return toSvgY(y + gridStep.value)
+}
+function cursorDownY(y: number): number {
+    // SVG "down" direction (toward padding + plotHeight)
+    if (reverseYPreview.value) return toSvgY(y + gridStep.value)
+    return toSvgY(y - gridStep.value)
+}
+
+// ── End helpers
 
 const snapInfo = ref<{ x: number; y: number } | null>(null)
 
