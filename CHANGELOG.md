@@ -1,10 +1,24 @@
 # Changelog
 ## v0.9.4 (2026-07-02)
-- **WCS preview Y-axis fix** — new `reverse_y_preview` profile setting (in `machine_profile.yaml`) fixes the SVG preview for machines homing at Y_max with `homing_positive_dir: False`. Previously the SVG Y-axis was unconditionally flipped (min→bottom, max→top), causing click-to-move commands to go the wrong direction. When `reverse_y_preview: true`, Y-axis maps min→top, max→bottom, matching the physical machine orientation.
-- **Release pipeline automation** — CI workflow now triggers on `git push origin v*` tags, creating full releases with zip + stack artifact + checksum. Push-to-main creates nightly pre-releases. Stack artifact search now falls back through recent releases if the latest one doesn't have one.
-- **`bump-version.sh` creates git tags** — after bumping version files, the script now creates a `v<newver>` tag. Pushing the tag triggers the CI. Added `--no-tag` flag to skip.
-- **`package-lock.json` version synced** — `bump-version.sh` now also updates `package-lock.json`. The lockfile was stale at 0.8.4.
-- **Robust profile loading** — `useCncProfile` composable now handles socket URL not being available at mount time, with a retry watcher. All `load()` calls wrapped in `.catch()` to prevent unhandled promise rejections.
+- **WCS preview Y-axis fix** — new `reverse_y_preview` profile setting (in `machine_profile.yaml`) fixes the SVG preview for machines homing at Y_max with `homing_positive_dir: False`. When `reverse_y_preview: true`, Y-axis maps min→top, max→bottom, matching the physical machine orientation.
+- **Release pipeline automation** — CI now triggers on `git push origin v*` tags, creating full releases with zip + stack artifact + checksum. Push-to-main creates nightly pre-releases. Stack artifact search falls back through older releases if the latest one doesn't have one.
+- **Nightly pre-releases** — every push to `main` creates/updates a `nightly-main-YYYYMMDD` pre-release with the frontend zip.
+- **Stack artifact guard** — CI fails before publishing if the stack artifact wasn't built.
+- **`bump-version.sh` creates git tags** — after bumping version files, the script creates a `v<newver>` tag. Added `--no-tag` flag to skip.
+- **`package-lock.json` version synced** — `bump-version.sh` now also updates `package-lock.json`.
+- **Robust profile loading** — `useCncProfile` composable handles socket URL not being available at mount time, with retry watcher and `.catch()` to prevent unhandled promise rejections.
+- **CLI bundled into stack artifact** — `e3cnc-cli` now runs from the deployed release when available (`~/e3cnc/current/cli/`), keeping CLI and stack versions in sync. Falls back to repo checkout on fresh installs.
+- **`--version` shows both versions** — when CLI version differs from deployed stack, shows both: `e3cnc CLI v0.9.2  |  Deployed stack: v0.9.3`. Same in TUI and numbered menu headers.
+- **Passwordless sudo for service management** — `ensure_sudoers()` creates `/etc/sudoers.d/e3cnc` for passwordless `systemctl restart e3cnc-*`, `supervisorctl *`, and nginx reload. Created on first restart and during Ansible bootstrap.
+- **Duplicate moonraker.conf section merge** — `fix_moonraker_config()` automatically merges duplicate `[section]` headers before restarting services.
+- **Remove `[update_manager E3CNC]` residues** — all Moonraker `update_manager` integration removed. E3CNC handles all updates via `e3cnc-cli`.
+- **Interactive uninstall per-instance** — `e3cnc-cli uninstall` shows numbered list when multiple instances exist, lets you choose which to remove (or all). `--instance` flag skips selection.
+- **Uninstall only touches E3CNC instances** — KIAUH instances never affected. Only cleans up `~/e3cnc/` layout.
+- **`prune-backups` command** — `e3cnc-cli prune-backups` removes old backups from `~/e3cnc/backups/`, keeping the 5 most recent. Supports `--keep` and `--dry-run`.
+- **Backups stored in `~/e3cnc/backups/`** — both local and remote backups save to `~/e3cnc/backups/` instead of repo root. Restore searches this path automatically.
+- **Numbered menu quit fix** — selecting quit in the numbered menu actually exits instead of re-displaying the menu.
+- **KIAUH service detection fix** — `_read_service_name()` correctly ignores unrelated entries in `moonraker.asvc` (like `klipper_mcu`) so Moonraker service name is always derived from the instance name.
+- **Issues closed**: #17 (KIAUH service detection), #20 (CLI cloned at wrong version), #21 (menu quit doesn't exit), #22 (CLI vs deployed version mismatch)
 
 
 ## v0.9.3 (2026-07-02)
