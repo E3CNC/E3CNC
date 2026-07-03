@@ -67,6 +67,17 @@ def _log(level: str, msg: str) -> None:
 INSTANCES_DIR = Path.home() / "e3cnc" / "instances"
 INSTANCES_DIR.mkdir(parents=True, exist_ok=True)
 
+# ── Bootstrap template ────────────────────────────────────────────────
+# The bootstrap moonraker.conf template is shipped in the stack artifact
+# and also lives in the repo checkout. Searched in order:
+#   1. ~/e3cnc/current/config/bootstrap/moonraker.conf (deployed release)
+#   2. <repo_root>/config/bootstrap/moonraker.conf (repo checkout)
+_BOOTSTRAP_PATH = Path.home() / "e3cnc" / "current" / "config" / "bootstrap" / "moonraker.conf"
+if not _BOOTSTRAP_PATH.exists():
+    _fallback = Path(__file__).parent / "config" / "bootstrap" / "moonraker.conf"
+    if _fallback.exists():
+        _BOOTSTRAP_PATH = _fallback
+
 # Within each instance:
 #   data/config/      → config_dir, moonraker_conf, printer_cfg
 #   data/logs/        → moonraker_log
@@ -729,33 +740,7 @@ def _create_new_instance() -> Optional[Instance]:
     while port in used_ports:
         port += 1
 
-    conf_path = data / "config" / "moonraker.conf"
-    conf_path.write_text(f"""[server]
-host: 0.0.0.0
-port: {port}
-klippy_uds_address: {data / 'comms' / 'klippy.sock'}
-
-# e3cnc_web_port: {_compute_web_port(name)}
-
-[file_manager]
-config_path: {data / 'config'}
-
-[database]
-database_path: {data / 'database'}
-
-[authorization]
-cors_domains:
-    *
-trusted_clients:
-    127.0.0.1
-    ::1
-
-[cnc_agent]
-
-[cnc_metadata]
-extractor_path: {data / 'scripts' / 'cnc_metadata_extractor.py'}
-timeout: 30
-""")
+    conf_path = _generate_minimal_moonraker_conf(data, port)
 
     printer_cfg = data / "config" / "printer.cfg"
     printer_cfg.write_text("# E3CNC bootstrap placeholder printer.cfg\n")
@@ -1260,34 +1245,30 @@ def import_kiauh_instance(kiauh_inst: Instance) -> Optional[Instance]:
         (data / "config" / "printer.cfg").write_text("# Placeholder — no KIAUH printer.cfg found\n")
 
     # Copy moonraker.conf and patch for the new paths
+    # Generate clean moonraker.conf from bootstrap template — no KIAUH config copied
+    # to avoid duplicate sections, stale paths, or invalid configuration.
     mr_conf = Path(kiauh_inst.moonraker_conf)
+    mr_port = kiauh_inst.moonraker_port
     if mr_conf.exists():
-        new_conf = data / "config" / "moonraker.conf"
-        content = mr_conf.read_text()
-        # Override paths for the new layout
-        content += f"""
+        # Extract port from KIAUH config if available
+        try:
+            text = mr_conf.read_text()
+            m = re.search(r"(?m)^port:\s*(\d+)", text)
+            if m:
+                mr_port = int(m.group(1))
+        except (OSError, ValueError):
+            pass
 
-# E3CNC instance paths (auto-generated from KIAUH import)
-[file_manager]
-config_path: {data / 'config'}
+    # Ensure unique port
+    existing_ports = {inst.moonraker_port for inst in detect_instances()}
+    port = mr_port
+    while port in existing_ports:
+        port += 1
+    if port != mr_port:
+        info(f"Port adjusted from {mr_port} to {port} (was taken)")
 
-[database]
-database_path: {data / 'database'}
-"""
-        # Update port to be unique
-        existing_ports = {inst.moonraker_port for inst in detect_instances()}
-        port = kiauh_inst.moonraker_port
-        while port in existing_ports:
-            port += 1
-        if port != kiauh_inst.moonraker_port:
-            content = content.replace(f"port: {kiauh_inst.moonraker_port}", f"port: {port}")
-            info(f"Port adjusted from {kiauh_inst.moonraker_port} to {port} (was taken)")
-
-        new_conf.write_text(content)
-        ok(f"Copied moonraker.conf from KIAUH instance '{name}'")
-    else:
-        _generate_minimal_moonraker_conf(data, kiauh_inst.moonraker_port)
-        info(f"Generated new moonraker.conf for '{name}'")
+    _generate_minimal_moonraker_conf(data, port)
+    ok(f"Generated moonraker.conf for instance '{name}'")
 
     # Persist web port in moonraker.conf
     conf_path = data / "config" / "moonraker.conf"
@@ -1338,9 +1319,21 @@ database_path: {data / 'database'}
 
 
 def _generate_minimal_moonraker_conf(data_dir: Path, port: int) -> Path:
-    """Generate a minimal moonraker.conf for a new instance."""
+    """Generate a clean moonraker.conf using the bootstrap template.
+
+    Reads the bootstrap template (config/bootstrap/moonraker.conf), fills in
+    placeholders, and writes the result to data_dir/config/moonraker.conf.
+    Ensures every instance starts from the same clean, minimal config with no
+    duplicate sections.
+    """
     conf_path = data_dir / "config" / "moonraker.conf"
-    conf_path.write_text(f"""[server]
+    conf_path.parent.mkdir(parents=True, exist_ok=True)
+
+    if not _BOOTSTRAP_PATH.exists():
+        # Absolute last resort — hardcoded minimal config
+        warn("Bootstrap template not found — using hardcoded fallback")
+        conf_path.write_text(f"""\
+[server]
 host: 0.0.0.0
 port: {port}
 klippy_uds_address: {data_dir / 'comms' / 'klippy.sock'}
@@ -1359,7 +1352,26 @@ cors_domains:
 trusted_clients:
     127.0.0.1
     ::1
+
+[cnc_agent]
+
+[cnc_metadata]
+extractor_path: {data_dir / 'scripts' / 'cnc_metadata_extractor.py'}
+timeout: 30.0
 """)
+        return conf_path
+
+    template = _BOOTSTRAP_PATH.read_text()
+    instance_name = data_dir.parent.name
+    rendered = template.format(
+        port=port,
+        klippy_uds_address=str(data_dir / "comms" / "klippy.sock"),
+        web_port=_compute_web_port(instance_name),
+        config_path=str(data_dir / "config"),
+        database_path=str(data_dir / "database"),
+        extractor_path=str(data_dir / "scripts" / "cnc_metadata_extractor.py"),
+    )
+    conf_path.write_text(rendered)
     return conf_path
 
 

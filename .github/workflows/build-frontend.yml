@@ -132,6 +132,9 @@ jobs:
           cp -r cli "${STACK_DIR}/cli"
           cp _e3cnc_shared.py _e3cnc_deploy.py _e3cnc_supervisor.py "${STACK_DIR}/"
 
+          # Bootstrap template
+          cp -r config/bootstrap "${STACK_DIR}/config/bootstrap"
+
           # Theme
           cp theme.json "${STACK_DIR}/"
 
