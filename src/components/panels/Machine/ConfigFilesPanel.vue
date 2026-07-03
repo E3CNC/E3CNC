@@ -118,6 +118,7 @@
                 :headers="headers"
                 disable-sort
                 :items-per-page-options="itemsPerPageOptions as any"
+                :key="files.length"
                 :mobile-breakpoint="0"
                 item-key="filename">
                 <template #header.filename>
