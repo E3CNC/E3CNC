@@ -9,7 +9,7 @@
             muted
             playsinline
             @loadedmetadata="onLoadedMetadata" />
-        <webcam-nozzle-crosshair v-if="nozzleCrosshair" :webcam="camSettings" />
+        <!-- Crosshair slot -->
         <v-row v-if="status !== 'connected'">
             <v-col class="_webcam_webrtc_output text-center d-flex flex-column justify-center align-center">
                 <v-progress-circular v-if="status === 'connecting'" indeterminate color="primary" class="mb-3" />
@@ -24,7 +24,6 @@ import { ref, computed, watch, onBeforeUnmount } from 'vue'
 import { useStore } from 'vuex'
 import { useWebcam } from '@/composables/useWebcam'
 import { capitalize } from '@/plugins/helpers'
-import WebcamNozzleCrosshair from '@/components/webcams/WebcamNozzleCrosshair.vue'
 
 interface CameraStreamerResponse extends RTCSessionDescriptionInit {
     id: string
@@ -60,8 +59,6 @@ const webcamStyle = computed(() => ({
         aspectRatio.value ?? 1
     ),
 }))
-
-const nozzleCrosshair = computed(() => props.camSettings.extra_data?.nozzleCrosshair ?? false)
 
 const expanded = computed(() => {
     if (props.page !== 'dashboard') return true

@@ -36,9 +36,6 @@ export const actions: ActionTree<SocketState, RootState> = {
 
         // init server
         dispatch('server/init', null, { root: true })
-
-        if (!rootState?.server?.updateManager?.updateResponse.complete)
-            commit('server/updateManager/setStatus', { busy: false }, { root: true })
     },
 
     onClose({ commit }: ActionContext<SocketState, RootState>) {
@@ -92,14 +89,6 @@ export const actions: ActionTree<SocketState, RootState> = {
                 commit('server/power/setStatus', payload.params[0], { root: true })
                 break
 
-            case 'notify_update_response':
-                commit('server/updateManager/addUpdateResponse', payload.params[0], { root: true })
-                break
-
-            case 'notify_update_refreshed':
-                dispatch('server/updateManager/onUpdateStatus', payload.params[0], { root: true })
-                break
-
             case 'notify_history_changed':
                 dispatch('server/history/getChanged', payload.params[0], { root: true })
                 break
@@ -114,18 +103,6 @@ export const actions: ActionTree<SocketState, RootState> = {
 
             case 'notify_job_queue_changed':
                 dispatch('server/jobQueue/getEvent', payload.params[0], { root: true })
-                break
-
-            case 'notify_announcement_update':
-                dispatch('server/announcements/getList', payload.params[0], { root: true })
-                break
-
-            case 'notify_announcement_dismissed':
-                dispatch('server/announcements/getDismissed', payload.params[0], { root: true })
-                break
-
-            case 'notify_announcement_wake':
-                dispatch('server/announcements/getWaked', payload.params[0], { root: true })
                 break
 
             case 'notify_webcams_changed':

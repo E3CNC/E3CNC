@@ -1,6 +1,5 @@
 import { GetterTree } from 'vuex'
 import type { GuiNotificationState, GuiNotificationStateDismissEntry, GuiNotificationStateEntry } from './types'
-import { ServerAnnouncementsStateEntry } from '@/store/server/announcements/types'
 import i18n from '@/plugins/i18n.js'
 import { RootState, RootStateDependency } from '@/store/types'
 import { sha256 } from 'js-sha256'
@@ -13,9 +12,6 @@ import type { GuiMaintenanceStateEntry } from '@/store/gui/maintenance/types'
 export const getters: GetterTree<GuiNotificationState, RootState> = {
     getNotifications: (state: GuiNotificationState, getters: any) => {
         let notifications: GuiNotificationStateEntry[] = []
-
-        // moonraker announcements
-        notifications = notifications.concat(getters['getNotificationsAnnouncements'])
 
         // rpi flag notifications
         notifications = notifications.concat(getters['getNotificationsFlags'])
@@ -56,28 +52,6 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
 
             return b.date.getTime() - a.date.getTime()
         })
-    },
-
-    getNotificationsAnnouncements: (state: GuiNotificationState, getters: any, rootState: RootState, rootGetters: any) => {
-        const notifications: GuiNotificationStateEntry[] = []
-
-        // moonraker announcements
-        const announcements = rootGetters['server/announcements/getAnnouncements']
-        if (announcements.length) {
-            announcements.forEach((entry: ServerAnnouncementsStateEntry) => {
-                notifications.push({
-                    id: 'announcement/' + entry.entry_id,
-                    priority: entry.priority,
-                    title: entry.title,
-                    description: entry.description,
-                    date: entry.date,
-                    dismissed: entry.dismissed,
-                    url: entry.url,
-                } as GuiNotificationStateEntry)
-            })
-        }
-
-        return notifications
     },
 
     getNotificationsFlags: (state: GuiNotificationState, getters: any, rootState: RootState, rootGetters: any) => {

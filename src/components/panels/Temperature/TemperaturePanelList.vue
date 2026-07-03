@@ -27,11 +27,6 @@
                         :object-name="objectName"
                         :input-digits="inputFieldDigits"
                         :is-responsive-mobile="el.is.mobile ?? false" />
-                    <temperature-panel-list-item-nevermore
-                        v-for="objectName in nevermoreObjects"
-                        :key="objectName"
-                        :object-name="objectName"
-                        :is-responsive-mobile="el.is.mobile ?? false" />
                     <temperature-panel-list-item
                         v-for="objectName in temperature_sensors"
                         :key="objectName"
@@ -75,12 +70,6 @@ const temperature_fans = computed(() =>
 const monitors = computed(() => [...available_monitors.value].sort(sortObjectName))
 
 const filteredHeaters = computed(() => filterNamesAndSort(available_heaters.value))
-
-const available_nevermores = computed(() =>
-    Object.keys(store.state.printer).filter((name) => name.startsWith('nevermore'))
-)
-
-const nevermoreObjects = computed(() => filterNamesAndSort(available_nevermores.value))
 
 const temperature_sensors = computed(() =>
     filterNamesAndSort(available_sensors.value).filter((fullName: string) => {

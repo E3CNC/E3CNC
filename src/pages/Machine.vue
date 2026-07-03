@@ -7,7 +7,6 @@
             <v-col class="v-col-12 v-col-md-6 pt-0 pt-md-3">
                 <klippy-state-panel></klippy-state-panel>
                 <system-panel></system-panel>
-                <update-panel></update-panel>
                 <v-row>
                     <v-col v-if="klipperState === 'ready'" class="v-col-12 v-col-sm-6 pb-0 pb-md-3">
                         <endstop-panel></endstop-panel>
@@ -23,7 +22,6 @@
 <script setup lang="ts">
 import { useBase } from '@/composables/useBase'
 import KlippyStatePanel from '@/components/panels/KlippyStatePanel.vue'
-import UpdatePanel from '@/components/panels/Machine/UpdatePanel.vue'
 import LogfilesPanel from '@/components/panels/Machine/LogfilesPanel.vue'
 import EndstopPanel from '@/components/panels/Machine/EndstopPanel.vue'
 import ConfigFilesPanel from '@/components/panels/Machine/ConfigFilesPanel.vue'

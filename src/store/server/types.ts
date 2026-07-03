@@ -1,5 +1,4 @@
 import { ServerPowerState } from '@/store/server/power/types'
-import { ServerUpdateManagerState } from '@/store/server/updateManager/types'
 import { ServerHistoryState } from '@/store/server/history/types'
 import { ServerTimelapseState } from '@/store/server/timelapse/types'
 
@@ -61,7 +60,6 @@ export interface ServerState {
     console_cleared_this_session?: boolean
 
     power?: ServerPowerState
-    updateManager?: ServerUpdateManagerState
     history?: ServerHistoryState
     timelapse?: ServerTimelapseState
 }

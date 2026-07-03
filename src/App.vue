@@ -9,12 +9,10 @@
                 </v-container>
             </v-main>
             <the-service-worker />
-            <the-update-dialog />
             <the-editor />
             <the-timelapse-rendering-snackbar />
             <the-fullscreen-upload />
             <the-upload-snackbar />
-            <the-manual-probe-dialog />
             <the-macro-prompt />
         </template>
         <the-select-printer-dialog v-else-if="instancesDB !== 'moonraker'" />
@@ -47,7 +45,6 @@ import { useTheme } from '@/composables/useTheme'
 import { useSocket } from '@/composables/useSocket'
 import TheSidebar from '@/components/TheSidebar.vue'
 import TheTopbar from '@/components/TheTopbar.vue'
-import TheUpdateDialog from '@/components/TheUpdateDialog.vue'
 import TheConnectingDialog from '@/components/TheConnectingDialog.vue'
 import TheSelectPrinterDialog from '@/components/TheSelectPrinterDialog.vue'
 import TheEditor from '@/components/TheEditor.vue'
@@ -55,7 +52,6 @@ import { panelToolbarHeight, topbarHeight, navigationItemHeight } from '@/store/
 import TheTimelapseRenderingSnackbar from '@/components/TheTimelapseRenderingSnackbar.vue'
 import TheFullscreenUpload from '@/components/TheFullscreenUpload.vue'
 import TheUploadSnackbar from '@/components/TheUploadSnackbar.vue'
-import TheManualProbeDialog from '@/components/dialogs/TheManualProbeDialog.vue'
 import { setAndLoadLocale } from './plugins/i18n'
 import TheMacroPrompt from '@/components/dialogs/TheMacroPrompt.vue'
 import { mdiChevronUp } from '@mdi/js'
@@ -375,7 +371,6 @@ onMounted((): void => {
 @import './assets/styles/page.css';
 @import './assets/styles/sidebar.css';
 @import './assets/styles/utils.css';
-@import './assets/styles/updateManager.css';
 
 .scroll-to-top-btn {
     position: fixed;

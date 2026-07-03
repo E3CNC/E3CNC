@@ -13,7 +13,7 @@
         <span v-if="status === 'connected' && showFpsCounter" class="webcamFpsOutput">
             {{ $t('Panels.WebcamPanel.FPS') }}: {{ fpsOutput }}
         </span>
-        <webcam-nozzle-crosshair v-if="showNozzleCrosshair" :webcam="camSettings" />
+        <!-- Crosshair slot -->
         <v-row v-if="status !== 'connected'">
             <v-col class="_webcam_mjpegstreamer_output text-center d-flex flex-column justify-center align-center">
                 <v-progress-circular v-if="status === 'connecting'" indeterminate color="primary" class="mb-3" />
@@ -27,7 +27,6 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useWebcam } from '@/composables/useWebcam'
-import WebcamNozzleCrosshair from '@/components/webcams/WebcamNozzleCrosshair.vue'
 
 const props = defineProps({
     camSettings: { type: Object, required: true },
@@ -80,11 +79,6 @@ const showFpsCounter = computed(() => {
 const url = computed(() => convertUrl(props.camSettings?.snapshot_url, props.printerUrl))
 
 const isVisible = computed(() => isVisibleDocument.value && isVisibleViewport.value)
-
-const showNozzleCrosshair = computed(() => {
-    const nozzleCrosshair = props.camSettings.extra_data?.nozzleCrosshair ?? false
-    return nozzleCrosshair && status.value === 'connected'
-})
 
 onMounted(() => {
     document.addEventListener('visibilitychange', documentVisibilityChanged)

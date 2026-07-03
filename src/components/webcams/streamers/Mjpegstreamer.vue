@@ -12,7 +12,7 @@
         <span v-if="showFpsCounter && status === 'connected'" class="webcamFpsOutput">
             {{ $t('Panels.WebcamPanel.FPS') }}: {{ fpsOutput }}
         </span>
-        <webcam-nozzle-crosshair v-if="showNozzleCrosshair" :webcam="camSettings" />
+        <!-- Crosshair slot -->
         <v-row v-if="status !== 'connected'">
             <v-col class="_webcam_mjpegstreamer_output text-center d-flex flex-column justify-center align-center">
                 <v-progress-circular v-if="status === 'connecting'" indeterminate color="primary" class="mb-3" />
@@ -27,7 +27,6 @@ import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 import { useWebcam } from '@/composables/useWebcam'
-import WebcamNozzleCrosshair from '@/components/webcams/WebcamNozzleCrosshair.vue'
 
 const CONTENT_LENGTH = 'content-length'
 
@@ -82,11 +81,6 @@ const showFpsCounter = computed(() => {
 const expanded = computed(() => {
     if (props.page !== 'dashboard') return true
     return store.getters['gui/getPanelExpand']('webcam-panel', viewport.value) ?? false
-})
-
-const showNozzleCrosshair = computed(() => {
-    const nozzleCrosshair = props.camSettings.extra_data?.nozzleCrosshair ?? false
-    return nozzleCrosshair && status.value === 'connected'
 })
 
 watch(

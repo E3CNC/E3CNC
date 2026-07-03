@@ -13,7 +13,6 @@ export const actions: ActionTree<ServerState, RootState> = {
 
         commit('reset')
         dispatch('power/reset')
-        dispatch('updateManager/reset')
     },
 
     async init({ commit, dispatch, rootState }: ActionContext<ServerState, RootState>) {

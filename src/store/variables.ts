@@ -43,10 +43,8 @@ export const validGcodeExtensions = ['.gcode', '.g', '.gco', '.ufp', '.nc']
 export const initableServerComponents = [
     'history',
     'power',
-    'updateManager',
     'timelapse',
     'jobQueue',
-    'announcements',
     'spoolman',
     'sensor',
 ]
