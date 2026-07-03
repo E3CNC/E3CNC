@@ -109,7 +109,7 @@
             </v-card-text>
             <v-divider />
             <v-data-table
-                v-if="!showMissingConfigRootWarning && panelMounted"
+                v-if="!showMissingConfigRootWarning"
                 v-model="selectedFiles"
                 v-model:page="currentPage"
                 v-model:items-per-page="countPerPage"
@@ -191,7 +191,7 @@
                         <td class="text-no-wrap text-center text-caption text-grey" style="width: 80px">
                             {{ item.isDirectory ? 'folder' : getFileTypeLabel(item.filename) }}
                         </td>
-                        <td class="text-right">{{ item.modified ? formatDateTime(item.modified.getTime()) : '--' }}</td>
+                        <td class="text-right">{{ item.modified instanceof Date ? formatDateTime(item.modified.getTime()) : '--' }}</td>
                     </tr>
                 </template>
                 <template #bottom>
@@ -671,9 +671,6 @@ const socket = useSocket()
 const { loadings, apiUrl, formatDateTime } = useBase()
 const { machineButtonCol } = useTheme()
 const toast = useToast()
-
-const panelMounted = ref(false)
-onMounted(() => { panelMounted.value = true })
 
 const inputDialogCreateFileName = ref<FocusableRef | null>(null)
 const inputDialogRenameFileName = ref<FocusableRef | null>(null)
