@@ -164,6 +164,15 @@ async function refreshCncMetadata() {
         return
     }
 
+    // Skip fetch if the .cnc-meta.json sidecar doesn't exist in the
+    // Moonraker file listing — avoids browser console 404 noise.
+    const metaFilename = `${filename}.cnc-meta.json`
+    if (!store.getters['files/getFile']('gcodes/' + metaFilename)) {
+        cncMetadataViewModel.value = null
+        cncMetadataLoading.value = false
+        return
+    }
+
     cncMetadataLoading.value = true
     const apiUrl = store.getters['socket/getUrl']
     const metadata = await loadCncMetadata(apiUrl, filename)
