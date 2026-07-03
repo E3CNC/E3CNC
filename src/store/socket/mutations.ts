@@ -24,6 +24,11 @@ export const mutations: MutationTree<SocketState> = {
         if (message) state.connectionFailedMessage = message
     },
 
+    setReconnecting(state: SocketState, val: boolean) {
+        state.reconnecting = val
+        state.reconnectAttempts = val ? state.reconnectAttempts + 1 : 0
+    },
+
     setData(state: SocketState, payload: any) {
         if ('socket' in payload) payload = payload.socket
 

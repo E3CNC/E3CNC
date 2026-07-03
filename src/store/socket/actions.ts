@@ -1,7 +1,7 @@
 import { ActionContext, ActionTree } from 'vuex'
 import { SocketState } from '@/store/socket/types'
 import { RootState } from '@/store/types'
-import { getSocket } from '@/store/runtime'
+import { getSocket, $toast } from '@/store/runtime'
 
 export const actions: ActionTree<SocketState, RootState> = {
     reset({ commit }: ActionContext<SocketState, RootState>) {
@@ -40,6 +40,22 @@ export const actions: ActionTree<SocketState, RootState> = {
 
     onClose({ commit }: ActionContext<SocketState, RootState>) {
         commit('setDisconnected')
+    },
+
+    onReconnecting({ commit, dispatch }: ActionContext<SocketState, RootState>) {
+        commit('setReconnecting', true)
+        $toast.info('Connection lost — reconnecting...', { duration: 4000 })
+    },
+
+    onReconnected({ commit, dispatch }: ActionContext<SocketState, RootState>) {
+        commit('setReconnecting', false)
+        commit('setConnected')
+        $toast.success('Connection restored', { duration: 3000 })
+        // Full server re-initialization after reconnect
+        dispatch('server/reset', null, { root: true })
+        dispatch('server/init', null, { root: true })
+        dispatch('printer/reset', null, { root: true })
+        dispatch('printer/init', null, { root: true })
     },
 
     onMessage({ commit, dispatch }: ActionContext<SocketState, RootState>, payload: any) {

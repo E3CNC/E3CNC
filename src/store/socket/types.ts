@@ -11,4 +11,6 @@ export interface SocketState {
     loadings: string[]
     initializationList: string[]
     connection_id: number | null
+    reconnectAttempts: number
+    reconnecting: boolean
 }

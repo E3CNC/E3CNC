@@ -555,3 +555,34 @@ class TestGenerateMinimalMoonrakerConf:
 
         text = conf_path.read_text()
         assert "{" not in text, f"Unrendered placeholders: {text}"
+
+    def test_no_duplicate_sections(self, tmp_path):
+        """Generated config must not have duplicate section headers (root cause of #23)."""
+        from _e3cnc_shared import _generate_minimal_moonraker_conf
+
+        # Use the real bootstrap template
+        data_dir = tmp_path / "testinst" / "data"
+        conf_path = _generate_minimal_moonraker_conf(data_dir, 8000)
+        text = conf_path.read_text()
+
+        lines = text.splitlines()
+        seen_sections = set()
+        for line in lines:
+            line = line.strip()
+            if line.startswith("[") and line.endswith("]"):
+                section = line.lower()
+                assert section not in seen_sections, \
+                    f"Duplicate section {line} in generated config:\n{text}"
+                seen_sections.add(section)
+
+    def test_file_manager_and_database_once(self, tmp_path):
+        """[file_manager] and [database] should appear exactly once each."""
+        from _e3cnc_shared import _generate_minimal_moonraker_conf
+        data_dir = tmp_path / "testinst" / "data"
+        conf_path = _generate_minimal_moonraker_conf(data_dir, 8000)
+        text = conf_path.read_text()
+
+        for section in ("[file_manager]", "[database]", "[server]", "[authorization]"):
+            count = text.count(section)
+            assert count == 1, \
+                f"Section {section} appears {count} times (expected 1):\n{text}"

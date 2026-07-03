@@ -10,8 +10,9 @@ type StoreLike = {
 export class WebSocketClient {
     url = ''
     instance: WebSocket | null = null
-    maxReconnects = 5
+    maxReconnects = 9999
     reconnectInterval = 1000
+    maxReconnectInterval = 30000
     reconnects = 0
     keepAliveTimeout = 1000
     messageId: number = 0
@@ -19,6 +20,7 @@ export class WebSocketClient {
     store: StoreLike | null = null
     waits: Wait[] = []
     heartbeatTimer: number | null = null
+    wasCleanClose = false
 
     constructor(options: WebSocketPluginOptions) {
         this.url = options.url
@@ -96,20 +98,32 @@ export class WebSocketClient {
         this.instance = new WebSocket(this.url)
 
         this.instance.onopen = () => {
+            const wasReconnecting = this.reconnects > 0
             this.reconnects = 0
-            this.store?.dispatch('socket/onOpen', {})
+            this.wasCleanClose = false
+            if (wasReconnecting) {
+                this.store?.dispatch('socket/onReconnected', {})
+            } else {
+                this.store?.dispatch('socket/onOpen', {})
+            }
         }
 
         this.instance.onclose = (e) => {
-            if (e.wasClean || this.reconnects >= this.maxReconnects) {
+            if (this.wasCleanClose || this.reconnects >= this.maxReconnects) {
                 this.store?.dispatch('socket/onClose', e)
                 return
             }
 
             this.reconnects++
+            // Exponential backoff: 1s, 2s, 4s, 8s, ... up to 30s
+            const delay = Math.min(
+                this.reconnectInterval * Math.pow(2, this.reconnects - 1),
+                this.maxReconnectInterval
+            )
+            this.store?.dispatch('socket/onReconnecting', {})
             setTimeout(() => {
                 this.connect()
-            }, this.reconnectInterval)
+            }, delay)
         }
 
         this.instance.onerror = () => {
@@ -134,6 +148,7 @@ export class WebSocketClient {
     }
 
     close(): void {
+        this.wasCleanClose = true
         this.instance?.close()
     }
 
