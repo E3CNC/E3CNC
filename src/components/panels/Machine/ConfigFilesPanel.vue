@@ -109,7 +109,7 @@
             </v-card-text>
             <v-divider />
             <v-data-table
-                v-if="!showMissingConfigRootWarning"
+                v-if="!showMissingConfigRootWarning && panelMounted"
                 v-model="selectedFiles"
                 v-model:page="currentPage"
                 v-model:items-per-page="countPerPage"
@@ -671,6 +671,9 @@ const socket = useSocket()
 const { loadings, apiUrl, formatDateTime } = useBase()
 const { machineButtonCol } = useTheme()
 const toast = useToast()
+
+const panelMounted = ref(false)
+onMounted(() => { panelMounted.value = true })
 
 const inputDialogCreateFileName = ref<FocusableRef | null>(null)
 const inputDialogRenameFileName = ref<FocusableRef | null>(null)
