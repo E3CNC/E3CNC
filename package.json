@@ -1,6 +1,6 @@
 {
     "name": "E3CNC",
-    "version": "0.9.7",
+    "version": "0.9.8",
     "private": true,
     "type": "module",
     "description": "A web interface for Klipper-based CNC machines",

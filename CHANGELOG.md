@@ -1,4 +1,15 @@
 # Changelog
+## v0.9.8 (2026-07-03)
+- **Bootstrap moonraker.conf template** — new `config/bootstrap/moonraker.conf` is the single source of truth for new instance configuration. Every instance generates its moonraker.conf from this template, eliminating duplicate sections and configuration drift. Template is bundled in the stack artifact.
+- **KIAUH import rewritten** — no longer copies the KIAUH moonraker.conf (which caused duplicate `[file_manager]`/`[database]` sections). Instead extracts only the port number and generates a clean config from the bootstrap template. Original KIAUH files are never modified.
+- **Mainsail user preferences imported** — `_import_moonraker_prefs()` copies all GUI state (dashboard layout, theme, panel config, console history, webcam settings) from the KIAUH instance's Moonraker SQLite database into the new E3CNC instance.
+- **zstd dependency check** — `run_pre_flight_checks()` and `extract_artifact()` now check for `zstd` before attempting extraction, with a clear install command instead of a cryptic `tar: zstd: Cannot exec` error. Closes #24.
+- **3D-printing features removed** — Nevermore sensor, manual probe dialog, nozzle crosshair, UpdateManager store + UpdatePanel, Announcements store. 27 files, 2,327 lines removed.
+- **CLI command registry centralized** — single `COMMAND_HANDLERS` dict in `cli/commands.py` instead of 3 separate dispatch dictionaries. `menu_args_factory()` replaces the bare `_Fake` class.
+- **Numbered menu shortcuts fixed** — typing `s` for Status or `i` for Install now works correctly in the numbered menu fallback.
+- **Cancel/back options in switch instance** — numbered instance switch now shows a Cancel option; create instance prompt says "(Enter to cancel)".
+- Tests: 450 passing across 9 test files (+9 from v0.9.7).
+
 ## v0.9.7 (2026-07-02)
 - **CLI command registry centralization** — all commands registered in a single `COMMAND_HANDLERS` dict in `cli/commands.py`, eliminating 3 separate dispatch dictionaries that had to be kept in sync manually. New commands only need adding in one place.
 - **`menu_args_factory()`** — replaced the bare `_Fake` class with a proper args factory that pre-configures all attributes to safe defaults. Prevents `AttributeError` crashes when command handlers expect missing attributes.
