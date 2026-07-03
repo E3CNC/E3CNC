@@ -117,11 +117,7 @@
                 class="files-table"
                 :headers="headers"
                 disable-sort
-                :footer-props="{
-                    itemsPerPageText: $t('Machine.ConfigFilesPanel.Files'),
-                    itemsPerPageAllText: $t('Machine.ConfigFilesPanel.AllFiles'),
-                    itemsPerPageOptions: [10, 25, 50, 100, -1],
-                }"
+                :items-per-page-options="itemsPerPageOptions as any"
                 :mobile-breakpoint="0"
                 item-key="filename">
                 <template #header.filename>
@@ -194,7 +190,7 @@
                         <td class="text-no-wrap text-center text-caption text-grey" style="width: 80px">
                             {{ item.isDirectory ? 'folder' : getFileTypeLabel(item.filename) }}
                         </td>
-                        <td class="text-right">{{ formatDateTime(item.modified.getTime()) }}</td>
+                        <td class="text-right">{{ item.modified ? formatDateTime(item.modified.getTime()) : '--' }}</td>
                     </tr>
                 </template>
                 <template #bottom>
