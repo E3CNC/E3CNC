@@ -97,8 +97,10 @@ const bigThumbnailUrl = computed(() => {
     return buildUrl(bigThumbnail.value.relative_path)
 })
 
-const displayThumbnailUrl = computed<string | undefined>(() =>
-    (props.variant === 'card' ? (bigThumbnailUrl.value ?? smallThumbnailUrl.value) : smallThumbnailUrl.value) ?? undefined
+const displayThumbnailUrl = computed<string | undefined>(
+    () =>
+        (props.variant === 'card' ? (bigThumbnailUrl.value ?? smallThumbnailUrl.value) : smallThumbnailUrl.value) ??
+        undefined
 )
 
 const displayThumbnailFailed = computed(() =>

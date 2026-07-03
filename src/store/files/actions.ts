@@ -312,7 +312,10 @@ export const actions: ActionTree<FileState, RootState> = {
         }
     },
 
-    async uploadFile({ commit, rootGetters }: ActionContext<FileState, RootState>, payload: { file: File; path: string; root: 'gcodes' | 'config' }) {
+    async uploadFile(
+        { commit, rootGetters }: ActionContext<FileState, RootState>,
+        payload: { file: File; path: string; root: 'gcodes' | 'config' }
+    ) {
         const apiUrl = rootGetters['socket/getUrl']
         const formData = new FormData()
         formData.append('file', payload.file, payload.file.name)

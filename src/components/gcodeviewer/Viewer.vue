@@ -216,12 +216,7 @@
             </div>
             <v-progress-linear class="mt-2" :model-value="loadingPercent"></v-progress-linear>
             <template #actions>
-                <v-btn
-                    :icon="mdiClose"
-                    color="red"
-                    variant="text"
-                    style="min-width: auto"
-                    @click="cancelRendering()" />
+                <v-btn :icon="mdiClose" color="red" variant="text" style="min-width: auto" @click="cancelRendering()" />
             </template>
         </v-snackbar>
         <v-snackbar v-model="downloadSnackbar.status" :timeout="-1" location="bottom right">
@@ -243,12 +238,7 @@
                 <v-progress-linear class="mt-2" indeterminate />
             </template>
             <template #actions>
-                <v-btn
-                    :icon="mdiClose"
-                    color="red"
-                    variant="text"
-                    style="min-width: auto"
-                    @click="cancelDownload" />
+                <v-btn :icon="mdiClose" color="red" variant="text" style="min-width: auto" @click="cancelDownload" />
             </template>
         </v-snackbar>
     </div>

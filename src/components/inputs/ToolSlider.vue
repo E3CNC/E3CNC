@@ -178,8 +178,7 @@ watch(
     () => props.max,
     (to: number | undefined) => {
         if (to === undefined) return
-        processedMax.value =
-            to > _value.value ? to : Math.ceil(_value.value / dynamicStep.value) * dynamicStep.value
+        processedMax.value = to > _value.value ? to : Math.ceil(_value.value / dynamicStep.value) * dynamicStep.value
     },
     { immediate: true }
 )

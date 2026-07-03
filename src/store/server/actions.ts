@@ -190,7 +190,10 @@ export const actions: ActionTree<ServerState, RootState> = {
         commit('setKlippyStateTimer', null)
     },
 
-    checkKlippyState({ commit, dispatch }: ActionContext<ServerState, RootState>, payload: { state: string; state_message: string | null }) {
+    checkKlippyState(
+        { commit, dispatch }: ActionContext<ServerState, RootState>,
+        payload: { state: string; state_message: string | null }
+    ) {
         commit('setKlippyState', payload.state)
         commit('setKlippyMessage', payload.state_message)
 

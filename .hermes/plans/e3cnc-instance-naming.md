@@ -46,16 +46,16 @@ That's ~120 lines of probing code just to answer "what instances exist on this m
 
 ### Instance naming rules
 
-| Rule | Value |
-|---|---|
-| Characters | `[a-z0-9-]+` — lowercase, hyphens, digits only |
-| Name `default` | Reserved for the primary instance (port 7125) |
-| Port | `7125 + N` where N is index in sorted instance list, or stored in manifest |
-| Web root | `~/e3cnc/instances/{name}/frontend/` |
-| Data dir | `~/e3cnc/instances/{name}/data/` |
-| Moonraker service | `e3cnc-{name}-moonraker` |
-| Klipper service | `e3cnc-{name}-klipper` |
-| nginx server_name | `{name}.e3cnc.local` |
+| Rule              | Value                                                                      |
+| ----------------- | -------------------------------------------------------------------------- |
+| Characters        | `[a-z0-9-]+` — lowercase, hyphens, digits only                             |
+| Name `default`    | Reserved for the primary instance (port 7125)                              |
+| Port              | `7125 + N` where N is index in sorted instance list, or stored in manifest |
+| Web root          | `~/e3cnc/instances/{name}/frontend/`                                       |
+| Data dir          | `~/e3cnc/instances/{name}/data/`                                           |
+| Moonraker service | `e3cnc-{name}-moonraker`                                                   |
+| Klipper service   | `e3cnc-{name}-klipper`                                                     |
+| nginx server_name | `{name}.e3cnc.local`                                                       |
 
 ### Moonraker/Klipper binary dirs
 
@@ -112,18 +112,18 @@ Total: ~20 lines instead of ~120.
 
 ### What gets deleted
 
-| Function | Lines | Replaced by |
-|---|---|---|
-| `detect_instances()` | 16 | 7 lines above |
-| `select_instance()` | 31 | argparse default, or first-found |
-| `_instance_name_from_printer_data()` | 12 | Deleted — name = folder name |
-| `_default_service_name()` | 8 | Deleted — `f"e3cnc-{name}-moonraker"` inline |
-| `_read_service_name()` | 22 | Deleted — no .asvc probing |
-| `_read_python_service_dir()` | 12 | Deleted — dir from active release |
-| `_read_moonraker_port()` | 7 | Deleted — deterministic port from index |
-| `_default_web_root()` | 12+ | Deleted — `base / "frontend"` |
-| `from_printer_data()` | 45 | Replaced by `from_name()` ~30 lines |
-| `instance_extra_vars()` | 12 | Simplified — all paths known |
+| Function                             | Lines | Replaced by                                  |
+| ------------------------------------ | ----- | -------------------------------------------- |
+| `detect_instances()`                 | 16    | 7 lines above                                |
+| `select_instance()`                  | 31    | argparse default, or first-found             |
+| `_instance_name_from_printer_data()` | 12    | Deleted — name = folder name                 |
+| `_default_service_name()`            | 8     | Deleted — `f"e3cnc-{name}-moonraker"` inline |
+| `_read_service_name()`               | 22    | Deleted — no .asvc probing                   |
+| `_read_python_service_dir()`         | 12    | Deleted — dir from active release            |
+| `_read_moonraker_port()`             | 7     | Deleted — deterministic port from index      |
+| `_default_web_root()`                | 12+   | Deleted — `base / "frontend"`                |
+| `from_printer_data()`                | 45    | Replaced by `from_name()` ~30 lines          |
+| `instance_extra_vars()`              | 12    | Simplified — all paths known                 |
 
 Total removed: ~170 lines of probing code.
 Total added: ~35 lines of deterministic path construction.
@@ -135,7 +135,7 @@ Current `cmd_install` runs Ansible with `instance_extra_vars` that feeds KIAUH p
 ```yaml
 - name: Create instance directory tree
   file:
-    path: "{{ e3cnc_root }}/instances/{{ instance_name }}/{{ item }}"
+    path: '{{ e3cnc_root }}/instances/{{ instance_name }}/{{ item }}'
     state: directory
   loop:
     - data/config
@@ -202,10 +202,10 @@ For each detected `printer_{name}_data` or `printer_data_{name}`:
 
 ### Name mapping
 
-| Old path | New name |
-|---|---|
-| `~/printer_data` | `default` |
-| `~/printer_test1_data` | `test1` |
+| Old path                    | New name                                                             |
+| --------------------------- | -------------------------------------------------------------------- |
+| `~/printer_data`            | `default`                                                            |
+| `~/printer_test1_data`      | `test1`                                                              |
 | `~/printer_production_data` | by convention, but KIAUH uses `printer_<name>_data` → name = segment |
 
 ## CLI changes

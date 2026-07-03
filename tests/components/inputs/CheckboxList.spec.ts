@@ -104,7 +104,7 @@ describe('CheckboxList.vue', () => {
     })
 
     it('selectAll checkbox is indeterminate when some options are selected', async () => {
-        const wrapper: any = shallowMount(CheckboxList, {
+        const wrapper: any = (shallowMount(CheckboxList, {
             props: { options, selectAll: true },
             global: {
                 mocks: { $t: (key: string) => key },
@@ -118,10 +118,10 @@ describe('CheckboxList.vue', () => {
                     'v-divider': { name: 'VDivider', template: '<hr class="v-divider-stub" />' },
                 },
             },
-        })
-
-        // Select the first option
-        (wrapper.vm as any).selectedCheckboxes = ['a']
+        })(
+            // Select the first option
+            wrapper.vm as any
+        ).selectedCheckboxes = ['a'])
         await wrapper.vm.$nextTick()
 
         // selectAllModel should be false (not all selected)
@@ -131,7 +131,7 @@ describe('CheckboxList.vue', () => {
     })
 
     it('selectAll checkbox is checked when all options are selected', async () => {
-        const wrapper: any = shallowMount(CheckboxList, {
+        const wrapper: any = (shallowMount(CheckboxList, {
             props: { options, selectAll: true },
             global: {
                 mocks: { $t: (key: string) => key },
@@ -145,9 +145,7 @@ describe('CheckboxList.vue', () => {
                     'v-divider': { name: 'VDivider', template: '<hr class="v-divider-stub" />' },
                 },
             },
-        })
-
-        (wrapper.vm as any).selectedCheckboxes = ['a', 'b', 'c']
+        })(wrapper.vm as any).selectedCheckboxes = ['a', 'b', 'c'])
         await wrapper.vm.$nextTick()
 
         expect((wrapper.vm as any).selectAllModel).toBe(true)
@@ -155,7 +153,7 @@ describe('CheckboxList.vue', () => {
     })
 
     it('selectAll toggles all options when clicked', async () => {
-        const wrapper: any = shallowMount(CheckboxList, {
+        const wrapper: any = (shallowMount(CheckboxList, {
             props: { options, selectAll: true },
             global: {
                 mocks: { $t: (key: string) => key },
@@ -169,23 +167,23 @@ describe('CheckboxList.vue', () => {
                     'v-divider': { name: 'VDivider', template: '<hr class="v-divider-stub" />' },
                 },
             },
-        })
-
-        // Select all via selectAllModel setter
-        (wrapper.vm as any).selectAllModel = true
+        })(
+            // Select all via selectAllModel setter
+            wrapper.vm as any
+        ).selectAllModel = true)
         await wrapper.vm.$nextTick()
 
-        expect((wrapper.vm as any).selectedCheckboxes).toEqual(['a', 'b', 'c'])
-
-        // Deselect all
-        (wrapper.vm as any).selectAllModel = false
+        expect((wrapper.vm as any).selectedCheckboxes).toEqual(['a', 'b', 'c'])(
+            // Deselect all
+            wrapper.vm as any
+        ).selectAllModel = false
         await wrapper.vm.$nextTick()
 
         expect((wrapper.vm as any).selectedCheckboxes).toEqual([])
     })
 
     it('emits update:selectedCheckboxes when selection changes', async () => {
-        const wrapper: any = shallowMount(CheckboxList, {
+        const wrapper: any = (shallowMount(CheckboxList, {
             props: { options },
             global: {
                 mocks: { $t: (key: string) => key },
@@ -199,10 +197,10 @@ describe('CheckboxList.vue', () => {
                     'v-divider': { name: 'VDivider', template: '<hr class="v-divider-stub" />' },
                 },
             },
-        })
-
-        // Directly modify selectedCheckboxes to trigger the @change emit
-        (wrapper.vm as any).selectedCheckboxes = ['a']
+        })(
+            // Directly modify selectedCheckboxes to trigger the @change emit
+            wrapper.vm as any
+        ).selectedCheckboxes = ['a'])
         await wrapper.vm.$nextTick()
 
         // The @change handler is called by template, but since we shallow mount

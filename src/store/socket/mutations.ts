@@ -28,7 +28,7 @@ export const mutations: MutationTree<SocketState> = {
         if ('socket' in payload) payload = payload.socket
 
         Object.entries(payload).forEach(([key, value]) => {
-            (state as Record<string, any>)[key] = value
+            ;(state as Record<string, any>)[key] = value
         })
     },
 

@@ -333,10 +333,8 @@
     updated to reflect these changes, see main.js and json-rpc.js, specifically
     the new method `call_method_with_kwargs`. For status requests this simply
     means that it is no longer necessary to wrap the Object in an Array. The
-    gcode and start print requests now look for named parameters, ie:
-    - gcode requests - `{jsonrpc: "2.0", method: "post_printer_gcode",
-params: {script: "M117 FooBar"}, id: <request id>}`
-    - start print - `{jsonrpc: "2.0", method: "post_printer_print_start",
+    gcode and start print requests now look for named parameters, ie: - gcode requests - `{jsonrpc: "2.0", method: "post_printer_gcode",
+params: {script: "M117 FooBar"}, id: <request id>}` - start print - `{jsonrpc: "2.0", method: "post_printer_print_start",
 params: {filename: "my_file.gcode"}, id:<request id>}`
 
 ### Version .01-alpha - 02/14/2020

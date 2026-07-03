@@ -50,8 +50,7 @@ export function useCncOffsets() {
             }
 
             // Job ended: restore saved WCS
-            const wasPrinting =
-                oldState && ['printing', 'paused', 'complete'].includes(oldState)
+            const wasPrinting = oldState && ['printing', 'paused', 'complete'].includes(oldState)
             const isNowStandby = newState === 'standby' || newState === ''
             const restoreTo = savedWcs ?? 'G54'
 

@@ -173,12 +173,7 @@
                 <v-progress-linear class="mt-2" indeterminate></v-progress-linear>
             </template>
             <template #actions>
-                <v-btn
-                    color="error"
-                    variant="text"
-                    style="min-width: auto"
-                    rounded="0"
-                    @click="cancelDownload">
+                <v-btn color="error" variant="text" style="min-width: auto" rounded="0" @click="cancelDownload">
                     <v-icon class="0">{{ mdiClose }}</v-icon>
                 </v-btn>
             </template>

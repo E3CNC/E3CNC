@@ -40,14 +40,7 @@ export const validGcodeExtensions = ['.gcode', '.g', '.gco', '.ufp', '.nc']
 /*
  * List of initable server components
  */
-export const initableServerComponents = [
-    'history',
-    'power',
-    'timelapse',
-    'jobQueue',
-    'spoolman',
-    'sensor',
-]
+export const initableServerComponents = ['history', 'power', 'timelapse', 'jobQueue', 'spoolman', 'sensor']
 
 /*
  * List of required klipper config modules

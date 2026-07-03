@@ -161,20 +161,22 @@ export const getters: GetterTree<FileState, RootState> = {
         return getters['getGcodeFiles'](null, false, true)
     },
 
-    getThemeFileUrl: (state: FileState, getters: any, rootState: RootState, rootGetters: any) => (acceptName: string, acceptExtensions: string[]) => {
-        const directory = getters['getDirectory']('config/' + themeDir)
+    getThemeFileUrl:
+        (state: FileState, getters: any, rootState: RootState, rootGetters: any) =>
+        (acceptName: string, acceptExtensions: string[]) => {
+            const directory = getters['getDirectory']('config/' + themeDir)
 
-        const file = directory?.childrens?.find(
-            (element: FileStateFile) =>
-                element.filename?.slice(0, element.filename?.lastIndexOf('.')) === acceptName &&
-                acceptExtensions.includes(element.filename?.slice(element.filename?.lastIndexOf('.') + 1))
-        )
-        if (!file) return null
+            const file = directory?.childrens?.find(
+                (element: FileStateFile) =>
+                    element.filename?.slice(0, element.filename?.lastIndexOf('.')) === acceptName &&
+                    acceptExtensions.includes(element.filename?.slice(element.filename?.lastIndexOf('.') + 1))
+            )
+            if (!file) return null
 
-        return `${rootGetters['socket/getUrl']}/server/files/config/${themeDir}/${
-            file.filename
-        }?timestamp=${file.modified.getTime()}`
-    },
+            return `${rootGetters['socket/getUrl']}/server/files/config/${themeDir}/${
+                file.filename
+            }?timestamp=${file.modified.getTime()}`
+        },
 
     getSidebarLogo: (state: FileState, getters: any) => {
         const acceptName = 'sidebar-logo'
@@ -246,37 +248,41 @@ export const getters: GetterTree<FileState, RootState> = {
         )
     },
 
-    getSmallThumbnail: (state: FileState, getters: any, rootState: RootState, rootGetters: any) => (item: FileStateFile, currentPath: string) => {
-        if ('thumbnails' in item && item.thumbnails?.length) {
-            const thumbnail = item.thumbnails.find(
-                (thumb) =>
-                    thumb.width >= thumbnailSmallMin &&
-                    thumb.width <= thumbnailSmallMax &&
-                    thumb.height >= thumbnailSmallMin &&
-                    thumb.height <= thumbnailSmallMax
-            )
+    getSmallThumbnail:
+        (state: FileState, getters: any, rootState: RootState, rootGetters: any) =>
+        (item: FileStateFile, currentPath: string) => {
+            if ('thumbnails' in item && item.thumbnails?.length) {
+                const thumbnail = item.thumbnails.find(
+                    (thumb) =>
+                        thumb.width >= thumbnailSmallMin &&
+                        thumb.width <= thumbnailSmallMax &&
+                        thumb.height >= thumbnailSmallMin &&
+                        thumb.height <= thumbnailSmallMax
+                )
 
-            if (thumbnail && 'relative_path' in thumbnail) {
-                return `${rootGetters['socket/getUrl']}/server/files/${escapePath(currentPath)}/${escapePath(
-                    thumbnail.relative_path
-                )}?timestamp=${item.modified.getTime()}`
+                if (thumbnail && 'relative_path' in thumbnail) {
+                    return `${rootGetters['socket/getUrl']}/server/files/${escapePath(currentPath)}/${escapePath(
+                        thumbnail.relative_path
+                    )}?timestamp=${item.modified.getTime()}`
+                }
             }
-        }
 
-        return ''
-    },
+            return ''
+        },
 
-    getBigThumbnail: (state: FileState, getters: any, rootState: RootState, rootGetters: any) => (item: FileStateFile, currentPath: string) => {
-        if ('thumbnails' in item && item.thumbnails?.length) {
-            const thumbnail = item.thumbnails.find((thumb) => thumb.width >= thumbnailBigMin)
+    getBigThumbnail:
+        (state: FileState, getters: any, rootState: RootState, rootGetters: any) =>
+        (item: FileStateFile, currentPath: string) => {
+            if ('thumbnails' in item && item.thumbnails?.length) {
+                const thumbnail = item.thumbnails.find((thumb) => thumb.width >= thumbnailBigMin)
 
-            if (thumbnail && 'relative_path' in thumbnail) {
-                return `${rootGetters['socket/getUrl']}/server/files/${escapePath(currentPath)}/${escapePath(
-                    thumbnail.relative_path
-                )}?timestamp=${item.modified.getTime()}`
+                if (thumbnail && 'relative_path' in thumbnail) {
+                    return `${rootGetters['socket/getUrl']}/server/files/${escapePath(currentPath)}/${escapePath(
+                        thumbnail.relative_path
+                    )}?timestamp=${item.modified.getTime()}`
+                }
             }
-        }
 
-        return ''
-    },
+            return ''
+        },
 }

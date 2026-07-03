@@ -23,7 +23,10 @@ export const actions: ActionTree<GuiWebcamState, RootState> = {
         getSocket().emit('server.webcams.post_item', payload)
     },
 
-    update({ dispatch, rootState }: ActionContext<GuiWebcamState, RootState>, payload: { webcam: GuiWebcamStateWebcam; oldWebcamName: string }) {
+    update(
+        { dispatch, rootState }: ActionContext<GuiWebcamState, RootState>,
+        payload: { webcam: GuiWebcamStateWebcam; oldWebcamName: string }
+    ) {
         getSocket().emit('server.webcams.post_item', payload.webcam)
         if (payload.webcam.name !== payload.oldWebcamName) dispatch('delete', payload.oldWebcamName)
 

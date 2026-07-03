@@ -62,7 +62,10 @@ export const actions: ActionTree<GuiMiscellaneousState, RootState> = {
         dispatch('upload', entryId)
     },
 
-    deleteLightgroup({ commit, dispatch, state }: ActionContext<GuiMiscellaneousState, RootState>, payload: { type: string; name: string; lightgroupId: string }) {
+    deleteLightgroup(
+        { commit, dispatch, state }: ActionContext<GuiMiscellaneousState, RootState>,
+        payload: { type: string; name: string; lightgroupId: string }
+    ) {
         const entryId =
             Object.keys(state.entries).find(
                 (key) => state.entries[key].type === payload.type && state.entries[key].name === payload.name
@@ -109,7 +112,10 @@ export const actions: ActionTree<GuiMiscellaneousState, RootState> = {
         dispatch('upload', entryId)
     },
 
-    deletePreset({ commit, dispatch, state }: ActionContext<GuiMiscellaneousState, RootState>, payload: { type: string; name: string; presetId: string }) {
+    deletePreset(
+        { commit, dispatch, state }: ActionContext<GuiMiscellaneousState, RootState>,
+        payload: { type: string; name: string; presetId: string }
+    ) {
         const entryId =
             Object.keys(state.entries).find(
                 (key) => state.entries[key].type === payload.type && state.entries[key].name === payload.name

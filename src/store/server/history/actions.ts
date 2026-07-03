@@ -99,7 +99,10 @@ export const actions: ActionTree<ServerHistoryState, RootState> = {
         }
     },
 
-    saveHistoryNote({ commit }: ActionContext<ServerHistoryState, RootState>, payload: { job_id: string; note: string }) {
+    saveHistoryNote(
+        { commit }: ActionContext<ServerHistoryState, RootState>,
+        payload: { job_id: string; note: string }
+    ) {
         getSocket().emit('server.database.post_item', {
             namespace: 'history_notes',
             key: payload.job_id,

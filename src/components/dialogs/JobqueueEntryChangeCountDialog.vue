@@ -68,9 +68,7 @@ const inputField = ref<FocusableRef | null>(null)
 
 const count = ref(1)
 
-const countInputRules = [
-    (value: number) => value > 0 || t('JobQueue.InvalidCountGreaterZero'),
-]
+const countInputRules = [(value: number) => value > 0 || t('JobQueue.InvalidCountGreaterZero')]
 
 function update() {
     store.dispatch('server/jobQueue/changeCount', {

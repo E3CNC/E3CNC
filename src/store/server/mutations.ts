@@ -69,7 +69,7 @@ export const mutations: MutationTree<ServerState> = {
         if ('requestParams' in payload) delete payload.requestParams
 
         Object.entries(payload).forEach(([key, value]) => {
-            (state as Record<string, any>)[key] = value
+            ;(state as Record<string, any>)[key] = value
         })
     },
 

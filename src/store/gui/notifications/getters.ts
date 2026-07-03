@@ -88,7 +88,12 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
         return notifications
     },
 
-    getNotificationsDependencies: (state: GuiNotificationState, getters: any, rootState: RootState, rootGetters: any) => {
+    getNotificationsDependencies: (
+        state: GuiNotificationState,
+        getters: any,
+        rootState: RootState,
+        rootGetters: any
+    ) => {
         const notifications: GuiNotificationStateEntry[] = []
 
         let dependencies = rootGetters['getDependencies']
@@ -131,7 +136,12 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
         return notifications
     },
 
-    getNotificationsMoonrakerWarnings: (state: GuiNotificationState, getters: any, rootState: RootState, rootGetters: any) => {
+    getNotificationsMoonrakerWarnings: (
+        state: GuiNotificationState,
+        getters: any,
+        rootState: RootState,
+        rootGetters: any
+    ) => {
         const notifications: GuiNotificationStateEntry[] = []
 
         let warnings = rootState.server?.warnings ?? []
@@ -180,7 +190,12 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
         return notifications
     },
 
-    getNotificationsMoonrakerFailedComponents: (state: GuiNotificationState, getters: any, rootState: RootState, rootGetters: any) => {
+    getNotificationsMoonrakerFailedComponents: (
+        state: GuiNotificationState,
+        getters: any,
+        rootState: RootState,
+        rootGetters: any
+    ) => {
         const notifications: GuiNotificationStateEntry[] = []
 
         let failedCompontents = rootState.server?.failed_components ?? []
@@ -216,7 +231,12 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
         return notifications
     },
 
-    getNotificationsMoonrakerFailedInitComponents: (state: GuiNotificationState, getters: any, rootState: RootState, rootGetters: any) => {
+    getNotificationsMoonrakerFailedInitComponents: (
+        state: GuiNotificationState,
+        getters: any,
+        rootState: RootState,
+        rootGetters: any
+    ) => {
         const notifications: GuiNotificationStateEntry[] = []
 
         let failedInitCompontents = rootState.server?.failed_init_components ?? []
@@ -254,7 +274,12 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
         return notifications
     },
 
-    getNotificationsKlipperWarnings: (state: GuiNotificationState, getters: any, rootState: RootState, rootGetters: any) => {
+    getNotificationsKlipperWarnings: (
+        state: GuiNotificationState,
+        getters: any,
+        rootState: RootState,
+        rootGetters: any
+    ) => {
         const notifications: GuiNotificationStateEntry[] = []
 
         let warnings = (rootState.printer?.configfile?.warnings ?? []) as PrinterStateKlipperConfigWarning[]
@@ -278,7 +303,9 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
                 // add possible translations
                 if (warning.type === 'deprecated_value') {
                     title = i18n.global.t('App.Notifications.KlipperWarnings.DeprecatedValueHeadline').toString()
-                    description = i18n.global.t('App.Notifications.KlipperWarnings.DeprecatedValue', warning as any).toString()
+                    description = i18n.global
+                        .t('App.Notifications.KlipperWarnings.DeprecatedValue', warning as any)
+                        .toString()
                 } else if (warning.type === 'deprecated_option') {
                     title = i18n.global.t('App.Notifications.KlipperWarnings.DeprecatedOptionHeadline').toString()
                     description = i18n.global
@@ -354,7 +381,12 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
         return notifications
     },
 
-    getNotificationsOverdueMaintenance: (state: GuiNotificationState, getters: any, rootState: RootState, rootGetters: any) => {
+    getNotificationsOverdueMaintenance: (
+        state: GuiNotificationState,
+        getters: any,
+        rootState: RootState,
+        rootGetters: any
+    ) => {
         const notifications: GuiNotificationStateEntry[] = []
         let entries: GuiMaintenanceStateEntry[] = rootGetters['gui/maintenance/getOverdueEntries']
         if (entries.length == 0) return []

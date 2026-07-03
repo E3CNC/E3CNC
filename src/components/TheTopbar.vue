@@ -80,12 +80,7 @@
             <br />
             <v-progress-linear class="mt-2" :model-value="uploadSnackbar.percent"></v-progress-linear>
             <template #actions>
-                <v-btn
-                    :icon="mdiClose"
-                    color="error"
-                    variant="text"
-                    style="min-width: auto"
-                    @click="cancelUpload" />
+                <v-btn :icon="mdiClose" color="error" variant="text" style="min-width: auto" @click="cancelUpload" />
             </template>
         </v-snackbar>
         <emergency-stop-dialog v-model="showEmergencyStopDialog" />

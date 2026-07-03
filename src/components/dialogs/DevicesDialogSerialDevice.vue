@@ -23,7 +23,9 @@
             </v-row>
             <v-row v-if="device.path_by_hardware ?? false">
                 <v-col>
-                    <textfield-with-copy :label="$t('DevicesDialog.PathByHardware')" :value="device.path_by_hardware ?? ''" />
+                    <textfield-with-copy
+                        :label="$t('DevicesDialog.PathByHardware')"
+                        :value="device.path_by_hardware ?? ''" />
                 </v-col>
             </v-row>
         </v-card-text>

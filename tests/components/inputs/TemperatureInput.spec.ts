@@ -141,23 +141,25 @@ describe('TemperatureInput.vue', () => {
     })
 
     it('sends SET_TEMPERATURE command on submit when value changes', async () => {
-        const wrapper: any = mountComponent()
-        // Change the value
-        (wrapper.vm as any).value = 210
-        await wrapper.vm.$nextTick()
-
-        (wrapper.vm as any).setTemps()
+        const wrapper: any = (mountComponent()(
+            // Change the value
+            wrapper.vm as any
+        ).value = 210)
+        await wrapper.vm
+            .$nextTick()
+            (wrapper.vm as any)
+            .setTemps()
         await wrapper.vm.$nextTick()
 
         expect(mockDoSend).toHaveBeenCalledWith('M104 S=extruder TARGET=210')
     })
 
     it('does not send command when value is above maxTemp', async () => {
-        const wrapper: any = mountComponent()
-        (wrapper.vm as any).value = 350
-        await wrapper.vm.$nextTick()
-
-        (wrapper.vm as any).setTemps()
+        const wrapper: any = (mountComponent()(wrapper.vm as any).value = 350)
+        await wrapper.vm
+            .$nextTick()
+            (wrapper.vm as any)
+            .setTemps()
         await wrapper.vm.$nextTick()
 
         expect(mockDoSend).not.toHaveBeenCalled()
@@ -166,11 +168,11 @@ describe('TemperatureInput.vue', () => {
     })
 
     it('does not send command when value is below minTemp and non-zero', async () => {
-        const wrapper: any = mountComponent()
-        (wrapper.vm as any).value = -10
-        await wrapper.vm.$nextTick()
-
-        (wrapper.vm as any).setTemps()
+        const wrapper: any = (mountComponent()(wrapper.vm as any).value = -10)
+        await wrapper.vm
+            .$nextTick()
+            (wrapper.vm as any)
+            .setTemps()
         await wrapper.vm.$nextTick()
 
         expect(mockDoSend).not.toHaveBeenCalled()
@@ -178,11 +180,11 @@ describe('TemperatureInput.vue', () => {
     })
 
     it('allows value of 0 even when below minTemp', async () => {
-        const wrapper: any = mountComponent({ minTemp: 50 })
-        (wrapper.vm as any).value = 0
-        await wrapper.vm.$nextTick()
-
-        (wrapper.vm as any).setTemps()
+        const wrapper: any = (mountComponent({ minTemp: 50 })(wrapper.vm as any).value = 0)
+        await wrapper.vm
+            .$nextTick()
+            (wrapper.vm as any)
+            .setTemps()
         await wrapper.vm.$nextTick()
 
         // 0 should be allowed (turn off)
@@ -190,11 +192,11 @@ describe('TemperatureInput.vue', () => {
     })
 
     it('does not send command when value is same as target', async () => {
-        const wrapper: any = mountComponent({ target: 200 })
-        (wrapper.vm as any).value = 200
-        await wrapper.vm.$nextTick()
-
-        (wrapper.vm as any).setTemps()
+        const wrapper: any = (mountComponent({ target: 200 })(wrapper.vm as any).value = 200)
+        await wrapper.vm
+            .$nextTick()
+            (wrapper.vm as any)
+            .setTemps()
         await wrapper.vm.$nextTick()
 
         expect(mockDoSend).not.toHaveBeenCalled()

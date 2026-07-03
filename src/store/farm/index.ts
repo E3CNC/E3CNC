@@ -40,7 +40,7 @@ export const farm: Module<FarmState, RootState> = {
     actions: {
         registerPrinter({ commit, dispatch }: ActionContext<FarmState, RootState>, payload: any) {
             if (!(this as any).hasModule(['farm', payload.id])) {
-                (this as any).registerModule(['farm', payload.id], printer)
+                ;(this as any).registerModule(['farm', payload.id], printer)
                 commit('farm/' + payload.id + '/setSocketData', { ...payload, _namespace: payload.id }, { root: true })
 
                 if ('settings' in payload)

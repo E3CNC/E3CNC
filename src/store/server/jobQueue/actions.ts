@@ -28,7 +28,10 @@ export const actions: ActionTree<ServerJobQueueState, RootState> = {
         getSocket().emit('server.job_queue.post_job', { filenames: filenames })
     },
 
-    changeCount({ dispatch, getters }: ActionContext<ServerJobQueueState, RootState>, payload: { job_id: string; count: number }) {
+    changeCount(
+        { dispatch, getters }: ActionContext<ServerJobQueueState, RootState>,
+        payload: { job_id: string; count: number }
+    ) {
         const jobs: ServerJobQueueStateJob[] = getters['getJobs']
 
         const index = jobs.findIndex((job) => job.job_id === payload.job_id)
@@ -39,7 +42,10 @@ export const actions: ActionTree<ServerJobQueueState, RootState> = {
         dispatch('sendNewQueueList', { jobs })
     },
 
-    changePosition({ dispatch, getters }: ActionContext<ServerJobQueueState, RootState>, payload: { oldIndex: number; newIndex: number }) {
+    changePosition(
+        { dispatch, getters }: ActionContext<ServerJobQueueState, RootState>,
+        payload: { oldIndex: number; newIndex: number }
+    ) {
         const jobs: ServerJobQueueStateJob[] = getters['getJobs']
 
         const job = jobs.splice(payload.oldIndex, 1)[0]
@@ -60,7 +66,10 @@ export const actions: ActionTree<ServerJobQueueState, RootState> = {
         dispatch('sendNewQueueList', { jobs, printStart: true })
     },
 
-    sendNewQueueList(_context: ActionContext<ServerJobQueueState, RootState>, payload: { jobs: ServerJobQueueStateJob[]; printStart?: boolean }) {
+    sendNewQueueList(
+        _context: ActionContext<ServerJobQueueState, RootState>,
+        payload: { jobs: ServerJobQueueStateJob[]; printStart?: boolean }
+    ) {
         const filenames = payload.jobs
             .map((job) => {
                 const numJobs = (job.combinedIds?.length ?? 0) + 1

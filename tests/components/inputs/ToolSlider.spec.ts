@@ -118,12 +118,10 @@ describe('ToolSlider.vue', () => {
     it('sendCmd dispatches and emits', () => {
         const store = createStore({ state: { gui: { uiSettings: {} } } })
         const dispatchSpy = vi.spyOn(store, 'dispatch')
-        const wrapper: any = shallowMount(ToolSlider, {
+        const wrapper: any = (shallowMount(ToolSlider, {
             props: baseProps,
             global: { plugins: [store], mocks: { $t: (k: string) => k }, stubs: vuetifyStubs },
-        })
-        (wrapper.vm as any)._value = 150
-        (wrapper.vm as any).sendCmd()
+        })(wrapper.vm as any)._value = 150(wrapper.vm as any).sendCmd())
         expect(dispatchSpy).toHaveBeenCalledWith('server/addEvent', { message: 'G1 F150', type: 'command' })
         expect(mockSocketEmit).toHaveBeenCalledWith('printer.gcode.script', { script: 'G1 F150' })
     })
@@ -131,59 +129,49 @@ describe('ToolSlider.vue', () => {
     it('sendCmd uses attributeScale', () => {
         const store = createStore({ state: { gui: { uiSettings: {} } } })
         const dispatchSpy = vi.spyOn(store, 'dispatch')
-        const wrapper: any = shallowMount(ToolSlider, {
+        const wrapper: any = (shallowMount(ToolSlider, {
             props: { ...baseProps, attributeName: 'F', attributeScale: 60 },
             global: { plugins: [store], mocks: { $t: (k: string) => k }, stubs: vuetifyStubs },
-        })
-        (wrapper.vm as any)._value = 2
-        (wrapper.vm as any).sendCmd()
+        })(wrapper.vm as any)._value = 2(wrapper.vm as any).sendCmd())
         expect(dispatchSpy).toHaveBeenCalledWith('server/addEvent', { message: 'G1 F120', type: 'command' })
     })
 
     it('increment increases _value', () => {
-        const wrapper: any = mountComponent()
-        (wrapper.vm as any)._value = 100
-        (wrapper.vm as any).increment()
+        const wrapper: any = (mountComponent()(wrapper.vm as any)._value = 100(wrapper.vm as any).increment())
         expect((wrapper.vm as any)._value).toBe(101)
     })
 
     it('decrement decreases _value', () => {
-        const wrapper: any = mountComponent()
-        (wrapper.vm as any)._value = 100
-        (wrapper.vm as any).decrement()
+        const wrapper: any = (mountComponent()(wrapper.vm as any)._value = 100(wrapper.vm as any).decrement())
         expect((wrapper.vm as any)._value).toBe(99)
     })
 
     it('increment clamps at processedMax when not dynamic', () => {
-        const wrapper: any = mountComponent({ max: 100 })
-        (wrapper.vm as any)._value = 100
-        (wrapper.vm as any).increment()
+        const wrapper: any = (mountComponent({ max: 100 })(wrapper.vm as any)._value = 100(
+            wrapper.vm as any
+        ).increment())
         expect((wrapper.vm as any)._value).toBe(100)
     })
 
     it('decrement clamps at min', () => {
-        const wrapper: any = mountComponent({ min: 0 })
-        (wrapper.vm as any)._value = 0
-        (wrapper.vm as any).decrement()
+        const wrapper: any = (mountComponent({ min: 0 })(wrapper.vm as any)._value = 0(wrapper.vm as any).decrement())
         expect((wrapper.vm as any)._value).toBe(0)
     })
 
     it('resetSlider resets to defaultValue', () => {
-        const wrapper: any = mountComponent({ defaultValue: 50, max: 100 })
-        (wrapper.vm as any)._value = 200
-        (wrapper.vm as any).resetSlider()
+        const wrapper: any = (mountComponent({ defaultValue: 50, max: 100 })(wrapper.vm as any)._value = 200(
+            wrapper.vm as any
+        ).resetSlider())
         expect((wrapper.vm as any)._value).toBe(50)
     })
 
     it('colorBar is warning when _value exceeds max', () => {
-        const wrapper: any = mountComponent({ max: 100 })
-        (wrapper.vm as any)._value = 150
+        const wrapper: any = (mountComponent({ max: 100 })(wrapper.vm as any)._value = 150)
         expect((wrapper.vm as any).colorBar).toBe('warning')
     })
 
     it('colorBar is primary when _value within max', () => {
-        const wrapper: any = mountComponent({ max: 100 })
-        (wrapper.vm as any)._value = 50
+        const wrapper: any = (mountComponent({ max: 100 })(wrapper.vm as any)._value = 50)
         expect((wrapper.vm as any).colorBar).toBe('primary')
     })
 
@@ -195,24 +183,20 @@ describe('ToolSlider.vue', () => {
     it('submitInput with valid value sends cmd', () => {
         const store = createStore({ state: { gui: { uiSettings: {} } } })
         const dispatchSpy = vi.spyOn(store, 'dispatch')
-        const wrapper: any = shallowMount(ToolSlider, {
+        const wrapper: any = (shallowMount(ToolSlider, {
             props: { ...baseProps, hasInputField: true },
             global: { plugins: [store], mocks: { $t: (k: string) => k }, stubs: vuetifyStubs },
-        })
-        (wrapper.vm as any).numInput = 200
-        (wrapper.vm as any).submitInput()
+        })(wrapper.vm as any).numInput = 200(wrapper.vm as any).submitInput())
         expect(dispatchSpy).toHaveBeenCalled()
     })
 
     it('submitInput with error does not send cmd', () => {
         const store = createStore({ state: { gui: { uiSettings: {} } } })
         const dispatchSpy = vi.spyOn(store, 'dispatch')
-        const wrapper: any = shallowMount(ToolSlider, {
+        const wrapper: any = (shallowMount(ToolSlider, {
             props: { ...baseProps, hasInputField: true, min: 0 },
             global: { plugins: [store], mocks: { $t: (k: string) => k }, stubs: vuetifyStubs },
-        })
-        (wrapper.vm as any).numInput = -5
-        (wrapper.vm as any).submitInput()
+        })(wrapper.vm as any).numInput = -5(wrapper.vm as any).submitInput())
         expect(dispatchSpy).not.toHaveBeenCalled()
     })
 
@@ -225,8 +209,12 @@ describe('ToolSlider.vue', () => {
     it('checkInvalidChars blocks e/E/+', () => {
         const wrapper: any = mountComponent()
         const e = new KeyboardEvent('keydown', { key: 'e' })
-        const spy = vi.spyOn(e, 'preventDefault')
-        (wrapper.vm as any).checkInvalidChars(e)
+        const spy = vi
+            .spyOn(
+                e,
+                'preventDefault'
+            )(wrapper.vm as any)
+            .checkInvalidChars(e)
         expect(spy).toHaveBeenCalled()
     })
 })

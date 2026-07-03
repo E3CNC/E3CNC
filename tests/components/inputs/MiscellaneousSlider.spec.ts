@@ -144,9 +144,10 @@ describe('MiscellaneousSlider.vue', () => {
         const wrapper: any = shallowMount(MiscellaneousSlider, {
             props: { target: 0.5, type: 'fan_generic', name: 'my_fan', controllable: true, pwm: true },
             global: { plugins: [store], mocks: { $t: (k: string) => k }, stubs: vuetifyStubs },
-        })
-        // Use a value different from current (value=0.5) to avoid early return
-        (wrapper.vm as any).sendCmd(0.8)
+        })(
+            // Use a value different from current (value=0.5) to avoid early return
+            wrapper.vm as any
+        ).sendCmd(0.8)
         expect(mocks.mockSocketEmit).toHaveBeenCalledWith('printer.gcode.script', {
             script: 'SET_FAN_SPEED FAN=my_fan SPEED=0.8',
         })
@@ -164,8 +165,7 @@ describe('MiscellaneousSlider.vue', () => {
             // type must be provided (template uses type.includes())
             props: { target: 0.5, type: 'gpio', name: 'my_pin', controllable: true, pwm: true },
             global: { plugins: [store], mocks: { $t: (k: string) => k }, stubs: vuetifyStubs },
-        })
-        (wrapper.vm as any).sendCmd(0.75)
+        })(wrapper.vm as any).sendCmd(0.75)
         expect(mocks.mockSocketEmit).toHaveBeenCalledWith('printer.gcode.script', {
             script: 'SET_PIN PIN=my_pin VALUE=0.75',
         })
@@ -183,8 +183,7 @@ describe('MiscellaneousSlider.vue', () => {
             // type must be provided (template uses type.includes())
             props: { target: 1, type: 'gpio', name: 'my_pin', controllable: true, pwm: false },
             global: { plugins: [store], mocks: { $t: (k: string) => k }, stubs: vuetifyStubs },
-        })
-        (wrapper.vm as any).switchOutputPin()
+        })(wrapper.vm as any).switchOutputPin()
         expect(mocks.mockSocketEmit).toHaveBeenCalledWith('printer.gcode.script', {
             script: 'SET_PIN PIN=my_pin VALUE=0.00',
         })
@@ -210,12 +209,10 @@ describe('MiscellaneousSlider.vue', () => {
                 },
             },
         })
-        const wrapper: any = shallowMount(MiscellaneousSlider, {
+        const wrapper: any = (shallowMount(MiscellaneousSlider, {
             props: { target: 0.5, type: 'fan', name: 'my_fan', controllable: true, pwm: true },
             global: { plugins: [store], mocks: { $t: (k: string) => k }, stubs: vuetifyStubs },
-        })
-        (wrapper.vm as any).inputValue = 80
-        (wrapper.vm as any).submitInput()
+        })(wrapper.vm as any).inputValue = 80(wrapper.vm as any).submitInput())
         expect(mocks.mockSocketEmit).toHaveBeenCalled()
     })
 
@@ -230,8 +227,7 @@ describe('MiscellaneousSlider.vue', () => {
     })
 
     it('error state shows when input is empty', () => {
-        const wrapper: any = mountComponent({ target: 0.5 })
-        (wrapper.vm as any).inputValue = '' as any
+        const wrapper: any = (mountComponent({ target: 0.5 })(wrapper.vm as any).inputValue = '' as any)
         expect((wrapper.vm as any).errors.length).toBeGreaterThan(0)
     })
 })

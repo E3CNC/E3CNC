@@ -78,10 +78,10 @@ describe('TextfieldWithCopy.vue', () => {
                     },
                 },
             },
-        })
-
-        // Find the copy icon and click it via component method
-        (wrapper.vm as any).copy()
+        })(
+            // Find the copy icon and click it via component method
+            wrapper.vm as any
+        ).copy()
         await wrapper.vm.$nextTick()
 
         expect(copyToClipboard).toHaveBeenCalledWith('secret')
@@ -110,9 +110,10 @@ describe('TextfieldWithCopy.vue', () => {
             },
         })
 
-        expect((wrapper.vm as any).isShowTooltip).toBe(false)
-
-        (wrapper.vm as any).copy()
+        expect((wrapper.vm as any).isShowTooltip)
+            .toBe(false)
+            (wrapper.vm as any)
+            .copy()
         await wrapper.vm.$nextTick()
 
         // Tooltip should be visible

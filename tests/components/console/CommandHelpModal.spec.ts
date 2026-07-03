@@ -151,7 +151,7 @@ describe('CommandHelpModal.vue', () => {
             M106: { help: 'Set fan speed' },
             M107: { help: 'Fan off' },
         })
-        const wrapper = shallowMount(CommandHelpModal, {
+        const wrapper = (shallowMount(CommandHelpModal, {
             global: {
                 plugins: [store],
                 mocks: { $t: (key: string) => key },
@@ -163,10 +163,10 @@ describe('CommandHelpModal.vue', () => {
                     },
                 },
             },
-        })
-
-        // Open the dialog
-        (wrapper.vm as any).isOpen = true
+        })(
+            // Open the dialog
+            wrapper.vm as any
+        ).isOpen = true)
         wrapper.vm.$forceUpdate()
         wrapper.vm.$nextTick()
 
@@ -184,22 +184,22 @@ describe('CommandHelpModal.vue', () => {
             M106: { help: 'Set fan speed' },
             M107: { help: 'Fan off' },
         })
-        const wrapper = shallowMount(CommandHelpModal, {
-            global: {
-                plugins: [store],
-                mocks: { $t: (key: string) => key },
-                stubs: {
-                    'v-dialog': {
-                        name: 'VDialog',
-                        template:
-                            '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
+        const wrapper =
+            (shallowMount(CommandHelpModal, {
+                global: {
+                    plugins: [store],
+                    mocks: { $t: (key: string) => key },
+                    stubs: {
+                        'v-dialog': {
+                            name: 'VDialog',
+                            template:
+                                '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
+                        },
                     },
                 },
-            },
-        })
-
-        (wrapper.vm as any).isOpen = true
-        (wrapper.vm as any).cmdListSearch = 'M1'
+            })(wrapper.vm as any).isOpen =
+            true(wrapper.vm as any).cmdListSearch =
+                'M1')
         await wrapper.vm.$nextTick()
 
         const filtered = (wrapper.vm as any).helplistFiltered
@@ -212,22 +212,22 @@ describe('CommandHelpModal.vue', () => {
             G28: { help: 'Home all axes' },
             M106: { help: 'Set fan speed' },
         })
-        const wrapper = shallowMount(CommandHelpModal, {
-            global: {
-                plugins: [store],
-                mocks: { $t: (key: string) => key },
-                stubs: {
-                    'v-dialog': {
-                        name: 'VDialog',
-                        template:
-                            '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
+        const wrapper =
+            (shallowMount(CommandHelpModal, {
+                global: {
+                    plugins: [store],
+                    mocks: { $t: (key: string) => key },
+                    stubs: {
+                        'v-dialog': {
+                            name: 'VDialog',
+                            template:
+                                '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
+                        },
                     },
                 },
-            },
-        })
-
-        (wrapper.vm as any).isOpen = true
-        (wrapper.vm as any).cmdListSearch = 'g28'
+            })(wrapper.vm as any).isOpen =
+            true(wrapper.vm as any).cmdListSearch =
+                'g28')
         await wrapper.vm.$nextTick()
 
         const filtered = (wrapper.vm as any).helplistFiltered
@@ -239,22 +239,22 @@ describe('CommandHelpModal.vue', () => {
         const store = createStoreWithState({
             G28: { help: 'Home all axes' },
         })
-        const wrapper = shallowMount(CommandHelpModal, {
-            global: {
-                plugins: [store],
-                mocks: { $t: (key: string) => key },
-                stubs: {
-                    'v-dialog': {
-                        name: 'VDialog',
-                        template:
-                            '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
+        const wrapper =
+            (shallowMount(CommandHelpModal, {
+                global: {
+                    plugins: [store],
+                    mocks: { $t: (key: string) => key },
+                    stubs: {
+                        'v-dialog': {
+                            name: 'VDialog',
+                            template:
+                                '<div class="v-dialog-stub"><slot name="activator" /><slot v-if="modelValue" /></div>',
+                        },
                     },
                 },
-            },
-        })
-
-        (wrapper.vm as any).isOpen = true
-        (wrapper.vm as any).cmdListSearch = 'ZZZ_NEVER'
+            })(wrapper.vm as any).isOpen =
+            true(wrapper.vm as any).cmdListSearch =
+                'ZZZ_NEVER')
         await wrapper.vm.$nextTick()
 
         expect((wrapper.vm as any).helplistFiltered).toHaveLength(0)
@@ -266,7 +266,7 @@ describe('CommandHelpModal.vue', () => {
             G28: { help: 'Home all axes' },
             M106: { help: 'Set fan speed' },
         })
-        const wrapper = shallowMount(CommandHelpModal, {
+        const wrapper = (shallowMount(CommandHelpModal, {
             global: {
                 plugins: [store],
                 mocks: { $t: (key: string) => key },
@@ -278,9 +278,7 @@ describe('CommandHelpModal.vue', () => {
                     },
                 },
             },
-        })
-
-        (wrapper.vm as any).isOpen = true
+        })(wrapper.vm as any).isOpen = true)
         wrapper.vm.$nextTick()
 
         const filtered = (wrapper.vm as any).helplistFiltered
@@ -349,7 +347,7 @@ describe('CommandHelpModal.vue', () => {
     // ── onCommand emit ──
     it('emits onCommand and closes dialog when a command is clicked', async () => {
         const store = createStoreWithState({ G28: { help: 'Home' } })
-        const wrapper = shallowMount(CommandHelpModal, {
+        const wrapper = (shallowMount(CommandHelpModal, {
             global: {
                 plugins: [store],
                 mocks: { $t: (key: string) => key },
@@ -361,13 +359,14 @@ describe('CommandHelpModal.vue', () => {
                     },
                 },
             },
-        })
-
-        (wrapper.vm as any).isOpen = true
-        await wrapper.vm.$nextTick()
-
-        // Call onCommand directly
-        (wrapper.vm as any).onCommand('G28')
+        })(wrapper.vm as any).isOpen = true)
+        await wrapper.vm
+            .$nextTick()
+            (
+                // Call onCommand directly
+                wrapper.vm as any
+            )
+            .onCommand('G28')
         await wrapper.vm.$nextTick()
 
         expect(wrapper.emitted('onCommand')).toBeTruthy()
@@ -406,7 +405,7 @@ describe('CommandHelpModal.vue', () => {
     // ── Edge cases ──
     it('handles empty commands object gracefully', () => {
         const store = createStoreWithState({})
-        const wrapper = shallowMount(CommandHelpModal, {
+        const wrapper = (shallowMount(CommandHelpModal, {
             global: {
                 plugins: [store],
                 mocks: { $t: (key: string) => key },
@@ -418,15 +417,13 @@ describe('CommandHelpModal.vue', () => {
                     },
                 },
             },
-        })
-
-        (wrapper.vm as any).isOpen = true
+        })(wrapper.vm as any).isOpen = true)
         expect((wrapper.vm as any).helplistFiltered).toHaveLength(0)
     })
 
     it('handles null commands gracefully', () => {
         const store = createStoreWithState(null as any)
-        const wrapper = shallowMount(CommandHelpModal, {
+        const wrapper = (shallowMount(CommandHelpModal, {
             global: {
                 plugins: [store],
                 mocks: { $t: (key: string) => key },
@@ -438,9 +435,7 @@ describe('CommandHelpModal.vue', () => {
                     },
                 },
             },
-        })
-
-        (wrapper.vm as any).isOpen = true
+        })(wrapper.vm as any).isOpen = true)
         expect((wrapper.vm as any).helplistFiltered).toHaveLength(0)
     })
 
@@ -450,7 +445,7 @@ describe('CommandHelpModal.vue', () => {
                 printer: {} as any,
             },
         })
-        const wrapper = shallowMount(CommandHelpModal, {
+        const wrapper = (shallowMount(CommandHelpModal, {
             global: {
                 plugins: [store],
                 mocks: { $t: (key: string) => key },
@@ -462,9 +457,7 @@ describe('CommandHelpModal.vue', () => {
                     },
                 },
             },
-        })
-
-        (wrapper.vm as any).isOpen = true
+        })(wrapper.vm as any).isOpen = true)
         expect((wrapper.vm as any).helplistFiltered).toHaveLength(0)
     })
 })

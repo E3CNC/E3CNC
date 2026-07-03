@@ -1,4 +1,4 @@
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useStore } from 'vuex'
 import { getCncState } from '@/store/files/cncApi'
 
@@ -61,16 +61,20 @@ export function useCncProfile() {
 
     onMounted(() => {
         if (!cncState.value) {
-            void load().catch(() => { /* ignore */ })
+            void load().catch(() => {
+                /* ignore */
+            })
         }
     })
 
     // Retry loading when the socket URL becomes available (initially empty on mount)
     watch(
         () => store.getters['socket/getUrl'],
-        (url) => {
+        (url: string) => {
             if (url && url !== '//:80/' && !cncState.value) {
-                void load().catch(() => { /* ignore — retried on next watch trigger if needed */ })
+                void load().catch(() => {
+                    /* ignore — retried on next watch trigger if needed */
+                })
             }
         }
     )

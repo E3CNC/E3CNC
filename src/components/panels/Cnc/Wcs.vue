@@ -1016,9 +1016,7 @@ function stockRectY(offsetY: number, height: number): number {
 function stockRectHeight(offsetY: number, height: number): number {
     const y0 = toSvgY(offsetY)
     const y1 = toSvgY(offsetY + height)
-    return reverseYPreview.value
-        ? Math.max(0, y1 - y0)
-        : Math.max(0, y0 - y1)
+    return reverseYPreview.value ? Math.max(0, y1 - y0) : Math.max(0, y0 - y1)
 }
 function stockTextY(offsetY: number, height: number): number {
     // Label sits just above the top edge of the stock rect

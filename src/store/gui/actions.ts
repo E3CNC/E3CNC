@@ -243,7 +243,10 @@ export const actions: ActionTree<GuiState, RootState> = {
         })
     },
 
-    setTempchartDatasetAdditionalSensorSetting({ commit, dispatch, state }: ActionContext<GuiState, RootState>, payload: any) {
+    setTempchartDatasetAdditionalSensorSetting(
+        { commit, dispatch, state }: ActionContext<GuiState, RootState>,
+        payload: any
+    ) {
         commit('setTempchartDatasetAdditionalSensorSetting', payload)
         dispatch('updateSettings', {
             keyName: 'view.tempchart',
@@ -533,7 +536,10 @@ export const actions: ActionTree<GuiState, RootState> = {
         })
     },
 
-    setChartColor({ commit, dispatch, state }: ActionContext<GuiState, RootState>, payload: { objectName: string; value: boolean }) {
+    setChartColor(
+        { commit, dispatch, state }: ActionContext<GuiState, RootState>,
+        payload: { objectName: string; value: boolean }
+    ) {
         commit('setChartDatasetStatus', {
             objectName: payload.objectName,
             dataset: 'color',

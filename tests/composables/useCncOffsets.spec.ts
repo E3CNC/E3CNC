@@ -18,7 +18,7 @@ function createWcsHandler() {
             newState: string | undefined,
             oldState: string | undefined,
             currentWcs: string,
-            selectFn: () => void,
+            selectFn: () => void
         ): void {
             // Job started: save current WCS
             if (newState === 'printing' && (!oldState || oldState === 'standby' || oldState === '')) {

@@ -93,9 +93,7 @@ describe('MacroButton.vue', () => {
         const store = createStoreWithGetter()
         const dispatchSpy = vi.spyOn(store, 'dispatch')
 
-        const wrapper: any = mountWithCustomStore(store)
-
-        (wrapper.vm as any).doSendMacro('TEST_MACRO')
+        const wrapper: any = mountWithCustomStore(store)(wrapper.vm as any).doSendMacro('TEST_MACRO')
 
         expect(dispatchSpy).toHaveBeenCalledWith('server/addEvent', {
             message: 'TEST_MACRO',
@@ -149,11 +147,10 @@ describe('MacroButton.vue', () => {
         const store = createStoreWithGetter()
         const dispatchSpy = vi.spyOn(store, 'dispatch')
 
-        const wrapper: any = mountWithCustomStore(store)
-
-        (wrapper.vm as any).paramArray = ['SPEED']
-        (wrapper.vm as any).params = { SPEED: { type: 'int', default: 100, value: '200' } }
-        (wrapper.vm as any).sendWithParams()
+        const wrapper: any =
+            (mountWithCustomStore(store)(wrapper.vm as any).paramArray =
+            ['SPEED'](wrapper.vm as any).params =
+                { SPEED: { type: 'int', default: 100, value: '200' } }(wrapper.vm as any).sendWithParams())
 
         expect(dispatchSpy).toHaveBeenCalledWith('server/addEvent', {
             message: 'TEST_MACRO SPEED=200',
@@ -165,11 +162,10 @@ describe('MacroButton.vue', () => {
         const store = createStoreWithGetter()
         const dispatchSpy = vi.spyOn(store, 'dispatch')
 
-        const wrapper: any = mountWithCustomStore(store)
-
-        (wrapper.vm as any).paramArray = ['MSG']
-        (wrapper.vm as any).params = { MSG: { type: 'string', default: '', value: 'hello world' } }
-        (wrapper.vm as any).sendWithParams()
+        const wrapper: any =
+            (mountWithCustomStore(store)(wrapper.vm as any).paramArray =
+            ['MSG'](wrapper.vm as any).params =
+                { MSG: { type: 'string', default: '', value: 'hello world' } }(wrapper.vm as any).sendWithParams())
 
         expect(dispatchSpy).toHaveBeenCalledWith('server/addEvent', {
             message: 'TEST_MACRO MSG="hello world"',

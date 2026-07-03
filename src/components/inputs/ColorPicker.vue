@@ -36,12 +36,15 @@ watch(
     { deep: true }
 )
 
-const internalOptions = computed(() => ({
-    ...(props.options ?? {}),
-    color: props.color ?? '#ffffff',
-    borderWidth: 2,
-    sliderSize: 16,
-}) as any)
+const internalOptions = computed(
+    () =>
+        ({
+            ...(props.options ?? {}),
+            color: props.color ?? '#ffffff',
+            borderWidth: 2,
+            sliderSize: 16,
+        }) as any
+)
 
 function emitColorChange(color: IroColor) {
     emit('change', color)

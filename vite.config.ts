@@ -143,7 +143,12 @@ export default defineConfig({
                         }
 
                         // split vue core + ecosystem
-                        if (id.includes('/vue/') && !id.includes('/vue-router/') && !id.includes('/vuex/') && !id.includes('/vue-i18n/')) {
+                        if (
+                            id.includes('/vue/') &&
+                            !id.includes('/vue-router/') &&
+                            !id.includes('/vuex/') &&
+                            !id.includes('/vue-i18n/')
+                        ) {
                             return 'vue-core'
                         }
 

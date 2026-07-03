@@ -19,13 +19,13 @@
                         @click="ledOn">
                         {{ mdiLightbulbOutline }}
                     </v-icon>
-                    <v-icon v-else-if="(type ?? '').includes('fan')" size="small" :class="fanClasses">{{ mdiFan }}</v-icon>
+                    <v-icon v-else-if="(type ?? '').includes('fan')" size="small" :class="fanClasses">
+                        {{ mdiFan }}
+                    </v-icon>
                     <span>{{ convertName(name ?? '') }}</span>
                     <v-spacer />
                     <small v-if="rpm !== null" :class="rpmClasses">{{ Math.round(Number(rpm ?? 0)) }} RPM</small>
-                    <span v-if="!controllable" class="font-weight-bold">
-                        {{ Math.round(value * 100) }} %
-                    </span>
+                    <span v-if="!controllable" class="font-weight-bold">{{ Math.round(value * 100) }} %</span>
                     <v-icon v-if="controllable && !pwm" @click="switchOutputPin">
                         {{ value ? mdiToggleSwitch : mdiToggleSwitchOffOutline }}
                     </v-icon>

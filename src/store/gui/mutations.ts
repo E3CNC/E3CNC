@@ -39,7 +39,7 @@ export const mutations: MutationTree<GuiState> = {
     },
 
     setCurrentWebcam(state: GuiState, payload: any) {
-        (state.view.webcam.currentCam as Record<string, string>)[payload.page] = payload.value
+        ;(state.view.webcam.currentCam as Record<string, string>)[payload.page] = payload.value
     },
 
     setHistoryColumns(state: GuiState, data: any) {
@@ -99,7 +99,10 @@ export const mutations: MutationTree<GuiState> = {
         state.view.tempchart.datasetSettings[payload.objectName][payload.dataset] = payload.value
     },
 
-    setDatasetAdditionalSensorStatus(state: GuiState, payload: { objectName: string; dataset: string; value: boolean }) {
+    setDatasetAdditionalSensorStatus(
+        state: GuiState,
+        payload: { objectName: string; dataset: string; value: boolean }
+    ) {
         // set new value if object doesn't exist in view.tempchart.datasetSettings
         if (!(payload.objectName in state.view.tempchart.datasetSettings)) {
             const newVal: { additionalSensors: Record<string, boolean> } = { additionalSensors: {} }
@@ -118,6 +121,7 @@ export const mutations: MutationTree<GuiState> = {
             return
         }
 
-        ;(state.view.tempchart.datasetSettings as any)[payload.objectName].additionalSensors[payload.dataset] = payload.value
+        ;(state.view.tempchart.datasetSettings as any)[payload.objectName].additionalSensors[payload.dataset] =
+            payload.value
     },
 }

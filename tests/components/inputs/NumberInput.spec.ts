@@ -120,9 +120,10 @@ describe('NumberInput.vue', () => {
 
     it('resets to default value when reset icon is clicked', async () => {
         const wrapper: any = mountComponent({ defaultValue: 50, hasSpinner: false })
-        expect((wrapper.vm as any).value).toBe('100')
-
-        (wrapper.vm as any).resetToDefault()
+        expect((wrapper.vm as any).value)
+            .toBe('100')
+            (wrapper.vm as any)
+            .resetToDefault()
         await wrapper.vm.$nextTick()
 
         // After reset, value should be 50 (the default)
@@ -130,8 +131,7 @@ describe('NumberInput.vue', () => {
     })
 
     it('emits submit when resetToDefault is called', async () => {
-        const wrapper: any = mountComponent({ defaultValue: 50 })
-        (wrapper.vm as any).resetToDefault()
+        const wrapper: any = mountComponent({ defaultValue: 50 })(wrapper.vm as any).resetToDefault()
         await wrapper.vm.$nextTick()
 
         expect(wrapper.emitted('submit')).toBeTruthy()
@@ -139,8 +139,7 @@ describe('NumberInput.vue', () => {
     })
 
     it('increments value when increment is called', async () => {
-        const wrapper: any = mountComponent({ hasSpinner: true })
-        (wrapper.vm as any).incrementValue()
+        const wrapper: any = mountComponent({ hasSpinner: true })(wrapper.vm as any).incrementValue()
         await wrapper.vm.$nextTick()
 
         expect(wrapper.emitted('submit')).toBeTruthy()
@@ -148,36 +147,41 @@ describe('NumberInput.vue', () => {
     })
 
     it('does not increment beyond max', async () => {
-        const wrapper: any = mountComponent({ target: 499, max: 500, hasSpinner: true })
-        (wrapper.vm as any).incrementValue()
+        const wrapper: any = mountComponent({ target: 499, max: 500, hasSpinner: true })(
+            wrapper.vm as any
+        ).incrementValue()
         await wrapper.vm.$nextTick()
 
-        expect((wrapper.vm as any).value).toBe('500')
-
-        // Try incrementing again
-        (wrapper.vm as any).incrementValue()
+        expect((wrapper.vm as any).value)
+            .toBe('500')
+            (
+                // Try incrementing again
+                wrapper.vm as any
+            )
+            .incrementValue()
         await wrapper.vm.$nextTick()
 
         expect((wrapper.vm as any).value).toBe('500')
     })
 
     it('decrements value when decrement is called', async () => {
-        const wrapper: any = mountComponent({ hasSpinner: true })
-        (wrapper.vm as any).decrementValue()
+        const wrapper: any = mountComponent({ hasSpinner: true })(wrapper.vm as any).decrementValue()
         await wrapper.vm.$nextTick()
 
         expect((wrapper.vm as any).value).toBe('99')
     })
 
     it('does not decrement below min', async () => {
-        const wrapper: any = mountComponent({ target: 1, min: 0, hasSpinner: true })
-        (wrapper.vm as any).decrementValue()
+        const wrapper: any = mountComponent({ target: 1, min: 0, hasSpinner: true })(wrapper.vm as any).decrementValue()
         await wrapper.vm.$nextTick()
 
-        expect((wrapper.vm as any).value).toBe('0')
-
-        // Try decrementing again
-        (wrapper.vm as any).decrementValue()
+        expect((wrapper.vm as any).value)
+            .toBe('0')
+            (
+                // Try decrementing again
+                wrapper.vm as any
+            )
+            .decrementValue()
         await wrapper.vm.$nextTick()
 
         expect((wrapper.vm as any).value).toBe('0')
@@ -189,8 +193,7 @@ describe('NumberInput.vue', () => {
             dec: 1,
             step: 0.5,
             hasSpinner: true,
-        })
-        (wrapper.vm as any).incrementValue()
+        })(wrapper.vm as any).incrementValue()
         await wrapper.vm.$nextTick()
 
         expect((wrapper.vm as any).value).toBe('11')
@@ -201,8 +204,7 @@ describe('NumberInput.vue', () => {
             hasSpinner: true,
             spinnerFactor: 10,
             step: 1,
-        })
-        (wrapper.vm as any).incrementValue()
+        })(wrapper.vm as any).incrementValue()
         await wrapper.vm.$nextTick()
 
         // 100 + 1 * 10 = 110
@@ -215,8 +217,7 @@ describe('NumberInput.vue', () => {
             max: 500,
             hasSpinner: true,
             spinnerFactor: 10,
-        })
-        (wrapper.vm as any).incrementValue()
+        })(wrapper.vm as any).incrementValue()
         await wrapper.vm.$nextTick()
 
         expect((wrapper.vm as any).value).toBe('500')
@@ -228,8 +229,7 @@ describe('NumberInput.vue', () => {
             min: 0,
             hasSpinner: true,
             spinnerFactor: 10,
-        })
-        (wrapper.vm as any).decrementValue()
+        })(wrapper.vm as any).decrementValue()
         await wrapper.vm.$nextTick()
 
         expect((wrapper.vm as any).value).toBe('0')
@@ -275,9 +275,13 @@ describe('NumberInput.vue', () => {
     it('blocks invalid characters on keydown', () => {
         const wrapper: any = mountComponent()
         const event = new KeyboardEvent('keydown', { key: 'e' })
-        const preventDefaultSpy = vi.spyOn(event, 'preventDefault')
-
-        (wrapper.vm as any).checkInvalidChars(event)
+        const preventDefaultSpy = vi
+            .spyOn(
+                event,
+                'preventDefault'
+            )
+            (wrapper.vm as any)
+            .checkInvalidChars(event)
 
         expect(preventDefaultSpy).toHaveBeenCalled()
     })
@@ -285,9 +289,13 @@ describe('NumberInput.vue', () => {
     it('blocks minus sign when min >= 0', () => {
         const wrapper: any = mountComponent({ min: 0 })
         const event = new KeyboardEvent('keydown', { key: '-' })
-        const preventDefaultSpy = vi.spyOn(event, 'preventDefault')
-
-        (wrapper.vm as any).checkInvalidChars(event)
+        const preventDefaultSpy = vi
+            .spyOn(
+                event,
+                'preventDefault'
+            )
+            (wrapper.vm as any)
+            .checkInvalidChars(event)
 
         expect(preventDefaultSpy).toHaveBeenCalled()
     })
@@ -295,16 +303,21 @@ describe('NumberInput.vue', () => {
     it('allows minus sign when min < 0', () => {
         const wrapper: any = mountComponent({ min: -100 })
         const event = new KeyboardEvent('keydown', { key: '-' })
-        const preventDefaultSpy = vi.spyOn(event, 'preventDefault')
-
-        (wrapper.vm as any).checkInvalidChars(event)
+        const preventDefaultSpy = vi
+            .spyOn(
+                event,
+                'preventDefault'
+            )
+            (wrapper.vm as any)
+            .checkInvalidChars(event)
 
         expect(preventDefaultSpy).not.toHaveBeenCalled()
     })
 
     it('does not emit submit when value is invalid with outputErrorMsg', () => {
-        const wrapper: any = mountComponent({ target: -5, min: 0, max: 100, outputErrorMsg: true })
-        (wrapper.vm as any).submit()
+        const wrapper: any = mountComponent({ target: -5, min: 0, max: 100, outputErrorMsg: true })(
+            wrapper.vm as any
+        ).submit()
         // invalidInput should be true when value is below min and outputErrorMsg is on
         expect(wrapper.emitted('submit')).toBeFalsy()
     })
@@ -320,8 +333,7 @@ describe('NumberInput.vue', () => {
     })
 
     it('resets value to default when defaultValue is null', () => {
-        const wrapper: any = mountComponent({ defaultValue: null })
-        (wrapper.vm as any).value = '999'
+        const wrapper: any = (mountComponent({ defaultValue: null })(wrapper.vm as any).value = '999')
 
         // Not null default = no reset icon shown
         expect((wrapper.vm as any).value).toBe('999')

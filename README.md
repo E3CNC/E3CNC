@@ -79,21 +79,21 @@ Full docs on the [wiki](https://github.com/E3CNC/E3CNC/wiki):
 
 ## Repository Structure
 
-| Path                                  | Purpose                                                                                        |
-| ------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `src/`                                | Mainsail frontend (Vue 3.5, Vuetify 3, TypeScript)                                             |
-| `cli/`                                | E3CNC CLI package (commands, helpers, parser, menu)                                            |
-| `macros/`                             | Klipper CNC macros (homing override, PAUSE/RESUME, WCS)                                        |
-| `vendor/klipper/klippy/extras/`       | Klipper WCS plugin (`work_coordinate_systems.py`)                                              |
-| `vendor/moonraker/`                   | Vendored Moonraker with cnc_agent, cnc_metadata, MCP server                                    |
-| `post_processors/`                    | Fusion 360 CAM post processors                                                                 |
-| `ansible/`                            | Ansible playbooks for install/deploy/uninstall                                                 |
-| `_e3cnc_deploy.py`                    | Release deployment, health checks, backup, rollback                                            |
-| `_e3cnc_shared.py`                    | Shared command logic for the e3cnc-cli tool                                                    |
-| `e3cnc-cli`                           | Unified CLI — full install, deploy, update, uninstall, status, backup, restore, diagnose, logs |
-| `scripts/`                            | Utility scripts (install, deploy, download frontend)                                           |
-| `tests/`                              | Unit tests (115+), Docker integration tests (2), vendored snapshot checks                      |
-| `.github/workflows/ci.yml`           | CI: Python tests + frontend build on every push/PR
+| Path                            | Purpose                                                                                        |
+| ------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `src/`                          | Mainsail frontend (Vue 3.5, Vuetify 3, TypeScript)                                             |
+| `cli/`                          | E3CNC CLI package (commands, helpers, parser, menu)                                            |
+| `macros/`                       | Klipper CNC macros (homing override, PAUSE/RESUME, WCS)                                        |
+| `vendor/klipper/klippy/extras/` | Klipper WCS plugin (`work_coordinate_systems.py`)                                              |
+| `vendor/moonraker/`             | Vendored Moonraker with cnc_agent, cnc_metadata, MCP server                                    |
+| `post_processors/`              | Fusion 360 CAM post processors                                                                 |
+| `ansible/`                      | Ansible playbooks for install/deploy/uninstall                                                 |
+| `_e3cnc_deploy.py`              | Release deployment, health checks, backup, rollback                                            |
+| `_e3cnc_shared.py`              | Shared command logic for the e3cnc-cli tool                                                    |
+| `e3cnc-cli`                     | Unified CLI — full install, deploy, update, uninstall, status, backup, restore, diagnose, logs |
+| `scripts/`                      | Utility scripts (install, deploy, download frontend)                                           |
+| `tests/`                        | Unit tests (115+), Docker integration tests (2), vendored snapshot checks                      |
+| `.github/workflows/ci.yml`      | CI: Python tests + frontend build on every push/PR                                             |
 
 ## Contributors
 

@@ -205,11 +205,13 @@
                             </span>
                             <v-select
                                 v-model="countPerPage"
-                                :items="itemsPerPageOptions.map((o: number) =>
-                                    o === -1
-                                        ? { title: $t('Machine.ConfigFilesPanel.AllFiles'), value: -1 }
-                                        : { title: String(o), value: o }
-                                )"
+                                :items="
+                                    itemsPerPageOptions.map((o: number) =>
+                                        o === -1
+                                            ? { title: $t('Machine.ConfigFilesPanel.AllFiles'), value: -1 }
+                                            : { title: String(o), value: o }
+                                    )
+                                "
                                 variant="plain"
                                 density="compact"
                                 hide-details
@@ -1406,7 +1408,10 @@ onMounted(() => {
                     const parentText = input
                         .closest('.v-data-table-footer__items-per-page')
                         ?.querySelector('span')?.textContent
-                    input.setAttribute('aria-label', parentText?.trim() || (input as HTMLInputElement).placeholder || 'Form field')
+                    input.setAttribute(
+                        'aria-label',
+                        parentText?.trim() || (input as HTMLInputElement).placeholder || 'Form field'
+                    )
                 }
                 if (!(input as HTMLInputElement).id && !(input as HTMLInputElement).name) {
                     ;(input as HTMLInputElement).setAttribute('name', 'field-' + Math.random().toString(36).slice(2, 8))

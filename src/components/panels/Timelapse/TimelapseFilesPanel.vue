@@ -174,7 +174,9 @@
                             class="text-no-wrap text-right">
                             {{ item.isDirectory ? '--' : formatFilesize(item.size ?? 0) }}
                         </td>
-                        <td v-if="headers.find((header) => header.key === 'modified')?.visible ?? false" class="text-right">
+                        <td
+                            v-if="headers.find((header) => header.key === 'modified')?.visible ?? false"
+                            class="text-right">
                             {{ formatDateTime(item.modified.getTime()) }}
                         </td>
                     </tr>

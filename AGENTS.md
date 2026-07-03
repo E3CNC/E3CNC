@@ -41,6 +41,7 @@ This file documents the current state and capabilities of AI agents used in this
 - `@vue/compat` fully removed — app now runs on pure Vue 3.5 + Vuetify 3
 
 ### Complete (v0.8.2 — all routes verified)
+
 - `/viewer` route verified — Babylon.js builds correctly, zero runtime errors
 
 ### Key Commits
@@ -73,14 +74,14 @@ d5e768fc phase2: global infrastructure for Vue 3
 Replaced the bash-based `install_to_moonraker.sh` / `uninstall.sh` / `deploy.sh`
 with Ansible playbooks for idempotent deployment.
 
-| Phase | What                                                                          | Status |
-| ----- | ----------------------------------------------------------------------------- | ------ |
-| 1     | `ansible/` skeleton (cfg, inventory, vars)                                    | ✅     |
-| 2–7   | 5 roles: bootstrap-stack, extractor, moonraker-config, macros, frontend       | ✅     |
-| 8–10  | Playbooks: `install.yml`, `deploy.yml`, `uninstall.yml`                       | ✅     |
-| 11    | `--check` mode on all command tasks                                           | ✅     |
-| 12    | INSTALLATION.md updated                                                       | ✅     |
-| 14    | Bash scripts deprecated in docs (kept for legacy)                             | ✅     |
+| Phase | What                                                                    | Status |
+| ----- | ----------------------------------------------------------------------- | ------ |
+| 1     | `ansible/` skeleton (cfg, inventory, vars)                              | ✅     |
+| 2–7   | 5 roles: bootstrap-stack, extractor, moonraker-config, macros, frontend | ✅     |
+| 8–10  | Playbooks: `install.yml`, `deploy.yml`, `uninstall.yml`                 | ✅     |
+| 11    | `--check` mode on all command tasks                                     | ✅     |
+| 12    | INSTALLATION.md updated                                                 | ✅     |
+| 14    | Bash scripts deprecated in docs (kept for legacy)                       | ✅     |
 
 Note: `agent` and `klipper-extras` roles were removed in v0.8.2 — those components
 now ship inside the `vendor/moonraker/` and `vendor/klipper/` snapshots and are
