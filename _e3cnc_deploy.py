@@ -310,6 +310,10 @@ def extract_artifact(artifact_path: Path, releases_dir: Path, version: str) -> O
         info(f"Release {version} already exists — removing for re-extract")
         shutil.rmtree(release_dir)
 
+    if not shutil.which("zstd"):
+        warn("zstd not found — install it with: apt install zstd (or equivalent)")
+        return None
+
     info(f"Extracting {artifact_path.name}...")
     try:
         # Use tar with zstd support
@@ -366,6 +370,13 @@ def run_pre_flight_checks(manifest: Dict[str, Any]) -> bool:
             ok(f"Disk space: {free_gb:.1f} GB free")
     except OSError:
         pass
+
+    # zstd check — required for extracting .tar.zst artifacts
+    if not shutil.which("zstd"):
+        warn("zstd not found — install it with: apt install zstd (or equivalent)")
+        all_ok = False
+    else:
+        ok("zstd found")
 
     return all_ok
 
