@@ -465,3 +465,93 @@ class TestImportMoonrakerPrefs:
         namespaces = {r[0] for r in rows}
         assert namespaces == {"mainsail"}
         conn2.close()
+
+
+# ── _generate_minimal_moonraker_conf ──────────────────────────────────
+
+class TestGenerateMinimalMoonrakerConf:
+    """Tests for _e3cnc_shared._generate_minimal_moonraker_conf()."""
+
+    def test_uses_bootstrap_template(self, tmp_path):
+        """Should use the bootstrap template file when available."""
+        from _e3cnc_shared import _generate_minimal_moonraker_conf
+
+        # Point _BOOTSTRAP_PATH to a temp template
+        bootstrap = tmp_path / "bootstrap" / "moonraker.conf"
+        bootstrap.parent.mkdir(parents=True)
+        bootstrap.write_text(
+            "[server]\nport: {port}\nklippy_uds_address: {klippy_uds_address}\n"
+            "# e3cnc_web_port: {web_port}\n"
+            "[file_manager]\nconfig_path: {config_path}\n"
+            "[database]\ndatabase_path: {database_path}\n"
+            "[cnc_agent]\n[cnc_metadata]\nextractor_path: {extractor_path}\ntimeout: 30.0\n"
+        )
+
+        with patch("_e3cnc_shared._BOOTSTRAP_PATH", bootstrap):
+            data_dir = tmp_path / "data"
+            conf_path = _generate_minimal_moonraker_conf(data_dir, 8888)
+
+        assert conf_path.exists()
+        text = conf_path.read_text()
+        assert "port: 8888" in text
+        assert str(data_dir / "config") in text
+        assert str(data_dir / "database") in text
+        assert str(data_dir / "comms" / "klippy.sock") in text
+        assert str(data_dir / "scripts" / "cnc_metadata_extractor.py") in text
+        assert "# e3cnc_web_port:" in text
+        assert "[cnc_agent]" in text
+        assert "[cnc_metadata]" in text
+        # No unrendered placeholders
+        assert "{port}" not in text
+
+    def test_fallback_when_template_missing(self, tmp_path):
+        """Should fall back to hardcoded config when template is missing."""
+        from _e3cnc_shared import _generate_minimal_moonraker_conf
+
+        missing = tmp_path / "nonexistent" / "moonraker.conf"
+        with patch("_e3cnc_shared._BOOTSTRAP_PATH", missing):
+            with patch("_e3cnc_shared.warn"):
+                data_dir = tmp_path / "data"
+                conf_path = _generate_minimal_moonraker_conf(data_dir, 7125)
+
+        assert conf_path.exists()
+        text = conf_path.read_text()
+        assert "port: 7125" in text
+        assert "[cnc_agent]" in text
+        assert "[cnc_metadata]" in text
+
+    def test_includes_cnc_agent_and_metadata(self, tmp_path):
+        """Generated config should always have cnc_agent and cnc_metadata sections."""
+        from _e3cnc_shared import _generate_minimal_moonraker_conf
+
+        with patch("_e3cnc_shared._BOOTSTRAP_PATH", tmp_path / "missing"):
+            with patch("_e3cnc_shared.warn"):
+                data_dir = tmp_path / "data"
+                conf_path = _generate_minimal_moonraker_conf(data_dir, 7125)
+
+        text = conf_path.read_text()
+        assert "[cnc_agent]" in text
+        assert "[cnc_metadata]" in text
+        assert "extractor_path:" in text
+        assert "timeout:" in text
+
+    def test_replacements_no_placeholders_left(self, tmp_path):
+        """All placeholders should be replaced in the final config."""
+        from _e3cnc_shared import _generate_minimal_moonraker_conf
+
+        bootstrap = tmp_path / "bootstrap" / "moonraker.conf"
+        bootstrap.parent.mkdir(parents=True)
+        bootstrap.write_text(
+            "[server]\nport: {port}\n"
+            "[file_manager]\nconfig_path: {config_path}\n"
+            "[database]\ndatabase_path: {database_path}\n"
+            "[cnc_agent]\n"
+            "[cnc_metadata]\nextractor_path: {extractor_path}\ntimeout: 30.0\n"
+        )
+
+        with patch("_e3cnc_shared._BOOTSTRAP_PATH", bootstrap):
+            data_dir = tmp_path / "data"
+            conf_path = _generate_minimal_moonraker_conf(data_dir, 9999)
+
+        text = conf_path.read_text()
+        assert "{" not in text, f"Unrendered placeholders: {text}"

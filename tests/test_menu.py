@@ -282,6 +282,52 @@ class TestSwitchInstance:
                 with patch("builtins.input", side_effect=EOFError()):
                     _switch_instance()  # Should not raise
 
+    def test_numbered_switch_cancel(self, mock_instance):
+        """Cancel option in numbered switch should return without switching."""
+        from cli.menu import _switch_instance
+        inst2 = Instance(
+            name="second", printer_data_dir="/tmp/2/data",
+            config_dir="/tmp/2/data/config",
+            moonraker_conf="/tmp/2/config/moonraker.conf",
+            moonraker_log="/tmp/2/logs/moonraker.log",
+            scripts_dir="/tmp/2/scripts",
+            macros_dir="/tmp/2/config/E3CNC/macros",
+            E3CNC_dir="/tmp/2/config/E3CNC",
+            printer_cfg="/tmp/2/config/printer.cfg",
+            web_root="/tmp/2/frontend",
+            is_running=True,
+        )
+        # With 2 instances: 1 and 2 = instances, 3 = create, 4 = cancel
+        with patch("cli.menu.detect_instances", return_value=[mock_instance, inst2]):
+            with patch("cli.menu.sys.stdin.isatty", return_value=False):
+                with patch("builtins.input", return_value="4"):
+                    with patch("cli.menu.set_active_instance") as mock_set:
+                        with patch("cli.menu.info"):
+                            _switch_instance()
+                            mock_set.assert_not_called()
+
+    def test_numbered_switch_empty_input_cancels(self, mock_instance):
+        """Empty input (Enter) in numbered switch should cancel."""
+        from cli.menu import _switch_instance
+        inst2 = Instance(
+            name="second", printer_data_dir="/tmp/2/data",
+            config_dir="/tmp/2/data/config",
+            moonraker_conf="/tmp/2/config/moonraker.conf",
+            moonraker_log="/tmp/2/logs/moonraker.log",
+            scripts_dir="/tmp/2/scripts",
+            macros_dir="/tmp/2/config/E3CNC/macros",
+            E3CNC_dir="/tmp/2/config/E3CNC",
+            printer_cfg="/tmp/2/config/printer.cfg",
+            web_root="/tmp/2/frontend",
+            is_running=True,
+        )
+        with patch("cli.menu.detect_instances", return_value=[mock_instance, inst2]):
+            with patch("cli.menu.sys.stdin.isatty", return_value=False):
+                with patch("builtins.input", return_value=""):
+                    with patch("cli.menu.set_active_instance") as mock_set:
+                        _switch_instance()
+                        mock_set.assert_not_called()
+
 
 # ── _create_instance ─────────────────────────────────────────────────────
 
