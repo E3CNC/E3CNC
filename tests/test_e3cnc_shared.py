@@ -362,3 +362,106 @@ class TestOutputHelpers:
         from _e3cnc_shared import header
         with patch("builtins.print"):
             header("Test Header")
+
+
+class TestImportMoonrakerPrefs:
+    """Tests for _e3cnc_shared._import_moonraker_prefs()."""
+
+    def _make_kiauh_inst(self, printer_data_dir: str, name: str = "test") -> "Instance":
+        from _e3cnc_shared import Instance
+        d = printer_data_dir
+        return Instance(
+            name=name, printer_data_dir=d,
+            config_dir=f"{d}/config",
+            moonraker_conf=f"{d}/config/moonraker.conf",
+            moonraker_log=f"{d}/logs/moonraker.log",
+            scripts_dir=f"{d}/scripts",
+            macros_dir=f"{d}/config/E3CNC/macros",
+            E3CNC_dir=f"{d}/config/E3CNC",
+            printer_cfg=f"{d}/config/printer.cfg",
+            web_root=f"{d}/frontend",
+        )
+
+    def test_skips_when_no_kiauh_database(self, tmp_path):
+        """If the KIAUH database doesn't exist, should return silently."""
+        from _e3cnc_shared import _import_moonraker_prefs
+        kiauh_dir = tmp_path / "kiauh_data"
+        kiauh_dir.mkdir(parents=True)
+        inst = self._make_kiauh_inst(str(kiauh_dir))
+        new_data = tmp_path / "e3cnc" / "instances" / "test" / "data"
+        new_data.mkdir(parents=True)
+        _import_moonraker_prefs(inst, new_data)  # should not raise
+
+    def test_imports_mainsail_namespace(self, tmp_path):
+        """Mainsail namespace entries should be copied to the new DB."""
+        from _e3cnc_shared import _import_moonraker_prefs
+        import sqlite3
+
+        # Create KIAUH database with mainsail preferences
+        kiauh_dir = tmp_path / "kiauh_data"
+        (kiauh_dir / "database").mkdir(parents=True)
+        src_db = kiauh_dir / "database" / "moonraker-sql.db"
+        conn = sqlite3.connect(str(src_db))
+        conn.execute(
+            "CREATE TABLE namespace_database ("
+            "  namespace TEXT NOT NULL, key TEXT NOT NULL, value record NOT NULL,"
+            "  PRIMARY KEY (namespace, key))"
+        )
+        conn.execute(
+            "INSERT INTO namespace_database VALUES (?, ?, ?)",
+            ("mainsail", "theme", '{"dark": true}'),
+        )
+        conn.execute(
+            "INSERT INTO namespace_database VALUES (?, ?, ?)",
+            ("mainsail", "dashboard.layout", '{"panels": []}'),
+        )
+        conn.commit()
+        conn.close()
+
+        inst = self._make_kiauh_inst(str(kiauh_dir))
+        new_data = tmp_path / "e3cnc" / "instances" / "test" / "data"
+        _import_moonraker_prefs(inst, new_data)
+
+        # Verify preferences were copied
+        dest_db = new_data / "database" / "moonraker-sql.db"
+        assert dest_db.exists()
+        conn2 = sqlite3.connect(str(dest_db))
+        rows = conn2.execute(
+            "SELECT key, value FROM namespace_database WHERE namespace = ?",
+            ("mainsail",),
+        ).fetchall()
+        assert len(rows) == 2
+        keys = {r[0] for r in rows}
+        assert "theme" in keys
+        assert "dashboard.layout" in keys
+        conn2.close()
+
+    def test_skips_other_namespaces(self, tmp_path):
+        """Only mainsail namespace should be copied."""
+        from _e3cnc_shared import _import_moonraker_prefs
+        import sqlite3
+
+        kiauh_dir = tmp_path / "kiauh_data"
+        (kiauh_dir / "database").mkdir(parents=True)
+        src_db = kiauh_dir / "database" / "moonraker-sql.db"
+        conn = sqlite3.connect(str(src_db))
+        conn.execute(
+            "CREATE TABLE namespace_database ("
+            "  namespace TEXT NOT NULL, key TEXT NOT NULL, value record NOT NULL,"
+            "  PRIMARY KEY (namespace, key))"
+        )
+        conn.execute("INSERT INTO namespace_database VALUES (?, ?, ?)", ("mainsail", "theme", '"dark"'))
+        conn.execute("INSERT INTO namespace_database VALUES (?, ?, ?)", ("moonraker", "config", "{}"))
+        conn.commit()
+        conn.close()
+
+        inst = self._make_kiauh_inst(str(kiauh_dir))
+        new_data = tmp_path / "e3cnc" / "instances" / "test" / "data"
+        _import_moonraker_prefs(inst, new_data)
+
+        dest_db = new_data / "database" / "moonraker-sql.db"
+        conn2 = sqlite3.connect(str(dest_db))
+        rows = conn2.execute("SELECT DISTINCT namespace FROM namespace_database").fetchall()
+        namespaces = {r[0] for r in rows}
+        assert namespaces == {"mainsail"}
+        conn2.close()

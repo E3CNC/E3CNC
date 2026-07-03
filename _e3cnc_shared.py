@@ -1279,6 +1279,9 @@ def import_kiauh_instance(kiauh_inst: Instance) -> Optional[Instance]:
         conf_path.write_text(conf_text)
         ok(f"Web port {wp} persisted for '{name}'")
 
+    # Import Mainsail user preferences from KIAUH instance's Moonraker database
+    _import_moonraker_prefs(kiauh_inst, data)
+
     # Copy config/E3CNC directory if present
     e3cnc_dir = Path(kiauh_inst.E3CNC_dir)
     if e3cnc_dir.is_dir():
@@ -1316,6 +1319,76 @@ def import_kiauh_instance(kiauh_inst: Instance) -> Optional[Instance]:
     ok(f"Instance '{name}' imported from KIAUH layout")
     print()
     return new_inst
+
+
+def _import_moonraker_prefs(kiauh_inst: Instance, new_data_dir: Path) -> None:
+    """Import Mainsail user preferences from a KIAUH instance's Moonraker DB.
+
+    Reads the ``namespace_database`` table from the KIAUH instance's
+    ``moonraker-sql.db`` and copies all ``mainsail`` namespace entries
+    into the new E3CNC instance's Moonraker database directory.
+
+    This carries over dashboard layout, theme, panel visibility, console
+    history, webcam configs, and all other GUI state — the user's full
+    Mainsail setup — with zero configuration effort.
+    """
+    # KIAUH database
+    kiauh_db_dir = Path(kiauh_inst.printer_data_dir) / "database"
+    src_db = kiauh_db_dir / "moonraker-sql.db"
+    if not src_db.is_file():
+        return  # No database to import
+
+    # New instance database — Moonraker creates the file on first start
+    dest_db_dir = new_data_dir / "database"
+    dest_db_dir.mkdir(parents=True, exist_ok=True)
+    dest_db = dest_db_dir / "moonraker-sql.db"
+
+    try:
+        import sqlite3
+
+        # Read mainsail namespace from KIAUH database
+        src_conn = sqlite3.connect(str(src_db))
+        src_conn.row_factory = sqlite3.Row
+        try:
+            rows = src_conn.execute(
+                "SELECT key, value FROM namespace_database WHERE namespace = ?",
+                ("mainsail",),
+            ).fetchall()
+        except sqlite3.OperationalError:
+            info("No Mainsail preferences found in KIAUH database")
+            return
+        finally:
+            src_conn.close()
+
+        if not rows:
+            return
+
+        # Write into new instance's database (create if not exists)
+        dest_conn = sqlite3.connect(str(dest_db))
+        try:
+            dest_conn.execute(
+                "CREATE TABLE IF NOT EXISTS namespace_database ("
+                "  namespace TEXT NOT NULL,"
+                "  key TEXT NOT NULL,"
+                "  value record NOT NULL,"
+                "  PRIMARY KEY (namespace, key)"
+                ")"
+            )
+            for row in rows:
+                dest_conn.execute(
+                    "INSERT OR REPLACE INTO namespace_database (namespace, key, value) VALUES (?, ?, ?)",
+                    ("mainsail", row["key"], row["value"]),
+                )
+            dest_conn.commit()
+            ok(f"Imported {len(rows)} Mainsail preference(s) from KIAUH instance")
+        finally:
+            dest_conn.close()
+
+    except ImportError:
+        # sqlite3 not available — skip silently
+        pass
+    except Exception as e:
+        warn(f"Failed to import Mainsail preferences: {e}")
 
 
 def _generate_minimal_moonraker_conf(data_dir: Path, port: int) -> Path:
