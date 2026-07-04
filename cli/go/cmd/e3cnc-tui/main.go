@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/exec"
 	"os/signal"
 	"path/filepath"
 	"syscall"
@@ -43,38 +44,44 @@ func main() {
 			os.Exit(1)
 		}
 
-		// If a command was selected from the menu, try Go-native dispatch first
+		// If a command was selected from the menu, run it then re-launch the TUI
 		if m, ok := finalModel.(tui.Model); ok && m.DispatchCmd != "" {
-			if commands.RunDispatch(m.DispatchCmd, false, nil) {
-				return
+			// Run Go-native command
+			if !commands.RunDispatch(m.DispatchCmd, false, nil) {
+				// Fall back to Python CLI
+				cliDir, pythonExe, err := internal.FindPythonCLI()
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+					os.Exit(1)
+				}
+				workDir := filepath.Dir(cliDir)
+				pyArgs := []string{"-m", "cli", m.DispatchCmd}
+				ctx, cancel := context.WithCancel(context.Background())
+				defer cancel()
+				sigCh := make(chan os.Signal, 1)
+				signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+				go func() {
+					<-sigCh
+					cancel()
+				}()
+				result, err := internal.RunPython(ctx, pythonExe, pyArgs, workDir,
+					func(line string) { fmt.Println(line) },
+					func(line string) { fmt.Fprintln(os.Stderr, line) },
+				)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+					os.Exit(1)
+				}
+				if result.ExitCode != 0 {
+					os.Exit(result.ExitCode)
+				}
 			}
-			// Fall back to Python CLI
-			cliDir, pythonExe, err := internal.FindPythonCLI()
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-				os.Exit(1)
-			}
-			workDir := filepath.Dir(cliDir)
-			pyArgs := []string{"-m", "cli", m.DispatchCmd}
-			ctx, cancel := context.WithCancel(context.Background())
-			defer cancel()
-			sigCh := make(chan os.Signal, 1)
-			signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
-			go func() {
-				<-sigCh
-				cancel()
-			}()
-			result, err := internal.RunPython(ctx, pythonExe, pyArgs, workDir,
-				func(line string) { fmt.Println(line) },
-				func(line string) { fmt.Fprintln(os.Stderr, line) },
-			)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-				os.Exit(1)
-			}
-			if result.ExitCode != 0 {
-				os.Exit(result.ExitCode)
-			}
+			// Re-launch the TUI so the user returns to the menu
+			// Use exec to replace the current process
+			fmt.Print("\nPress Enter to return to menu...")
+			fmt.Scanln()
+			execPath, _ := os.Executable()
+			exec.Command(execPath).Run()
 			return
 		} else {
 			return

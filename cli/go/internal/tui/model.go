@@ -13,9 +13,8 @@ const (
 	StateMainMenu AppState = iota
 	StateInstallWizard
 	StateErrorRecovery
-	StateOutputView
-	StateConfirmQuit
 	StateInstanceMgr
+	StateOutputView
 )
 
 // Model is the root BubbleTea model for the e3cnc-tui application.
