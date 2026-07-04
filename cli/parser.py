@@ -73,6 +73,8 @@ def build_parser() -> argparse.ArgumentParser:
                                   help="Full-stack update: download stack artifact, activate, verify")
     update_parser.add_argument("--dry-run", action="store_true",
                                help="Show what would change without modifying anything")
+    update_parser.add_argument("--artifact", metavar="PATH",
+                               help="Path to a local stack artifact (.tar.zst) — skip GitHub download")
     p.add_parser("uninstall", parents=[shared_remote, shared_check, shared_yes, shared_instance],
                  help="Remove all E3CNC components")
     status_p = p.add_parser("status", parents=[shared_remote, shared_instance],

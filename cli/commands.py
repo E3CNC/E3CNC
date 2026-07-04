@@ -237,7 +237,8 @@ def cmd_update(args) -> None:
         warn("Remote update not yet supported — running locally")
 
     inst = _get_instance(args) if not args.remote else None
-    _download_and_activate_release(inst=inst, skip_backup=False, auto_yes=args.yes, dry_run=args.dry_run)
+    _download_and_activate_release(inst=inst, skip_backup=False, auto_yes=args.yes,
+                                   dry_run=args.dry_run, artifact_path=args.artifact)
 
 
 def cmd_releases(args) -> None:

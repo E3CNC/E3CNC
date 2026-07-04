@@ -209,11 +209,15 @@ def _download_and_activate_release(
     skip_backup: bool = False,
     auto_yes: bool = False,
     dry_run: bool = False,
+    artifact_path: Optional[str] = None,
 ) -> str:
     """Download the latest stack artifact, verify, extract, sync, and restart services.
 
     When dry_run=True, performs discovery, download, backup, and shows what
     would change — but does NOT activate the release or touch live paths.
+
+    When artifact_path is provided, uses the local file instead of fetching
+    from GitHub releases. Useful for testing pre-release builds.
 
     Used by both cmd_install and cmd_update. Returns the activated version string.
     """
@@ -228,23 +232,31 @@ def _download_and_activate_release(
         step(step_num, 9, label)
         step_num += 1
 
-    _step("Finding latest release")
-    asset = find_stack_artifact_asset()
-    if not asset:
-        warn("No stack artifact found in any recent GitHub release.")
-        fail("Trigger the release CI to build artifacts, then retry:\n    gh workflow run build-frontend.yml -f version_tag=<tag>")
-    version = asset.get("name", "").replace("e3cnc-stack-", "").replace(".tar.zst", "")
-    info(f"Found stack artifact: {asset.get('name', 'unknown')}")
+    if artifact_path:
+        _step("Using local artifact")
+        artifact_file = Path(artifact_path)
+        if not artifact_file.exists():
+            fail(f"Artifact not found: {artifact_path}")
+        version = artifact_file.name.replace("e3cnc-stack-", "").replace(".tar.zst", "")
+        info(f"Using local artifact: {artifact_file.name} (version {version})")
+    else:
+        _step("Finding latest release")
+        asset = find_stack_artifact_asset()
+        if not asset:
+            warn("No stack artifact found in any recent GitHub release.")
+            fail("Trigger the release CI to build artifacts, then retry:\n    gh workflow run build-frontend.yml -f version_tag=<tag>")
+        version = asset.get("name", "").replace("e3cnc-stack-", "").replace(".tar.zst", "")
+        info(f"Found stack artifact: {asset.get('name', 'unknown')}")
 
-    _step("Downloading artifact")
-    download_dir = Path("/tmp") / "e3cnc-download"
-    download_dir.mkdir(parents=True, exist_ok=True)
-    artifact_path = download_artifact(asset, download_dir)
-    if not artifact_path:
-        fail("Download failed")
+        _step("Downloading artifact")
+        download_dir = Path("/tmp") / "e3cnc-download"
+        download_dir.mkdir(parents=True, exist_ok=True)
+        artifact_file = download_artifact(asset, download_dir)
+        if not artifact_file:
+            fail("Download failed")
 
     _step("Verifying checksum")
-    if not verify_checksum(artifact_path):
+    if not verify_checksum(artifact_file):
         if auto_yes:
             warn("Checksum mismatch — continuing (--yes set)")
         else:
@@ -256,8 +268,8 @@ def _download_and_activate_release(
 
     _step("Running pre-flight checks")
     try:
-        manifest = _json.loads(artifact_path.with_name("manifest.json").read_text()) if (
-            artifact_path.with_name("manifest.json").exists()
+        manifest = _json.loads(artifact_file.with_name("manifest.json").read_text()) if (
+            artifact_file.with_name("manifest.json").exists()
         ) else {}
     except (OSError, _json.JSONDecodeError):
         manifest = {}
@@ -295,7 +307,7 @@ def _download_and_activate_release(
         return version
 
     _step("Extracting release")
-    release_dir = extract_artifact(artifact_path, RELEASES_DIR, version)
+    release_dir = extract_artifact(artifact_file, RELEASES_DIR, version)
     if not release_dir:
         fail("Extraction failed")
 
