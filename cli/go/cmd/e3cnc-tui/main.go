@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"os/exec"
 	"os/signal"
 	"path/filepath"
 	"syscall"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 
@@ -35,55 +35,53 @@ func main() {
 		os.Exit(0)
 	}
 
-	// No args: enter interactive TUI
+	// No args: enter interactive TUI with auto-re-launch loop
 	if len(args) == 0 {
-		p := tea.NewProgram(tui.New(), tea.WithAltScreen())
-		finalModel, err := p.Run()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error starting TUI: %v\n", err)
-			os.Exit(1)
-		}
-
-		// If a command was selected from the menu, run it then re-launch the TUI
-		if m, ok := finalModel.(tui.Model); ok && m.DispatchCmd != "" {
-			// Run Go-native command
-			if !commands.RunDispatch(m.DispatchCmd, false, nil) {
-				// Fall back to Python CLI
-				cliDir, pythonExe, err := internal.FindPythonCLI()
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-					os.Exit(1)
-				}
-				workDir := filepath.Dir(cliDir)
-				pyArgs := []string{"-m", "cli", m.DispatchCmd}
-				ctx, cancel := context.WithCancel(context.Background())
-				defer cancel()
-				sigCh := make(chan os.Signal, 1)
-				signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
-				go func() {
-					<-sigCh
-					cancel()
-				}()
-				result, err := internal.RunPython(ctx, pythonExe, pyArgs, workDir,
-					func(line string) { fmt.Println(line) },
-					func(line string) { fmt.Fprintln(os.Stderr, line) },
-				)
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-					os.Exit(1)
-				}
-				if result.ExitCode != 0 {
-					os.Exit(result.ExitCode)
-				}
+		for {
+			p := tea.NewProgram(tui.New(), tea.WithAltScreen())
+			finalModel, err := p.Run()
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error starting TUI: %v\n", err)
+				os.Exit(1)
 			}
-			// Re-launch the TUI so the user returns to the menu
-			// Use exec to replace the current process
-			fmt.Print("\nPress Enter to return to menu...")
-			fmt.Scanln()
-			execPath, _ := os.Executable()
-			exec.Command(execPath).Run()
-			return
-		} else {
+
+			// If a command was selected, run it then loop back
+			if m, ok := finalModel.(tui.Model); ok && m.DispatchCmd != "" {
+				// Run Go-native command
+				if !commands.RunDispatch(m.DispatchCmd, false, nil) {
+					// Fall back to Python CLI
+					cliDir, pythonExe, err := internal.FindPythonCLI()
+					if err != nil {
+						fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+						os.Exit(1)
+					}
+					workDir := filepath.Dir(cliDir)
+					pyArgs := []string{"-m", "cli", m.DispatchCmd}
+					ctx, cancel := context.WithCancel(context.Background())
+					defer cancel()
+					sigCh := make(chan os.Signal, 1)
+					signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+					go func() {
+						<-sigCh
+						cancel()
+					}()
+					result, err := internal.RunPython(ctx, pythonExe, pyArgs, workDir,
+						func(line string) { fmt.Println(line) },
+						func(line string) { fmt.Fprintln(os.Stderr, line) },
+					)
+					if err != nil {
+						fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+						os.Exit(1)
+					}
+					if result.ExitCode != 0 {
+						os.Exit(result.ExitCode)
+					}
+				}
+				// Brief pause so user can read output, then re-launch TUI
+				fmt.Print("\n(Press Ctrl+C to exit, or wait 5s to return to menu...)")
+				time.Sleep(5 * time.Second)
+				continue // loop back to launch TUI again
+			}
 			return
 		}
 	}
