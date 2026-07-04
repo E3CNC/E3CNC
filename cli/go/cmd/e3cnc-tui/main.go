@@ -51,7 +51,8 @@ func main() {
 				if response == "q" {
 					return
 				}
-				// Any other key (b, Enter = \n) goes back to menu
+				// Clear terminal before re-launching TUI to hide previous output
+				fmt.Print("\033[H\033[2J")
 				continue
 			}
 			return

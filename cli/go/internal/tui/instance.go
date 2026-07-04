@@ -265,7 +265,7 @@ func (m InstanceModel) handleListKey(msg tea.KeyMsg) (InstanceModel, tea.Cmd) {
 		m.loading = true
 		m.loadErr = ""
 		return m, m.fetchInstances()
-	case "q", "esc":
+	case "b", "q", "esc":
 		// Return to main menu
 		m.done = true
 		return m, nil
@@ -408,7 +408,7 @@ func (m InstanceModel) viewList() string {
 	}
 
 	b.WriteString("\n")
-	b.WriteString(HelpStyle.Render("↑/↓ navigate  ·  enter: switch active  ·  n: create  ·  d: delete  ·  r: refresh  ·  q: back"))
+	b.WriteString(HelpStyle.Render("↑/↓ navigate  ·  enter: switch active  ·  n: create  ·  d: delete  ·  r: refresh  ·  b: back"))
 	b.WriteString("\n")
 
 	return b.String()
