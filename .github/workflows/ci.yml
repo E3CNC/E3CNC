@@ -47,6 +47,29 @@ jobs:
           print(f'Commands: {len(cmds)} — {\", \".join(sorted(cmds))}')
           "
 
+  test-go:
+    name: Go Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cli/go
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache-dependency-path: cli/go/go.sum
+
+      - name: Run Go tests
+        run: go test ./internal/ -v -count=1
+
+      - name: Check Go build
+        run: |
+          CGO_ENABLED=0 go build -o /dev/null ./cmd/e3cnc-tui/
+          echo "Go build OK"
+
   build-frontend:
     name: Frontend Build
     runs-on: ubuntu-latest

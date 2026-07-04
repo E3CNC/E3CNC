@@ -84,6 +84,20 @@ jobs:
       - name: Build
         run: bun run build
 
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache-dependency-path: cli/go/go.sum
+
+      - name: Build Go TUI binary (linux/arm64)
+        run: |
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 \
+            go build -ldflags="-s -w -X main.version=${{ steps.version.outputs.VERSION }}" \
+            -trimpath -o bin/e3cnc-tui ./cli/go/cmd/e3cnc-tui/
+          echo "Go TUI binary built for linux/arm64:"
+          ls -lh bin/e3cnc-tui
+
       - name: Write version.json into dist
         run: |
           echo "{\"buildTime\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"commit\":\"${{ github.sha }}\"}" > dist/version.json
@@ -108,7 +122,8 @@ jobs:
                    "${STACK_DIR}/frontend" \
                    "${STACK_DIR}/config/macros" \
                    "${STACK_DIR}/scripts" \
-                   "${STACK_DIR}/migrations"
+                   "${STACK_DIR}/migrations" \
+                   "${STACK_DIR}/bin"
 
           # Frontend (built assets)
           cp -r dist/* "${STACK_DIR}/frontend/"
@@ -131,6 +146,12 @@ jobs:
           # CLI — bundled so e3cnc-cli runs from the current release's copy
           cp -r cli "${STACK_DIR}/cli"
           cp _e3cnc_shared.py _e3cnc_deploy.py _e3cnc_supervisor.py "${STACK_DIR}/"
+
+          # Go TUI binary
+          if [ -f bin/e3cnc-tui ]; then
+            cp bin/e3cnc-tui "${STACK_DIR}/bin/e3cnc-tui"
+            echo "  Included e3cnc-tui in stack artifact"
+          fi
 
           # Bootstrap template
           cp -r config/bootstrap "${STACK_DIR}/config/bootstrap"

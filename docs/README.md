@@ -38,6 +38,7 @@ git clone https://github.com/E3CNC/E3CNC.git ~/E3CNC && cd ~/E3CNC
 - **State Persistence** — panel positions, editor files, dashboard scroll, grid settings survive reloads
 - **E3CNC Theme** — green #00FF00 branding with custom SVG logo, persisted to Moonraker DB
 - **In-App Stack Updates** — update, rollback, and release info from the E3CNC menu via Moonraker CNC-agent endpoints
+- **BubbleTea TUI** — keyboard-driven terminal UI with install wizard (6 screens), instance manager, real-time streaming, and cancellation
 - **Ansible Deploy** — idempotent install/deploy/uninstall playbooks
 - **Semver Releases** — version tags on `main` and GitHub releases
 
@@ -47,7 +48,9 @@ git clone https://github.com/E3CNC/E3CNC.git ~/E3CNC && cd ~/E3CNC
 | --------------------- | ------------------------------------------------------------------ |
 | **Install**           | `./e3cnc-cli install`                                              |
 | **Update from UI**    | E3CNC top-corner menu → Update                                     |
-| **Interactive menu**  | `./e3cnc-cli` (with auto-loop after each command)                  |
+| **Interactive menu**  | `./e3cnc-cli` (BubbleTea TUI when available, Python fallback)        |
+| **Instance manager**  | Select "Instances" in the TUI, or `e3cnc-cli instances`               |
+| **Install wizard**    | `./e3cnc-cli install` (6-screen guided TUI wizard)                    |
 | **Detect MCU**        | `./e3cnc-cli detect-mcu`                                           |
 | **Flash firmware**    | `./e3cnc-cli flash-mcu`                                            |
 | **Generate config**   | `./e3cnc-cli init-config`                                          |
@@ -70,6 +73,7 @@ git clone https://github.com/E3CNC/E3CNC.git ~/E3CNC && cd ~/E3CNC
 
 Full docs on the [wiki](https://github.com/E3CNC/E3CNC/wiki):
 
+- [TUI (BubbleTea Terminal UI)](docs/TUI.md)
 - [Installation](https://github.com/E3CNC/E3CNC/wiki/Installation)
 - [Architecture](https://github.com/E3CNC/E3CNC/wiki/Architecture)
 - [API Reference](https://github.com/E3CNC/E3CNC/wiki/API)
@@ -82,7 +86,8 @@ Full docs on the [wiki](https://github.com/E3CNC/E3CNC/wiki):
 | Path                            | Purpose                                                                                        |
 | ------------------------------- | ---------------------------------------------------------------------------------------------- |
 | `src/`                          | Mainsail frontend (Vue 3.5, Vuetify 3, TypeScript)                                             |
-| `cli/`                          | E3CNC CLI package (commands, helpers, parser, menu)                                            |
+| `cli/`                          | E3CNC CLI package (commands, helpers, parser, menu, BubbleTea TUI)  |
+| `cli/go/`                       | BubbleTea Go TUI (`e3cnc-tui` — static binary, interactive menus)   |
 | `macros/`                       | Klipper CNC macros (homing override, PAUSE/RESUME, WCS)                                        |
 | `vendor/klipper/klippy/extras/` | Klipper WCS plugin (`work_coordinate_systems.py`)                                              |
 | `vendor/moonraker/`             | Vendored Moonraker with cnc_agent, cnc_metadata, MCP server                                    |

@@ -1,0 +1,262 @@
+{
+  "version": "1",
+  "commands": [
+    {
+      "name": "install",
+      "aliases": [],
+      "destructive": true,
+      "blocking": true,
+      "interactive": true,
+      "flags": [
+        {"name": "remote", "type": "string", "short": null, "help": "Remote SSH target (e.g., pi@192.168.1.100)"},
+        {"name": "check", "type": "bool", "short": "n", "help": "Dry-run mode (Ansible check mode)"},
+        {"name": "yes", "type": "bool", "short": "y", "help": "Skip confirmation prompts"},
+        {"name": "instance", "type": "string", "short": "p", "help": "CNC instance name (e.g., 'test2', 'lab', or 'default')"},
+        {"name": "name", "type": "string", "short": null, "help": "Instance name for bootstrap (creates ~/e3cnc/instances/{NAME})"}
+      ]
+    },
+    {
+      "name": "deploy",
+      "aliases": [],
+      "destructive": false,
+      "blocking": true,
+      "interactive": false,
+      "flags": [
+        {"name": "remote", "type": "string", "short": null, "help": "Remote SSH target"},
+        {"name": "check", "type": "bool", "short": "n", "help": "Dry-run mode"},
+        {"name": "instance", "type": "string", "short": "p", "help": "Instance name"}
+      ]
+    },
+    {
+      "name": "update",
+      "aliases": ["redeploy"],
+      "destructive": true,
+      "blocking": true,
+      "interactive": false,
+      "flags": [
+        {"name": "remote", "type": "string", "short": null, "help": "Remote SSH target"},
+        {"name": "check", "type": "bool", "short": "n", "help": "Dry-run mode"},
+        {"name": "yes", "type": "bool", "short": "y", "help": "Skip confirmation prompts"},
+        {"name": "instance", "type": "string", "short": "p", "help": "Instance name"},
+        {"name": "dry-run", "type": "bool", "short": null, "help": "Show what would change without modifying anything"}
+      ]
+    },
+    {
+      "name": "uninstall",
+      "aliases": [],
+      "destructive": true,
+      "blocking": true,
+      "interactive": true,
+      "flags": [
+        {"name": "remote", "type": "string", "short": null, "help": "Remote SSH target"},
+        {"name": "check", "type": "bool", "short": "n", "help": "Dry-run mode"},
+        {"name": "yes", "type": "bool", "short": "y", "help": "Skip confirmation prompts"},
+        {"name": "instance", "type": "string", "short": "p", "help": "Instance name"}
+      ]
+    },
+    {
+      "name": "status",
+      "aliases": [],
+      "destructive": false,
+      "blocking": false,
+      "interactive": false,
+      "flags": [
+        {"name": "remote", "type": "string", "short": null, "help": "Remote SSH target"},
+        {"name": "instance", "type": "string", "short": "p", "help": "Instance name"}
+      ]
+    },
+    {
+      "name": "check",
+      "aliases": [],
+      "destructive": false,
+      "blocking": false,
+      "interactive": false,
+      "flags": []
+    },
+    {
+      "name": "detect-mcu",
+      "aliases": ["detect", "scan"],
+      "destructive": false,
+      "blocking": false,
+      "interactive": false,
+      "flags": []
+    },
+    {
+      "name": "flash-mcu",
+      "aliases": ["flash", "build"],
+      "destructive": true,
+      "blocking": true,
+      "interactive": true,
+      "flags": [
+        {"name": "yes", "type": "bool", "short": "y", "help": "Skip confirmation prompts"},
+        {"name": "instance", "type": "string", "short": "p", "help": "Instance name"}
+      ]
+    },
+    {
+      "name": "init-config",
+      "aliases": ["init"],
+      "destructive": true,
+      "blocking": true,
+      "interactive": true,
+      "flags": [
+        {"name": "yes", "type": "bool", "short": "y", "help": "Skip confirmation prompts"},
+        {"name": "instance", "type": "string", "short": "p", "help": "Instance name"}
+      ]
+    },
+    {
+      "name": "releases",
+      "aliases": ["rel"],
+      "destructive": false,
+      "blocking": false,
+      "interactive": false,
+      "flags": []
+    },
+    {
+      "name": "rollback",
+      "aliases": [],
+      "destructive": true,
+      "blocking": true,
+      "interactive": false,
+      "flags": [
+        {"name": "remote", "type": "string", "short": null, "help": "Remote SSH target"},
+        {"name": "instance", "type": "string", "short": "p", "help": "Instance name"},
+        {"name": "version", "type": "string", "short": null, "help": "Specific version to roll back to (default: previous)", "positional": true}
+      ]
+    },
+    {
+      "name": "prune",
+      "aliases": [],
+      "destructive": true,
+      "blocking": true,
+      "interactive": false,
+      "flags": [
+        {"name": "keep", "type": "int", "short": null, "default": 3, "help": "Number of releases to keep (default: 3)"},
+        {"name": "dry-run", "type": "bool", "short": "n", "help": "Show what would be pruned without deleting"}
+      ]
+    },
+    {
+      "name": "prune-backups",
+      "aliases": [],
+      "destructive": true,
+      "blocking": true,
+      "interactive": false,
+      "flags": [
+        {"name": "keep", "type": "int", "short": null, "default": 5, "help": "Number of backups to keep (default: 5)"},
+        {"name": "dry-run", "type": "bool", "short": "n", "help": "Show what would be pruned without deleting"}
+      ]
+    },
+    {
+      "name": "instances",
+      "aliases": ["inst", "list"],
+      "destructive": false,
+      "blocking": false,
+      "interactive": true,
+      "flags": []
+    },
+    {
+      "name": "migrate",
+      "aliases": ["migrate-layout"],
+      "destructive": true,
+      "blocking": true,
+      "interactive": false,
+      "flags": [
+        {"name": "remote", "type": "string", "short": null, "help": "Remote SSH target"},
+        {"name": "yes", "type": "bool", "short": "y", "help": "Skip confirmation prompts"},
+        {"name": "instance", "type": "string", "short": "p", "help": "Instance name"},
+        {"name": "from-version", "type": "string", "short": null, "help": "Specific version to migrate to (default: latest release)"}
+      ]
+    },
+    {
+      "name": "migrate-instances",
+      "aliases": [],
+      "destructive": true,
+      "blocking": true,
+      "interactive": true,
+      "flags": [
+        {"name": "yes", "type": "bool", "short": "y", "help": "Skip confirmation prompts"}
+      ]
+    },
+    {
+      "name": "restart",
+      "aliases": [],
+      "destructive": true,
+      "blocking": true,
+      "interactive": false,
+      "flags": [
+        {"name": "instance", "type": "string", "short": "p", "help": "Instance name"}
+      ]
+    },
+    {
+      "name": "admin-page",
+      "aliases": [],
+      "destructive": false,
+      "blocking": true,
+      "interactive": false,
+      "flags": []
+    },
+    {
+      "name": "import-instance",
+      "aliases": [],
+      "destructive": false,
+      "blocking": true,
+      "interactive": true,
+      "flags": []
+    },
+    {
+      "name": "clilog",
+      "aliases": [],
+      "destructive": false,
+      "blocking": false,
+      "interactive": false,
+      "flags": [
+        {"name": "lines", "type": "int", "short": "n", "default": 50, "help": "Number of log lines to show (default: 50)"}
+      ]
+    },
+    {
+      "name": "backup",
+      "aliases": [],
+      "destructive": false,
+      "blocking": true,
+      "interactive": false,
+      "flags": [
+        {"name": "remote", "type": "string", "short": null, "help": "Remote SSH target"},
+        {"name": "instance", "type": "string", "short": "p", "help": "Instance name"}
+      ]
+    },
+    {
+      "name": "restore",
+      "aliases": [],
+      "destructive": false,
+      "blocking": true,
+      "interactive": true,
+      "flags": [
+        {"name": "remote", "type": "string", "short": null, "help": "Remote SSH target"},
+        {"name": "yes", "type": "bool", "short": "y", "help": "Skip confirmation prompts"},
+        {"name": "backup-dir", "type": "string", "short": null, "help": "Backup directory name or path", "positional": true}
+      ]
+    },
+    {
+      "name": "diagnose",
+      "aliases": ["diag", "doctor"],
+      "destructive": false,
+      "blocking": true,
+      "interactive": false,
+      "flags": [
+        {"name": "remote", "type": "string", "short": null, "help": "Remote SSH target"},
+        {"name": "instance", "type": "string", "short": "p", "help": "Instance name"}
+      ]
+    },
+    {
+      "name": "logs",
+      "aliases": [],
+      "destructive": false,
+      "blocking": true,
+      "interactive": false,
+      "flags": [
+        {"name": "remote", "type": "string", "short": null, "help": "Remote SSH target"},
+        {"name": "instance", "type": "string", "short": "p", "help": "Instance name"},
+        {"name": "lines", "type": "int", "short": "n", "default": 50, "help": "Number of lines to show (default: 50)"}
+      ]
+    }
+  ]
+}

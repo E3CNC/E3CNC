@@ -152,6 +152,11 @@ a9144473 spec: add Ansible migration plan
 - **Runtime fixes applied**: `i18n.global.t`, `useDisplay()`, `boolMenu`, removed `const mdiXxx = mdiXxx` TDZ bugs across 100+ files.
 - **32-bit ARM builds**: Do NOT run `bun run build` on 32-bit ARM — it OOMs. Use `build-scripts/download_frontend.sh` or CI nightly releases instead.
 - **Moonraker update manager**: Has `post_update_script: ~/E3CNC/build-scripts/post_update.sh` which now delegates to `./e3cnc-cli update` (single-deploy flow). Repo must be cloned manually first (Moonraker does not clone from scratch).
-- **Single-deploy layout**: Releases are staged at `~/e3cnc/releases/<version>/` with a `~/e3cnc/current` symlink. Run `./e3cnc-cli releases` to list, `./e3cnc-cli rollback` to revert.
-- **Stack artifact**: CI builds `e3cnc-stack-v<ver>.tar.zst` containing frontend, Moonraker components, Klipper extras, macros, scripts, and manifest. Published alongside the frontend zip.
-- **Ask before pushing**: Never push to remote without asking the user first.
+|- **Single-deploy layout**: Releases are staged at `~/e3cnc/releases/<version>/` with a `~/e3cnc/current` symlink. Run `./e3cnc-cli releases` to list, `./e3cnc-cli rollback` to revert.
+|- **Stack artifact**: CI builds `e3cnc-stack-v<ver>.tar.zst` containing frontend, Moonraker components, Klipper extras, macros, scripts, manifest, and `bin/e3cnc-tui`. Published alongside the frontend zip.
+|- **BubbleTea TUI**: Complete (Phases 0–6). Python `simple-term-menu` replaced by Go BubbleTea binary (`cli/go/`). Dispatch: Go binary in release → Python release → repo checkout. Python menu/parser preserved as bootstrap fallbacks.
+|- **TUI build**: `CGO_ENABLED=0`, cross-compiles linux/arm64/amd64 + darwin/amd64. Version injected via `-X main.version=...` (unexported variable — Go 1.26+ requirement).
+|- **TUI tests**: 12 Go tests in `cli/go/internal/` (command parsing + state persistence). CI `test-go` job.
+|- **Install wizard**: 6-screen BubbleTea wizard: pre-flight hard-block, instance config form, 9-step exec dashboard, error recovery (retry/skip/abort), verification dashboard (7 health checks), next-steps guide.
+|- **Instance manager**: TUI lists instances with running status, switch active, create, delete with confirmation. Active instance persisted to `~/.e3cnc-tui/state.json`.
+|- **Ask before pushing**: Never push to remote without asking the user first.

@@ -1,12 +1,12 @@
-"""
-Single-deploy stack infrastructure for E3CNC CLI.
+"""Single-deploy stack infrastructure for E3CNC CLI.
 
 Provides staged runtime activation, artifact management, health checks,
-rollback, and release GC. Designed to be imported by both e3cnc-cli and
-the future e3cnc-tui.
+rollback, and release GC. Designed to be imported by the e3cnc-cli Python
+frontend and called as a subprocess by the e3cnc-tui Go TUI.
 
-This module replaces the old multi-copy Ansible deployment model with a
-single-artifact, single-apply-step model.
+When called as a subprocess by the Go TUI (e3cnc-tui), error codes are
+emitted as structured JSON on stderr with the prefix "E3CNC_ERROR:" so
+the TUI can parse and display context-aware recovery suggestions.
 """
 
 import json
@@ -49,7 +49,56 @@ HEALTH_CHECK_RETRIES = 6
 HEALTH_CHECK_BACKOFF = 5  # seconds
 
 
-# ── Data classes ────────────────────────────────────────────────────────────
+# -- Error codes (machine-readable, consumed by Go TUI) ---------------------
+
+E3CNC_ERROR_PREFIX = "E3CNC_ERROR:"
+
+E3CNC_ERROR_CODES = {
+    "PYTHON_VERSION": "Python version below minimum requirement",
+    "GIT_NOT_FOUND": "git is not installed",
+    "CURL_NOT_FOUND": "curl is not installed",
+    "UNZIP_NOT_FOUND": "unzip is not installed",
+    "ZSTD_NOT_FOUND": "zstd is not installed",
+    "DISK_FULL": "Insufficient disk space",
+    "NETWORK_UNAVAILABLE": "GitHub API is unreachable",
+    "GITHUB_RATE_LIMIT": "GitHub API rate limit exceeded",
+    "DOWNLOAD_FAILED": "Artifact download failed",
+    "CHECKSUM_MISMATCH": "Artifact checksum verification failed",
+    "EXTRACT_FAILED": "Artifact extraction failed",
+    "ACTIVATION_FAILED": "Release activation (symlink swap) failed",
+    "SERVICE_RESTART_FAILED": "Service failed to restart after update",
+    "MOONRAKER_API_DOWN": "Moonraker API is not responding",
+    "KLIPPY_NOT_READY": "Klippy is not connected (optional check)",
+    "CNC_AGENT_MISSING": "E3CNC cnc_agent component did not load",
+    "FRONTEND_NOT_FOUND": "Frontend web root is missing index.html",
+    "PERMISSION_DENIED": "Permission denied writing to path",
+    "SUDO_REQUIRED": "Sudo access is required for this operation",
+    "PORT_CONFLICT": "Port is already in use by another instance",
+}
+
+
+def emit_error(code: str, detail: str = "", phase: int = 0) -> None:
+    """Emit a structured error code to stderr for the Go TUI to parse.
+
+    The Go runner captures stderr separately and scans for lines matching
+    E3CNC_ERROR: prefix. The parsed error code maps to a human-readable
+    suggestion in the Go TUI error recovery screen.
+
+    Args:
+        code: One of the keys in E3CNC_ERROR_CODES.
+        detail: Human-readable detail about the failure.
+        phase: The install phase number (1-9) where the error occurred.
+    """
+    import json as _json
+    payload = _json.dumps({
+        "code": code,
+        "detail": detail,
+        "phase": phase,
+    })
+    print(f"{E3CNC_ERROR_PREFIX}{payload}", file=sys.stderr)
+
+
+# -- Data classes ------------------------------------------------------------
 
 @dataclass
 class Release:

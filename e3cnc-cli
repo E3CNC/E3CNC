@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
 """e3cnc-cli — Unified CLI for installing, deploying, and managing E3CNC UI.
 
-If a deployed release exists (~/e3cnc/current), runs the CLI bundled inside
-that release so the CLI version always matches the deployed stack version.
-Otherwise falls back to the repo checkout.
+If a Go TUI binary (e3cnc-tui) is found in the deployed release, it is
+preferred — the Go binary handles interactive TUI or CLI dispatch.
+Otherwise falls back to the Python CLI path (release or repo checkout).
+
+Dispatch order:
+  1. ~/e3cnc/current/bin/e3cnc-tui  → exec Go binary
+  2. ~/e3cnc/current/cli/           → run Python CLI from release
+  3. Repo checkout (this script)    → run Python CLI from source
 """
+import subprocess
 import sys
 import os
 import traceback
@@ -59,10 +65,21 @@ def _run_from_release() -> bool:
 
 
 if __name__ == "__main__":
+    # ── Step 1: Try Go binary in release ──
+    current_link = Path.home() / "e3cnc" / "current"
+    tui_binary = current_link / "bin" / "e3cnc-tui"
+    if tui_binary.is_file() and os.access(str(tui_binary), os.X_OK):
+        try:
+            os.execv(str(tui_binary), [str(tui_binary)] + sys.argv[1:])
+        except OSError:
+            # Fall through if exec fails (e.g., wrong arch)
+            pass
+
+    # ── Step 2: Try Python CLI from deployed release ──
     if _run_from_release():
         sys.exit(0)
 
-    # Fallback: run from repo checkout
+    # ── Step 3: Fallback — run from repo checkout ──
     _THIS_DIR = os.path.dirname(os.path.abspath(__file__))
     if _THIS_DIR not in sys.path:
         sys.path.insert(0, _THIS_DIR)

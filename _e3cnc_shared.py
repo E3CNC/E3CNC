@@ -1,10 +1,11 @@
-"""
-Shared command logic for e3cnc-cli and e3cnc-tui.
+"""Shared command logic for e3cnc-cli.
 
 Contains all the core functionality: Ansible wrappers, dependency checks,
 install/deploy/update/uninstall/status/backup/restore/diagnose/logs.
 
-This file is imported by both the CLI (e3cnc-cli) and TUI (e3cnc-tui) frontends.
+This module is imported by the CLI frontend. When running under the
+BubbleTea Go TUI (e3cnc-tui), it runs as a subprocess and communicates
+via stdout/stderr and exit codes. JSON output is used for structured data.
 """
 
 import json
@@ -89,7 +90,10 @@ if not _BOOTSTRAP_PATH.exists():
 
 # ── ANSI styling (shared for both CLIs) ─────────────────────────────────────
 
-_STYLE_ENABLED = sys.stdout.isatty() and os.name != "nt"
+_STYLE_ENABLED = (
+    os.environ.get("E3CNC_FORCE_COLOR", "").lower() in ("1", "true", "yes")
+    or (sys.stdout.isatty() and os.name != "nt")
+)
 
 
 def _sc(code: str) -> str:

@@ -66,6 +66,16 @@ else
 fi
 echo "  ✓ _e3cnc_shared.py"
 
+# ── build Go TUI binary with injected version ────────────────────────────────
+GO_DIR="cli/go"
+if [[ -d "$GO_DIR" ]]; then
+    echo "  Building Go TUI binary (version=$NEW)..."
+    CGO_ENABLED=0 go build -ldflags="-s -w -X main.version=$NEW" -trimpath -o "$GO_DIR/e3cnc-tui" "$GO_DIR/cmd/e3cnc-tui/" 2>&1 | sed 's/^/    /'
+    VERIFIED=$("$GO_DIR/e3cnc-tui" --version 2>&1)
+    echo "  ✓ Go TUI binary built: $VERIFIED"
+    ls -lh "$GO_DIR/e3cnc-tui" | sed 's/^/    /'
+fi
+
 # ── add stub entry to CHANGELOG.md ───────────────────────────────────────────
 TODAY=$(date +%Y-%m-%d)
 STUB="## v$NEW ($TODAY)
@@ -88,7 +98,7 @@ echo ""
 echo "All version files synced to $NEW."
 
 # ── auto-commit ──────────────────────────────────────────────────────────────
-git add package.json _e3cnc_shared.py CHANGELOG.md package-lock.json
+git add package.json _e3cnc_shared.py CHANGELOG.md package-lock.json cli/go/e3cnc-tui
 git commit -m "chore: bump v$CURRENT → v$NEW" --no-verify 2>/dev/null || true
 echo "  ✓ Commit created: chore: bump v$CURRENT → v$NEW"
 

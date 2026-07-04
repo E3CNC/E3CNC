@@ -61,8 +61,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = subparsers = parser.add_subparsers(dest="command", title="Commands")
 
-    p.add_parser("install", parents=[shared_remote, shared_check, shared_yes, shared_instance, shared_instance_name],
+    install_p = p.add_parser("install", parents=[shared_remote, shared_check, shared_yes, shared_instance, shared_instance_name],
                  help="Full installation: bootstrap infrastructure + download release + activate")
+    install_p.add_argument("--json", action="store_true",
+                           help="Output pre-flight checks as JSON for machine consumption")
     p.add_parser("deploy", parents=[shared_remote, shared_check, shared_instance],
                  help="Deploy frontend (download from GitHub release)")
     # Update with dry-run support
@@ -73,9 +75,13 @@ def build_parser() -> argparse.ArgumentParser:
                                help="Show what would change without modifying anything")
     p.add_parser("uninstall", parents=[shared_remote, shared_check, shared_yes, shared_instance],
                  help="Remove all E3CNC components")
-    p.add_parser("status", parents=[shared_remote, shared_instance],
-                 help="Check installation status of all components")
-    p.add_parser("check", help="Check dependencies")
+    status_p = p.add_parser("status", parents=[shared_remote, shared_instance],
+                           help="Check installation status of all components")
+    status_p.add_argument("--json", action="store_true",
+                          help="Output as JSON for machine consumption")
+    check_p = p.add_parser("check", help="Check dependencies")
+    check_p.add_argument("--json", action="store_true",
+                         help="Output as JSON for machine consumption")
 
     # MCU commands
     p.add_parser("detect-mcu", aliases=["detect", "scan"],
@@ -88,8 +94,10 @@ def build_parser() -> argparse.ArgumentParser:
                  help="Generate a CNC printer.cfg with detected MCU path")
 
     # Single-deploy commands
-    p.add_parser("releases", aliases=["rel"],
-                 help="List installed releases")
+    releases_p = p.add_parser("releases", aliases=["rel"],
+                             help="List installed releases")
+    releases_p.add_argument("--json", action="store_true",
+                            help="Output as JSON for machine consumption")
 
     rlb = p.add_parser("rollback", parents=[shared_remote, shared_instance],
                        help="Roll back to a previous release")
@@ -110,8 +118,10 @@ def build_parser() -> argparse.ArgumentParser:
     prb.add_argument("--dry-run", "-n", action="store_true",
                      help="Show what would be pruned without deleting")
 
-    p.add_parser("instances", aliases=["inst", "list"],
-                 help="List detected instances with ports and frontend URLs")
+    inst_p = p.add_parser("instances", aliases=["inst", "list"],
+                         help="List detected instances with ports and frontend URLs")
+    inst_p.add_argument("--json", action="store_true",
+                        help="Output as JSON for machine consumption")
 
     mig = p.add_parser("migrate", aliases=["migrate-layout"],
                        parents=[shared_remote, shared_yes, shared_instance],

@@ -32,9 +32,39 @@ from _e3cnc_shared import INSTALL_PLAYBOOK, DEPLOY_PLAYBOOK, UNINSTALL_PLAYBOOK
 
 def cmd_check(args) -> None:
     """Check dependencies."""
+    all_ok, lines = check_dependencies(output_callback=None)
+
+    if getattr(args, "json", False):
+        result = {
+            "all_ok": all_ok,
+            "checks": []
+        }
+        current_section = ""
+        for line in lines:
+            stripped = line.strip()
+            if not stripped:
+                continue
+            if not stripped.startswith("✓") and not stripped.startswith("⚠") and not stripped.startswith("→"):
+                current_section = stripped
+                continue
+            status = "passed" if stripped.startswith("✓") else "failed"
+            # Strip leading ✓/⚠ and leading/trailing whitespace
+            detail = stripped[1:].strip() if stripped.startswith(("✓", "⚠")) else stripped
+            result["checks"].append({
+                "section": current_section,
+                "status": status,
+                "detail": detail
+            })
+        import json
+        print(json.dumps(result, indent=2))
+        if not all_ok:
+            sys.exit(1)
+        return
+
     header("Dependencies")
-    ok, _ = check_dependencies(output_callback=lambda line: print(line, end=""))
-    if not ok:
+    for line in lines:
+        print(line)
+    if not all_ok:
         sys.exit(1)
 
 
@@ -212,8 +242,28 @@ def cmd_update(args) -> None:
 
 def cmd_releases(args) -> None:
     """List installed releases."""
-    from _e3cnc_deploy import get_releases, format_release_list
+    from _e3cnc_deploy import get_releases, get_current_release
 
+    if getattr(args, "json", False):
+        import json
+        releases = get_releases()
+        current = get_current_release()
+        result = {
+            "current_version": current.version if current else None,
+            "releases": []
+        }
+        for r in releases:
+            result["releases"].append({
+                "version": r.version,
+                "is_active": r.is_active,
+                "size_bytes": r.size_bytes,
+                "created_at": r.created_at,
+                "path": str(r.path),
+            })
+        print(json.dumps(result, indent=2))
+        return
+
+    from _e3cnc_deploy import format_release_list
     header("Releases")
     releases = get_releases()
     if not releases:
@@ -318,9 +368,35 @@ def cmd_prune_backups(args) -> None:
 
 def cmd_instances(args) -> None:
     """List detected instances with ports, web roots, and frontend URLs."""
-    header("Instances")
     from _e3cnc_shared import detect_instances
     insts = detect_instances()
+
+    if getattr(args, "json", False):
+        from _e3cnc_deploy import _get_local_ip, get_current_release
+        import json
+        ip = _get_local_ip()
+        current = get_current_release()
+        result = {
+            "local_ip": ip,
+            "release_version": current.version if current else None,
+            "instances": []
+        }
+        for inst in insts:
+            result["instances"].append({
+                "name": inst.name,
+                "is_running": inst.is_running,
+                "config_dir": inst.config_dir,
+                "moonraker_service": inst.moonraker_service,
+                "klipper_service": inst.klipper_service,
+                "moonraker_port": inst.moonraker_port,
+                "web_port": inst.web_port,
+                "web_root": inst.web_root,
+                "printer_data_dir": inst.printer_data_dir,
+            })
+        print(json.dumps(result, indent=2))
+        return
+
+    header("Instances")
     if not insts:
         info("No instances detected")
         info("Install one with: e3cnc-cli install --name <name>")
@@ -590,15 +666,40 @@ def cmd_status(args) -> None:
     inst = None
     if not args.remote:
         from _e3cnc_shared import get_active_instance
-        # Use --instance flag first, then fall back to active instance
         if args.instance:
             inst = _get_instance(args)
         else:
             inst = get_active_instance()
             if not inst:
                 inst = _get_instance(args)
-        if inst and inst.name != "cnc":
-            info(f"Using instance: {Style.BOLD}{inst.name}{Style.RESET}")
+
+    if getattr(args, "json", False):
+        import json
+        ok_count, total_checks, lines = check_status(args.remote, output_callback=None, inst=inst)
+        result = {
+            "ok_count": ok_count,
+            "total_checks": total_checks,
+            "all_ok": ok_count == total_checks,
+            "checks": []
+        }
+        for line in lines:
+            stripped = line.strip()
+            if not stripped:
+                continue
+            result["checks"].append(stripped)
+        if inst:
+            from _e3cnc_deploy import _get_local_ip
+            ip = _get_local_ip()
+            result["instance"] = {
+                "name": inst.name,
+                "api_url": f"http://{ip}:{inst.moonraker_port}/server/info",
+                "web_url": f"http://{ip}{':' + str(inst.web_port) if inst.web_port != 80 else ''}/",
+            }
+        print(json.dumps(result, indent=2))
+        return
+
+    if inst and inst.name != "cnc":
+        info(f"Using instance: {Style.BOLD}{inst.name}{Style.RESET}")
     header("Installation Status")
     print(f"  {Style.DIM}Repository root: {Path(__file__).resolve().parent.parent}{Style.RESET}")
     check_status(args.remote, output_callback=lambda line: print(line, end=""), inst=inst)
