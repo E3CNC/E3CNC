@@ -11,6 +11,7 @@ package instance
 import (
 	"bufio"
 	"fmt"
+	"net"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -391,9 +392,26 @@ func SaveState(s State) error {
 
 // GetLocalIP returns the first non-loopback IPv4 address.
 func GetLocalIP() string {
-	// Read /etc/hosts or use hostname -I equivalent
-	// For now, return 127.0.0.1 as placeholder
-	// The actual implementation reads from network interfaces
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return "127.0.0.1"
+	}
+	for _, iface := range interfaces {
+		if iface.Flags&net.FlagUp == 0 || iface.Flags&net.FlagLoopback != 0 {
+			continue
+		}
+		addrs, err := iface.Addrs()
+		if err != nil {
+			continue
+		}
+		for _, addr := range addrs {
+			if ipnet, ok := addr.(*net.IPNet); ok {
+				if ipnet.IP.To4() != nil && !ipnet.IP.IsLoopback() {
+					return ipnet.IP.String()
+				}
+			}
+		}
+	}
 	return "127.0.0.1"
 }
 

@@ -1,12 +1,12 @@
 package tui
 
 import (
-	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"strings"
 
 	"github.com/E3CNC/e3cnc/cli/go/internal"
+	"github.com/E3CNC/e3cnc/cli/go/internal/instance"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -104,35 +104,31 @@ func (m InstanceModel) Init() tea.Cmd {
 	return m.fetchInstances()
 }
 
-// fetchInstances returns a tea.Cmd that calls `e3cnc-cli instances --json`.
+// fetchInstances returns a tea.Cmd that lists instances using Go-native code.
 func (m InstanceModel) fetchInstances() tea.Cmd {
 	return func() tea.Msg {
-		cliDir, pythonExe, err := internal.FindPythonCLI()
+		instances, err := instance.DetectInstances()
 		if err != nil {
-			return instanceListMsg{err: fmt.Errorf("cannot find Python CLI: %w", err)}
+			return instanceListMsg{err: fmt.Errorf("detect instances: %w", err)}
 		}
 
-		// Run from the parent of cliDir (release root or repo root)
-		// and use -m cli so sys.path resolution works correctly
-		workDir := filepath.Dir(cliDir)
-		args := []string{"-m", "cli", "instances", "--json"}
-		result, err := internal.RunPythonSimpleNoColor(pythonExe, args, workDir)
-		if err != nil {
-			return instanceListMsg{err: fmt.Errorf("running instances: %w", err)}
-		}
-		if result.ExitCode != 0 {
-			return instanceListMsg{err: fmt.Errorf("instances command exited %d: %s", result.ExitCode, result.Stderr)}
-		}
-
-		var data InstancesJSON
-		if err := json.Unmarshal([]byte(result.Stdout), &data); err != nil {
-			return instanceListMsg{err: fmt.Errorf("parsing instances JSON: %w", err)}
+		var instList []InstanceInfo
+		for _, inst := range instances {
+			instList = append(instList, InstanceInfo{
+				Name:             inst.Name,
+				IsRunning:        inst.IsRunning,
+				ConfigDir:        inst.ConfigDir,
+				MoonrakerService: inst.MoonrakerService,
+				KlipperService:   inst.KlipperService,
+				MoonrakerPort:    inst.MoonrakerPort,
+				WebPort:          inst.WebPort,
+				WebRoot:          inst.WebRoot,
+				PrinterDataDir:   inst.PrinterDataDir,
+			})
 		}
 
-		return instanceListMsg{
-			instances: data.Instances,
-			localIP:   data.LocalIP,
-		}
+		localIP := instance.GetLocalIP()
+		return instanceListMsg{instances: instList, localIP: localIP}
 	}
 }
 

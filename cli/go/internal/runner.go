@@ -48,6 +48,8 @@ func runPythonEnv(ctx context.Context, pythonExe string, args []string, dir stri
 	env := os.Environ()
 	if forceColor {
 		env = append(env, "E3CNC_FORCE_COLOR=1")
+	} else {
+		env = append(env, "E3CNC_FORCE_COLOR=0")
 	}
 	env = append(env, "PYTHONUNBUFFERED=1")
 	cmd.Env = env
