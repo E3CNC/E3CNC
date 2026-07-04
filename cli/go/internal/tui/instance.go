@@ -112,10 +112,10 @@ func (m InstanceModel) fetchInstances() tea.Cmd {
 			return instanceListMsg{err: fmt.Errorf("cannot find Python CLI: %w", err)}
 		}
 
-		// Use e3cnc-cli script directly (not -m cli) — works from any working directory
-		scriptPath := filepath.Join(cliDir, "..", "e3cnc-cli")
-		workDir := filepath.Dir(scriptPath)
-		args := []string{scriptPath, "instances", "--json"}
+		// Run from the parent of cliDir (release root or repo root)
+		// and use -m cli so sys.path resolution works correctly
+		workDir := filepath.Dir(cliDir)
+		args := []string{"-m", "cli", "instances", "--json"}
 		result, err := internal.RunPythonSimple(pythonExe, args, workDir)
 		if err != nil {
 			return instanceListMsg{err: fmt.Errorf("running instances: %w", err)}
@@ -144,9 +144,9 @@ func (m InstanceModel) createInstanceCmd() tea.Cmd {
 			return instanceCreatedMsg{err: fmt.Errorf("cannot find Python CLI: %w", err)}
 		}
 
-		scriptPath := filepath.Join(cliDir, "..", "e3cnc-cli")
-		workDir := filepath.Dir(scriptPath)
-		args := []string{scriptPath, "install", "--name", m.createName, "--check"}
+		// Run from the parent of cliDir (release root or repo root)
+		workDir := filepath.Dir(cliDir)
+		args := []string{"-m", "cli", "install", "--name", m.createName, "--check"}
 		if m.createPort != "" {
 			args = append(args, "--port", m.createPort)
 		}
@@ -170,9 +170,8 @@ func (m InstanceModel) deleteInstanceCmd() tea.Cmd {
 			return instanceDeletedMsg{err: fmt.Errorf("cannot find Python CLI: %w", err)}
 		}
 
-		scriptPath := filepath.Join(cliDir, "..", "e3cnc-cli")
-		workDir := filepath.Dir(scriptPath)
-		args := []string{scriptPath, "uninstall", "--name", m.deleteTarget, "--yes"}
+		workDir := filepath.Dir(cliDir)
+		args := []string{"-m", "cli", "uninstall", "--name", m.deleteTarget, "--yes"}
 		result, err := internal.RunPythonSimple(pythonExe, args, workDir)
 		if err != nil {
 			return instanceDeletedMsg{err: fmt.Errorf("delete instance: %w", err)}
