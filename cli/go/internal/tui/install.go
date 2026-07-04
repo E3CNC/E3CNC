@@ -2,6 +2,8 @@ package tui
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -76,7 +78,9 @@ type InstallModel struct {
 	webPort        int
 	mDNSHostname   string
 	startServices  bool
-	configField    int // which config field is focused (0-4)
+	configField    int // which config field is focused (0-5)
+	mcuPath        string
+	mcuDevices     []string
 
 	// Execution state
 	startedAt    time.Time
@@ -125,6 +129,13 @@ func NewInstallModel() InstallModel {
 	s.Style = SpinnerStyle
 	s.Spinner = spinner.Dot
 
+	// Scan for MCU devices
+	mcuDevices := scanMCUDevices()
+	mcuPath := ""
+	if len(mcuDevices) > 0 {
+		mcuPath = mcuDevices[0]
+	}
+
 	return InstallModel{
 		screen:         ScreenPreFlight,
 		steps:          make([]InstallStep, len(installSteps)),
@@ -134,6 +145,8 @@ func NewInstallModel() InstallModel {
 		webPort:        80,
 		mDNSHostname:   "e3cnc",
 		startServices:  true,
+		mcuPath:        mcuPath,
+		mcuDevices:     mcuDevices,
 		spinner:        s,
 		completedSteps: make(map[string]bool),
 	}
@@ -244,11 +257,11 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "up", "k":
 				m.configField--
 				if m.configField < 0 {
-					m.configField = 4
+					m.configField = 5
 				}
 			case "down", "j":
 				m.configField++
-				if m.configField > 4 {
+				if m.configField > 5 {
 					m.configField = 0
 				}
 			case "enter":
@@ -434,11 +447,31 @@ func (m InstallModel) viewConfig() string {
 		b.WriteString("\n\n")
 	}
 
+	// MCU selection
+	mcuCursor := "  "
+	mcuStyle := MenuItemStyle
+	mcuValue := m.mcuPath
+	if mcuValue == "" {
+		mcuValue = "(none detected)"
+	}
+	if 4 == m.configField {
+		mcuCursor = "▸ "
+		mcuStyle = MenuItemSelectedStyle
+	}
+	b.WriteString(mcuStyle.Render(fmt.Sprintf("%sMCU device: %s", mcuCursor, mcuValue)))
+	b.WriteString("\n")
+	if len(m.mcuDevices) > 0 {
+		b.WriteString(DimStyle.Render(fmt.Sprintf("     %d device(s) available", len(m.mcuDevices))))
+	} else {
+		b.WriteString(DimStyle.Render("     No MCU detected — connect USB and scan again"))
+	}
+	b.WriteString("\n\n")
+
 	// Toggle for start services
 	cursor := "  "
 	onOff := "Yes"
 	style := MenuItemStyle
-	if 4 == m.configField {
+	if 5 == m.configField {
 		cursor = "▸ "
 		style = MenuItemSelectedStyle
 		onOff = "[Yes] No"
@@ -656,4 +689,31 @@ type ProgressMsgFromString struct {
 	Status  string `json:"status"`
 	Output  string `json:"output,omitempty"`
 	ErrCode string `json:"error_code,omitempty"`
+}
+
+// scanMCUDevices scans /dev/serial/by-id/ for connected MCU devices.
+func scanMCUDevices() []string {
+	dir := "/dev/serial/by-id/"
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil
+	}
+	var devices []string
+	for _, e := range entries {
+		if e.Type().IsRegular() || e.Type()&os.ModeSymlink != 0 {
+			// Build the full path and resolve symlink for the real device path
+			fullPath := filepath.Join(dir, e.Name())
+			realPath, _ := os.Readlink(fullPath)
+			if realPath != "" {
+				// Symlinks are relative to the parent dir
+				if !filepath.IsAbs(realPath) {
+					realPath = filepath.Join("/dev/serial/by-id", realPath)
+				}
+				devices = append(devices, e.Name())
+			} else {
+				devices = append(devices, e.Name())
+			}
+		}
+	}
+	return devices
 }
