@@ -92,9 +92,11 @@ jobs:
 
       - name: Build Go TUI binary (linux/arm64)
         run: |
+          V="${{ steps.version.outputs.VERSION }}"
+          V="${V#v}"
           cd cli/go
           CGO_ENABLED=0 GOOS=linux GOARCH=arm64 \
-            go build -ldflags="-s -w -X main.version=${{ steps.version.outputs.VERSION }}" \
+            go build -ldflags="-s -w -X main.version=$V" \
             -trimpath -o ../../bin/e3cnc-tui ./cmd/e3cnc-tui/
           echo "Go TUI binary built for linux/arm64:"
           ls -lh ../../bin/e3cnc-tui
