@@ -4,8 +4,6 @@ import (
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
-
-	"github.com/E3CNC/e3cnc/cli/go/internal/commands"
 )
 
 // AppState represents which screen the TUI is currently showing.
@@ -131,11 +129,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "quit":
 				return m, tea.Quit
 			default:
-				// Other commands: try Go-native dispatch
-				// Run the command inline, print output, stay in menu
-				commands.RunDispatch(m.menu.SelectedCmd, false, nil)
+				// Quit TUI and let main.go dispatch the command
+				m.DispatchCmd = m.menu.SelectedCmd
 				m.menu.SelectedCmd = ""
-				return m, nil
+				return m, tea.Quit
 			}
 		}
 		return m, cmd

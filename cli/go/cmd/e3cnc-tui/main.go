@@ -43,11 +43,12 @@ func main() {
 			os.Exit(1)
 		}
 
-		// If a command was selected from the menu, dispatch it to the Python CLI
+		// If a command was selected from the menu, try Go-native dispatch first
 		if m, ok := finalModel.(tui.Model); ok && m.DispatchCmd != "" {
-			// Use python3 -m cli directly (not e3cnc-cli) to avoid
-			// re-entering the Go TUI binary through the entry point.
-			// Skip manifest validation — the command came from the menu.
+			if commands.RunDispatch(m.DispatchCmd, false, nil) {
+				return
+			}
+			// Fall back to Python CLI
 			cliDir, pythonExe, err := internal.FindPythonCLI()
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
