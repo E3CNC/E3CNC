@@ -208,6 +208,23 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Auto-advance to config screen
 		m.screen = ScreenConfig
 
+	case stepUpdateMsg:
+		// Mark the current step as completed
+		m.steps[m.current].Status = msg.status
+		m.steps[m.current].Duration = time.Since(m.steps[m.current].StartedAt)
+		m.logBuffer = append(m.logBuffer, fmt.Sprintf("[%d/%d] %s — %s", m.current+1, len(m.steps), m.steps[m.current].Label, msg.status.String()))
+
+		// Advance to the next step
+		m.current++
+		if m.current < len(m.steps) {
+			m.steps[m.current].Status = StepRunning
+			m.steps[m.current].StartedAt = time.Now()
+			return m, m.simulateInstallProgress()
+		}
+
+		// All steps complete — show verification screen
+		m.screen = ScreenVerification
+
 	case tea.KeyMsg:
 		// Global handler: esc, 'b', or 'q' goes back to main menu from any wizard screen
 		s := msg.String()
@@ -488,8 +505,10 @@ func (m InstallModel) viewExecDashboard() string {
 	b.WriteString("\n")
 
 	// Show verbose output if toggled
-	if m.verbose {
-		b.WriteString(BoxStyle.Render("Verbose output (collapsed)"))
+	if m.verbose && len(m.logBuffer) > 0 {
+		for _, entry := range m.logBuffer {
+			b.WriteString(fmt.Sprintf("  %s\n", entry))
+		}
 		b.WriteString("\n")
 	}
 
