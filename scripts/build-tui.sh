@@ -5,7 +5,7 @@
 # Run this after making changes to cli/go/.
 set -euo pipefail
 
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/.."
 
 echo "Building e3cnc-tui for linux/arm64..."
 cd cli/go

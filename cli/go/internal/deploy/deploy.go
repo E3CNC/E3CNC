@@ -404,12 +404,12 @@ func checkCNCAgent(inst *instance.Instance) HealthCheck {
 
 	var result struct {
 		Result struct {
-			Plugins []string `json:"plugins"`
+			Components []string `json:"components"`
 		} `json:"result"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err == nil {
-		for _, p := range result.Result.Plugins {
-			if strings.Contains(p, "cnc_agent") {
+		for _, c := range result.Result.Components {
+			if strings.Contains(c, "cnc_agent") {
 				return HealthCheck{Name: "CNC Agent", Passed: true, Detail: "connected"}
 			}
 		}
