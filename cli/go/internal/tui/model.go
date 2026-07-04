@@ -23,15 +23,12 @@ type Model struct {
 	menu        MenuModel
 	install     InstallModel
 	instance    InstanceModel
+	output      OutputViewModel
 	help        help.Model
 	keys        keyMap
 	width       int
 	height      int
 	err         error
-
-	// DispatchCmd is set when the user selects a non-wizard command.
-	// After the TUI quits, main.go will execute this command via the Python CLI.
-	DispatchCmd string
 }
 
 type keyMap struct {
@@ -99,13 +96,20 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tea.KeyMsg:
-		// Handle quit key: Ctrl+C from any state quits the program.
-		// 'q' is handled by each sub-model individually (menu → quit,
-		// installer → back to menu).
+		// Ctrl+C from any state quits the program
 		if msg.String() == "ctrl+c" {
 			return m, tea.Quit
 		}
-		// Fall through to sub-models
+		// 'b' from output view goes back to menu
+		if m.state == StateOutputView && (msg.String() == "b" || msg.String() == "q" || msg.String() == "esc") {
+			m.state = StateMainMenu
+			m.menu.SelectedCmd = ""
+			return m, nil
+		}
+		// 'q' from main menu quits
+		if m.state == StateMainMenu && msg.String() == "q" {
+			return m, tea.Quit
+		}
 	}
 
 	// Dispatch to sub-models based on state
@@ -128,10 +132,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "quit":
 				return m, tea.Quit
 			default:
-				// Quit TUI and let main.go dispatch the command
-				m.DispatchCmd = m.menu.SelectedCmd
-				m.menu.SelectedCmd = ""
-				return m, tea.Quit
+				// Run command inside the TUI and show output
+				m.output = NewOutputViewModel()
+				m.state = StateOutputView
+				return m, RunCommand(m.menu.SelectedCmd, false, nil)
 			}
 		}
 		return m, cmd
@@ -154,6 +158,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.instance = NewInstanceModel()
 		}
 		return m, cmd
+
+	case StateOutputView:
+		newOutput, cmd := m.output.Update(msg)
+		m.output = newOutput
+		return m, cmd
 	}
 
 	return m, nil
@@ -167,6 +176,8 @@ func (m Model) View() string {
 		return m.install.View()
 	case StateInstanceMgr:
 		return m.instance.View()
+	case StateOutputView:
+		return m.output.View()
 	default:
 		return m.menu.View()
 	}

@@ -1,7 +1,10 @@
 package tui
 
 import (
+	"bytes"
 	"fmt"
+	"io"
+	"os"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -9,8 +12,9 @@ import (
 	"github.com/E3CNC/e3cnc/cli/go/internal/commands"
 )
 
-// OutputViewModel displays command output in a scrollable view
-// and returns to the main menu when the user presses q or b.
+// OutputViewModel displays command output inside the TUI and returns to the
+// main menu when the user presses 'b'. This keeps the user entirely within
+// the TUI — no alt-screen exit, no terminal clearing, no re-launch.
 type OutputViewModel struct {
 	output  string
 	title   string
@@ -25,30 +29,40 @@ type outputResultMsg struct {
 	err    error
 }
 
-// runCommandMsg triggers execution of a command.
-type runCommandMsg struct {
-	cmd     string
-	jsonOut bool
-	args    []string
-}
-
 // NewOutputViewModel creates a new output view model.
 func NewOutputViewModel() OutputViewModel {
 	return OutputViewModel{ready: false}
 }
 
-// runCommandCmd returns a tea.Cmd that executes a Go-native command and
-// captures its output.
-func runCommandCmd(cmd string, jsonOut bool, args []string) tea.Cmd {
+// RunCommand returns a tea.Cmd that runs a Go-native command, captures
+// its stdout, and sends the result back as a message.
+func RunCommand(cmd string, jsonOut bool, args []string) tea.Cmd {
 	return func() tea.Msg {
-		// Capture stdout by using a pipe
-		// Since commands.RunDispatch prints to stdout, we need to
-		// redirect stdout temporarily. We use a simple approach:
-		// run the command, which prints to the terminal (the TUI is
-		// using alt screen, so output goes to the alt buffer).
-		// Instead, we use a custom output capture.
-		return outputResultMsg{}
+		output, err := captureOutput(cmd, jsonOut, args)
+		return outputResultMsg{output: output, err: err}
 	}
+}
+
+// captureOutput runs a command while capturing all stdout output.
+func captureOutput(cmd string, jsonOut bool, args []string) (string, error) {
+	// Save original stdout and create a pipe
+	oldStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	// Run the command — output goes to the pipe
+	errVal := captureCommandOutput(cmd, jsonOut, args)
+
+	// Restore stdout and close the writer
+	w.Close()
+	os.Stdout = oldStdout
+
+	// Read captured output
+	var buf bytes.Buffer
+	io.Copy(&buf, r)
+	r.Close()
+
+	return buf.String(), errVal
 }
 
 func (m OutputViewModel) Init() tea.Cmd {
@@ -61,19 +75,10 @@ func (m OutputViewModel) Update(msg tea.Msg) (OutputViewModel, tea.Cmd) {
 		m.height = msg.Height
 		m.ready = true
 
-	case runCommandMsg:
-		m.title = msg.cmd
-		m.ready = false
-		// Execute command and capture output
-		output, err := captureCommandOutput(msg.cmd, msg.jsonOut, msg.args)
-		m.output = output
-		m.err = err
+	case outputResultMsg:
+		m.output = msg.output
+		m.err = msg.err
 		m.ready = true
-
-	case tea.KeyMsg:
-		if msg.String() == "q" || msg.String() == "b" || msg.String() == "esc" {
-			// Will be handled by root model to go back to menu
-		}
 	}
 
 	return m, nil
@@ -81,38 +86,34 @@ func (m OutputViewModel) Update(msg tea.Msg) (OutputViewModel, tea.Cmd) {
 
 func (m OutputViewModel) View() string {
 	if !m.ready {
-		return "  Running..."
+		return ""
 	}
 
 	var b strings.Builder
-	b.WriteString(TitleStyle.Render(fmt.Sprintf("  %s", m.title)))
-	b.WriteString("\n\n")
+	if m.title != "" {
+		b.WriteString(TitleStyle.Render(fmt.Sprintf("  %s", m.title)))
+		b.WriteString("\n\n")
+	}
 
 	if m.err != nil {
 		b.WriteString(FailStyle.Render(fmt.Sprintf("  Error: %v", m.err)))
 		b.WriteString("\n\n")
 	} else if m.output != "" {
-		// Display output with some wrapping consideration
 		for _, line := range strings.Split(m.output, "\n") {
 			b.WriteString(fmt.Sprintf("  %s\n", line))
 		}
 		b.WriteString("\n")
-	} else {
-		b.WriteString("  (no output)\n\n")
 	}
 
 	b.WriteString("\n")
-	b.WriteString(HelpStyle.Render("  q: back to menu"))
+	b.WriteString(HelpStyle.Render("  b: back to menu  ·  q: quit"))
 	return b.String()
 }
 
-// captureCommandOutput runs a Go-native command and returns its stdout as a string.
-func captureCommandOutput(cmd string, jsonOut bool, args []string) (string, error) {
-	// The command handlers print to stdout via fmt.Println.
-	// We need to capture that. The cleanest approach is to redirect stdout.
-	// For now, use a simpler approach: directly run the dispatch and
-	// don't capture — let it print to the terminal. The user will see
-	// the output in the alt screen, and press q to go back.
-	commands.RunDispatch(cmd, jsonOut, args)
-	return "", nil
+func captureCommandOutput(cmd string, jsonOut bool, args []string) error {
+	handled := commands.RunDispatch(cmd, jsonOut, args)
+	if !handled {
+		return fmt.Errorf("unknown command: %s", cmd)
+	}
+	return nil
 }

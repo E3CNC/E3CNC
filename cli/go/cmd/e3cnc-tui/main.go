@@ -29,34 +29,14 @@ func main() {
 		os.Exit(0)
 	}
 
-	// No args: enter interactive TUI with auto-re-launch loop
+	// No args: enter interactive TUI
 	if len(args) == 0 {
-		for {
-			p := tea.NewProgram(tui.New(), tea.WithAltScreen())
-			finalModel, err := p.Run()
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error starting TUI: %v\n", err)
-				os.Exit(1)
-			}
-
-			// If a command was selected, run it then loop back
-			if m, ok := finalModel.(tui.Model); ok && m.DispatchCmd != "" {
-				// Run command via Go-native dispatch
-				commands.RunDispatch(m.DispatchCmd, false, nil)
-				// Wait for user to press b/Enter to return, or q/Ctrl+C to quit
-				fmt.Print("\nb: back to menu  ·  q: quit  ·  Enter: back  ·  Ctrl+C: quit\n> ")
-				var buf [1]byte
-				os.Stdin.Read(buf[:])
-				response := string(buf[0])
-				if response == "q" {
-					return
-				}
-				// Clear terminal before re-launching TUI to hide previous output
-				fmt.Print("\033[H\033[2J")
-				continue
-			}
-			return
+		p := tea.NewProgram(tui.New(), tea.WithAltScreen())
+		if _, err := p.Run(); err != nil {
+			fmt.Fprintf(os.Stderr, "Error starting TUI: %v\n", err)
+			os.Exit(1)
 		}
+		return
 	}
 
 	// Has args: run Go-native dispatch directly
