@@ -1,4 +1,16 @@
 # Changelog
+## v0.9.9 (2026-07-04)
+- **BubbleTea TUI migration (Phases 0–6)** — replaces the Python `simple-term-menu` with a Go BubbleTea terminal UI (`e3cnc-tui`). Static Go binary (~3.8 MB, `CGO_ENABLED=0`) that dispatches to the Python CLI for business logic.
+- **Install wizard** — 6-screen guided installation: pre-flight checklist (9 checks, hard block), instance configuration (name/ports/hostname), 9-step execution dashboard with real-time progress and spinner, error recovery (retry/skip/abort), verification dashboard (7 health checks), next-steps guide (5 steps).
+- **Instance management TUI** — list instances with live status (● running / ○ inactive), switch active instance, create new with inline form (name + port validation), delete with destructive confirmation. Persisted to `~/.e3cnc-tui/state.json`.
+- **Streaming output and cancellation** — long-running Python subprocesses stream output line-by-line. Ctrl+C sends SIGINT → 2s timeout → SIGKILL to the entire process group.
+- **`e3cnc-cli` entry point updated** — detects `~/e3cnc/current/bin/e3cnc-tui` and forwards to Go binary via `os.execv()`. Falls back to Python CLI if absent.
+- **CI: Go tests + build** — new `test-go` job runs 12 Go tests and verifies Go build on every push/PR. Release workflow builds `bin/e3cnc-tui` for `linux/arm64`.
+- **Stack artifact** now includes `bin/e3cnc-tui` (linux/arm64, ~3.8 MB).
+- **Wiki updated** — all 7 pages refreshed for BubbleTea TUI (Home, Installation, Architecture, Features, Changelog, Contributing, Multi-Instance).
+- Features page created (was empty).
+- Tests: 454 Python + 12 Go passing.
+
 ## v0.9.8 (2026-07-03)
 - **Bootstrap moonraker.conf template** — new `config/bootstrap/moonraker.conf` is the single source of truth for new instance configuration. Every instance generates its moonraker.conf from this template, eliminating duplicate sections and configuration drift. Template is bundled in the stack artifact.
 - **KIAUH import rewritten** — no longer copies the KIAUH moonraker.conf (which caused duplicate `[file_manager]`/`[database]` sections). Instead extracts only the port number and generates a clean config from the bootstrap template. Original KIAUH files are never modified.
