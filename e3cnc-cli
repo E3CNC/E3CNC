@@ -65,7 +65,15 @@ def _run_from_release() -> bool:
 
 
 if __name__ == "__main__":
-    # ── Step 1: Try Go binary in release ──
+    # ── Step 1: Try Go binary in the repo checkout ──
+    # The repo has a pre-built e3cnc-tui at its root. When the user
+    # runs `git pull`, the binary updates too — no rebuild needed.
+    repo_dir = Path(__file__).resolve().parent
+    repo_tui = repo_dir / "e3cnc-tui"
+    if repo_tui.is_file() and os.access(str(repo_tui), os.X_OK):
+        os.execv(str(repo_tui), [str(repo_tui)] + sys.argv[1:])
+
+    # ── Step 2: Try Go binary in deployed release ──
     current_link = Path.home() / "e3cnc" / "current"
     tui_binary = current_link / "bin" / "e3cnc-tui"
     if tui_binary.is_file() and os.access(str(tui_binary), os.X_OK):
@@ -75,11 +83,11 @@ if __name__ == "__main__":
             # Fall through if exec fails (e.g., wrong arch)
             pass
 
-    # ── Step 2: Try Python CLI from deployed release ──
+    # ── Step 3: Try Python CLI from deployed release ──
     if _run_from_release():
         sys.exit(0)
 
-    # ── Step 3: Fallback — run from repo checkout ──
+    # ── Step 4: Fallback — run from repo checkout ──
     _THIS_DIR = os.path.dirname(os.path.abspath(__file__))
     if _THIS_DIR not in sys.path:
         sys.path.insert(0, _THIS_DIR)
