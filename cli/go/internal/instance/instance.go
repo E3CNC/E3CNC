@@ -168,7 +168,8 @@ func DetectInstances() ([]*Instance, error) {
 }
 
 // GetActiveInstance returns the currently active instance.
-// First checks the persistent state file, then falls back to default instance.
+// First checks the persistent state file, then the "cnc" instance,
+// then falls back to default, then the first detected instance.
 func GetActiveInstance() (*Instance, error) {
 	state := LoadState()
 	if state.ActiveInstance != "" {
@@ -178,8 +179,14 @@ func GetActiveInstance() (*Instance, error) {
 		}
 	}
 
-	// Try default instance
-	inst, err := FromName("default")
+	// Try "cnc" which is the default on most setups
+	inst, err := FromName("cnc")
+	if err == nil {
+		return inst, nil
+	}
+
+	// Try "default" instance
+	inst, err = FromName("default")
 	if err == nil {
 		return inst, nil
 	}
@@ -423,7 +430,7 @@ func ReadCurrentVersion() string {
 	if err != nil {
 		return "unknown"
 	}
-	return filepath.Base(target)
+	return strings.TrimPrefix(filepath.Base(target), "v")
 }
 
 // ReadVersion reads all releases and returns info about each.
