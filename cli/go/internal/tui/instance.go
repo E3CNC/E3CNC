@@ -3,6 +3,7 @@ package tui
 import (
 	"encoding/json"
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/E3CNC/e3cnc/cli/go/internal"
@@ -111,8 +112,11 @@ func (m InstanceModel) fetchInstances() tea.Cmd {
 			return instanceListMsg{err: fmt.Errorf("cannot find Python CLI: %w", err)}
 		}
 
-		args := []string{"-m", "cli", "instances", "--json"}
-		result, err := internal.RunPythonSimple(pythonExe, args, cliDir)
+		// Use e3cnc-cli script directly (not -m cli) — works from any working directory
+		scriptPath := filepath.Join(cliDir, "..", "e3cnc-cli")
+		workDir := filepath.Dir(scriptPath)
+		args := []string{scriptPath, "instances", "--json"}
+		result, err := internal.RunPythonSimple(pythonExe, args, workDir)
 		if err != nil {
 			return instanceListMsg{err: fmt.Errorf("running instances: %w", err)}
 		}
@@ -140,13 +144,14 @@ func (m InstanceModel) createInstanceCmd() tea.Cmd {
 			return instanceCreatedMsg{err: fmt.Errorf("cannot find Python CLI: %w", err)}
 		}
 
-		args := []string{"-m", "cli", "install", "--name", m.createName, "--check"}
+		scriptPath := filepath.Join(cliDir, "..", "e3cnc-cli")
+		workDir := filepath.Dir(scriptPath)
+		args := []string{scriptPath, "install", "--name", m.createName, "--check"}
 		if m.createPort != "" {
 			args = append(args, "--port", m.createPort)
 		}
 
-		// Use RunPythonSimple for now — just check it works
-		result, err := internal.RunPythonSimple(pythonExe, args, cliDir)
+		result, err := internal.RunPythonSimple(pythonExe, args, workDir)
 		if err != nil {
 			return instanceCreatedMsg{err: fmt.Errorf("create instance: %w", err)}
 		}
@@ -165,8 +170,10 @@ func (m InstanceModel) deleteInstanceCmd() tea.Cmd {
 			return instanceDeletedMsg{err: fmt.Errorf("cannot find Python CLI: %w", err)}
 		}
 
-		args := []string{"-m", "cli", "uninstall", "--name", m.deleteTarget, "--yes"}
-		result, err := internal.RunPythonSimple(pythonExe, args, cliDir)
+		scriptPath := filepath.Join(cliDir, "..", "e3cnc-cli")
+		workDir := filepath.Dir(scriptPath)
+		args := []string{scriptPath, "uninstall", "--name", m.deleteTarget, "--yes"}
+		result, err := internal.RunPythonSimple(pythonExe, args, workDir)
 		if err != nil {
 			return instanceDeletedMsg{err: fmt.Errorf("delete instance: %w", err)}
 		}
