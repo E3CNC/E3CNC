@@ -36,11 +36,47 @@ func main() {
 	// No args: enter interactive TUI
 	if len(args) == 0 {
 		p := tea.NewProgram(tui.New(), tea.WithAltScreen())
-		if _, err := p.Run(); err != nil {
+		finalModel, err := p.Run()
+		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error starting TUI: %v\n", err)
 			os.Exit(1)
 		}
-		return
+
+		// If a command was selected from the menu, dispatch it to the Python CLI
+		if m, ok := finalModel.(tui.Model); ok && m.DispatchCmd != "" {
+			// Use python3 -m cli directly (not e3cnc-cli) to avoid
+			// re-entering the Go TUI binary through the entry point.
+			// Skip manifest validation — the command came from the menu.
+			cliDir, pythonExe, err := internal.FindPythonCLI()
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				os.Exit(1)
+			}
+			workDir := filepath.Dir(cliDir)
+			pyArgs := []string{"-m", "cli", m.DispatchCmd}
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			sigCh := make(chan os.Signal, 1)
+			signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+			go func() {
+				<-sigCh
+				cancel()
+			}()
+			result, err := internal.RunPython(ctx, pythonExe, pyArgs, workDir,
+				func(line string) { fmt.Println(line) },
+				func(line string) { fmt.Fprintln(os.Stderr, line) },
+			)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				os.Exit(1)
+			}
+			if result.ExitCode != 0 {
+				os.Exit(result.ExitCode)
+			}
+			return
+		} else {
+			return
+		}
 	}
 
 	// Load commands manifest and validate the command

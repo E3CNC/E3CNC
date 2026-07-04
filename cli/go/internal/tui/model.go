@@ -29,6 +29,10 @@ type Model struct {
 	width       int
 	height      int
 	err         error
+
+	// DispatchCmd is set when the user selects a non-wizard command.
+	// After the TUI quits, main.go will execute this command via the Python CLI.
+	DispatchCmd string
 }
 
 type keyMap struct {
@@ -125,8 +129,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "quit":
 				return m, tea.Quit
 			default:
-				// Other commands will be dispatched to Python CLI
+				// Store command and quit TUI — main.go will dispatch to Python CLI
+				m.DispatchCmd = m.menu.SelectedCmd
 				m.menu.SelectedCmd = ""
+				return m, tea.Quit
 			}
 		}
 		return m, cmd
