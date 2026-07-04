@@ -11,6 +11,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/E3CNC/e3cnc/cli/go/internal"
+	"github.com/E3CNC/e3cnc/cli/go/internal/commands"
 	"github.com/E3CNC/e3cnc/cli/go/internal/tui"
 )
 
@@ -79,6 +80,23 @@ func main() {
 		}
 	}
 
+	// Has args: try Go-native dispatch first, fall back to Python
+	cmd := args[0]
+	jsonOut := false
+	var cmdArgs []string
+	for _, a := range args[1:] {
+		if a == "--json" {
+			jsonOut = true
+		} else {
+			cmdArgs = append(cmdArgs, a)
+		}
+	}
+
+	// Try Go-native dispatch
+	if commands.RunDispatch(cmd, jsonOut, cmdArgs) {
+		return
+	}
+
 	// Load commands manifest and validate the command
 	manifest, err := internal.LoadCommands()
 	if err != nil {
@@ -86,13 +104,13 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Falling back to direct Python dispatch.\n")
 	}
 
-	if manifest != nil && !manifest.IsKnownCommand(args[0]) {
-		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", args[0])
+	if manifest != nil && !manifest.IsKnownCommand(cmd) {
+		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", cmd)
 		fmt.Fprintf(os.Stderr, "Run 'e3cnc-tui --help' for available commands.\n")
 		os.Exit(1)
 	}
 
-	// Resolve Python CLI path
+	// Resolve Python CLI path for commands not yet ported to Go
 	cliDir, pythonExe, err := internal.FindPythonCLI()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
@@ -100,8 +118,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Build args for Python: e3cnc-cli <user args>
-	pyArgs := append([]string{filepath.Join(cliDir, "..", "e3cnc-cli")}, args...)
+	// Build args for Python: python3 -m cli <cmd> [args...]
+	pyArgs := []string{"-m", "cli", cmd}
+	pyArgs = append(pyArgs, args[1:]...)
+	workDir := filepath.Dir(cliDir)
 
 	// Set up signal handling for graceful cancellation
 	ctx, cancel := context.WithCancel(context.Background())
@@ -115,7 +135,7 @@ func main() {
 	}()
 
 	// Run the command with streaming output
-	result, err := internal.RunPython(ctx, pythonExe, pyArgs, cliDir,
+	result, err := internal.RunPython(ctx, pythonExe, pyArgs, workDir,
 		func(line string) { fmt.Println(line) },
 		func(line string) { fmt.Fprintln(os.Stderr, line) },
 	)
