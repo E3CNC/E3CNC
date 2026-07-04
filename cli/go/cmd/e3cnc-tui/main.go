@@ -7,7 +7,6 @@ import (
 	"os/signal"
 	"path/filepath"
 	"syscall"
-	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 
@@ -77,10 +76,16 @@ func main() {
 						os.Exit(result.ExitCode)
 					}
 				}
-				// Brief pause so user can read output, then re-launch TUI
-				fmt.Print("\n(Press Ctrl+C to exit, or wait 5s to return to menu...)")
-				time.Sleep(5 * time.Second)
-				continue // loop back to launch TUI again
+				// Wait for user to press b/Enter to return, or q/Ctrl+C to quit
+				fmt.Print("\nb: back to menu  ·  q: quit  ·  Enter: back  ·  Ctrl+C: quit\n> ")
+				var buf [1]byte
+				os.Stdin.Read(buf[:])
+				response := string(buf[0])
+				if response == "q" {
+					return
+				}
+				// Any other key (b, Enter = \n) goes back to menu
+				continue
 			}
 			return
 		}
