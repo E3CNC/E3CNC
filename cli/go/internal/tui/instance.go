@@ -116,7 +116,7 @@ func (m InstanceModel) fetchInstances() tea.Cmd {
 		// and use -m cli so sys.path resolution works correctly
 		workDir := filepath.Dir(cliDir)
 		args := []string{"-m", "cli", "instances", "--json"}
-		result, err := internal.RunPythonSimple(pythonExe, args, workDir)
+		result, err := internal.RunPythonSimpleNoColor(pythonExe, args, workDir)
 		if err != nil {
 			return instanceListMsg{err: fmt.Errorf("running instances: %w", err)}
 		}

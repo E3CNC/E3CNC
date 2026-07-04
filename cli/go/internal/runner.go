@@ -23,6 +23,12 @@ type RunResult struct {
 // stdout and stderr callbacks receive output line by line.
 func RunPython(ctx context.Context, pythonExe string, args []string, dir string,
 	stdoutFn func(string), stderrFn func(string)) (*RunResult, error) {
+	return runPythonEnv(ctx, pythonExe, args, dir, stdoutFn, stderrFn, true)
+}
+
+// runPythonEnv is the internal implementation with forceColor control.
+func runPythonEnv(ctx context.Context, pythonExe string, args []string, dir string,
+	stdoutFn func(string), stderrFn func(string), forceColor bool) (*RunResult, error) {
 
 	cmd := exec.CommandContext(ctx, pythonExe, args...)
 	cmd.Dir = dir
@@ -39,10 +45,12 @@ func RunPython(ctx context.Context, pythonExe string, args []string, dir string,
 	}
 
 	// Set environment
-	cmd.Env = append(os.Environ(),
-		"E3CNC_FORCE_COLOR=1",
-		"PYTHONUNBUFFERED=1",
-	)
+	env := os.Environ()
+	if forceColor {
+		env = append(env, "E3CNC_FORCE_COLOR=1")
+	}
+	env = append(env, "PYTHONUNBUFFERED=1")
+	cmd.Env = env
 
 	// Start the subprocess
 	if err := cmd.Start(); err != nil {
@@ -122,4 +130,13 @@ func RunPythonSimple(pythonExe string, args []string, dir string) (*RunResult, e
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 	return RunPython(ctx, pythonExe, args, dir, nil, nil)
+}
+
+// RunPythonSimpleNoColor executes the Python CLI without E3CNC_FORCE_COLOR.
+// Use this when parsing structured output (JSON) that would be corrupted by ANSI codes.
+func RunPythonSimpleNoColor(pythonExe string, args []string, dir string) (*RunResult, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+	// Create a modified RunPython that doesn't set FORCE_COLOR
+	return runPythonEnv(ctx, pythonExe, args, dir, nil, nil, false)
 }
