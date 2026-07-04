@@ -9,6 +9,8 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/bubbles/spinner"
+
+	"github.com/E3CNC/e3cnc/cli/go/internal/instance"
 )
 
 // InstallStep represents one phase of the installation process.
@@ -56,7 +58,9 @@ type InstallScreen int
 
 const (
 	ScreenPreFlight InstallScreen = iota
+	ScreenMCUSelect
 	ScreenConfig
+	ScreenFirmwareCheck
 	ScreenExecDashboard
 	ScreenErrorRecovery
 	ScreenVerification
@@ -81,6 +85,7 @@ type InstallModel struct {
 	configField    int // which config field is focused (0-5)
 	mcuPath        string
 	mcuDevices     []string
+	mcuCursor      int
 
 	// Execution state
 	startedAt    time.Time
@@ -218,8 +223,8 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.preFlightChecks[5].Detail = "4.2 GB free"
 		m.preFlightChecks[6].Detail = "reachable"
 		m.preFlightChecks[8].Detail = "passwordless"
-		// Auto-advance to config screen
-		m.screen = ScreenConfig
+		// Auto-advance to MCU selection screen
+		m.screen = ScreenMCUSelect
 
 	case stepUpdateMsg:
 		// Mark the current step as completed
@@ -249,22 +254,51 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch m.screen {
 		case ScreenPreFlight:
 			if msg.String() == "enter" {
+				m.screen = ScreenMCUSelect
+			}
+
+		case ScreenMCUSelect:
+			switch msg.String() {
+			case "up", "k":
+				m.mcuCursor--
+				if m.mcuCursor < 0 {
+					m.mcuCursor = len(m.mcuDevices) - 1
+				}
+			case "down", "j":
+				m.mcuCursor++
+				if m.mcuCursor >= len(m.mcuDevices) {
+					m.mcuCursor = 0
+				}
+			case "r":
+				m.mcuDevices = scanMCUDevices()
+				if len(m.mcuDevices) > 0 {
+					m.mcuPath = m.mcuDevices[0]
+					m.mcuCursor = 0
+				}
+			case "enter":
+				if len(m.mcuDevices) > 0 && m.mcuCursor >= 0 && m.mcuCursor < len(m.mcuDevices) {
+					m.mcuPath = m.mcuDevices[m.mcuCursor]
+				}
+				// Auto-assign a free port
+				freePort, _ := instance.FindNextAvailablePort()
+				if freePort > 0 {
+					m.moonrakerPort = freePort
+				}
+				if freePort > 7125 {
+					m.webPort = 8080
+				}
 				m.screen = ScreenConfig
 			}
 
 		case ScreenConfig:
 			switch msg.String() {
-			case "up", "k":
-				m.configField--
-				if m.configField < 0 {
-					m.configField = 5
-				}
-			case "down", "j":
-				m.configField++
-				if m.configField > 5 {
-					m.configField = 0
-				}
 			case "enter":
+				// Proceed to firmware check
+				m.screen = ScreenFirmwareCheck
+			}
+
+		case ScreenFirmwareCheck:
+			if msg.String() == "enter" {
 				// Start install
 				m.screen = ScreenExecDashboard
 				m.startedAt = time.Now()
@@ -341,8 +375,12 @@ func (m InstallModel) View() string {
 	switch m.screen {
 	case ScreenPreFlight:
 		return m.viewPreFlight()
+	case ScreenMCUSelect:
+		return m.viewMCUSelect()
 	case ScreenConfig:
 		return m.viewConfig()
+	case ScreenFirmwareCheck:
+		return m.viewFirmwareCheck()
 	case ScreenExecDashboard:
 		return m.viewExecDashboard()
 	case ScreenErrorRecovery:
@@ -411,83 +449,129 @@ func (m InstallModel) viewPreFlight() string {
 	return b.String()
 }
 
-// ── Screen 2: Instance Configuration ────────────────────────────────────
+// ── Screen 2: MCU Selection ───────────────────────────────────────
+
+func (m InstallModel) viewMCUSelect() string {
+	var b strings.Builder
+
+	b.WriteString(BoxStyle.Render(
+		TitleStyle.Render("Select MCU") + "\n" +
+			SubtitleStyle.Render("Choose the controller board for this instance"),
+	))
+	b.WriteString("\n\n")
+
+	if len(m.mcuDevices) == 0 {
+		b.WriteString(WarnStyle.Render("  No MCU devices detected"))
+		b.WriteString("\n\n")
+		b.WriteString(DimStyle.Render("  Connect your controller board via USB"))
+		b.WriteString("\n")
+		b.WriteString(DimStyle.Render("  then press 'r' to rescan."))
+	} else {
+		for i, dev := range m.mcuDevices {
+			cursor := "  "
+			style := MenuItemStyle
+			if i == m.mcuCursor {
+				cursor = "▸ "
+				style = MenuItemSelectedStyle
+			}
+			// Try to resolve the real device path
+			fullPath := filepath.Join("/dev/serial/by-id", dev)
+			realPath, _ := os.Readlink(fullPath)
+			if realPath != "" && !filepath.IsAbs(realPath) {
+				realPath = filepath.Join("/dev", realPath)
+			}
+			display := dev
+			if len(dev) > 55 {
+				display = dev[:55] + "..."
+			}
+			b.WriteString(style.Render(fmt.Sprintf("%s%s", cursor, display)))
+			b.WriteString("\n")
+			if realPath != "" {
+				b.WriteString(DimStyle.Render(fmt.Sprintf("     → %s", realPath)))
+				b.WriteString("\n")
+			}
+			b.WriteString("\n")
+		}
+	}
+
+	b.WriteString("\n")
+	b.WriteString(HelpStyle.Render("↑/↓ navigate  ·  Enter to confirm  ·  r: rescan  ·  b: back to menu"))
+	return b.String()
+}
+
+// ── Screen 3: Instance Configuration ────────────────────────────────────
 
 func (m InstallModel) viewConfig() string {
 	var b strings.Builder
 
 	b.WriteString(BoxStyle.Render(
-		TitleStyle.Render("Instance Configuration") + "\n" +
-			SubtitleStyle.Render("Configure your E3CNC instance before installation"),
+		TitleStyle.Render("Name Your Instance") + "\n" +
+			SubtitleStyle.Render("Give this CNC instance a name"),
 	))
 	b.WriteString("\n\n")
 
-	fields := []struct {
-		label    string
-		value    string
-		hint     string
-		fieldIdx int
-	}{
-		{"Instance name", m.instanceName, "Lowercase letters, numbers, hyphens", 0},
-		{fmt.Sprintf("Moonraker port (%d recommended)", 7125), fmt.Sprintf("%d", m.moonrakerPort), "Must not conflict with other instances", 1},
-		{"Web port", fmt.Sprintf("%d", m.webPort), "Port 80 requires root for nginx", 2},
-		{"mDNS hostname", m.mDNSHostname, "e.g. e3cnc or e3cnc-{name}", 3},
-	}
-
-	for _, f := range fields {
-		cursor := "  "
-		style := MenuItemStyle
-		if f.fieldIdx == m.configField {
-			cursor = "▸ "
-			style = MenuItemSelectedStyle
-		}
-		b.WriteString(style.Render(fmt.Sprintf("%s%s: %s", cursor, f.label, f.value)))
-		b.WriteString("\n")
-		b.WriteString(DimStyle.Render(fmt.Sprintf("     %s", f.hint)))
-		b.WriteString("\n\n")
-	}
-
-	// MCU selection
-	mcuCursor := "  "
-	mcuStyle := MenuItemStyle
-	mcuValue := m.mcuPath
-	if mcuValue == "" {
-		mcuValue = "(none detected)"
-	}
-	if 4 == m.configField {
-		mcuCursor = "▸ "
-		mcuStyle = MenuItemSelectedStyle
-	}
-	b.WriteString(mcuStyle.Render(fmt.Sprintf("%sMCU device: %s", mcuCursor, mcuValue)))
+	// Instance name — the only thing the user enters
+	cursor := "▸ "
+	b.WriteString(MenuItemSelectedStyle.Render(fmt.Sprintf("%sInstance name: %s", cursor, m.instanceName)))
 	b.WriteString("\n")
-	if len(m.mcuDevices) > 0 {
-		b.WriteString(DimStyle.Render(fmt.Sprintf("     %d device(s) available", len(m.mcuDevices))))
-	} else {
-		b.WriteString(DimStyle.Render("     No MCU detected — connect USB and scan again"))
-	}
+	b.WriteString(DimStyle.Render("     Lowercase letters, numbers, hyphens"))
 	b.WriteString("\n\n")
 
-	// Toggle for start services
-	cursor := "  "
-	onOff := "Yes"
-	style := MenuItemStyle
-	if 5 == m.configField {
-		cursor = "▸ "
-		style = MenuItemSelectedStyle
-		onOff = "[Yes] No"
-	} else {
-		onOff = "Yes"
-	}
-
-	b.WriteString(style.Render(fmt.Sprintf("%sStart services after install: %s", cursor, onOff)))
+	// Auto-assigned info (non-editable)
+	b.WriteString(BoxStyle.Render(
+		fmt.Sprintf("Moonraker port: %d (auto-assigned)", m.moonrakerPort),
+	))
 	b.WriteString("\n")
+	b.WriteString(BoxStyle.Render(
+		fmt.Sprintf("MCU: %s", shortenMCUPath(m.mcuPath)),
+	))
+	b.WriteString("\n\n")
 
 	b.WriteString("\n")
-	b.WriteString(HelpStyle.Render("↑/↓ navigate  ·  Enter to start install  ·  b: back to menu"))
-
+	b.WriteString(HelpStyle.Render("Enter to edit name  ·  Enter again to confirm  ·  b: back to menu"))
 	return b.String()
 }
 
+// ── Screen 4: Firmware Check ─────────────────────────────────────
+
+func (m InstallModel) viewFirmwareCheck() string {
+	var b strings.Builder
+
+	b.WriteString(BoxStyle.Render(
+		TitleStyle.Render("MCU Firmware") + "\n" +
+			SubtitleStyle.Render("Check if your controller board needs flashing"),
+	))
+	b.WriteString("\n\n")
+
+	b.WriteString(fmt.Sprintf("  MCU: %s\n\n", shortenMCUPath(m.mcuPath)))
+
+	// Check if the MCU appears to have Klipper firmware
+	// For now, we check the name for "Klipper" which Klipper firmware embeds
+	if strings.Contains(m.mcuPath, "Klipper") || strings.Contains(m.mcuPath, "klipper") {
+		b.WriteString(OkStyle.Render("  ✓ Klipper firmware detected"))
+		b.WriteString("\n\n")
+		b.WriteString(DimStyle.Render("  Your MCU appears to already have Klipper firmware."))
+		b.WriteString("\n")
+		b.WriteString(DimStyle.Render("  You can proceed with the installation."))
+	} else {
+		b.WriteString(WarnStyle.Render("  ⚠ No Klipper firmware detected"))
+		b.WriteString("\n\n")
+		b.WriteString(DimStyle.Render("  The MCU may need to be flashed with Klipper firmware."))
+		b.WriteString("\n")
+		b.WriteString(DimStyle.Render("  You can do this after installation via 'Flash MCU' in the menu."))
+	}
+
+	b.WriteString("\n\n")
+	b.WriteString(HelpStyle.Render("Enter to continue with installation  ·  b: back to MCU selection"))
+	return b.String()
+}
+
+func shortenMCUPath(path string) string {
+	if len(path) > 50 {
+		return path[:50] + "..."
+	}
+	return path
+}
 // ── Screen 3: Execution Dashboard ───────────────────────────────────────
 
 func (m InstallModel) viewExecDashboard() string {
