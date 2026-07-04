@@ -44,7 +44,7 @@ Go TUI existing (already built):
 
 ## Phase Plan
 
-### Phase 1 — Instance Model + Paths (0.5 day)
+### ✅ Phase 1 — Instance Model + Paths (0.5 day)
 **Port `_e3cnc_shared.py` → `cli/go/internal/instance/`**
 
 The Instance struct is the foundation — everything references it.
