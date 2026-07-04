@@ -53,7 +53,7 @@ func (k keyMap) FullHelp() [][]key.Binding {
 }
 
 var defaultKeys = keyMap{
-	Quit:   key.NewBinding(key.WithKeys("q", "ctrl+c"), key.WithHelp("q", "quit")),
+	Quit:   key.NewBinding(key.WithKeys("ctrl+c"), key.WithHelp("ctrl+c", "quit")),
 	Enter:  key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "select")),
 	Back:   key.NewBinding(key.WithKeys("esc"), key.WithHelp("esc", "back")),
 	Help:   key.NewBinding(key.WithKeys("?"), key.WithHelp("?", "help")),
@@ -89,16 +89,20 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.height = msg.Height
 		m.help.Width = msg.Width
 
+	case backToMenuMsg:
+		m.state = StateMainMenu
+		m.install = NewInstallModel()
+		m.menu.SelectedCmd = ""
+		return m, nil
+
 	case tea.KeyMsg:
-		switch {
-		case key.Matches(msg, m.keys.Quit):
-			if m.state == StateMainMenu {
-				return m, tea.Quit
-			}
-			// In sub-screens, Quit goes back to menu
-			m.state = StateMainMenu
-			return m, nil
+		// Handle quit key: Ctrl+C from any state quits the program.
+		// 'q' is handled by each sub-model individually (menu → quit,
+		// installer → back to menu).
+		if msg.String() == "ctrl+c" {
+			return m, tea.Quit
 		}
+		// Fall through to sub-models
 	}
 
 	// Dispatch to sub-models based on state

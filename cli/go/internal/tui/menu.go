@@ -82,6 +82,8 @@ func (m MenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cursor = 0
 			}
 			m.cursor = m.skipEmpty(m.cursor, 1)
+		case "q":
+			m.SelectedCmd = "quit"
 		case "enter", " ":
 			if m.cursor >= 0 && m.cursor < len(m.items) {
 				cmd := m.items[m.cursor].Command

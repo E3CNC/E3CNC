@@ -168,6 +168,9 @@ type preFlightCompleteMsg struct {
 	allPassed bool
 }
 
+// backToMenuMsg signals the root model to return to the main menu.
+type backToMenuMsg struct{}
+
 type stepUpdateMsg struct {
 	step    int
 	status  StepStatus
@@ -206,10 +209,12 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.screen = ScreenConfig
 
 	case tea.KeyMsg:
-		// Global handler: esc or q goes back to main menu from any wizard screen
-		if msg.String() == "esc" || msg.String() == "q" {
-			m.done = true
-			return m, nil
+		// Global handler: esc, 'b', or 'q' goes back to main menu from any wizard screen
+		s := msg.String()
+		if s == "b" || s == "q" || s == "esc" {
+			return m, func() tea.Msg {
+				return backToMenuMsg{}
+			}
 		}
 		switch m.screen {
 		case ScreenPreFlight:
@@ -366,7 +371,7 @@ func (m InstallModel) viewPreFlight() string {
 	if allPassed {
 		b.WriteString(OkStyle.Render("  ✓ All checks passed"))
 		b.WriteString("\n\n")
-		b.WriteString(HelpStyle.Render("Press Enter to continue"))
+		b.WriteString(HelpStyle.Render("Press Enter to continue · b: back to menu"))
 	} else {
 		b.WriteString(FailStyle.Render("  ✗ Some checks failed"))
 		b.WriteString("\n\n")
@@ -428,7 +433,7 @@ func (m InstallModel) viewConfig() string {
 	b.WriteString("\n")
 
 	b.WriteString("\n")
-	b.WriteString(HelpStyle.Render("↑/↓ navigate  ·  Enter to start install"))
+	b.WriteString(HelpStyle.Render("↑/↓ navigate  ·  Enter to start install  ·  b: back to menu"))
 
 	return b.String()
 }
