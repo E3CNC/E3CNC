@@ -206,6 +206,11 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.screen = ScreenConfig
 
 	case tea.KeyMsg:
+		// Global handler: esc or q goes back to main menu from any wizard screen
+		if msg.String() == "esc" || msg.String() == "q" {
+			m.done = true
+			return m, nil
+		}
 		switch m.screen {
 		case ScreenPreFlight:
 			if msg.String() == "enter" {
