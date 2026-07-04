@@ -434,7 +434,7 @@ def scan_serial_devices() -> 'list[dict]':
     return devices
 
 
-def _generate_cnc_printer_cfg(mcu_path: 'str | None' = None) -> str:
+def _generate_cnc_printer_cfg(mcu_path: 'str | None' = None, printer_data_dir: str = '~/printer_data') -> str:
     """Generate a complete CNC printer.cfg with the detected MCU path.
 
     The output is a well-commented template. Sections marked with
@@ -578,7 +578,7 @@ gcode:
 [force_move]
 enable_force_move: true    # Allow manual jogging from web interface
 
-[pause_resume]             # Required by Moonraker/job_state
+[pause_resume]             # Required by Moonraker/job state
 
 [gcode_arcs]
 resolution: 1.0            # G2/G3 arc resolution (mm)
@@ -590,11 +590,21 @@ resolution: 1.0            # G2/G3 arc resolution (mm)
 #min_temp: 0
 #max_temp: 100
 
+# ── Virtual SD Card ───────────────────────────────────────────────────────
+[virtual_sdcard]
+path: {printer_data_dir}/gcodes
+on_error_gcode: CANCEL_PRINT
+
+# ── Save Variables ───────────────────────────────────────────────────────
+[save_variables]
+filename: {printer_data_dir}/variables.cfg
+
 # ── E3CNC Macro Includes ─────────────────────────────────────────────────────
 # These provide CNC-specific macros (homing, PAUSE/RESUME, spindle overrides)
 # e3cnc_macros.cfg MUST be last to override PAUSE/RESUME correctly.
 [include E3CNC/macros/cnc_base.cfg]
 [include E3CNC/macros/wcs_macros.cfg]
+[include E3CNC/macros/e3cnc_macros.cfg]
 [include E3CNC/macros/e3cnc_macros.cfg]
 
 # ── User Macros (optional) ───────────────────────────────────────────────────

@@ -859,7 +859,8 @@ def cmd_init_config(args) -> None:
     config_dir = config_path.parent
     config_dir.mkdir(parents=True, exist_ok=True)
 
-    content = _generate_cnc_printer_cfg(mcu_path)
+    printer_data_dir = inst.printer_data_dir if inst else "~/printer_data"
+    content = _generate_cnc_printer_cfg(mcu_path, printer_data_dir)
     try:
         config_path.write_text(content)
         ok(f"Generated: {config_path}")
