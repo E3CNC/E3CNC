@@ -1,16 +1,11 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"os"
-	"os/signal"
-	"path/filepath"
-	"syscall"
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/E3CNC/e3cnc/cli/go/internal"
 	"github.com/E3CNC/e3cnc/cli/go/internal/commands"
 	"github.com/E3CNC/e3cnc/cli/go/internal/tui"
 )
@@ -46,36 +41,8 @@ func main() {
 
 			// If a command was selected, run it then loop back
 			if m, ok := finalModel.(tui.Model); ok && m.DispatchCmd != "" {
-				// Run Go-native command
-				if !commands.RunDispatch(m.DispatchCmd, false, nil) {
-					// Fall back to Python CLI
-					cliDir, pythonExe, err := internal.FindPythonCLI()
-					if err != nil {
-						fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-						os.Exit(1)
-					}
-					workDir := filepath.Dir(cliDir)
-					pyArgs := []string{"-m", "cli", m.DispatchCmd}
-					ctx, cancel := context.WithCancel(context.Background())
-					defer cancel()
-					sigCh := make(chan os.Signal, 1)
-					signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
-					go func() {
-						<-sigCh
-						cancel()
-					}()
-					result, err := internal.RunPython(ctx, pythonExe, pyArgs, workDir,
-						func(line string) { fmt.Println(line) },
-						func(line string) { fmt.Fprintln(os.Stderr, line) },
-					)
-					if err != nil {
-						fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-						os.Exit(1)
-					}
-					if result.ExitCode != 0 {
-						os.Exit(result.ExitCode)
-					}
-				}
+				// Run command via Go-native dispatch
+				commands.RunDispatch(m.DispatchCmd, false, nil)
 				// Wait for user to press b/Enter to return, or q/Ctrl+C to quit
 				fmt.Print("\nb: back to menu  ·  q: quit  ·  Enter: back  ·  Ctrl+C: quit\n> ")
 				var buf [1]byte
@@ -91,7 +58,7 @@ func main() {
 		}
 	}
 
-	// Has args: try Go-native dispatch first, fall back to Python
+	// Has args: run Go-native dispatch directly
 	cmd := args[0]
 	jsonOut := false
 	var cmdArgs []string
@@ -102,73 +69,7 @@ func main() {
 			cmdArgs = append(cmdArgs, a)
 		}
 	}
-
-	// Try Go-native dispatch
-	if commands.RunDispatch(cmd, jsonOut, cmdArgs) {
-		return
-	}
-
-	// Load commands manifest and validate the command
-	manifest, err := internal.LoadCommands()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: cannot load commands manifest: %v\n", err)
-		fmt.Fprintf(os.Stderr, "Falling back to direct Python dispatch.\n")
-	}
-
-	if manifest != nil && !manifest.IsKnownCommand(cmd) {
-		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", cmd)
-		fmt.Fprintf(os.Stderr, "Run 'e3cnc-tui --help' for available commands.\n")
-		os.Exit(1)
-	}
-
-	// Resolve Python CLI path for commands not yet ported to Go
-	cliDir, pythonExe, err := internal.FindPythonCLI()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		fmt.Fprintf(os.Stderr, "Make sure E3CNC is installed or run from the repo checkout.\n")
-		os.Exit(1)
-	}
-
-	// Build args for Python: python3 -m cli <cmd> [args...]
-	pyArgs := []string{"-m", "cli", cmd}
-	pyArgs = append(pyArgs, args[1:]...)
-	workDir := filepath.Dir(cliDir)
-
-	// Set up signal handling for graceful cancellation
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
-	go func() {
-		<-sigCh
-		cancel()
-	}()
-
-	// Run the command with streaming output
-	result, err := internal.RunPython(ctx, pythonExe, pyArgs, workDir,
-		func(line string) { fmt.Println(line) },
-		func(line string) { fmt.Fprintln(os.Stderr, line) },
-	)
-
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error executing command: %v\n", err)
-		os.Exit(1)
-	}
-
-	if result.Cancelled {
-		fmt.Fprintln(os.Stderr, "\nCommand cancelled.")
-		os.Exit(130)
-	}
-
-	if result.TimedOut {
-		fmt.Fprintln(os.Stderr, "\nCommand timed out.")
-		os.Exit(124)
-	}
-
-	if result.ExitCode != 0 {
-		os.Exit(result.ExitCode)
-	}
+	commands.RunDispatch(cmd, jsonOut, cmdArgs)
 }
 
 func printUsage() {
@@ -176,7 +77,7 @@ func printUsage() {
 
 Usage:
   e3cnc-tui              Open the interactive TUI menu
-  e3cnc-tui <command>    Run a CLI command (dispatches to e3cnc-cli)
+  e3cnc-tui <command>    Run a CLI command
   e3cnc-tui --version    Show version
   e3cnc-tui --help       Show this help
 
