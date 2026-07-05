@@ -2,7 +2,7 @@
   <img src="docs/assets/e3c_logo.svg" alt="E3CNC UI" width="200">
 </div>
 
-# E3CNC UI
+# E3CNC
 
 [![Release](https://img.shields.io/github/v/release/E3CNC/E3CNC?style=flat&label=Release&color=00FF00)](https://github.com/E3CNC/E3CNC/releases)
 [![CI](https://github.com/E3CNC/E3CNC/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/E3CNC/E3CNC/actions/workflows/ci.yml)
