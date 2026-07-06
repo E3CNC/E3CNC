@@ -54,6 +54,8 @@ var (
 		Bold(true)
 	DimStyle = lipgloss.NewStyle().
 		Foreground(ColorDim)
+	WhiteStyle = lipgloss.NewStyle().
+		Foreground(ColorWhite)
 	HelpStyle = lipgloss.NewStyle().
 		Foreground(ColorDim).
 		MarginTop(1)

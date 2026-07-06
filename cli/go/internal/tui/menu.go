@@ -223,16 +223,12 @@ func (m MenuModel) View() string {
 		}
 		labelPart := cursor + item.Label + connector
 		if i == m.cursor {
-			if item.Destructive {
-				b.WriteString(DestructiveStyle.Render(labelPart))
-			} else {
-				b.WriteString(MenuItemSelectedStyle.Render(labelPart))
-			}
+			b.WriteString(MenuItemSelectedStyle.Render(labelPart))
 		} else {
 			b.WriteString(MenuItemStyle.Render(labelPart))
 		}
 		if item.Description != "" {
-			b.WriteString(DimStyle.Render(item.Description))
+			b.WriteString(WhiteStyle.Render(item.Description))
 		}
 		b.WriteString("\n")
 	}
