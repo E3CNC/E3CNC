@@ -18,8 +18,9 @@ func installSystemPackages() error {
 		"python3", "python3-pip", "python3-venv", "python3-dev",
 		"build-essential", "libffi-dev", "libssl-dev", "avahi-utils",
 	}
-	args := append([]string{"install", "-y"}, packages...)
-	cmd := exec.Command("apt-get", args...)
+	args := append([]string{"-y"}, packages...)
+	aptCmd := append([]string{"apt-get", "install"}, args...)
+	cmd := exec.Command("sudo", aptCmd...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
