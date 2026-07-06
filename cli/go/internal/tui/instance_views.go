@@ -68,12 +68,6 @@ func (m InstanceModel) viewList() string {
 	b.WriteString(m.listViewport.View())
 	b.WriteString("\n")
 
-	b.WriteString(SectionHeaderStyle.Render("Actions"))
-	b.WriteString("\n")
-	for _, opt := range []string{"[n] New instance", "[d] Delete instance", "[r] Refresh"} {
-		b.WriteString(DimStyle.Render(fmt.Sprintf("  %s\n", opt)))
-	}
-
 	b.WriteString(HelpStyle.Render("↑/↓ navigate  ·  n: create  ·  d: delete  ·  r: refresh  ·  b: back to menu"))
 	return b.String()
 }
