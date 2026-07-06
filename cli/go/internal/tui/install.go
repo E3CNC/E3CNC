@@ -76,7 +76,6 @@ const (
 	ScreenExecDashboard
 	ScreenErrorRecovery
 	ScreenVerification
-	ScreenNextSteps
 )
 
 // InstallModel is the BubbleTea model for the install wizard.
@@ -437,10 +436,6 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.done = true
 			}
 
-		case ScreenNextSteps:
-			if msg.String() == "enter" {
-				m.done = true
-			}
 		}
 	}
 
@@ -842,8 +837,6 @@ func (m InstallModel) View() string {
 		return m.viewErrorRecovery()
 	case ScreenVerification:
 		return m.viewExecDashboard()
-	case ScreenNextSteps:
-		return m.viewNextSteps()
 	default:
 		return "Unknown screen"
 	}
@@ -1221,109 +1214,7 @@ func (m InstallModel) viewErrorRecovery() string {
 	return b.String()
 }
 
-// ── Screen 7: Verification Dashboard ────────────────────────────────────
-
-func (m InstallModel) viewVerification() string {
-	var b strings.Builder
-
-	b.WriteString(BoxStyle.Render(
-		OkStyle.Render("Installation Complete") + "\n" +
-			DimStyle.Render(fmt.Sprintf("E3CNC deployed to instance '%s'", m.instanceName)),
-	))
-	b.WriteString("\n\n")
-
-	// Show non-blocking failures as a warning
-	if m.err != nil {
-		b.WriteString(WarnStyle.Render(fmt.Sprintf("  ⚠ %s", m.err)))
-		b.WriteString("\n\n")
-	}
-
-	if len(m.healthChecks) > 0 {
-		b.WriteString(SectionHeaderStyle.Render("Health checks"))
-		b.WriteString("\n")
-
-		for _, c := range m.healthChecks {
-			symbol := "✓"
-			style := OkStyle
-			if !c.Passed {
-				if c.IsOptional {
-					symbol = "○"
-					style = WarnStyle
-				} else {
-					symbol = "✗"
-					style = FailStyle
-				}
-			}
-
-			line := fmt.Sprintf("  %s %s", symbol, c.Name)
-			if c.Detail != "" {
-				line += DimStyle.Render(fmt.Sprintf("  (%s)", c.Detail))
-			}
-			b.WriteString(style.Render(line))
-			b.WriteString("\n")
-		}
-	} else {
-		b.WriteString(DimStyle.Render("  Health checks skipped (not running on target)"))
-		b.WriteString("\n")
-	}
-
-	b.WriteString("\n")
-	b.WriteString(HelpStyle.Render("Press Enter to return to menu"))
-
-	return b.String()
-}
-
-// ── Screen 8: Next Steps Wizard ─────────────────────────────────────────
-
-func (m InstallModel) viewNextSteps() string {
-	var b strings.Builder
-
-	b.WriteString(BoxStyle.Render(
-		TitleStyle.Render("What's next?") + "\n" +
-			SubtitleStyle.Render("Guide your CNC from installed to running"),
-	))
-	b.WriteString("\n\n")
-
-	steps := []struct {
-		number      int
-		label       string
-		command     string
-		description string
-		completed   bool
-	}{
-		{1, "Detect MCU", "e3cnc-tui detect-mcu", "Scan USB for your controller board", false},
-		{2, "Generate printer.cfg", "e3cnc-tui init-config", "Creates a CNC template with your MCU path", false},
-		{3, "Flash firmware", "e3cnc-tui flash-mcu", "Build and flash Klipper to your MCU", false},
-		{4, "Edit printer.cfg", "", "Search for '!!! ADJUST' in the config file", false},
-		{5, "Restart Klipper", "e3cnc-tui restart", "Apply the new configuration", false},
-	}
-
-	for _, s := range steps {
-		symbol := "○"
-		style := MenuItemStyle
-		if s.completed {
-			symbol = "●"
-			style = OkStyle
-		}
-
-		line := fmt.Sprintf("  %s Step %d — %s", symbol, s.number, s.label)
-		b.WriteString(style.Render(line))
-		b.WriteString("\n")
-		b.WriteString(DimStyle.Render(fmt.Sprintf("     %s", s.description)))
-		b.WriteString("\n")
-		if s.command != "" {
-			b.WriteString(DimStyle.Render(fmt.Sprintf("     Run: %s", s.command)))
-			b.WriteString("\n")
-		}
-		b.WriteString("\n")
-	}
-
-	b.WriteString(HelpStyle.Render("Press Enter to return to menu"))
-
-	return b.String()
-}
-
-// ── Utilities ────────────────────────────────────────────────────
+// ── Utilities ────────────────────────────────────
 
 // newProgressBar creates a progress bar with the E3CNC theme (green→cyan).
 func newProgressBar() progress.Model {

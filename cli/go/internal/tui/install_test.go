@@ -90,7 +90,6 @@ func TestInstallScreenNavigation(t *testing.T) {
 		{"MCUSelect Enter → Config", ScreenMCUSelect, "enter", ScreenConfig},
 		{"Config Enter → FirmwareCheck", ScreenConfig, "enter", ScreenFirmwareCheck},
 		{"FirmwareCheck Enter → ExecDashboard", ScreenFirmwareCheck, "enter", ScreenExecDashboard},
-		{"NextSteps Enter → done", ScreenNextSteps, "enter", ScreenNextSteps},
 	}
 
 	for _, tc := range tests {
@@ -130,7 +129,6 @@ func TestInstallBackToMainMenu(t *testing.T) {
 		ScreenExecDashboard,
 		ScreenErrorRecovery,
 		ScreenVerification,
-		ScreenNextSteps,
 	}
 	keys := []string{"b", "q", "esc"}
 
@@ -571,7 +569,6 @@ func TestInstallViewRenderings(t *testing.T) {
 			m.steps[2] = InstallStep{Number: 3, Label: "Download release", Status: StepFailed}
 		}},
 		{"Verification", ScreenVerification, nil},
-		{"NextSteps", ScreenNextSteps, nil},
 	}
 
 	for _, tc := range screens {
@@ -756,7 +753,6 @@ func screenName(s InstallScreen) string {
 		ScreenExecDashboard: "ExecDashboard",
 		ScreenErrorRecovery: "ErrorRecovery",
 		ScreenVerification:  "Verification",
-		ScreenNextSteps:     "NextSteps",
 	}
 	if name, ok := names[s]; ok {
 		return name

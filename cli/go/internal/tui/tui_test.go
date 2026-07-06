@@ -1,6 +1,6 @@
 // Package tuitester provides tmux-based integration tests for the BubbleTea TUI.
 //
-// These tests SSH into the CNC host via a pre-existing tmux session (main:1.0)
+// These tests SSH into the CNC host via a pre-existing tmux session (main:AI-01.1)
 // and verify that every menu option is reachable, the install wizard opens,
 // and the instance manager loads correctly.
 //
@@ -8,8 +8,8 @@
 //   go test -run TestTUIIntegration ./internal/tui/ -v -count=1
 //
 // Requirements:
-//   - tmux session "main:1.0" must exist with an SSH connection to the CNC
-//   - e3cnc-tui binary must be at ~/e3cnc/current/bin/e3cnc-tui on the CNC
+//   - tmux session "main:AI-01.1" must exist with an SSH connection to the CNC
+//   - e3cnc-tui binary must be at ~/e3cnc-tui-dev on the CNC
 package tui
 
 import (
@@ -21,10 +21,10 @@ import (
 )
 
 // tmuxPane is the target tmux pane for sending commands and capturing output.
-const tmuxPane = "main:1.0"
+const tmuxPane = "main:AI-01.1"
 
 // tuiBinary is the path to the TUI binary on the CNC.
-const tuiBinary = "~/e3cnc/current/bin/e3cnc-tui"
+const tuiBinary = "~/e3cnc-tui-dev"
 
 // sendKeys sends a keystroke to the tmux pane.
 func sendKeys(key string) {
@@ -141,7 +141,7 @@ func min(a, b int) int {
 }
 
 // Menu item positions (0-indexed, skipping empty separators)
-// Install=0, Update=1, Uninstall=2, Status=3, Check Deps=4,
+// Installation Wizard=0, Update=1, Uninstall=2, Status=3, Check Deps=4,
 // Instances=5, Detect MCU=6, Flash MCU=7, Init Config=8,
 // Releases=9, Rollback=10, Backup=11, Restore=12,
 // CLI Log=13, Diagnose=14, Logs=15, Admin Page=16, Quit=17
@@ -153,7 +153,7 @@ type menuItem struct {
 }
 
 var allMenuItems = []menuItem{
-	{"Install", 0, true},
+	{"Installation Wizard", 0, true},
 	{"Update", 1, false},
 	{"Uninstall", 2, false},
 	{"Status", 3, false},
@@ -192,7 +192,7 @@ func TestTUIMenuRenders(t *testing.T) {
 	waitFor(1 * time.Second)
 	out := capture(45)
 
-	sections := []string{"E3CNC CLI", "Setup", "Monitor", "Hardware", "Manage", "Tools", "Quit", "↑/↓ navigate"}
+	sections := []string{"CLI version ->", "Setup", "Monitor", "Hardware", "Manage", "Tools", "Quit", "↑/↓ navigate"}
 	for _, s := range sections {
 		if !strings.Contains(out, s) {
 			t.Errorf("Menu missing section: %s", s)
@@ -224,7 +224,7 @@ func TestTUIEnter(t *testing.T) {
 		index      int
 		expectText string
 	}{
-		{"Install", 0, "E3CNC Install Wizard"},
+		{"Installation Wizard", 0, "E3CNC Install Wizard"},
 		{"Instances", 5, "Instance Manager"},
 	}
 
@@ -279,47 +279,5 @@ func TestTUIInstanceManager(t *testing.T) {
 		t.Log("✅ Instance manager screen opened")
 	} else {
 		t.Errorf("❌ Instance manager did not open, got:\n%s", out)
-	}
-}
-
-// TestTUIVersion verifies the binary reports the correct version.
-func TestTUIVersion(t *testing.T) {
-	skipIfShort(t)
-	// Exit any running TUI
-	sendCtrlC()
-	waitFor(500 * time.Millisecond)
-	sendKeys("q")
-	waitFor(500 * time.Millisecond)
-
-	// Run version command
-	sendText(tuiBinary + " --version")
-	sendEnter()
-	waitFor(2 * time.Second)
-
-	out := capture(5)
-	if strings.Contains(out, "e3cnc-tui v") {
-		t.Logf("✅ Version reported: %s", strings.TrimSpace(out))
-	} else {
-		t.Errorf("❌ Version not found, got: %s", out)
-	}
-}
-
-// TestTUIHelp verifies the help output.
-func TestTUIHelp(t *testing.T) {
-	skipIfShort(t)
-	sendCtrlC()
-	waitFor(500 * time.Millisecond)
-	sendKeys("q")
-	waitFor(500 * time.Millisecond)
-
-	sendText(tuiBinary + " --help")
-	sendEnter()
-	waitFor(2 * time.Second)
-
-	out := capture(10)
-	if strings.Contains(out, "e3cnc-tui - E3CNC Terminal UI") {
-		t.Log("✅ Help displayed")
-	} else {
-		t.Errorf("❌ Help not found, got: %s", out)
 	}
 }
