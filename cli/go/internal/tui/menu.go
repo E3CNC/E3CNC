@@ -73,17 +73,6 @@ func (m MenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = msg.Width
 		m.height = msg.Height
 
-	case tea.MouseMsg:
-		if msg.Action == tea.MouseActionPress && msg.Button == tea.MouseButtonLeft {
-			if idx, ok := m.itemAtY(msg.Y); ok {
-				m.cursor = idx
-				cmd := m.items[idx].Command
-				if cmd != "" {
-					m.SelectedCmd = cmd
-				}
-			}
-		}
-
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "up", "k":
@@ -111,48 +100,6 @@ func (m MenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	return m, nil
-}
-
-// itemAtY returns the menu item index at the given terminal Y coordinate,
-// or false if no item occupies that line.
-func (m MenuModel) itemAtY(y int) (int, bool) {
-	// Layout: title line + margin bottom = 2 lines, then "\n\n" = 2 lines
-	// Items start at Y=4
-	line := y - 4
-	if line < 0 {
-		return 0, false
-	}
-
-	for i, item := range m.items {
-		if item.Command == "" {
-			continue // separator, skip counting
-		}
-		// Count section header lines
-		// (we skip counting them in position — items start after headers)
-
-		// Reconstruct the rendered position counting
-		// Lines before this item = separators (empty command) + section headers + items
-		renderedLine := 0
-		var lastCat string
-		for j := 0; j <= i; j++ {
-			if m.items[j].Command == "" {
-				renderedLine++
-				lastCat = ""
-				continue
-			}
-			if m.items[j].Category != "" && m.items[j].Category != lastCat {
-				renderedLine++ // section header
-				lastCat = m.items[j].Category
-			}
-			if j == i {
-				if renderedLine == line {
-					return i, true
-				}
-			}
-			renderedLine++
-		}
-	}
-	return 0, false
 }
 
 // skipEmpty skips separator items when navigating.
@@ -228,7 +175,11 @@ func (m MenuModel) View() string {
 			b.WriteString(MenuItemStyle.Render(labelPart))
 		}
 		if item.Description != "" {
-			b.WriteString(WhiteStyle.Render(item.Description))
+			descStyle := WhiteStyle
+			if i != m.cursor {
+				descStyle = DimStyle
+			}
+			b.WriteString(descStyle.Render(item.Description))
 		}
 		b.WriteString("\n")
 	}
