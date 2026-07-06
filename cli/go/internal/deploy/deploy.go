@@ -1,7 +1,5 @@
 // Package deploy provides release management, health checks, and backup/restore.
-//
-// This replaces _e3cnc_deploy.py's functionality with in-process Go code,
-// eliminating the need for Python subprocess calls.
+// All operations are pure Go.
 package deploy
 
 import (

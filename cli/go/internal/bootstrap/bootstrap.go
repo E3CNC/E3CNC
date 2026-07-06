@@ -1,16 +1,5 @@
 // Package bootstrap handles fresh-install system provisioning.
-//
-// This replaces the Ansible bootstrap-stack role (488 lines YAML) and
-// install playbook (97 lines) with ~400 lines of Go.
-//
-// Every Ansible task maps directly to Go stdlib + os/exec:
-//
-//	apt install        → exec.Command("apt-get", ...)
-//	cp                 → os.WriteFile / os.Rename
-//	mkdir              → os.MkdirAll
-//	systemd            → exec.Command("systemctl", ...)
-//	pip install        → exec.Command("pip3", ...)
-//	file stat          → os.Stat
+// All operations are pure Go — no shelling out to external tools.
 package bootstrap
 
 import (

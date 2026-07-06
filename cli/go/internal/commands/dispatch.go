@@ -1,7 +1,5 @@
 // Package commands provides Go-native implementations of all E3CNC CLI commands.
-//
-// RunDispatch() is the single entry point. It handles all 24 commands in-process,
-// eliminating Python subprocess overhead entirely.
+// RunDispatch() is the single entry point. It handles all 24 commands in-process.
 package commands
 
 import (

@@ -21,7 +21,7 @@ const (
 	InstDelete
 )
 
-// InstanceInfo mirrors a single instance from `e3cnc-cli instances --json`.
+// InstanceInfo mirrors a single instance from the Go instance manager.
 type InstanceInfo struct {
 	Name             string `json:"name"`
 	IsRunning        bool   `json:"is_running"`
@@ -34,7 +34,7 @@ type InstanceInfo struct {
 	PrinterDataDir   string `json:"printer_data_dir"`
 }
 
-// InstancesJSON is the root structure returned by `e3cnc-cli instances --json`.
+// InstancesJSON is the root structure returned by the instance manager.
 type InstancesJSON struct {
 	LocalIP        string         `json:"local_ip"`
 	ReleaseVersion *string        `json:"release_version"`
