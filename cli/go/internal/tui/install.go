@@ -65,7 +65,8 @@ func (s StepStatus) String() string {
 type InstallScreen int
 
 const (
-	ScreenPreFlight InstallScreen = iota
+	ScreenModeSelect InstallScreen = iota
+	ScreenPreFlight
 	ScreenMCUSelect
 	ScreenConfig
 	ScreenFirmwareCheck
@@ -80,6 +81,10 @@ type InstallModel struct {
 	screen  InstallScreen
 	steps   []InstallStep
 	current int // current step index being executed
+
+	// Installation mode
+	installMode int // 0 = unselected, 1 = import existing, 2 = new instance
+	modeCursor  int
 
 	// Pre-flight state
 	preFlightChecks []PreFlightCheck
@@ -165,7 +170,9 @@ func NewInstallModel() InstallModel {
 	ni.Prompt = "▸ "
 
 	return InstallModel{
-		screen:          ScreenPreFlight,
+		screen:           ScreenModeSelect,
+		installMode:      0,
+		modeCursor:       0,
 		steps:           make([]InstallStep, len(installSteps)),
 		preFlightChecks: make([]PreFlightCheck, len(defaultPreFlightLabels)),
 		instanceName:    "default",
@@ -267,6 +274,28 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 		switch m.screen {
+		case ScreenModeSelect:
+			switch msg.String() {
+			case "up", "k":
+				if m.modeCursor > 0 {
+					m.modeCursor--
+				}
+			case "down", "j":
+				if m.modeCursor < 1 {
+					m.modeCursor++
+				}
+			case "enter", " ":
+				if m.modeCursor == 0 {
+					m.installMode = 1 // import existing
+				} else {
+					m.installMode = 2 // new instance
+				}
+				m.screen = ScreenPreFlight
+				return m, m.runPreFlightChecks()
+			case "b", "q", "esc":
+				return m, func() tea.Msg { return backToMenuMsg{} }
+			}
+
 		case ScreenPreFlight:
 			if msg.String() == "enter" {
 				m.screen = ScreenMCUSelect
@@ -650,6 +679,8 @@ func (m InstallModel) pollProgressCh(ch <-chan tea.Msg) tea.Cmd {
 
 func (m InstallModel) View() string {
 	switch m.screen {
+	case ScreenModeSelect:
+		return m.viewModeSelect()
 	case ScreenPreFlight:
 		return m.viewPreFlight()
 	case ScreenMCUSelect:
@@ -669,6 +700,42 @@ func (m InstallModel) View() string {
 	default:
 		return "Unknown screen"
 	}
+}
+
+// ── Screen 0: Installation Mode Select ─────────────────────────────────
+
+func (m InstallModel) viewModeSelect() string {
+	var b strings.Builder
+
+	b.WriteString(BoxStyle.Render(
+		TitleStyle.Render("E3CNC Install Wizard") + "\n" +
+			SubtitleStyle.Render("Choose how to set up your CNC"),
+	))
+	b.WriteString("\n\n")
+
+	modes := []struct {
+		label string
+		desc  string
+	}{
+		{"Import existing Klipper", "Use an existing Klipper installation on this machine"},
+		{"Create new E3CNC instance", "Set up a fresh E3CNC instance from scratch"},
+	}
+
+	for i, mode := range modes {
+		cursor := "  "
+		style := MenuItemStyle
+		if i == m.modeCursor {
+			cursor = "▸ "
+			style = MenuItemSelectedStyle
+		}
+		b.WriteString(style.Render(fmt.Sprintf("%s%s", cursor, mode.label)))
+		b.WriteString("\n")
+		b.WriteString(DimStyle.Render(fmt.Sprintf("   %s", mode.desc)))
+		b.WriteString("\n\n")
+	}
+
+	b.WriteString(HelpStyle.Render("↑/↓ navigate  ·  Enter: select  ·  b: back to menu"))
+	return b.String()
 }
 
 // ── Screen 1: Pre-Flight Dashboard ──────────────────────────────────────

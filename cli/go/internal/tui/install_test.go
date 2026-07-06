@@ -12,8 +12,8 @@ import (
 func TestNewInstallModel(t *testing.T) {
 	m := NewInstallModel()
 
-	if m.screen != ScreenPreFlight {
-		t.Errorf("NewInstallModel(): screen = %d, expected ScreenPreFlight", m.screen)
+	if m.screen != ScreenModeSelect {
+		t.Errorf("NewInstallModel(): screen = %d, expected ScreenModeSelect", m.screen)
 	}
 	if m.instanceName != "default" {
 		t.Errorf("NewInstallModel(): instanceName = %q, expected 'default'", m.instanceName)
@@ -84,6 +84,7 @@ func TestInstallScreenNavigation(t *testing.T) {
 		key            string
 		expectedScreen InstallScreen
 	}{
+		{"ModeSelect Enter → PreFlight", ScreenModeSelect, "enter", ScreenPreFlight},
 		{"PreFlight Enter → MCUSelect", ScreenPreFlight, "enter", ScreenMCUSelect},
 		{"MCUSelect Enter → Config", ScreenMCUSelect, "enter", ScreenConfig},
 		{"Config Enter → FirmwareCheck", ScreenConfig, "enter", ScreenFirmwareCheck},
@@ -121,6 +122,7 @@ func TestInstallScreenNavigation(t *testing.T) {
 
 func TestInstallBackToMainMenu(t *testing.T) {
 	screens := []InstallScreen{
+		ScreenModeSelect,
 		ScreenPreFlight,
 		ScreenMCUSelect,
 		ScreenConfig,
@@ -752,6 +754,7 @@ func TestHandleStepUpdateWithChannel(t *testing.T) {
 // screenName helper for test naming
 func screenName(s InstallScreen) string {
 	names := map[InstallScreen]string{
+		ScreenModeSelect:    "ModeSelect",
 		ScreenPreFlight:     "PreFlight",
 		ScreenMCUSelect:     "MCUSelect",
 		ScreenConfig:        "Config",
