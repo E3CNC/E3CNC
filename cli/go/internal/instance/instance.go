@@ -79,10 +79,6 @@ func FromName(name string) (*Instance, error) {
 	config := filepath.Join(data, "config")
 
 	if _, err := os.Stat(base); os.IsNotExist(err) {
-		// Fall back to KIAUH layout: ~/printer_data or ~/printer_*_data
-		if inst := scanKIAUHByName(name); inst != nil {
-			return inst, nil
-		}
 		return nil, fmt.Errorf("instance %q not found at %s", name, base)
 	}
 
@@ -156,18 +152,6 @@ func DetectInstances() ([]*Instance, error) {
 		instances = append(instances, inst)
 	}
 
-	// Also scan KIAUH layout for any instances not in new layout
-	existing := make(map[string]bool)
-	for _, inst := range instances {
-		existing[inst.Name] = true
-	}
-	kiauhInstances, _ := scanKIAUHInstances()
-	for _, inst := range kiauhInstances {
-		if !existing[inst.Name] {
-			instances = append(instances, inst)
-		}
-	}
-
 	return instances, nil
 }
 
@@ -201,40 +185,6 @@ func GetActiveInstance() (*Instance, error) {
 		return nil, fmt.Errorf("no instances detected")
 	}
 	return instances[0], nil
-}
-
-// scanKIAUHByName finds a single KIAUH-layout instance by name.
-func scanKIAUHByName(name string) *Instance {
-	home, _ := os.UserHomeDir()
-	patterns := []string{
-		filepath.Join(home, "printer_data"),
-		filepath.Join(home, "printer_data_"+name),
-		filepath.Join(home, "printer_"+name+"_data"),
-	}
-	for _, candidate := range patterns {
-		fi, err := os.Stat(candidate)
-		if err != nil || !fi.IsDir() {
-			continue
-		}
-		moonrakerDir := filepath.Join(E3CNCHome(), "moonraker")
-		klipperDir := filepath.Join(E3CNCHome(), "klipper")
-		configDir := filepath.Join(candidate, "config")
-		if _, err := os.Stat(configDir); os.IsNotExist(err) {
-			continue
-		}
-		return &Instance{
-			Name:             name,
-			ConfigDir:        configDir,
-			PrinterCfg:       filepath.Join(configDir, "printer.cfg"),
-			MoonrakerDir:     moonrakerDir,
-			KlipperDir:       klipperDir,
-			MoonrakerService: fmt.Sprintf("e3cnc-%s-moonraker", name),
-			KlipperService:   fmt.Sprintf("e3cnc-%s-klipper", name),
-			MoonrakerPort:    7125,
-			PrinterDataDir:   candidate,
-		}
-	}
-	return nil
 }
 
 // scanKIAUHInstances scans for legacy KIAUH layout instances.
