@@ -355,7 +355,7 @@ func (m InstanceModel) handleDeleteKey(msg tea.Msg) (InstanceModel, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "y", "Y":
+		case "y", "Y", "enter":
 			m.running = true
 			m.runLabel = "Deleting instance..."
 			return m, m.deleteInstanceCmd()
