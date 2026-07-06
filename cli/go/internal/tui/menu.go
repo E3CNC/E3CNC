@@ -175,7 +175,7 @@ func (m MenuModel) View() string {
 			b.WriteString(MenuItemStyle.Render(labelPart))
 		}
 		if item.Description != "" {
-			descStyle := WhiteStyle
+			descStyle := OkStyle
 			if i != m.cursor {
 				descStyle = DimStyle
 			}
