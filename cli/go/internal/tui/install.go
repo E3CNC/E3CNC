@@ -268,6 +268,13 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.progBar = p.(progress.Model)
 		return m, cmd
 
+	case tea.MouseMsg:
+		if m.screen == ScreenExecDashboard || m.screen == ScreenVerification {
+			var cmd tea.Cmd
+			m.logViewport, cmd = m.logViewport.Update(msg)
+			return m, cmd
+		}
+
 	case preFlightCompleteMsg:
 		m.preFlightChecks = msg.results
 		// Auto-advance to MCU selection (only if still on pre-flight screen)
