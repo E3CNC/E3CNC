@@ -211,14 +211,8 @@ func (m MenuModel) View() string {
 		}
 
 		cursor := "  "
-		style := MenuItemStyle
 		if i == m.cursor {
 			cursor = "▸ "
-			if item.Destructive {
-				style = DestructiveStyle
-			} else {
-				style = MenuItemSelectedStyle
-			}
 		}
 
 		// Label with dashed connector to align descriptions
@@ -227,12 +221,19 @@ func (m MenuModel) View() string {
 		if gap > 2 {
 			connector = " " + strings.Repeat("-", gap-2) + " "
 		}
-		paddedLabel := item.Label + connector
-		line := cursor + paddedLabel
-		if item.Description != "" {
-			line += DimStyle.Render(item.Description)
+		labelPart := cursor + item.Label + connector
+		if i == m.cursor {
+			if item.Destructive {
+				b.WriteString(DestructiveStyle.Render(labelPart))
+			} else {
+				b.WriteString(MenuItemSelectedStyle.Render(labelPart))
+			}
+		} else {
+			b.WriteString(MenuItemStyle.Render(labelPart))
 		}
-		b.WriteString(style.Render(line))
+		if item.Description != "" {
+			b.WriteString(DimStyle.Render(item.Description))
+		}
 		b.WriteString("\n")
 	}
 
