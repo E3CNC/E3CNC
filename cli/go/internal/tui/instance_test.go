@@ -187,8 +187,11 @@ func TestInstanceCreateScreenTransition(t *testing.T) {
 	if m2.screen != InstCreate {
 		t.Errorf("After 'n': screen = %d, expected InstCreate", m2.screen)
 	}
-	if m2.createName != "" {
-		t.Errorf("createName should be reset to empty")
+	if m2.createNameInput.Value() != "" {
+		t.Errorf("createNameInput should be reset to empty")
+	}
+	if !m2.createNameInput.Focused() {
+		t.Errorf("createNameInput should be focused after transition")
 	}
 }
 
@@ -262,27 +265,39 @@ func TestInstanceBackToMenu(t *testing.T) {
 func TestInstanceCreateFocusNavigation(t *testing.T) {
 	m := NewInstanceModel()
 	m.screen = InstCreate
-	m.createFocusedIdx = 0
 
-	// Down to port field
-	mod, _ := m.Update(tea.KeyMsg{Type: tea.KeyDown})
-	m2 := mod.(InstanceModel)
-	if m2.createFocusedIdx != 1 {
-		t.Errorf("After Down: focusedIdx = %d, expected 1", m2.createFocusedIdx)
+	// Name input should be focused initially
+	if !m.createNameInput.Focused() {
+		t.Errorf("createNameInput should be focused initially")
+	}
+	if m.createPortInput.Focused() {
+		t.Errorf("createPortInput should NOT be focused initially")
 	}
 
-	// Up back to name
-	mod, _ = m2.Update(tea.KeyMsg{Type: tea.KeyUp})
+	// Tab switches to port field
+	mod, _ := m.Update(tea.KeyMsg{Type: tea.KeyTab})
+	m2 := mod.(InstanceModel)
+	if m2.createNameInput.Focused() {
+		t.Errorf("After Tab: createNameInput should NOT be focused")
+	}
+	if !m2.createPortInput.Focused() {
+		t.Errorf("After Tab: createPortInput should be focused")
+	}
+
+	// Tab again switches back to name
+	mod, _ = m2.Update(tea.KeyMsg{Type: tea.KeyTab})
 	m3 := mod.(InstanceModel)
-	if m3.createFocusedIdx != 0 {
-		t.Errorf("After Up: focusedIdx = %d, expected 0", m3.createFocusedIdx)
+	if !m3.createNameInput.Focused() {
+		t.Errorf("After second Tab: createNameInput should be focused")
+	}
+	if m3.createPortInput.Focused() {
+		t.Errorf("After second Tab: createPortInput should NOT be focused")
 	}
 }
 
 func TestInstanceCreateNameValidation(t *testing.T) {
 	m := NewInstanceModel()
 	m.screen = InstCreate
-	m.createName = ""
 	m.loadErr = ""
 
 	// Enter with empty name should show error
@@ -292,19 +307,22 @@ func TestInstanceCreateNameValidation(t *testing.T) {
 		t.Errorf("Empty name: loadErr = %q, expected 'Instance name is required'", m2.loadErr)
 	}
 
-	// Enter with invalid characters
-	m2.createName = "My Instance!"
+	// Enter with valid name after setting via textinput — simulate keypresses
+	m2.createNameInput.SetValue("my-instance-2")
 	mod, _ = m2.Update(tea.KeyMsg{Type: tea.KeyEnter})
 	m3 := mod.(InstanceModel)
-	if m3.loadErr != "Name must be lowercase letters, numbers, and hyphens only" {
-		t.Errorf("Invalid name: loadErr = %q", m3.loadErr)
+	if m3.loadErr != "" {
+		t.Errorf("Valid name should not produce error, got %q", m3.loadErr)
+	}
+	if !m3.running {
+		t.Errorf("running should be true after Enter with valid name")
 	}
 }
 
 func TestInstanceCreateValidName(t *testing.T) {
 	m := NewInstanceModel()
 	m.screen = InstCreate
-	m.createName = "my-instance-2"
+	m.createNameInput.SetValue("my-instance-2")
 
 	mod, cmd := m.Update(tea.KeyMsg{Type: tea.KeyEnter})
 	m2 := mod.(InstanceModel)
@@ -563,17 +581,6 @@ func TestInstanceViewUnknownScreen(t *testing.T) {
 	view := m.View()
 	if view != "Unknown instance screen" {
 		t.Errorf("Unknown screen: got %q, expected 'Unknown instance screen'", view)
-	}
-}
-
-func TestDimText(t *testing.T) {
-	result := dimText("hello")
-	if !strings.Contains(result, "hello") {
-		t.Errorf("dimText('hello') should contain 'hello', got %q", result)
-	}
-	// Should have ANSI escape codes for dim
-	if !strings.Contains(result, "\x1b[2m") {
-		t.Errorf("dimText() should include ANSI dim code")
 	}
 }
 

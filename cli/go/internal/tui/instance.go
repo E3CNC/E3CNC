@@ -5,10 +5,12 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/charmbracelet/bubbles/textinput"
+	tea "github.com/charmbracelet/bubbletea"
+
 	"github.com/E3CNC/e3cnc/cli/go/internal"
 	"github.com/E3CNC/e3cnc/cli/go/internal/bootstrap"
 	"github.com/E3CNC/e3cnc/cli/go/internal/instance"
-	tea "github.com/charmbracelet/bubbletea"
 )
 
 // InstanceScreen represents which sub-screen the instance manager is showing.
@@ -71,10 +73,9 @@ type InstanceModel struct {
 	loading      bool
 	loadErr      string
 
-	// Create form state
-	createName       string
-	createPort       string
-	createFocusedIdx int // 0=name, 1=port
+	// Create form state — using textinput for proper editing
+	createNameInput textinput.Model
+	createPortInput textinput.Model
 
 	// Delete confirm state
 	deleteTarget string
@@ -94,10 +95,27 @@ type InstanceModel struct {
 // NewInstanceModel creates a new instance management model.
 func NewInstanceModel() InstanceModel {
 	state := internal.LoadState()
+
+	nameInput := textinput.New()
+	nameInput.Placeholder = "my-instance"
+	nameInput.CharLimit = 32
+	nameInput.Width = 30
+	nameInput.Prompt = "▸ "
+	nameInput.Focus()
+
+	portInput := textinput.New()
+	portInput.Placeholder = "auto-assign"
+	portInput.CharLimit = 5
+	portInput.Width = 30
+	portInput.Prompt = "  "
+	portInput.Blur()
+
 	return InstanceModel{
-		screen:         InstList,
-		activeInstance: state.ActiveInstance,
-		loading:        true,
+		screen:          InstList,
+		activeInstance:  state.ActiveInstance,
+		loading:         true,
+		createNameInput: nameInput,
+		createPortInput: portInput,
 	}
 }
 
@@ -141,11 +159,11 @@ func (m InstanceModel) createInstanceCmd() tea.Cmd {
 			return instanceCreatedMsg{err: fmt.Errorf("instance management requires Linux (running on %s)", runtime.GOOS)}
 		}
 		cfg := bootstrap.BootstrapConfig{
-			InstanceName:  m.createName,
+			InstanceName:  m.createNameInput.Value(),
 			StartServices: false,
 		}
-		if m.createPort != "" {
-			fmt.Sscanf(m.createPort, "%d", &cfg.MoonrakerPort)
+		if port := m.createPortInput.Value(); port != "" {
+			fmt.Sscanf(port, "%d", &cfg.MoonrakerPort)
 		}
 		if err := bootstrap.Bootstrap(cfg); err != nil {
 			return instanceCreatedMsg{err: fmt.Errorf("create instance: %w", err)}
@@ -193,7 +211,6 @@ func (m InstanceModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.err != nil {
 			m.loadErr = msg.err.Error()
 		} else {
-			// Refresh the list
 			m.screen = InstList
 			return m, m.fetchInstances()
 		}
@@ -203,104 +220,135 @@ func (m InstanceModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.err != nil {
 			m.loadErr = msg.err.Error()
 		} else {
-			// Refresh the list
 			m.screen = InstList
 			return m, m.fetchInstances()
 		}
+	}
 
+	// Route messages to sub-components based on screen
+	switch m.screen {
+	case InstCreate:
+		return m.handleCreateUpdate(msg)
+	case InstList:
+		return m.handleListKey(msg)
+	case InstDelete:
+		return m.handleDeleteKey(msg)
+	}
+
+	return m, nil
+}
+
+// handleCreateUpdate handles all messages in the create-instance form.
+func (m InstanceModel) handleCreateUpdate(msg tea.Msg) (InstanceModel, tea.Cmd) {
+	// Handle key messages for form navigation
+	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch m.screen {
-		case InstList:
-			return m.handleListKey(msg)
-		case InstCreate:
-			return m.handleCreateKey(msg)
-		case InstDelete:
-			return m.handleDeleteKey(msg)
-		}
-	}
-
-	return m, nil
-}
-
-func (m InstanceModel) handleListKey(msg tea.KeyMsg) (InstanceModel, tea.Cmd) {
-	switch msg.String() {
-	case "up", "k":
-		if m.cursor > 0 {
-			m.cursor--
-		}
-	case "down", "j":
-		if m.cursor < len(m.instances)-1 {
-			m.cursor++
-		}
-	case "enter", " ":
-		if len(m.instances) == 0 {
+		switch msg.String() {
+		case "tab":
+			// Switch focus between fields
+			if m.createNameInput.Focused() {
+				m.createNameInput.Blur()
+				m.createPortInput.Focus()
+				m.createPortInput.Prompt = "▸ "
+				m.createNameInput.Prompt = "  "
+			} else {
+				m.createPortInput.Blur()
+				m.createNameInput.Focus()
+				m.createNameInput.Prompt = "▸ "
+				m.createPortInput.Prompt = "  "
+			}
 			return m, nil
-		}
-		// Switch active instance
-		inst := m.instances[m.cursor]
-		m.activeInstance = inst.Name
-		internal.SaveState(internal.State{ActiveInstance: inst.Name})
-	case "n", "+":
-		// Create new instance
-		m.screen = InstCreate
-		m.createName = ""
-		m.createPort = ""
-		m.createFocusedIdx = 0
-	case "d":
-		// Delete instance
-		if len(m.instances) > 0 {
-			m.deleteTarget = m.instances[m.cursor].Name
-			m.deleteIdx = m.cursor
-			m.screen = InstDelete
-		}
-	case "r":
-		// Refresh list
-		m.loading = true
-		m.loadErr = ""
-		return m, m.fetchInstances()
-	case "b", "q", "esc":
-		// Return to main menu
-		m.done = true
-		return m, nil
-	}
-	return m, nil
-}
 
-func (m InstanceModel) handleCreateKey(msg tea.KeyMsg) (InstanceModel, tea.Cmd) {
-	switch msg.String() {
-	case "up", "k":
-		m.createFocusedIdx = 0
-	case "down", "j":
-		m.createFocusedIdx = 1
-	case "enter":
-		if m.createName == "" {
-			m.loadErr = "Instance name is required"
-			return m, nil
-		}
-		// Validate name: lowercase, numbers, hyphens
-		for _, r := range m.createName {
-			if !((r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '-') {
-				m.loadErr = "Name must be lowercase letters, numbers, and hyphens only"
+		case "enter":
+			m.loadErr = ""
+			name := m.createNameInput.Value()
+			if name == "" {
+				m.loadErr = "Instance name is required"
 				return m, nil
 			}
+			// Validate name: lowercase, numbers, hyphens
+			for _, r := range name {
+				if !((r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '-') {
+					m.loadErr = "Name must be lowercase letters, numbers, and hyphens only"
+					return m, nil
+				}
+			}
+			m.running = true
+			m.runLabel = "Creating instance..."
+			return m, m.createInstanceCmd()
+
+		case "esc":
+			m.screen = InstList
+			return m, nil
 		}
-		m.running = true
-		m.runLabel = "Creating instance..."
-		return m, m.createInstanceCmd()
-	case "esc":
-		m.screen = InstList
+	}
+
+	// Route to focused text input
+	var cmd tea.Cmd
+	m.createNameInput, cmd = m.createNameInput.Update(msg)
+	m.createPortInput, _ = m.createPortInput.Update(msg)
+	return m, cmd
+}
+
+func (m InstanceModel) handleListKey(msg tea.Msg) (InstanceModel, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "up", "k":
+			if m.cursor > 0 {
+				m.cursor--
+			}
+		case "down", "j":
+			if m.cursor < len(m.instances)-1 {
+				m.cursor++
+			}
+		case "enter", " ":
+			if len(m.instances) == 0 {
+				return m, nil
+			}
+			inst := m.instances[m.cursor]
+			m.activeInstance = inst.Name
+			internal.SaveState(internal.State{ActiveInstance: inst.Name})
+		case "n", "+":
+			// Create new instance — reset text inputs
+			m.screen = InstCreate
+			m.loadErr = ""
+			m.createNameInput.SetValue("")
+			m.createPortInput.SetValue("")
+			m.createNameInput.Focus()
+			m.createNameInput.Prompt = "▸ "
+			m.createPortInput.Blur()
+			m.createPortInput.Prompt = "  "
+			return m, textinput.Blink
+		case "d":
+			if len(m.instances) > 0 {
+				m.deleteTarget = m.instances[m.cursor].Name
+				m.deleteIdx = m.cursor
+				m.screen = InstDelete
+			}
+		case "r":
+			m.loading = true
+			m.loadErr = ""
+			return m, m.fetchInstances()
+		case "b", "q", "esc":
+			m.done = true
+			return m, nil
+		}
 	}
 	return m, nil
 }
 
-func (m InstanceModel) handleDeleteKey(msg tea.KeyMsg) (InstanceModel, tea.Cmd) {
-	switch msg.String() {
-	case "y", "Y":
-		m.running = true
-		m.runLabel = "Deleting instance..."
-		return m, m.deleteInstanceCmd()
-	case "n", "N", "esc":
-		m.screen = InstList
+func (m InstanceModel) handleDeleteKey(msg tea.Msg) (InstanceModel, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "y", "Y":
+			m.running = true
+			m.runLabel = "Deleting instance..."
+			return m, m.deleteInstanceCmd()
+		case "n", "N", "esc":
+			m.screen = InstList
+		}
 	}
 	return m, nil
 }
@@ -365,7 +413,6 @@ func (m InstanceModel) viewList() string {
 			nameStyle = MenuItemSelectedStyle
 		}
 
-		// Status indicator
 		statusSymbol := "○"
 		statusStyle := DimStyle
 		if inst.IsRunning {
@@ -373,7 +420,6 @@ func (m InstanceModel) viewList() string {
 			statusStyle = OkStyle
 		}
 
-		// Active marker
 		activeMarker := ""
 		if inst.Name == m.activeInstance {
 			activeMarker = OkStyle.Render("  ← active")
@@ -388,7 +434,6 @@ func (m InstanceModel) viewList() string {
 		b.WriteString(style.Render(line))
 		b.WriteString("\n")
 
-		// Sub-detail line when selected
 		if i == m.cursor {
 			web := ""
 			if inst.WebPort != 80 {
@@ -426,34 +471,21 @@ func (m InstanceModel) viewCreate() string {
 		b.WriteString("\n\n")
 	}
 
-	fields := []struct {
-		label     string
-		value     string
-		hint      string
-		fieldIdx  int
-	}{
-		{"Instance name", m.createName, "Lowercase letters, numbers, hyphens", 0},
-		{"Port (optional)", m.createPort, "Leave empty for auto-assign", 1},
-	}
+	b.WriteString(DimStyle.Render("  Instance name"))
+	b.WriteString("\n")
+	b.WriteString(m.createNameInput.View())
+	b.WriteString("\n")
+	b.WriteString(DimStyle.Render("   Lowercase letters, numbers, hyphens"))
+	b.WriteString("\n\n")
 
-	for _, f := range fields {
-		cursor := "  "
-		style := MenuItemStyle
-		if f.fieldIdx == m.createFocusedIdx {
-			cursor = "▸ "
-			style = MenuItemSelectedStyle
-		}
-		value := f.value
-		if value == "" {
-			value = dimText("(empty)")
-		}
-		b.WriteString(style.Render(fmt.Sprintf("%s%s: %s", cursor, f.label, value)))
-		b.WriteString("\n")
-		b.WriteString(DimStyle.Render(fmt.Sprintf("     %s", f.hint)))
-		b.WriteString("\n\n")
-	}
+	b.WriteString(DimStyle.Render("  Port (optional)"))
+	b.WriteString("\n")
+	b.WriteString(m.createPortInput.View())
+	b.WriteString("\n")
+	b.WriteString(DimStyle.Render("   Leave empty for auto-assign"))
+	b.WriteString("\n\n")
 
-	b.WriteString(HelpStyle.Render("↑/↓: switch field  ·  type to edit  ·  enter: create  ·  esc: cancel"))
+	b.WriteString(HelpStyle.Render("Tab: switch field  ·  Enter: create  ·  Esc: cancel"))
 	b.WriteString("\n")
 
 	return b.String()
@@ -484,9 +516,4 @@ func (m InstanceModel) viewDelete() string {
 	b.WriteString("\n")
 
 	return b.String()
-}
-
-// dimText returns a dim-style placeholder string.
-func dimText(s string) string {
-	return fmt.Sprintf("\x1b[2m%s\x1b[0m", s)
 }

@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/charmbracelet/bubbles/progress"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 
@@ -113,11 +114,13 @@ type InstallModel struct {
 	completedSteps map[string]bool
 
 	// Common
-	spinner  spinner.Model
-	done     bool
-	err      error
-	width    int
-	height   int
+	spinner     spinner.Model
+	progBar     progress.Model
+	progressPct float64 // 0.0 to 1.0 for the progress bar
+	done        bool
+	err         error
+	width       int
+	height      int
 }
 
 // PreFlightCheck represents a single pre-flight validation item.
@@ -165,6 +168,7 @@ func NewInstallModel() InstallModel {
 		mcuPath:         mcuPath,
 		mcuDevices:      mcuDevices,
 		spinner:         s,
+		progBar:         newProgressBar(),
 		completedSteps:  make(map[string]bool),
 	}
 }
@@ -227,6 +231,11 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case spinner.TickMsg:
 		var cmd tea.Cmd
 		m.spinner, cmd = m.spinner.Update(msg)
+		return m, cmd
+
+	case progress.FrameMsg:
+		p, cmd := m.progBar.Update(msg)
+		m.progBar = p.(progress.Model)
 		return m, cmd
 
 	case preFlightCompleteMsg:
@@ -362,6 +371,20 @@ func (m InstallModel) handleStepUpdate(msg stepUpdateMsg) (InstallModel, tea.Cmd
 		}
 		if msg.errDetail != "" {
 			m.steps[msg.step].ErrorDetail = msg.errDetail
+		}
+	}
+
+	// Update progress bar
+	if len(m.steps) > 0 {
+		completed := 0
+		for _, s := range m.steps {
+			if s.Status == StepCompleted || s.Status == StepSkipped {
+				completed++
+			}
+		}
+		m.progressPct = float64(completed) / float64(len(m.steps))
+		if m.progressPct > 1.0 {
+			m.progressPct = 1.0
 		}
 	}
 
@@ -813,6 +836,14 @@ func (m InstallModel) viewExecDashboard() string {
 	b.WriteString(SubtitleStyle.Render(fmt.Sprintf("Elapsed: %s", elapsed)))
 	b.WriteString("\n\n")
 
+	// Progress bar
+	if m.progressPct > 0 {
+		bar := m.progBar.ViewAs(m.progressPct)
+		b.WriteString(DimStyle.Render("  Progress: "))
+		b.WriteString(bar)
+		b.WriteString("\n\n")
+	}
+
 	for i, step := range m.steps {
 		symbol := ""
 		style := DimStyle
@@ -997,6 +1028,17 @@ func (m InstallModel) viewNextSteps() string {
 }
 
 // ── Utilities ────────────────────────────────────────────────────
+
+// newProgressBar creates a progress bar with the E3CNC theme (green→cyan).
+func newProgressBar() progress.Model {
+	p := progress.New(
+		progress.WithGradient("#00ff66", "#00ffff"),
+		progress.WithoutPercentage(),
+	)
+	p.Width = 40
+	p.ShowPercentage = true
+	return p
+}
 
 // shortenMCUPath truncates a long MCU path for display.
 func shortenMCUPath(path string) string {

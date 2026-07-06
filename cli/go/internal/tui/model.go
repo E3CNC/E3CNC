@@ -100,12 +100,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.String() == "ctrl+c" {
 			return m, tea.Quit
 		}
-		// 'b' from output view goes back to menu
-		if m.state == StateOutputView && (msg.String() == "b" || msg.String() == "q" || msg.String() == "esc") {
-			m.state = StateMainMenu
-			m.menu.SelectedCmd = ""
-			return m, nil
-		}
 		// 'q' from main menu quits
 		if m.state == StateMainMenu && msg.String() == "q" {
 			return m, tea.Quit
