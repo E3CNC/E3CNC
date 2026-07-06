@@ -7,7 +7,7 @@ import (
 // Color palette matching the current green/cyan theme.
 var (
 	ColorGreen  = lipgloss.Color("#00ff66")
-	ColorCyan   = lipgloss.Color("#00ffff")
+	ColorCyan   = lipgloss.Color("#00dd55")
 	ColorYellow = lipgloss.Color("#ffcc00")
 	ColorRed    = lipgloss.Color("#ff3333")
 	ColorDim    = lipgloss.Color("#666666")
