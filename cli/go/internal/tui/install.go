@@ -364,7 +364,7 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case ScreenFirmwareCheck:
 			if msg.String() == "enter" {
-				return m.startInstall()
+				return m.startInstall(0)
 			}
 
 		case ScreenExecDashboard:
@@ -384,19 +384,14 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case ScreenErrorRecovery:
 			switch msg.String() {
 			case "r":
-				// Retry: restart the install
-				return m.startInstall()
+				// Retry: restart from the failed step
+				return m.startInstall(m.failedStep)
 			case "s":
-				// Skip: mark current step as skipped and advance
+				// Skip: mark current step as skipped and resume from next
 				if m.failedStep < len(m.steps) {
 					m.steps[m.failedStep].Status = StepSkipped
 				}
-				m.current++
-				if m.current < len(m.steps) {
-					m.steps[m.current].Status = StepRunning
-					m.steps[m.current].StartedAt = time.Now()
-				}
-				m.screen = ScreenExecDashboard
+				return m.startInstall(m.failedStep + 1)
 			case "a":
 				// Abort: rollback and return to main menu
 				cfg := bootstrap.BootstrapConfig{
@@ -586,15 +581,23 @@ func checkGitHubAPI() (string, string) {
 
 // startInstall kicks off the real install via bootstrap.Bootstrap with
 // real-time progress streaming through a channel.
-func (m InstallModel) startInstall() (InstallModel, tea.Cmd) {
-	// Initialize steps
+// startStep is the step index to start from (0 = beginning).
+func (m InstallModel) startInstall(startStep int) (InstallModel, tea.Cmd) {
+	// Initialize or preserve steps
 	for i, s := range installSteps {
+		if startStep > 0 && i < startStep {
+			// Preserve completed/skipped status for steps before startStep
+			if m.steps[i].Status == StepPending {
+				m.steps[i].Status = StepSkipped
+			}
+			continue
+		}
 		m.steps[i] = s
 		m.steps[i].Status = StepPending
 	}
-	m.steps[0].Status = StepRunning
-	m.steps[0].StartedAt = time.Now()
-	m.current = 0
+	m.steps[startStep].Status = StepRunning
+	m.steps[startStep].StartedAt = time.Now()
+	m.current = startStep
 	m.screen = ScreenExecDashboard
 	m.startedAt = time.Now()
 	m.err = nil
@@ -618,7 +621,7 @@ func (m InstallModel) startInstall() (InstallModel, tea.Cmd) {
 	m.progressCh = ch
 
 	// Start install in background goroutine
-	go runInstallGoroutine(m, ch, journal.InstallID)
+	go runInstallGoroutine(m, ch, journal.InstallID, startStep)
 
 	// Return poll cmd to read the first progress message
 	return m, m.pollProgressCh(ch)
@@ -626,7 +629,7 @@ func (m InstallModel) startInstall() (InstallModel, tea.Cmd) {
 
 // runInstallGoroutine runs in a background goroutine and sends progress
 // messages through the channel as bootstrap executes each step.
-func runInstallGoroutine(m InstallModel, ch chan<- tea.Msg, installID string) {
+func runInstallGoroutine(m InstallModel, ch chan<- tea.Msg, installID string, startStep int) {
 	defer close(ch)
 
 	cfg := bootstrap.BootstrapConfig{
@@ -636,6 +639,7 @@ func runInstallGoroutine(m InstallModel, ch chan<- tea.Msg, installID string) {
 		Hostname:      m.mDNSHostname,
 		StartServices: m.startServices,
 		Arch:          runtime.GOARCH,
+		StartFrom:     startStep,
 		OnProgress: func(step int, status string, stepErr error) {
 			stepStatus := StepPending
 			switch status {

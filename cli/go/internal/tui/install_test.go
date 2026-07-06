@@ -381,8 +381,8 @@ func TestInstallErrorRecoverySkip(t *testing.T) {
 	if m2.current != 3 {
 		t.Errorf("After skip: current = %d, expected 3", m2.current)
 	}
-	if cmd != nil {
-		t.Errorf("After skip: expected nil cmd (no channel polling)")
+	if cmd == nil {
+		t.Errorf("After skip: expected non-nil cmd (polling new progress channel)")
 	}
 }
 

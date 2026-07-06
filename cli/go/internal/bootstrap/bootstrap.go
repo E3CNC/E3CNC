@@ -31,6 +31,7 @@ type BootstrapConfig struct {
 	Hostname      string
 	StartServices bool
 	Arch          string // "arm64", "amd64"
+	StartFrom     int    // step index to start from (0 = beginning)
 
 	// OnProgress is called for each install step with the step index,
 	// current status ("running", "completed", "failed"), and any error.
@@ -100,6 +101,9 @@ func Bootstrap(cfg BootstrapConfig) error {
 
 	var stepErrors []error
 	for i, step := range stepFns {
+		if i < cfg.StartFrom {
+			continue
+		}
 		fmt.Printf("  [%d/%d] %s...\n", i+1, len(stepFns), step.name)
 		report(i, "running", nil)
 		if err := step.fn(cfg); err != nil {
