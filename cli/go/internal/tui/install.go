@@ -404,7 +404,7 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case ScreenVerification:
 			if msg.String() == "enter" {
-				m.screen = ScreenNextSteps
+				m.done = true
 			}
 
 		case ScreenNextSteps:
@@ -1123,7 +1123,7 @@ func (m InstallModel) viewVerification() string {
 	}
 
 	b.WriteString("\n")
-	b.WriteString(HelpStyle.Render("Press Enter to continue to next steps"))
+	b.WriteString(HelpStyle.Render("Press Enter to return to menu"))
 
 	return b.String()
 }

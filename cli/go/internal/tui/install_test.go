@@ -90,7 +90,6 @@ func TestInstallScreenNavigation(t *testing.T) {
 		{"MCUSelect Enter → Config", ScreenMCUSelect, "enter", ScreenConfig},
 		{"Config Enter → FirmwareCheck", ScreenConfig, "enter", ScreenFirmwareCheck},
 		{"FirmwareCheck Enter → ExecDashboard", ScreenFirmwareCheck, "enter", ScreenExecDashboard},
-		{"Verification Enter → NextSteps", ScreenVerification, "enter", ScreenNextSteps},
 		{"NextSteps Enter → done", ScreenNextSteps, "enter", ScreenNextSteps},
 	}
 
