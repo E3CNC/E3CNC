@@ -176,7 +176,6 @@ func (m MenuModel) View() string {
 	b.WriteString(InfoStyle.Render(e3cncBanner))
 	b.WriteString("\n")
 	b.WriteString(TitleStyle.Render("E3CNC CLI"))
-	b.WriteString("\n\n")
 
 	var lastCategory string
 	for i, item := range m.items {

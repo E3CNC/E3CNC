@@ -83,8 +83,7 @@ var (
 	SectionHeaderStyle = lipgloss.NewStyle().
 		Foreground(ColorCyan).
 		Bold(true).
-		MarginTop(1).
-		MarginBottom(1)
+		MarginTop(1)
 	CheckPassStyle = lipgloss.NewStyle().
 		Foreground(ColorGreen)
 	CheckFailStyle = lipgloss.NewStyle().
