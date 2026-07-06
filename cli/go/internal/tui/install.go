@@ -12,6 +12,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/progress"
 	"github.com/charmbracelet/bubbles/spinner"
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/E3CNC/e3cnc/cli/go/internal"
@@ -85,6 +86,7 @@ type InstallModel struct {
 
 	// Configuration state
 	instanceName   string
+	nameInput      textinput.Model
 	moonrakerPort  int
 	webPort        int
 	mDNSHostname   string
@@ -156,11 +158,18 @@ func NewInstallModel() InstallModel {
 		mcuPath = mcuDevices[0]
 	}
 
+	ni := textinput.New()
+	ni.Placeholder = "default"
+	ni.CharLimit = 32
+	ni.Width = 30
+	ni.Prompt = "▸ "
+
 	return InstallModel{
 		screen:          ScreenPreFlight,
 		steps:           make([]InstallStep, len(installSteps)),
 		preFlightChecks: make([]PreFlightCheck, len(defaultPreFlightLabels)),
 		instanceName:    "default",
+		nameInput:       ni,
 		moonrakerPort:   7125,
 		webPort:         80,
 		mDNSHostname:    "e3cnc",
@@ -294,14 +303,28 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.webPort = 8080
 				}
 				m.screen = ScreenConfig
+				m.nameInput.Focus()
+				m.nameInput.Prompt = "▸ "
+				return m, textinput.Blink
 			}
 
 		case ScreenConfig:
-			switch msg.String() {
-			case "enter":
-				// Proceed to firmware check
+			// Route key messages to textinput; Enter confirms
+			if msg.String() == "enter" {
+				name := m.nameInput.Value()
+				if name == "" {
+					name = m.nameInput.Placeholder
+				}
+				m.instanceName = name
 				m.screen = ScreenFirmwareCheck
+				return m, nil
 			}
+			if msg.String() == "esc" || msg.String() == "b" {
+				return m, func() tea.Msg { return backToMenuMsg{} }
+			}
+			var cmd tea.Cmd
+			m.nameInput, cmd = m.nameInput.Update(msg)
+			return m, cmd
 
 		case ScreenFirmwareCheck:
 			if msg.String() == "enter" {
@@ -769,11 +792,11 @@ func (m InstallModel) viewConfig() string {
 	))
 	b.WriteString("\n\n")
 
-	// Instance name — the only thing the user enters
-	cursor := "▸ "
-	b.WriteString(MenuItemSelectedStyle.Render(fmt.Sprintf("%sInstance name: %s", cursor, m.instanceName)))
+	b.WriteString(DimStyle.Render("  Instance name"))
 	b.WriteString("\n")
-	b.WriteString(DimStyle.Render("     Lowercase letters, numbers, hyphens"))
+	b.WriteString(m.nameInput.View())
+	b.WriteString("\n")
+	b.WriteString(DimStyle.Render("   Lowercase letters, numbers, hyphens"))
 	b.WriteString("\n\n")
 
 	// Auto-assigned info (non-editable)
@@ -787,7 +810,7 @@ func (m InstallModel) viewConfig() string {
 	b.WriteString("\n\n")
 
 	b.WriteString("\n")
-	b.WriteString(HelpStyle.Render("Enter to edit name  ·  Enter again to confirm  ·  b: back to menu"))
+	b.WriteString(HelpStyle.Render("Type the name  ·  Enter: confirm  ·  Esc: back to menu"))
 	return b.String()
 }
 
