@@ -222,7 +222,12 @@ func (m MenuModel) View() string {
 		}
 
 		// Label with dashed connector to align descriptions
-		paddedLabel := item.Label + strings.Repeat("-", menuItemPadding-len(item.Label))
+		gap := menuItemPadding - len(item.Label)
+		connector := strings.Repeat("-", gap)
+		if gap > 2 {
+			connector = " " + strings.Repeat("-", gap-2) + " "
+		}
+		paddedLabel := item.Label + connector
 		line := cursor + paddedLabel
 		if item.Description != "" {
 			line += DimStyle.Render(item.Description)
