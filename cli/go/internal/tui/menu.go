@@ -51,6 +51,9 @@ var menuItems = []MenuItem{
 	{Label: "Quit", Command: "quit", Category: "", Description: "Exit the CLI"},
 }
 
+// e3cncBanner is the ASCII art banner shown at the top of the main menu.
+var e3cncBanner = "   ___________ _______   ________\n  / ____/__  // ____/ | / / ____/\n / __/   /_ </ /   /  |/ / /     \n/ /___ ___/ / /___/ /|  / /___   \n/_____//____/\\____/_/ |_/\\____/"
+
 // NewMenuModel creates a new menu model.
 func NewMenuModel() MenuModel {
 	return MenuModel{
@@ -170,6 +173,8 @@ func (m MenuModel) skipEmpty(current int, dir int) int {
 func (m MenuModel) View() string {
 	var b strings.Builder
 
+	b.WriteString(InfoStyle.Render(e3cncBanner))
+	b.WriteString("\n")
 	b.WriteString(TitleStyle.Render("E3CNC CLI"))
 	b.WriteString("\n\n")
 
