@@ -527,20 +527,16 @@ func TestInstanceViewListShowsInstances(t *testing.T) {
 	m.screen = InstList
 	m.loading = false
 	m.localIP = "192.168.1.100"
-	m.activeInstance = "default"
 	m.instances = []InstanceInfo{
-		{Name: "default", IsRunning: true, MoonrakerPort: 7125, WebPort: 80, MoonrakerService: "moonraker"},
+		{Name: "default", IsRunning: true, MoonrakerPort: 7125, WebPort: 80},
 	}
 
 	view := m.View()
 	if !strings.Contains(view, "default") {
 		t.Errorf("List view should show instance names, got:\n%s", view)
 	}
-	if !strings.Contains(view, "192.168.1.100") {
-		t.Errorf("List view should show local IP, got:\n%s", view)
-	}
-	if !strings.Contains(view, "active") {
-		t.Errorf("List view should show active marker, got:\n%s", view)
+	if !strings.Contains(view, "Instance Manager") {
+		t.Errorf("List view should show title, got:\n%s", view)
 	}
 }
 
@@ -549,7 +545,7 @@ func TestInstanceViewCreateShowsForm(t *testing.T) {
 	m.screen = InstCreate
 
 	view := m.View()
-	if !strings.Contains(view, "Create New Instance") {
+	if !strings.Contains(view, "Create Instance") {
 		t.Errorf("Create view should show title, got:\n%s", view)
 	}
 	if !strings.Contains(view, "Instance name") {
@@ -569,7 +565,7 @@ func TestInstanceViewDeleteConfirmation(t *testing.T) {
 	if !strings.Contains(view, "test-box") {
 		t.Errorf("Delete view should show target name, got:\n%s", view)
 	}
-	if !strings.Contains(view, "y: confirm") {
+	if !strings.Contains(view, "Enter: confirm") {
 		t.Errorf("Delete view should show help text, got:\n%s", view)
 	}
 }

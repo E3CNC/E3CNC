@@ -759,3 +759,65 @@ func screenName(s InstallScreen) string {
 	}
 	return "Unknown"
 }
+
+// TestInstallWizardFullFlow verifies the wizard transitions through all
+// screens from mode selection through to execution dashboard.
+func TestInstallWizardFullFlow(t *testing.T) {
+	m := NewInstallModel()
+
+	// 1. Start at mode selection
+	if m.screen != ScreenModeSelect {
+		t.Fatalf("expected ScreenModeSelect, got %d", m.screen)
+	}
+
+	// 2. Select "Create new E3CNC instance" and press Enter
+	m.modeCursor = 1
+	mod, cmd := m.Update(tea.KeyMsg{Type: tea.KeyEnter})
+	m = mod.(InstallModel)
+	if m.screen != ScreenPreFlight {
+		t.Fatalf("expected ScreenPreFlight after mode select, got %d", m.screen)
+	}
+	_ = cmd
+
+	// 3. Simulate pre-flight complete
+	checks := []PreFlightCheck{
+		{Label: "OS", Status: "passed", Detail: "linux"},
+		{Label: "Python", Status: "passed", Detail: "3.11"},
+	}
+	mod, cmd = m.Update(preFlightCompleteMsg{allPassed: true, results: checks})
+	m = mod.(InstallModel)
+	if m.screen != ScreenMCUSelect {
+		t.Fatalf("expected ScreenMCUSelect after pre-flight, got %d", m.screen)
+	}
+	_ = cmd
+
+	// 4. Simulate MCU device found, select it
+	m.mcuDevices = []string{"usb-Klipper_stm32f446xx_12345-if00"}
+	mod, cmd = m.Update(tea.KeyMsg{Type: tea.KeyEnter})
+	m = mod.(InstallModel)
+	if m.screen != ScreenConfig {
+		t.Fatalf("expected ScreenConfig after MCU select, got %d", m.screen)
+	}
+	_ = cmd
+
+	// 5. Type instance name and press Enter
+	mod, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'t', 'e', 's', 't'}})
+	m = mod.(InstallModel)
+	mod, cmd = m.Update(tea.KeyMsg{Type: tea.KeyEnter})
+	m = mod.(InstallModel)
+	if m.screen != ScreenFirmwareCheck {
+		t.Fatalf("expected ScreenFirmwareCheck after config, got %d", m.screen)
+	}
+	_ = cmd
+
+	// 6. Press Enter for firmware check → starts install
+	mod, cmd = m.Update(tea.KeyMsg{Type: tea.KeyEnter})
+	m = mod.(InstallModel)
+	if m.screen != ScreenExecDashboard {
+		t.Fatalf("expected ScreenExecDashboard after firmware check, got %d", m.screen)
+	}
+	if m.instanceName != "test" {
+		t.Fatalf("expected instanceName 'test', got %q", m.instanceName)
+	}
+	_ = cmd
+}
