@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
+
 	"github.com/E3CNC/e3cnc/cli/go/internal"
 	"github.com/E3CNC/e3cnc/cli/go/internal/bootstrap"
 	"github.com/E3CNC/e3cnc/cli/go/internal/instance"
@@ -17,7 +17,6 @@ type InstanceScreen int
 
 const (
 	InstList InstanceScreen = iota
-	InstCreate
 	InstDelete
 )
 
@@ -48,11 +47,6 @@ type instanceListMsg struct {
 	err       error
 }
 
-// instanceCreatedMsg is sent when a create-instance command finishes.
-type instanceCreatedMsg struct {
-	err error
-}
-
 // instanceDeletedMsg is sent when a delete-instance command finishes.
 type instanceDeletedMsg struct {
 	err error
@@ -71,10 +65,6 @@ type InstanceModel struct {
 	cursor       int
 	loading      bool
 	loadErr      string
-
-	// Create form state — using textinput for proper editing
-	createNameInput textinput.Model
-	createPortInput textinput.Model
 
 	// Delete confirm state
 	deleteTarget string
@@ -97,28 +87,11 @@ type InstanceModel struct {
 // NewInstanceModel creates a new instance management model.
 func NewInstanceModel() InstanceModel {
 	state := internal.LoadState()
-
-	nameInput := textinput.New()
-	nameInput.Placeholder = "my-instance"
-	nameInput.CharLimit = 32
-	nameInput.Width = 30
-	nameInput.Prompt = "▸ "
-	nameInput.Focus()
-
-	portInput := textinput.New()
-	portInput.Placeholder = "auto-assign"
-	portInput.CharLimit = 5
-	portInput.Width = 30
-	portInput.Prompt = "  "
-	portInput.Blur()
-
 	return InstanceModel{
-		screen:          InstList,
-		activeInstance:  state.ActiveInstance,
-		loading:         true,
-		createNameInput: nameInput,
-		createPortInput: portInput,
-		listViewport:    viewport.New(70, 10),
+		screen:         InstList,
+		activeInstance: state.ActiveInstance,
+		loading:        true,
+		listViewport:   viewport.New(70, 10),
 	}
 }
 
@@ -126,7 +99,7 @@ func (m InstanceModel) Init() tea.Cmd {
 	return m.fetchInstances()
 }
 
-// fetchInstances returns a tea.Cmd that lists instances using Go-native code.
+// fetchInstances returns a tea.Cmd that lists instances.
 func (m InstanceModel) fetchInstances() tea.Cmd {
 	return func() tea.Msg {
 		instances, err := instance.DetectInstances()
@@ -154,29 +127,7 @@ func (m InstanceModel) fetchInstances() tea.Cmd {
 	}
 }
 
-// createInstanceCmd returns a tea.Cmd that creates a new instance
-// using the Go-native bootstrap instead of the Python CLI.
-func (m InstanceModel) createInstanceCmd() tea.Cmd {
-	return func() tea.Msg {
-		if runtime.GOOS != "linux" {
-			return instanceCreatedMsg{err: fmt.Errorf("instance management requires Linux (running on %s)", runtime.GOOS)}
-		}
-		cfg := bootstrap.BootstrapConfig{
-			InstanceName:  m.createNameInput.Value(),
-			StartServices: false,
-		}
-		if port := m.createPortInput.Value(); port != "" {
-			fmt.Sscanf(port, "%d", &cfg.MoonrakerPort)
-		}
-		if err := bootstrap.Bootstrap(cfg); err != nil {
-			return instanceCreatedMsg{err: fmt.Errorf("create instance: %w", err)}
-		}
-		return instanceCreatedMsg{}
-	}
-}
-
-// deleteInstanceCmd returns a tea.Cmd that deletes an instance
-// using the Go-native uninstall instead of the Python CLI.
+// deleteInstanceCmd returns a tea.Cmd that deletes an instance.
 func (m InstanceModel) deleteInstanceCmd() tea.Cmd {
 	return func() tea.Msg {
 		if runtime.GOOS != "linux" {
@@ -209,19 +160,9 @@ func (m InstanceModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.instances = msg.instances
 			m.localIP = msg.localIP
 			m.loadErr = ""
-			// Clamp cursor to valid range after list change
 			if m.cursor >= len(m.instances) {
 				m.cursor = max(0, len(m.instances)-1)
 			}
-		}
-
-	case instanceCreatedMsg:
-		m.running = false
-		if msg.err != nil {
-			m.loadErr = msg.err.Error()
-		} else {
-			m.screen = InstList
-			return m, m.fetchInstances()
 		}
 
 	case instanceDeletedMsg:
@@ -236,8 +177,6 @@ func (m InstanceModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Route messages to sub-components based on screen
 	switch m.screen {
-	case InstCreate:
-		return m.handleCreateUpdate(msg)
 	case InstList:
 		return m.handleListKey(msg)
 	case InstDelete:
@@ -245,58 +184,6 @@ func (m InstanceModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	return m, nil
-}
-
-// handleCreateUpdate handles all messages in the create-instance form.
-func (m InstanceModel) handleCreateUpdate(msg tea.Msg) (InstanceModel, tea.Cmd) {
-	// Handle key messages for form navigation
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "tab":
-			// Switch focus between fields
-			if m.createNameInput.Focused() {
-				m.createNameInput.Blur()
-				m.createPortInput.Focus()
-				m.createPortInput.Prompt = "▸ "
-				m.createNameInput.Prompt = "  "
-			} else {
-				m.createPortInput.Blur()
-				m.createNameInput.Focus()
-				m.createNameInput.Prompt = "▸ "
-				m.createPortInput.Prompt = "  "
-			}
-			return m, nil
-
-		case "enter":
-			m.loadErr = ""
-			name := m.createNameInput.Value()
-			if name == "" {
-				m.loadErr = "Instance name is required"
-				return m, nil
-			}
-			// Validate name: lowercase, numbers, hyphens
-			for _, r := range name {
-				if !((r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '-') {
-					m.loadErr = "Name must be lowercase letters, numbers, and hyphens only"
-					return m, nil
-				}
-			}
-			m.running = true
-			m.runLabel = "Creating instance..."
-			return m, m.createInstanceCmd()
-
-		case "esc":
-			m.screen = InstList
-			return m, nil
-		}
-	}
-
-	// Route to focused text input
-	var cmd tea.Cmd
-	m.createNameInput, cmd = m.createNameInput.Update(msg)
-	m.createPortInput, _ = m.createPortInput.Update(msg)
-	return m, cmd
 }
 
 func (m InstanceModel) handleListKey(msg tea.Msg) (InstanceModel, tea.Cmd) {
@@ -326,17 +213,6 @@ func (m InstanceModel) handleListKey(msg tea.Msg) (InstanceModel, tea.Cmd) {
 			inst := m.instances[m.cursor]
 			m.activeInstance = inst.Name
 			internal.SaveState(internal.State{ActiveInstance: inst.Name})
-		case "n", "+":
-			// Create new instance — reset text inputs
-			m.screen = InstCreate
-			m.loadErr = ""
-			m.createNameInput.SetValue("")
-			m.createPortInput.SetValue("")
-			m.createNameInput.Focus()
-			m.createNameInput.Prompt = "▸ "
-			m.createPortInput.Blur()
-			m.createPortInput.Prompt = "  "
-			return m, textinput.Blink
 		case "d":
 			if len(m.instances) > 0 {
 				m.deleteTarget = m.instances[m.cursor].Name
@@ -374,12 +250,9 @@ func (m InstanceModel) View() string {
 	switch m.screen {
 	case InstList:
 		return m.viewList()
-	case InstCreate:
-		return m.viewCreate()
 	case InstDelete:
 		return m.viewDelete()
 	default:
 		return "Unknown instance screen"
 	}
 }
-

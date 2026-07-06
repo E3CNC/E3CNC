@@ -91,21 +91,18 @@ func TestInstanceNavigation(t *testing.T) {
 	}
 	m.cursor = 0
 
-	// Navigate down
 	mod, _ := m.Update(tea.KeyMsg{Type: tea.KeyDown})
 	m2 := mod.(InstanceModel)
 	if m2.cursor != 1 {
 		t.Errorf("After Down: cursor = %d, expected 1", m2.cursor)
 	}
 
-	// Navigate down again
 	mod, _ = m2.Update(tea.KeyMsg{Type: tea.KeyDown})
 	m3 := mod.(InstanceModel)
 	if m3.cursor != 2 {
 		t.Errorf("After second Down: cursor = %d, expected 2", m3.cursor)
 	}
 
-	// Should not go past last
 	mod, _ = m3.Update(tea.KeyMsg{Type: tea.KeyDown})
 	m4 := mod.(InstanceModel)
 	if m4.cursor != 2 {
@@ -122,14 +119,12 @@ func TestInstanceNavigationUp(t *testing.T) {
 	}
 	m.cursor = 1
 
-	// Navigate up
 	mod, _ := m.Update(tea.KeyMsg{Type: tea.KeyUp})
 	m2 := mod.(InstanceModel)
 	if m2.cursor != 0 {
 		t.Errorf("After Up: cursor = %d, expected 0", m2.cursor)
 	}
 
-	// Should not go past start
 	mod, _ = m2.Update(tea.KeyMsg{Type: tea.KeyUp})
 	m3 := mod.(InstanceModel)
 	if m3.cursor != 0 {
@@ -143,7 +138,6 @@ func TestInstanceNavigationEmpty(t *testing.T) {
 	m.instances = []InstanceInfo{}
 	m.cursor = 0
 
-	// Down should not crash
 	mod, _ := m.Update(tea.KeyMsg{Type: tea.KeyDown})
 	m2 := mod.(InstanceModel)
 	if m2.cursor != 0 {
@@ -173,26 +167,7 @@ func TestInstanceEnterOnEmptyList(t *testing.T) {
 	m.screen = InstList
 	m.instances = []InstanceInfo{}
 
-	// Should not panic
 	_, _ = m.Update(tea.KeyMsg{Type: tea.KeyEnter})
-}
-
-func TestInstanceCreateScreenTransition(t *testing.T) {
-	m := NewInstanceModel()
-	m.screen = InstList
-
-	mod, _ := m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'n'}})
-	m2 := mod.(InstanceModel)
-
-	if m2.screen != InstCreate {
-		t.Errorf("After 'n': screen = %d, expected InstCreate", m2.screen)
-	}
-	if m2.createNameInput.Value() != "" {
-		t.Errorf("createNameInput should be reset to empty")
-	}
-	if !m2.createNameInput.Focused() {
-		t.Errorf("createNameInput should be focused after transition")
-	}
 }
 
 func TestInstanceDeleteScreenTransition(t *testing.T) {
@@ -219,7 +194,6 @@ func TestInstanceDeleteNoInstances(t *testing.T) {
 	m.screen = InstList
 	m.instances = []InstanceInfo{}
 
-	// 'd' should not change screen when no instances
 	mod, _ := m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'d'}})
 	m2 := mod.(InstanceModel)
 
@@ -262,103 +236,11 @@ func TestInstanceBackToMenu(t *testing.T) {
 	}
 }
 
-func TestInstanceCreateFocusNavigation(t *testing.T) {
-	m := NewInstanceModel()
-	m.screen = InstCreate
-
-	// Name input should be focused initially
-	if !m.createNameInput.Focused() {
-		t.Errorf("createNameInput should be focused initially")
-	}
-	if m.createPortInput.Focused() {
-		t.Errorf("createPortInput should NOT be focused initially")
-	}
-
-	// Tab switches to port field
-	mod, _ := m.Update(tea.KeyMsg{Type: tea.KeyTab})
-	m2 := mod.(InstanceModel)
-	if m2.createNameInput.Focused() {
-		t.Errorf("After Tab: createNameInput should NOT be focused")
-	}
-	if !m2.createPortInput.Focused() {
-		t.Errorf("After Tab: createPortInput should be focused")
-	}
-
-	// Tab again switches back to name
-	mod, _ = m2.Update(tea.KeyMsg{Type: tea.KeyTab})
-	m3 := mod.(InstanceModel)
-	if !m3.createNameInput.Focused() {
-		t.Errorf("After second Tab: createNameInput should be focused")
-	}
-	if m3.createPortInput.Focused() {
-		t.Errorf("After second Tab: createPortInput should NOT be focused")
-	}
-}
-
-func TestInstanceCreateNameValidation(t *testing.T) {
-	m := NewInstanceModel()
-	m.screen = InstCreate
-	m.loadErr = ""
-
-	// Enter with empty name should show error
-	mod, _ := m.Update(tea.KeyMsg{Type: tea.KeyEnter})
-	m2 := mod.(InstanceModel)
-	if m2.loadErr != "Instance name is required" {
-		t.Errorf("Empty name: loadErr = %q, expected 'Instance name is required'", m2.loadErr)
-	}
-
-	// Enter with valid name after setting via textinput — simulate keypresses
-	m2.createNameInput.SetValue("my-instance-2")
-	mod, _ = m2.Update(tea.KeyMsg{Type: tea.KeyEnter})
-	m3 := mod.(InstanceModel)
-	if m3.loadErr != "" {
-		t.Errorf("Valid name should not produce error, got %q", m3.loadErr)
-	}
-	if !m3.running {
-		t.Errorf("running should be true after Enter with valid name")
-	}
-}
-
-func TestInstanceCreateValidName(t *testing.T) {
-	m := NewInstanceModel()
-	m.screen = InstCreate
-	m.createNameInput.SetValue("my-instance-2")
-
-	mod, cmd := m.Update(tea.KeyMsg{Type: tea.KeyEnter})
-	m2 := mod.(InstanceModel)
-
-	if m2.loadErr != "" {
-		t.Errorf("Valid name: loadErr = %q, should be empty", m2.loadErr)
-	}
-	if !m2.running {
-		t.Errorf("running should be true after Enter with valid name")
-	}
-	if m2.runLabel != "Creating instance..." {
-		t.Errorf("runLabel = %q, expected 'Creating instance...'", m2.runLabel)
-	}
-	if cmd == nil {
-		t.Errorf("Expected non-nil cmd (createInstanceCmd)")
-	}
-}
-
-func TestInstanceCreateCancel(t *testing.T) {
-	m := NewInstanceModel()
-	m.screen = InstCreate
-
-	mod, _ := m.Update(tea.KeyMsg{Type: tea.KeyEscape})
-	m2 := mod.(InstanceModel)
-
-	if m2.screen != InstList {
-		t.Errorf("After esc: screen = %d, expected InstList", m2.screen)
-	}
-}
-
 func TestInstanceDeleteConfirm(t *testing.T) {
 	m := NewInstanceModel()
 	m.screen = InstDelete
 	m.deleteTarget = "test-box"
 
-	// 'y' confirms
 	mod, cmd := m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'y'}})
 	m2 := mod.(InstanceModel)
 
@@ -387,41 +269,6 @@ func TestInstanceDeleteCancel(t *testing.T) {
 				t.Errorf("After %q: screen = %d, expected InstList", key, m3.screen)
 			}
 		})
-	}
-}
-
-func TestInstanceCreatedMsg(t *testing.T) {
-	m := NewInstanceModel()
-	m.screen = InstCreate
-	m.running = true
-
-	// Success: should refresh list
-	mod, cmd := m.Update(instanceCreatedMsg{err: nil})
-	m2 := mod.(InstanceModel)
-
-	if m2.running {
-		t.Errorf("running should be false after instanceCreatedMsg")
-	}
-	if m2.screen != InstList {
-		t.Errorf("screen = %d, expected InstList", m2.screen)
-	}
-	if cmd == nil {
-		t.Errorf("Expected fetchInstances cmd after creation")
-	}
-}
-
-func TestInstanceCreatedMsgError(t *testing.T) {
-	m := NewInstanceModel()
-	m.running = true
-
-	mod, _ := m.Update(instanceCreatedMsg{err: errFake("port in use")})
-	m2 := mod.(InstanceModel)
-
-	if m2.running {
-		t.Errorf("running should be false after error")
-	}
-	if m2.loadErr == "" {
-		t.Errorf("loadErr should be set after error")
 	}
 }
 
@@ -455,8 +302,8 @@ func TestInstanceViewRenderings(t *testing.T) {
 	m := NewInstanceModel()
 
 	screens := []struct {
-		name   string
-		setup  func(m *InstanceModel)
+		name  string
+		setup func(m *InstanceModel)
 	}{
 		{"ListLoading", func(m *InstanceModel) {
 			m.screen = InstList
@@ -484,18 +331,6 @@ func TestInstanceViewRenderings(t *testing.T) {
 			m.screen = InstList
 			m.loading = false
 			m.loadErr = "connection refused"
-		}},
-		{"Create", func(m *InstanceModel) {
-			m.screen = InstCreate
-		}},
-		{"CreateRunning", func(m *InstanceModel) {
-			m.screen = InstCreate
-			m.running = true
-			m.runLabel = "Creating instance..."
-		}},
-		{"CreateError", func(m *InstanceModel) {
-			m.screen = InstCreate
-			m.loadErr = "port in use"
 		}},
 		{"Delete", func(m *InstanceModel) {
 			m.screen = InstDelete
@@ -540,19 +375,6 @@ func TestInstanceViewListShowsInstances(t *testing.T) {
 	}
 }
 
-func TestInstanceViewCreateShowsForm(t *testing.T) {
-	m := NewInstanceModel()
-	m.screen = InstCreate
-
-	view := m.View()
-	if !strings.Contains(view, "Create Instance") {
-		t.Errorf("Create view should show title, got:\n%s", view)
-	}
-	if !strings.Contains(view, "Instance name") {
-		t.Errorf("Create view should show name field, got:\n%s", view)
-	}
-}
-
 func TestInstanceViewDeleteConfirmation(t *testing.T) {
 	m := NewInstanceModel()
 	m.screen = InstDelete
@@ -580,12 +402,11 @@ func TestInstanceViewUnknownScreen(t *testing.T) {
 	}
 }
 
-func TestInstanceCreatedCmdSendsMsg(t *testing.T) {
+func TestInstanceDeleteCmdSendsMsg(t *testing.T) {
 	m := NewInstanceModel()
 	m.screen = InstDelete
 	m.deleteTarget = "test-box"
 
-	// Check that deleteInstanceCmd produces the right message type
 	cmd := m.deleteInstanceCmd()
 	if cmd == nil {
 		t.Fatal("deleteInstanceCmd() returned nil")

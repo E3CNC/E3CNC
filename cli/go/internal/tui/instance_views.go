@@ -78,27 +78,7 @@ func (m InstanceModel) viewList() string {
 	b.WriteString(m.listViewport.View())
 	b.WriteString("\n")
 
-	b.WriteString(HelpStyle.Render("↑/↓ navigate  ·  n: create  ·  d: delete  ·  r: refresh  ·  b: back to menu"))
-	return b.String()
-}
-
-// ── Create Form ──────────────────────────────────────────────────────────
-
-func (m InstanceModel) viewCreate() string {
-	var b strings.Builder
-
-	b.WriteString(BoxStyle.Render(
-		TitleStyle.Render("Create Instance") + "\n" +
-			SubtitleStyle.Render("Set up a new CNC instance"),
-	))
-	b.WriteString("\n\n")
-
-	b.WriteString(DimStyle.Render("Instance name\n"))
-	b.WriteString(fmt.Sprintf("  %s\n\n", m.createNameInput.View()))
-	b.WriteString(DimStyle.Render("  Port (leave 0 for auto-assign)\n"))
-	b.WriteString(fmt.Sprintf("  %s\n\n", m.createPortInput.View()))
-
-	b.WriteString(HelpStyle.Render("Tab: next field  ·  Enter: create  ·  Esc: back"))
+	b.WriteString(HelpStyle.Render("↑/↓ navigate  ·  d: delete  ·  r: refresh  ·  b: back to menu"))
 	return b.String()
 }
 
