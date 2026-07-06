@@ -47,10 +47,20 @@ func (m InstanceModel) viewList() string {
 				running = "●"
 			}
 			line := fmt.Sprintf("%s%s %s", cursor, running, inst.Name)
+			if inst.Name == m.activeInstance {
+				line += OkStyle.Render("  ← active")
+			}
 			listBody.WriteString(style.Render(line))
 			listBody.WriteString("\n")
-			if inst.Name != "" {
+			// Show details only when this instance is selected or active
+			if i == m.cursor || inst.Name == m.activeInstance {
 				listBody.WriteString(DimStyle.Render(fmt.Sprintf("   Port: %d  URL: http://%s:%d/", inst.MoonrakerPort, instance.GetLocalIP(), inst.WebPort)))
+				listBody.WriteString("\n")
+				if i == m.cursor {
+					listBody.WriteString(DimStyle.Render(fmt.Sprintf("   Config: %s", inst.ConfigDir)))
+					listBody.WriteString("\n")
+					listBody.WriteString(DimStyle.Render(fmt.Sprintf("   Service: %s", inst.MoonrakerService)))
+				}
 				listBody.WriteString("\n")
 			}
 			listBody.WriteString("\n")
