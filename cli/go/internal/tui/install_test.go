@@ -55,6 +55,7 @@ func TestInstallInit(t *testing.T) {
 
 func TestInstallPreFlightComplete(t *testing.T) {
 	m := NewInstallModel()
+	m.screen = ScreenPreFlight
 
 	// Send pre-flight complete message with real-looking results
 	results := []PreFlightCheck{

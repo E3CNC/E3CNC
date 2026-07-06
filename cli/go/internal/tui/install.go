@@ -208,7 +208,6 @@ var defaultPreFlightLabels = []struct {
 func (m InstallModel) Init() tea.Cmd {
 	return tea.Batch(
 		m.spinner.Tick,
-		m.runPreFlightChecks(),
 	)
 }
 
@@ -256,8 +255,10 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case preFlightCompleteMsg:
 		m.preFlightChecks = msg.results
-		// Auto-advance to MCU selection
-		m.screen = ScreenMCUSelect
+		// Auto-advance to MCU selection (only if still on pre-flight screen)
+		if m.screen == ScreenPreFlight {
+			m.screen = ScreenMCUSelect
+		}
 
 	case stepUpdateMsg:
 		return m.handleStepUpdate(msg)
