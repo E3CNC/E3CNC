@@ -253,7 +253,7 @@ func setupNginx(cfg BootstrapConfig) error {
 		index index.html;
 	}
 }
-`, cfg.WebPort, cfg.WebPort, cfg.Hostname, webRoot,
+`, cfg.WebPort, cfg.WebPort, nginxName, webRoot,
 		cfg.MoonrakerPort, cfg.MoonrakerPort, cfg.MoonrakerPort,
 		cfg.MoonrakerPort, cfg.MoonrakerPort, cfg.MoonrakerPort, instance.E3CNCHome())
 
@@ -261,12 +261,11 @@ func setupNginx(cfg BootstrapConfig) error {
 	enabled := fmt.Sprintf("/etc/nginx/sites-enabled/%s", nginxName)
 
 	writeFileSudo(avail, config, 0644)
-	os.Remove(enabled)
-	if err := os.Symlink(avail, enabled); err != nil {
-		exec.Command("ln", "-sf", avail, enabled).Run()
-	}
+	exec.Command("sudo", "rm", "-f", enabled).Run()
+	exec.Command("sudo", "ln", "-sf", avail, enabled).Run()
 
-	exec.Command("nginx", "-t").Run()
+	exec.Command("sudo", "nginx", "-t").Run()
+	exec.Command("sudo", "nginx", "-s", "reload").Run()
 	return nil
 }
 
