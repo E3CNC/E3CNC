@@ -209,6 +209,10 @@ func (m InstanceModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.instances = msg.instances
 			m.localIP = msg.localIP
 			m.loadErr = ""
+			// Clamp cursor to valid range after list change
+			if m.cursor >= len(m.instances) {
+				m.cursor = max(0, len(m.instances)-1)
+			}
 		}
 
 	case instanceCreatedMsg:
