@@ -35,14 +35,13 @@ func setupSudoers() error {
 		user = "biqu"
 	}
 	content := fmt.Sprintf(`# E3CNC — passwordless sudo for process management
-%s ALL=(root) NOPASSWD: /usr/bin/systemctl restart e3cnc-*
-%s ALL=(root) NOPASSWD: /usr/bin/systemctl daemon-reload
-%s ALL=(root) NOPASSWD: /usr/bin/systemctl reload nginx
 %s ALL=(root) NOPASSWD: /usr/bin/supervisorctl *
 %s ALL=(root) NOPASSWD: /usr/bin/tee /etc/supervisor/conf.d/e3cnc-*.conf
 %s ALL=(root) NOPASSWD: /bin/ln -sf /etc/nginx/sites-* /etc/nginx/sites-enabled/*
 %s ALL=(root) NOPASSWD: /bin/rm /etc/supervisor/conf.d/e3cnc-*.conf
-`, user, user, user, user, user, user, user)
+%s ALL=(root) NOPASSWD: /bin/systemctl start supervisor
+%s ALL=(root) NOPASSWD: /usr/sbin/nginx -s reload
+`, user, user, user, user, user, user)
 
 	path := "/etc/sudoers.d/e3cnc"
 	if _, err := os.Stat(path); err == nil {
@@ -186,43 +185,36 @@ func installServices(cfg BootstrapConfig) error {
 	moonrakerName := fmt.Sprintf("e3cnc-%s-moonraker", cfg.InstanceName)
 	klipperName := fmt.Sprintf("e3cnc-%s-klipper", cfg.InstanceName)
 
-	moonrakerUnit := fmt.Sprintf(`[Unit]
-Description=Moonraker API Server
-After=network.target
+	// Supervisor program config for Moonraker
+	moonrakerCfg := fmt.Sprintf(`[program:%[1]s]
+command=%[2]s/moonraker/venv/bin/python %[2]s/moonraker/moonraker/moonraker.py -d %[3]s/data
+directory=%[2]s/moonraker
+user=%[4]s
+autostart=true
+autorestart=true
+startretries=3
+startsecs=10
+stderr_logfile=/var/log/supervisor/%%(program_name)s.err.log
+stdout_logfile=/var/log/supervisor/%%(program_name)s.out.log
+`, moonrakerName, home, inst, user)
 
-[Service]
-Type=simple
-User=%s
-WorkingDirectory=%s/moonraker
-ExecStart=%s/moonraker/venv/bin/python %s/moonraker/moonraker/moonraker.py -d %s/data
-Restart=always
-RestartSec=2
+	writeFileSudo(fmt.Sprintf("/etc/supervisor/conf.d/%s.conf", moonrakerName), moonrakerCfg, 0644)
 
-[Install]
-WantedBy=multi-user.target
-`, user, home, home, home, inst)
+	// Supervisor program config for Klipper
+	klipperCfg := fmt.Sprintf(`[program:%[1]s]
+command=%[2]s/klipper/venv/bin/python %[2]s/klipper/klippy/klippy.py %[3]s -I %[4]s/data/comms/klippy.serial -l %[4]s/data/logs/klipper.log -a %[4]s/data/comms/klippy.sock
+directory=%[2]s/klipper
+user=%[5]s
+autostart=true
+autorestart=true
+startretries=3
+startsecs=10
+stderr_logfile=/var/log/supervisor/%%(program_name)s.err.log
+stdout_logfile=/var/log/supervisor/%%(program_name)s.out.log
+`, klipperName, home, printerCfg, inst, user)
 
-	writeFileSudo(fmt.Sprintf("/etc/systemd/system/%s.service", moonrakerName), moonrakerUnit, 0644)
+	writeFileSudo(fmt.Sprintf("/etc/supervisor/conf.d/%s.conf", klipperName), klipperCfg, 0644)
 
-	klipperUnit := fmt.Sprintf(`[Unit]
-Description=Klipper Firmware Host
-After=network.target
-
-[Service]
-Type=simple
-User=%s
-WorkingDirectory=%s/klipper
-ExecStart=%s/klipper/venv/bin/python %s/klipper/klippy/klippy.py %s -I %s/data/comms/klippy.serial -l %s/data/logs/klipper.log -a %s/data/comms/klippy.sock
-Restart=always
-RestartSec=2
-
-[Install]
-WantedBy=multi-user.target
-`, user, home, home, home, printerCfg, inst, inst, inst)
-
-	writeFileSudo(fmt.Sprintf("/etc/systemd/system/%s.service", klipperName), klipperUnit, 0644)
-
-	exec.Command("sudo", "systemctl", "daemon-reload").Run()
 	return nil
 }
 
@@ -279,25 +271,18 @@ func setupNginx(cfg BootstrapConfig) error {
 }
 
 func setupAvahi(cfg BootstrapConfig) error {
-	unit := fmt.Sprintf(`[Unit]
-Description=Publish %s.local via mDNS/Avahi
-After=avahi-daemon.service
-Requires=avahi-daemon.service
-PartOf=avahi-daemon.service
+	avahiName := fmt.Sprintf("e3cnc-%s-avahi", cfg.InstanceName)
+	unit := fmt.Sprintf(`[program:%[1]s]
+command=/usr/bin/avahi-publish -a %[2]s.local
+user=nobody
+autostart=true
+autorestart=true
+startretries=2
+stderr_logfile=/var/log/supervisor/%%(program_name)s.err.log
+stdout_logfile=/var/log/supervisor/%%(program_name)s.out.log
+`, avahiName, cfg.Hostname)
 
-[Service]
-Type=simple
-ExecStart=/usr/bin/avahi-publish -a %s.local
-ExecStop=/bin/sh -c '/usr/bin/avahi-publish -a %s.local --remove || true'
-Restart=on-failure
-RestartSec=3
-User=nobody
-
-[Install]
-WantedBy=multi-user.target
-`, cfg.Hostname, cfg.Hostname, cfg.Hostname)
-
-	writeFileSudo("/etc/systemd/system/avahi-publish-e3cnc.service", unit, 0644)
+	writeFileSudo(fmt.Sprintf("/etc/supervisor/conf.d/%s.conf", avahiName), unit, 0644)
 	return nil
 }
 
@@ -307,18 +292,10 @@ func startBootstrapServices(cfg BootstrapConfig) error {
 		return nil
 	}
 
-	services := []string{
-		"avahi-daemon",
-		"nginx",
-		"supervisor",
-		fmt.Sprintf("e3cnc-%s-moonraker", cfg.InstanceName),
-	}
-
-	for _, svc := range services {
-		cmd := exec.Command("sudo", "systemctl", "enable", "--now", svc)
-		cmd.Stderr = os.Stderr
-		cmd.Run()
-	}
+	// Start supervisor first, then load all E3CNC supervisor configs
+	exec.Command("sudo", "systemctl", "start", "supervisor").Run()
+	exec.Command("sudo", "supervisorctl", "reread").Run()
+	exec.Command("sudo", "supervisorctl", "update").Run()
 
 	return nil
 }

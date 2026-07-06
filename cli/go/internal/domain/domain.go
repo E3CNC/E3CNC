@@ -57,7 +57,7 @@ var StepNames = []string{
 	"Vendor Moonraker and Klipper",
 	"Create virtualenvs",
 	"Generate config files",
-	"Install systemd services",
+	"Install system services",
 	"Configure nginx and mDNS",
 	"Start services",
 }

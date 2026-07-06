@@ -60,7 +60,7 @@ var stepNames = []string{
 	"Vendor Moonraker and Klipper",
 	"Create virtualenvs",
 	"Generate config files",
-	"Install systemd services",
+	"Install system services",
 	"Configure nginx and mDNS",
 	"Start services",
 }
@@ -102,7 +102,7 @@ func Bootstrap(cfg BootstrapConfig) error {
 		{"Vendor Moonraker and Klipper", true, func(cfg BootstrapConfig) error { return copyVendoredComponents(cfg) }},
 		{"Create virtualenvs", true, func(cfg BootstrapConfig) error { return createVirtualenvs(cfg) }},
 		{"Generate config files", true, func(cfg BootstrapConfig) error { return generateConfigs(cfg) }},
-		{"Install systemd services", true, func(cfg BootstrapConfig) error { return installServices(cfg) }},
+		{"Install system services", true, func(cfg BootstrapConfig) error { return installServices(cfg) }},
 		{"Configure nginx and mDNS", false, func(cfg BootstrapConfig) error {
 			if err := setupNginx(cfg); err != nil {
 				return err
@@ -144,9 +144,11 @@ func Bootstrap(cfg BootstrapConfig) error {
 func Uninstall(inst *instance.Instance) error {
 	fmt.Println("  Uninstalling E3CNC...")
 
-	// Stop services
-	exec.Command("sudo", "systemctl", "stop", inst.MoonrakerService).Run()
-	exec.Command("sudo", "systemctl", "stop", inst.KlipperService).Run()
+	// Stop E3CNC services via supervisor
+	exec.Command("sudo", "supervisorctl", "stop", fmt.Sprintf("e3cnc-%s-*", inst.Name)).Run()
+	exec.Command("sudo", "rm", "-f", fmt.Sprintf("/etc/supervisor/conf.d/e3cnc-%s-*.conf", inst.Name)).Run()
+	exec.Command("sudo", "supervisorctl", "reread").Run()
+	exec.Command("sudo", "supervisorctl", "update").Run()
 
 	// Remove instance directory
 	instPath := filepath.Join(instance.InstancesDir(), inst.Name)
@@ -160,13 +162,6 @@ func Uninstall(inst *instance.Instance) error {
 	exec.Command("rm", "-f", fmt.Sprintf("/etc/nginx/sites-enabled/%s", nginxName)).Run()
 	exec.Command("rm", "-f", fmt.Sprintf("/etc/nginx/sites-available/%s", nginxName)).Run()
 
-	// Remove Avahi publisher
-	exec.Command("rm", "-f", "/etc/systemd/system/avahi-publish-e3cnc.service").Run()
-
-	// Reload systemd + nginx
-	exec.Command("sudo", "systemctl", "daemon-reload").Run()
-	exec.Command("nginx", "-s", "reload").Run()
-
 	fmt.Println("  ✅ Uninstall complete")
 	return nil
 }
@@ -177,13 +172,13 @@ func Uninstall(inst *instance.Instance) error {
 func Rollback(cfg BootstrapConfig) {
 	inst := filepath.Join(instance.InstancesDir(), cfg.InstanceName)
 
-	// Stop any services that may have been started
-	exec.Command("sudo", "systemctl", "stop", fmt.Sprintf("e3cnc-%s-moonraker", cfg.InstanceName)).Run()
-	exec.Command("sudo", "systemctl", "stop", fmt.Sprintf("e3cnc-%s-klipper", cfg.InstanceName)).Run()
+	// Stop E3CNC services via supervisor
+	exec.Command("sudo", "supervisorctl", "stop", fmt.Sprintf("e3cnc-%s-*", cfg.InstanceName)).Run()
 
-	// Remove service files
-	exec.Command("rm", "-f", fmt.Sprintf("/etc/systemd/system/e3cnc-%s-moonraker.service", cfg.InstanceName)).Run()
-	exec.Command("rm", "-f", fmt.Sprintf("/etc/systemd/system/e3cnc-%s-klipper.service", cfg.InstanceName)).Run()
+	// Remove supervisor configs
+	exec.Command("sudo", "rm", "-f", fmt.Sprintf("/etc/supervisor/conf.d/e3cnc-%s-*.conf", cfg.InstanceName)).Run()
+	exec.Command("sudo", "supervisorctl", "reread").Run()
+	exec.Command("sudo", "supervisorctl", "update").Run()
 
 	// Remove nginx site
 	exec.Command("rm", "-f", fmt.Sprintf("/etc/nginx/sites-enabled/e3cnc-%s", cfg.InstanceName)).Run()
@@ -191,8 +186,4 @@ func Rollback(cfg BootstrapConfig) {
 
 	// Remove instance directory
 	os.RemoveAll(inst)
-
-	// Reload daemons
-	exec.Command("sudo", "systemctl", "daemon-reload").Run()
-	exec.Command("nginx", "-s", "reload").Run()
 }

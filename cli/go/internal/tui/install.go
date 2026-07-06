@@ -144,7 +144,7 @@ var installSteps = []InstallStep{
 	{Number: 4, Label: "Vendor Moonraker and Klipper"},
 	{Number: 5, Label: "Create virtualenvs"},
 	{Number: 6, Label: "Generate config files"},
-	{Number: 7, Label: "Install systemd services"},
+	{Number: 7, Label: "Install system services"},
 	{Number: 8, Label: "Configure nginx and mDNS"},
 	{Number: 9, Label: "Start services"},
 }
