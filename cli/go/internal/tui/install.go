@@ -1082,7 +1082,13 @@ func (m InstallModel) viewExecDashboard() string {
 			}
 
 			duration := ""
-			if step.Status == StepCompleted && !step.StartedAt.IsZero() {
+			if step.Status == StepCompleted && step.Duration > 0 {
+				if step.Duration < time.Second {
+					duration = " <1s"
+				} else {
+					duration = fmt.Sprintf(" %s", step.Duration.Round(time.Second))
+				}
+			} else if step.Status == StepRunning && !step.StartedAt.IsZero() {
 				duration = fmt.Sprintf(" %s", time.Since(step.StartedAt).Round(time.Second))
 			}
 
