@@ -953,58 +953,64 @@ func (m InstallModel) viewFirmwareCheck() string {
 // ── Screen 5: Execution Dashboard ───────────────────────────────────────
 
 func (m InstallModel) viewExecDashboard() string {
-	var b strings.Builder
-
-	elapsed := time.Since(m.startedAt).Round(time.Second)
-
-	b.WriteString(TitleStyle.Render(fmt.Sprintf("Installing E3CNC — step %d of %d", m.current+1, len(m.steps))))
-	b.WriteString("\n")
-	b.WriteString(SubtitleStyle.Render(fmt.Sprintf("Elapsed: %s", elapsed)))
-	b.WriteString("\n\n")
-
-	// Progress bar
-	if m.progressPct > 0 {
-		bar := m.progBar.ViewAs(m.progressPct)
-		b.WriteString(DimStyle.Render("  Progress: "))
-		b.WriteString(bar)
+	var header, stepsBody string
+	{
+		var b strings.Builder
+		elapsed := time.Since(m.startedAt).Round(time.Second)
+		b.WriteString(TitleStyle.Render(fmt.Sprintf("Installing E3CNC — step %d of %d", m.current+1, len(m.steps))))
 		b.WriteString("\n")
+		b.WriteString(SubtitleStyle.Render(fmt.Sprintf("Elapsed: %s", elapsed)))
+		b.WriteString("\n\n")
+
+		// Progress bar
+		if m.progressPct > 0 {
+			bar := m.progBar.ViewAs(m.progressPct)
+			b.WriteString(DimStyle.Render("  Progress: "))
+			b.WriteString(bar)
+			b.WriteString("\n")
+		}
+		header = b.String()
 	}
 
-	// Step list
-	b.WriteString("\n")
-	for i, step := range m.steps {
-		symbol := ""
-		style := DimStyle
+	// Step list (rendered separately for fixed-height padding)
+	{
+		var b strings.Builder
+		for i, step := range m.steps {
+			symbol := ""
+			style := DimStyle
 
-		switch step.Status {
-		case StepPending:
-			symbol = fmt.Sprintf("[%d/%d]", step.Number, len(m.steps))
-			style = StepPendingStyle
-		case StepRunning:
-			symbol = m.spinner.View()
-			style = StepRunningStyle
-		case StepCompleted:
-			symbol = "✓"
-			style = StepCompletedStyle
-		case StepFailed:
-			symbol = "✗"
-			style = StepFailedStyle
-		case StepSkipped:
-			symbol = "○"
-			style = DimStyle
-		}
+			switch step.Status {
+			case StepPending:
+				symbol = fmt.Sprintf("[%d/%d]", step.Number, len(m.steps))
+				style = StepPendingStyle
+			case StepRunning:
+				symbol = m.spinner.View()
+				style = StepRunningStyle
+			case StepCompleted:
+				symbol = "✓"
+				style = StepCompletedStyle
+			case StepFailed:
+				symbol = "✗"
+				style = StepFailedStyle
+			case StepSkipped:
+				symbol = "○"
+				style = DimStyle
+			}
 
-		duration := ""
-		if step.Status == StepCompleted && !step.StartedAt.IsZero() {
-			duration = fmt.Sprintf(" %s", time.Since(step.StartedAt).Round(time.Second))
-		}
+			duration := ""
+			if step.Status == StepCompleted && !step.StartedAt.IsZero() {
+				duration = fmt.Sprintf(" %s", time.Since(step.StartedAt).Round(time.Second))
+			}
 
-		line := fmt.Sprintf("  %s %s%s", symbol, step.Label, duration)
-		if i == m.current && step.Status == StepRunning {
-			line += "  ◌"
+			line := fmt.Sprintf("  %s %s%s", symbol, step.Label, duration)
+			if i == m.current && step.Status == StepRunning {
+				line += "  ◌"
+			}
+			b.WriteString(style.Render(line))
+			b.WriteString("\n")
 		}
-		b.WriteString(style.Render(line))
-		b.WriteString("\n")
+		// Pad steps to fixed height so log panel doesn't jump
+		stepsBody = lipgloss.NewStyle().Height(len(m.steps) + 1).Render(b.String())
 	}
 
 	// Verbose log panel (only when verbose is on)
@@ -1017,21 +1023,20 @@ func (m InstallModel) viewExecDashboard() string {
 		)
 	}
 
-	// Combine: steps panel + log panel + help
+	// Combine: header + steps (fixed height) + log panel + help
 	helpText := HelpStyle.Render("v: toggle verbose (on)  ·  Ctrl+C: cancel")
 
 	if logContent != "" {
 		return lipgloss.JoinVertical(lipgloss.Top,
-			b.String(),
+			header,
+			stepsBody,
 			logContent,
 			"",
 			helpText,
 		)
 	}
 
-	b.WriteString("\n")
-	b.WriteString(helpText)
-	return b.String()
+	return header + stepsBody + "\n" + helpText
 }
 
 // ── Screen 6: Error Recovery ────────────────────────────────────────────
