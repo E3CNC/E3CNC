@@ -173,6 +173,7 @@ func (m MenuModel) skipEmpty(current int, dir int) int {
 func (m MenuModel) View() string {
 	var b strings.Builder
 
+	b.WriteString("\n")
 	b.WriteString(InfoStyle.Render(e3cncBanner))
 	b.WriteString("\n")
 	b.WriteString(TitleStyle.Render("E3CNC CLI"))
