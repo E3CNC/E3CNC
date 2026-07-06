@@ -172,6 +172,18 @@ func (m MenuModel) skipEmpty(current int, dir int) int {
 	return current
 }
 
+// menuItemPadding is the minimum width reserved for the label column
+// so descriptions are aligned across all menu items.
+var menuItemPadding = func() int {
+	maxLen := 0
+	for _, item := range menuItems {
+		if len(item.Label) > maxLen {
+			maxLen = len(item.Label)
+		}
+	}
+	return maxLen + 4 // extra spacing after longest label
+}()
+
 func (m MenuModel) View() string {
 	var b strings.Builder
 
@@ -209,9 +221,11 @@ func (m MenuModel) View() string {
 			}
 		}
 
-		line := cursor + item.Label
+		// Label with padding to align descriptions
+		paddedLabel := item.Label + strings.Repeat(" ", menuItemPadding-len(item.Label))
+		line := cursor + paddedLabel
 		if item.Description != "" {
-			line += strings.Repeat(" ", 4) + DimStyle.Render(item.Description)
+			line += DimStyle.Render(item.Description)
 		}
 		b.WriteString(style.Render(line))
 		b.WriteString("\n")
