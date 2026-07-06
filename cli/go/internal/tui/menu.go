@@ -21,6 +21,7 @@ type MenuModel struct {
 	cursor       int
 	width        int
 	height       int
+	version      string
 	SelectedCmd  string // set when a command is chosen
 }
 
@@ -55,9 +56,10 @@ var menuItems = []MenuItem{
 var e3cncBanner = " ███████╗ ██████╗   ██████╗ ███╗   ██╗  ██████╗ \n ██╔════╝ ╚════██╗ ██╔════╝ ████╗  ██║ ██╔════╝ \n █████╗    █████╔╝ ██║      ██╔██╗ ██║ ██║      \n ██╔══╝    ╚═══██╗ ██║      ██║╚██╗██║ ██║      \n ███████╗ ██████╔╝ ╚██████╗ ██║ ╚████║ ╚██████╗ \n ╚══════╝ ╚═════╝   ╚═════╝ ╚═╝  ╚═══╝  ╚═════╝"
 
 // NewMenuModel creates a new menu model.
-func NewMenuModel() MenuModel {
+func NewMenuModel(version string) MenuModel {
 	return MenuModel{
-		items: menuItems,
+		items:   menuItems,
+		version: version,
 	}
 }
 
@@ -176,7 +178,11 @@ func (m MenuModel) View() string {
 	b.WriteString("\n")
 	b.WriteString(InfoStyle.Render(e3cncBanner))
 	b.WriteString("\n")
-	b.WriteString(TitleStyle.Render("E3CNC CLI"))
+	titleText := "E3CNC CLI"
+	if m.version != "" {
+		titleText += DimStyle.Render("  v" + m.version)
+	}
+	b.WriteString(TitleStyle.Render(titleText))
 
 	var lastCategory string
 	for i, item := range m.items {

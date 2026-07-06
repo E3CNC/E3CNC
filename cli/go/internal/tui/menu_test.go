@@ -8,7 +8,7 @@ import (
 )
 
 func TestNewMenuModel(t *testing.T) {
-	m := NewMenuModel()
+	m := NewMenuModel("")
 
 	if len(m.items) == 0 {
 		t.Fatal("NewMenuModel(): items should not be empty")
@@ -57,7 +57,7 @@ func TestNewMenuModel(t *testing.T) {
 }
 
 func TestMenuInit(t *testing.T) {
-	m := NewMenuModel()
+	m := NewMenuModel("")
 	cmd := m.Init()
 	if cmd != nil {
 		t.Errorf("MenuModel.Init() should return nil, got non-nil")
@@ -65,7 +65,7 @@ func TestMenuInit(t *testing.T) {
 }
 
 func TestMenuNavigateDown(t *testing.T) {
-	m := NewMenuModel()
+	m := NewMenuModel("")
 	initial := m.cursor
 
 	// Navigate down twice
@@ -85,7 +85,7 @@ func TestMenuNavigateDown(t *testing.T) {
 }
 
 func TestMenuNavigateUp(t *testing.T) {
-	m := NewMenuModel()
+	m := NewMenuModel("")
 	// Move down a few times first
 	m.cursor = 5
 
@@ -105,7 +105,7 @@ func TestMenuNavigateUp(t *testing.T) {
 }
 
 func TestMenuNavigateWrapAround(t *testing.T) {
-	m := NewMenuModel()
+	m := NewMenuModel("")
 
 	// Press Up from top should wrap to bottom
 	m.cursor = 0
@@ -126,7 +126,7 @@ func TestMenuNavigateWrapAround(t *testing.T) {
 }
 
 func TestMenuNavigateSkipsEmptyItems(t *testing.T) {
-	m := NewMenuModel()
+	m := NewMenuModel("")
 
 	// Cursor on an item right before a separator
 	// Item 2 is "Uninstall" (index 2, after items at 0,1,2, then separator at 3)
@@ -143,7 +143,7 @@ func TestMenuNavigateSkipsEmptyItems(t *testing.T) {
 }
 
 func TestMenuEnterSelectsItem(t *testing.T) {
-	m := NewMenuModel()
+	m := NewMenuModel("")
 
 	// Cursor at "Install" (index 0)
 	m.cursor = 0
@@ -156,7 +156,7 @@ func TestMenuEnterSelectsItem(t *testing.T) {
 }
 
 func TestMenuEnterOnEmptyItem(t *testing.T) {
-	m := NewMenuModel()
+	m := NewMenuModel("")
 
 	// Place cursor on a separator
 	m.cursor = 3 // separator
@@ -171,7 +171,7 @@ func TestMenuEnterOnEmptyItem(t *testing.T) {
 }
 
 func TestMenuQQuits(t *testing.T) {
-	m := NewMenuModel()
+	m := NewMenuModel("")
 
 	mod, _ := m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'q'}})
 	m2 := mod.(MenuModel)
@@ -182,7 +182,7 @@ func TestMenuQQuits(t *testing.T) {
 }
 
 func TestMenuWindowSize(t *testing.T) {
-	m := NewMenuModel()
+	m := NewMenuModel("")
 
 	mod, _ := m.Update(tea.WindowSizeMsg{Width: 100, Height: 40})
 	m2 := mod.(MenuModel)
@@ -193,7 +193,7 @@ func TestMenuWindowSize(t *testing.T) {
 }
 
 func TestMenuViewContainsSections(t *testing.T) {
-	m := NewMenuModel()
+	m := NewMenuModel("")
 	view := m.View()
 
 	sections := []string{"E3CNC CLI", "Setup", "Monitor", "Hardware", "Manage", "Tools", "↑/↓ navigate"}
@@ -205,7 +205,7 @@ func TestMenuViewContainsSections(t *testing.T) {
 }
 
 func TestMenuViewHasCursor(t *testing.T) {
-	m := NewMenuModel()
+	m := NewMenuModel("")
 	m.cursor = 4 // "Status"
 
 	view := m.View()
@@ -215,7 +215,7 @@ func TestMenuViewHasCursor(t *testing.T) {
 }
 
 func TestMenuViewDestructiveStyle(t *testing.T) {
-	m := NewMenuModel()
+	m := NewMenuModel("")
 	m.cursor = 0 // "Install" is destructive
 	view := m.View()
 
@@ -226,7 +226,7 @@ func TestMenuViewDestructiveStyle(t *testing.T) {
 }
 
 func TestSkipEmpty(t *testing.T) {
-	m := NewMenuModel()
+	m := NewMenuModel("")
 
 	// Test moving forward from a separator lands on a valid item
 	// Index 3 is a separator, moving forward should land on index 4 ("Status")
@@ -262,7 +262,7 @@ func TestSkipEmpty(t *testing.T) {
 }
 
 func TestMenuItemsFollowSchema(t *testing.T) {
-	m := NewMenuModel()
+	m := NewMenuModel("")
 
 	for i, item := range m.items {
 		if item.Command == "" {

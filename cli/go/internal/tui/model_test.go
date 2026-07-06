@@ -7,7 +7,7 @@ import (
 )
 
 func TestNewModel(t *testing.T) {
-	m := New()
+	m := New("")
 
 	if m.state != StateMainMenu {
 		t.Errorf("New(): state = %d, expected StateMainMenu", m.state)
@@ -21,7 +21,7 @@ func TestNewModel(t *testing.T) {
 }
 
 func TestModelInit(t *testing.T) {
-	m := New()
+	m := New("")
 	cmd := m.Init()
 
 	if cmd == nil {
@@ -30,7 +30,7 @@ func TestModelInit(t *testing.T) {
 }
 
 func TestModelWindowSize(t *testing.T) {
-	m := New()
+	m := New("")
 
 	mod, _ := m.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
 	m2 := mod.(Model)
@@ -41,7 +41,7 @@ func TestModelWindowSize(t *testing.T) {
 }
 
 func TestModelCtrlCQuits(t *testing.T) {
-	m := New()
+	m := New("")
 
 	mod, cmd := m.Update(tea.KeyMsg{Type: tea.KeyCtrlC})
 	m2 := mod.(Model)
@@ -55,7 +55,7 @@ func TestModelCtrlCQuits(t *testing.T) {
 }
 
 func TestModelQQuitsFromMainMenu(t *testing.T) {
-	m := New()
+	m := New("")
 
 	mod, cmd := m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'q'}})
 	m2 := mod.(Model)
@@ -69,7 +69,7 @@ func TestModelQQuitsFromMainMenu(t *testing.T) {
 }
 
 func TestModelBFromOutputView(t *testing.T) {
-	m := New()
+	m := New("")
 	m.state = StateOutputView
 	m.output.ready = true
 
@@ -100,7 +100,7 @@ func TestModelBFromOutputView(t *testing.T) {
 }
 
 func TestModelEscFromOutputView(t *testing.T) {
-	m := New()
+	m := New("")
 	m.state = StateOutputView
 	m.output.ready = true
 
@@ -129,7 +129,7 @@ func TestModelEscFromOutputView(t *testing.T) {
 }
 
 func TestModelBackToMenuMsg(t *testing.T) {
-	m := New()
+	m := New("")
 	m.state = StateInstallWizard
 
 	mod, cmd := m.Update(backToMenuMsg{})
@@ -147,7 +147,7 @@ func TestModelBackToMenuMsg(t *testing.T) {
 }
 
 func TestModelMainMenuSelectInstall(t *testing.T) {
-	m := New()
+	m := New("")
 
 	// Navigate menu to Install (index 0) via menu model directly, then press Enter
 	mod, _ := m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'q'}}) // uncaptured — sets SelectedCmd, but we reset
@@ -162,7 +162,7 @@ func TestModelMainMenuSelectInstall(t *testing.T) {
 }
 
 func TestModelMainMenuSelectInstances(t *testing.T) {
-	m := New()
+	m := New("")
 
 	// Instances is at index 6 in the menu items
 	m.menu.cursor = 6
@@ -175,7 +175,7 @@ func TestModelMainMenuSelectInstances(t *testing.T) {
 }
 
 func TestModelMainMenuSelectQuit(t *testing.T) {
-	m := New()
+	m := New("")
 
 	m.menu.cursor = len(m.menu.items) - 1 // Quit is the last item
 	mod, cmd := m.Update(tea.KeyMsg{Type: tea.KeyEnter})
@@ -187,7 +187,7 @@ func TestModelMainMenuSelectQuit(t *testing.T) {
 }
 
 func TestModelMainMenuSelectOther(t *testing.T) {
-	m := New()
+	m := New("")
 
 	// "Status" is at index 4
 	m.menu.cursor = 4
@@ -203,7 +203,7 @@ func TestModelMainMenuSelectOther(t *testing.T) {
 }
 
 func TestModelInstallWizardDone(t *testing.T) {
-	m := New()
+	m := New("")
 	m.state = StateInstallWizard
 	m.install.done = true
 
@@ -220,7 +220,7 @@ func TestModelInstallWizardDone(t *testing.T) {
 }
 
 func TestModelInstanceMgrDone(t *testing.T) {
-	m := New()
+	m := New("")
 	m.state = StateInstanceMgr
 	m.instance.done = true
 
@@ -252,7 +252,7 @@ func TestModelViewDelegation(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			m := New()
+			m := New("")
 			m.state = tc.state
 			if tc.setup != nil {
 				tc.setup(&m)
@@ -267,7 +267,7 @@ func TestModelViewDelegation(t *testing.T) {
 }
 
 func TestModelDefaultView(t *testing.T) {
-	m := New()
+	m := New("")
 	m.state = AppState(99) // unknown state
 
 	view := m.View()

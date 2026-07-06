@@ -73,10 +73,10 @@ type confirmPromptMsg struct {
 }
 
 // New creates a new root Model and initializes all sub-models.
-func New() Model {
+func New(version string) Model {
 	return Model{
 		state:    StateMainMenu,
-		menu:     NewMenuModel(),
+		menu:     NewMenuModel(version),
 		install:  NewInstallModel(),
 		instance: NewInstanceModel(),
 		help:     help.New(),
