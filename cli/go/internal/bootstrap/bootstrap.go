@@ -61,10 +61,15 @@ func Bootstrap(cfg BootstrapConfig) error {
 		cfg.InstanceName = "default"
 	}
 	if cfg.MoonrakerPort == 0 {
-		cfg.MoonrakerPort = 7125
+		freePort, err := instance.FindNextAvailablePort()
+		if err == nil && freePort > 0 {
+			cfg.MoonrakerPort = freePort
+		} else {
+			cfg.MoonrakerPort = 7125
+		}
 	}
 	if cfg.WebPort == 0 {
-		cfg.WebPort = 80
+		cfg.WebPort = instance.ComputeWebPort(cfg.InstanceName)
 	}
 	if cfg.Hostname == "" {
 		cfg.Hostname = "e3cnc"

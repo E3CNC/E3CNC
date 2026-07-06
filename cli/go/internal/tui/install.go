@@ -352,14 +352,12 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if len(m.mcuDevices) > 0 && m.mcuCursor >= 0 && m.mcuCursor < len(m.mcuDevices) {
 					m.mcuPath = m.mcuDevices[m.mcuCursor]
 				}
-				// Auto-assign a free port
+				// Auto-assign free ports
 				freePort, _ := instance.FindNextAvailablePort()
 				if freePort > 0 {
 					m.moonrakerPort = freePort
 				}
-				if freePort > 7125 {
-					m.webPort = 8080
-				}
+				m.webPort = instance.ComputeWebPort(m.instanceName)
 				m.screen = ScreenConfig
 				m.nameInput.Focus()
 				m.nameInput.Prompt = "▸ "
