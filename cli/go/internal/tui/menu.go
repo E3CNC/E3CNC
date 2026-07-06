@@ -137,9 +137,9 @@ func (m MenuModel) View() string {
 	b.WriteString("\n")
 	b.WriteString(InfoStyle.Render(e3cncBanner))
 	b.WriteString("\n")
-	titleText := "E3CNC CLI"
+	titleText := "CLI version ->"
 	if m.version != "" {
-		titleText += DimStyle.Render("  v" + m.version)
+		titleText += "  " + m.version
 	}
 	b.WriteString(TitleStyle.Render(titleText))
 

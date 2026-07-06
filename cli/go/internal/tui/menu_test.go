@@ -196,7 +196,7 @@ func TestMenuViewContainsSections(t *testing.T) {
 	m := NewMenuModel("")
 	view := m.View()
 
-	sections := []string{"E3CNC CLI", "Setup", "Monitor", "Hardware", "Manage", "Tools", "↑/↓ navigate"}
+	sections := []string{"CLI version ->", "Setup", "Monitor", "Hardware", "Manage", "Tools", "↑/↓ navigate"}
 	for _, s := range sections {
 		if !strings.Contains(view, s) {
 			t.Errorf("Menu.View() missing section/help text: %q", s)
