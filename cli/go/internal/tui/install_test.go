@@ -405,23 +405,23 @@ func TestInstallVerboseToggle(t *testing.T) {
 	m := NewInstallModel()
 	m.screen = ScreenExecDashboard
 
-	if m.verbose {
-		t.Fatal("verbose should start false")
+	if !m.verbose {
+		t.Fatal("verbose should start true by default")
 	}
 
 	mod, _ := m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'v'}})
 	m2 := mod.(InstallModel)
 
-	if !m2.verbose {
-		t.Errorf("After 'v': verbose should be true")
+	if m2.verbose {
+		t.Errorf("After 'v': verbose should be false")
 	}
 
 	// Toggle back
 	mod, _ = m2.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'v'}})
 	m3 := mod.(InstallModel)
 
-	if m3.verbose {
-		t.Errorf("After second 'v': verbose should be false")
+	if !m3.verbose {
+		t.Errorf("After second 'v': verbose should be true")
 	}
 }
 

@@ -73,35 +73,50 @@ func Bootstrap(cfg BootstrapConfig) error {
 	}
 
 	// Run each step
-	stepFns := []struct {
-		name string
-		fn   func(BootstrapConfig) error
-	}{
-		{"Install system packages", func(cfg BootstrapConfig) error { return installSystemPackages() }},
-		{"Configure sudoers", func(cfg BootstrapConfig) error { return setupSudoers() }},
-		{"Create directories", func(cfg BootstrapConfig) error { return createDirectories(cfg) }},
-		{"Vendor Moonraker and Klipper", func(cfg BootstrapConfig) error { return copyVendoredComponents(cfg) }},
-		{"Create virtualenvs", func(cfg BootstrapConfig) error { return createVirtualenvs(cfg) }},
-		{"Generate config files", func(cfg BootstrapConfig) error { return generateConfigs(cfg) }},
-		{"Install systemd services", func(cfg BootstrapConfig) error { return installServices(cfg) }},
-		{"Configure nginx and mDNS", func(cfg BootstrapConfig) error {
+	// StepFn defines a bootstrap step with its name, function, and whether
+	// failure blocks the rest of the installation.
+	type StepFn struct {
+		name     string
+		blocking bool
+		fn       func(BootstrapConfig) error
+	}
+
+	stepFns := []StepFn{
+		{"Install system packages", false, func(cfg BootstrapConfig) error { return installSystemPackages() }},
+		{"Configure sudoers", false, func(cfg BootstrapConfig) error { return setupSudoers() }},
+		{"Create directories", true, func(cfg BootstrapConfig) error { return createDirectories(cfg) }},
+		{"Vendor Moonraker and Klipper", true, func(cfg BootstrapConfig) error { return copyVendoredComponents(cfg) }},
+		{"Create virtualenvs", true, func(cfg BootstrapConfig) error { return createVirtualenvs(cfg) }},
+		{"Generate config files", true, func(cfg BootstrapConfig) error { return generateConfigs(cfg) }},
+		{"Install systemd services", true, func(cfg BootstrapConfig) error { return installServices(cfg) }},
+		{"Configure nginx and mDNS", false, func(cfg BootstrapConfig) error {
 			if err := setupNginx(cfg); err != nil {
 				return err
 			}
 			return setupAvahi(cfg)
 		}},
-		{"Start services", func(cfg BootstrapConfig) error { return startBootstrapServices(cfg) }},
+		{"Start services", true, func(cfg BootstrapConfig) error { return startBootstrapServices(cfg) }},
 	}
 
+	var stepErrors []error
 	for i, step := range stepFns {
 		fmt.Printf("  [%d/%d] %s...\n", i+1, len(stepFns), step.name)
 		report(i, "running", nil)
 		if err := step.fn(cfg); err != nil {
 			report(i, "failed", err)
-			return fmt.Errorf("step %d (%s): %w", i+1, step.name, err)
+			errMsg := fmt.Errorf("step %d (%s): %w", i+1, step.name, err)
+			if step.blocking {
+				return errMsg
+			}
+			stepErrors = append(stepErrors, errMsg)
+			continue
 		}
 		report(i, "completed", nil)
 		fmt.Printf("  ✓ %s\n", step.name)
+	}
+
+	if len(stepErrors) > 0 {
+		return fmt.Errorf("%d step(s) failed: %v", len(stepErrors), stepErrors[0])
 	}
 
 	return nil

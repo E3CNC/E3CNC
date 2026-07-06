@@ -13,7 +13,9 @@ import (
 	"github.com/charmbracelet/bubbles/progress"
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textinput"
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 
 	"github.com/E3CNC/e3cnc/cli/go/internal"
 	"github.com/E3CNC/e3cnc/cli/go/internal/bootstrap"
@@ -123,6 +125,7 @@ type InstallModel struct {
 	// Common
 	spinner     spinner.Model
 	progBar     progress.Model
+	logViewport viewport.Model
 	progressPct float64 // 0.0 to 1.0 for the progress bar
 	done        bool
 	err         error
@@ -181,6 +184,7 @@ func NewInstallModel() InstallModel {
 		webPort:         80,
 		mDNSHostname:    "e3cnc",
 		startServices:   true,
+		verbose:         true,
 		mcuPath:         mcuPath,
 		mcuDevices:      mcuDevices,
 		spinner:         s,
@@ -242,6 +246,8 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
+		m.logViewport.Width = msg.Width - 4
+		m.logViewport.Height = 8
 
 	case spinner.TickMsg:
 		var cmd tea.Cmd
@@ -369,6 +375,10 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.screen = ScreenErrorRecovery
 				m.failedStep = m.current
 				m.recoveryAction = "abort"
+			case "pgup":
+				m.logViewport, _ = m.logViewport.Update(msg)
+			case "pgdn":
+				m.logViewport, _ = m.logViewport.Update(msg)
 			}
 
 		case ScreenErrorRecovery:
@@ -419,6 +429,7 @@ func (m InstallModel) handleStepUpdate(msg stepUpdateMsg) (InstallModel, tea.Cmd
 		m.steps[msg.step].Status = msg.status
 		if msg.status == StepRunning {
 			m.steps[msg.step].StartedAt = time.Now()
+			m.current = msg.step
 		} else if msg.status == StepCompleted && !m.steps[msg.step].StartedAt.IsZero() {
 			m.steps[msg.step].Duration = time.Since(m.steps[msg.step].StartedAt)
 		}
@@ -448,6 +459,8 @@ func (m InstallModel) handleStepUpdate(msg stepUpdateMsg) (InstallModel, tea.Cmd
 	}
 	m.logBuffer = append(m.logBuffer, fmt.Sprintf("[%d/%d] %s — %s",
 		msg.step+1, len(m.steps), label, msg.status.String()))
+	m.logViewport.SetContent(strings.Join(m.logBuffer, "\n"))
+	m.logViewport.GotoBottom()
 
 	// Chain to read the next progress message
 	if m.progressCh != nil {
@@ -460,9 +473,23 @@ func (m InstallModel) handleInstallComplete(msg installCompleteMsg) (InstallMode
 	m.progressCh = nil
 
 	if msg.err != nil {
-		m.screen = ScreenErrorRecovery
-		m.failedStep = m.current
+		// Check if there are still pending steps — if so, error was blocking
+		processed := 0
+		for _, s := range m.steps {
+			if s.Status != StepPending {
+				processed++
+			}
+		}
+		if processed < len(m.steps) {
+			// Blocking error — show error recovery
+			m.screen = ScreenErrorRecovery
+			m.failedStep = m.current
+			m.err = msg.err
+			return m, nil
+		}
+		// Non-blocking — all steps ran, show verification with results
 		m.err = msg.err
+		m.screen = ScreenVerification
 		return m, nil
 	}
 
@@ -571,6 +598,10 @@ func (m InstallModel) startInstall() (InstallModel, tea.Cmd) {
 	m.screen = ScreenExecDashboard
 	m.startedAt = time.Now()
 	m.err = nil
+	m.logViewport = viewport.New(70, 8)
+	m.logViewport.KeyMap.PageUp.SetKeys("pgup")
+	m.logViewport.KeyMap.PageDown.SetKeys("pgdn")
+	m.logBuffer = nil
 
 	// Write install journal
 	journal := internal.InstallJournal{
@@ -932,9 +963,11 @@ func (m InstallModel) viewExecDashboard() string {
 		bar := m.progBar.ViewAs(m.progressPct)
 		b.WriteString(DimStyle.Render("  Progress: "))
 		b.WriteString(bar)
-		b.WriteString("\n\n")
+		b.WriteString("\n")
 	}
 
+	// Step list
+	b.WriteString("\n")
 	for i, step := range m.steps {
 		symbol := ""
 		style := DimStyle
@@ -970,18 +1003,30 @@ func (m InstallModel) viewExecDashboard() string {
 		b.WriteString("\n")
 	}
 
-	b.WriteString("\n")
-
-	// Show verbose output if toggled
+	// Verbose log panel (only when verbose is on)
+	var logContent string
 	if m.verbose && len(m.logBuffer) > 0 {
-		for _, entry := range m.logBuffer {
-			b.WriteString(fmt.Sprintf("  %s\n", entry))
-		}
-		b.WriteString("\n")
+		logContent = lipgloss.JoinVertical(
+			lipgloss.Top,
+			DimStyle.Render("── Log ──────────────────────────────────────"),
+			m.logViewport.View(),
+		)
 	}
 
-	b.WriteString(HelpStyle.Render("v: toggle verbose  ·  Ctrl+C: cancel"))
+	// Combine: steps panel + log panel + help
+	helpText := HelpStyle.Render("v: toggle verbose (on)  ·  Ctrl+C: cancel")
 
+	if logContent != "" {
+		return lipgloss.JoinVertical(lipgloss.Top,
+			b.String(),
+			logContent,
+			"",
+			helpText,
+		)
+	}
+
+	b.WriteString("\n")
+	b.WriteString(helpText)
 	return b.String()
 }
 
@@ -1032,6 +1077,12 @@ func (m InstallModel) viewVerification() string {
 			DimStyle.Render(fmt.Sprintf("E3CNC deployed to instance '%s'", m.instanceName)),
 	))
 	b.WriteString("\n\n")
+
+	// Show non-blocking failures as a warning
+	if m.err != nil {
+		b.WriteString(WarnStyle.Render(fmt.Sprintf("  ⚠ %s", m.err)))
+		b.WriteString("\n\n")
+	}
 
 	if len(m.healthChecks) > 0 {
 		b.WriteString(SectionHeaderStyle.Render("Health checks"))
