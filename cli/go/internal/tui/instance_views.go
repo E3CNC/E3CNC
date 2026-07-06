@@ -23,12 +23,16 @@ func (m InstanceModel) viewList() string {
 	}
 
 	if m.loading {
-		b.WriteString(SpinnerStyle.Render(fmt.Sprintf("  Loading instances...\n\n")))
+		b.WriteString(SpinnerStyle.Render("  Loading instances..."))
+		b.WriteString("\n\n")
+		return b.String()
 	}
 
+	// Build list content for viewport
+	var listBody strings.Builder
 	if len(m.instances) > 0 {
-		b.WriteString(SectionHeaderStyle.Render("Instances"))
-		b.WriteString("\n")
+		listBody.WriteString(SectionHeaderStyle.Render("Instances"))
+		listBody.WriteString("\n")
 		for i, inst := range m.instances {
 			cursor := "  "
 			style := MenuItemStyle
@@ -43,30 +47,33 @@ func (m InstanceModel) viewList() string {
 				running = "●"
 			}
 			line := fmt.Sprintf("%s%s %s", cursor, running, inst.Name)
-			b.WriteString(style.Render(line))
-			b.WriteString("\n")
+			listBody.WriteString(style.Render(line))
+			listBody.WriteString("\n")
 			if inst.Name != "" {
-				b.WriteString(DimStyle.Render(fmt.Sprintf("   Port: %d  URL: http://%s:%d/", inst.MoonrakerPort, instance.GetLocalIP(), inst.WebPort)))
-				b.WriteString("\n")
+				listBody.WriteString(DimStyle.Render(fmt.Sprintf("   Port: %d  URL: http://%s:%d/", inst.MoonrakerPort, instance.GetLocalIP(), inst.WebPort)))
+				listBody.WriteString("\n")
 			}
-			b.WriteString("\n")
+			listBody.WriteString("\n")
 		}
-	} else if !m.loading && m.loadErr == "" {
-		b.WriteString(DimStyle.Render("  No instances found"))
-		b.WriteString("\n")
+	} else {
+		listBody.WriteString(DimStyle.Render("  No instances found"))
+		listBody.WriteString("\n")
 	}
 
-	if m.loadErr == "" {
-		b.WriteString("\n")
-		b.WriteString(SectionHeaderStyle.Render("Actions"))
-		b.WriteString("\n")
-		options := []string{"[n] New instance", "[d] Delete instance", "[r] Refresh"}
-		for _, opt := range options {
-			b.WriteString(DimStyle.Render(fmt.Sprintf("  %s\n", opt)))
-		}
-	}
+	// Update viewport content and scroll to keep cursor visible
+	m.listViewport.SetContent(listBody.String())
+	lineHeight := (m.cursor * 3) + 1 // each instance takes ~3 lines
+	m.listViewport.SetYOffset(max(0, lineHeight-m.listViewport.Height+2))
 
+	b.WriteString(m.listViewport.View())
 	b.WriteString("\n")
+
+	b.WriteString(SectionHeaderStyle.Render("Actions"))
+	b.WriteString("\n")
+	for _, opt := range []string{"[n] New instance", "[d] Delete instance", "[r] Refresh"} {
+		b.WriteString(DimStyle.Render(fmt.Sprintf("  %s\n", opt)))
+	}
+
 	b.WriteString(HelpStyle.Render("↑/↓ navigate  ·  n: create  ·  d: delete  ·  r: refresh  ·  b: back to menu"))
 	return b.String()
 }

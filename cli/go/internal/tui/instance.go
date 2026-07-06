@@ -5,8 +5,8 @@ import (
 	"runtime"
 
 	"github.com/charmbracelet/bubbles/textinput"
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
-
 	"github.com/E3CNC/e3cnc/cli/go/internal"
 	"github.com/E3CNC/e3cnc/cli/go/internal/bootstrap"
 	"github.com/E3CNC/e3cnc/cli/go/internal/instance"
@@ -89,6 +89,9 @@ type InstanceModel struct {
 
 	width  int
 	height int
+
+	// Scrollable viewport for instance list
+	listViewport viewport.Model
 }
 
 // NewInstanceModel creates a new instance management model.
@@ -115,6 +118,7 @@ func NewInstanceModel() InstanceModel {
 		loading:         true,
 		createNameInput: nameInput,
 		createPortInput: portInput,
+		listViewport:    viewport.New(70, 10),
 	}
 }
 
@@ -194,6 +198,8 @@ func (m InstanceModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
+		m.listViewport.Width = msg.Width - 6
+		m.listViewport.Height = msg.Height - 14
 
 	case instanceListMsg:
 		m.loading = false
@@ -296,11 +302,19 @@ func (m InstanceModel) handleListKey(msg tea.Msg) (InstanceModel, tea.Cmd) {
 		case "up", "k":
 			if m.cursor > 0 {
 				m.cursor--
+				m.listViewport.LineUp(1)
 			}
 		case "down", "j":
 			if m.cursor < len(m.instances)-1 {
 				m.cursor++
+				m.listViewport.LineDown(1)
 			}
+		case "pgup":
+			m.listViewport, _ = m.listViewport.Update(msg)
+			m.cursor = max(0, m.cursor-m.listViewport.Height)
+		case "pgdn":
+			m.listViewport, _ = m.listViewport.Update(msg)
+			m.cursor = min(len(m.instances)-1, m.cursor+m.listViewport.Height)
 		case "enter", " ":
 			if len(m.instances) == 0 {
 				return m, nil
