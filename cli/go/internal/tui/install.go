@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"os/exec"
@@ -226,6 +227,11 @@ type preFlightCompleteMsg struct {
 	results   []PreFlightCheck
 }
 
+// stepOutputMsg carries a single line of stdout/stderr output from a step.
+type stepOutputMsg struct {
+	line string
+}
+
 // backToMenuMsg signals the root model to return to the main menu.
 type backToMenuMsg struct{}
 
@@ -271,6 +277,11 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case stepUpdateMsg:
 		return m.handleStepUpdate(msg)
+
+	case stepOutputMsg:
+		m.logBuffer = append(m.logBuffer, msg.line)
+		m.logViewport.SetContent(strings.Join(m.logBuffer, "\n"))
+		m.logViewport.GotoBottom()
 
 	case installCompleteMsg:
 		return m.handleInstallComplete(msg)
@@ -450,13 +461,7 @@ func (m InstallModel) handleStepUpdate(msg stepUpdateMsg) (InstallModel, tea.Cmd
 		}
 	}
 
-	// Log the update
-	label := ""
-	if msg.step >= 0 && msg.step < len(m.steps) {
-		label = m.steps[msg.step].Label
-	}
-	m.logBuffer = append(m.logBuffer, fmt.Sprintf("[%d/%d] %s — %s",
-		msg.step+1, len(m.steps), label, msg.status.String()))
+	// Update viewport display (log comes from stepOutputMsg now)
 	m.logViewport.SetContent(strings.Join(m.logBuffer, "\n"))
 	m.logViewport.GotoBottom()
 
@@ -665,7 +670,30 @@ func runInstallGoroutine(m InstallModel, ch chan<- tea.Msg, installID string, st
 		},
 	}
 
+	// Redirect stdout/stderr to capture real command output
+	r, w, _ := os.Pipe()
+	oldStdout := os.Stdout
+	oldStderr := os.Stderr
+	os.Stdout = w
+	os.Stderr = w
+
+	// Read captured output in background
+	outputDone := make(chan struct{})
+	go func() {
+		defer close(outputDone)
+		scanner := bufio.NewScanner(r)
+		for scanner.Scan() {
+			ch <- stepOutputMsg{line: scanner.Text()}
+		}
+	}()
+
 	err := bootstrap.Bootstrap(cfg)
+
+	// Restore stdout/stderr and close pipe
+	w.Close()
+	os.Stdout = oldStdout
+	os.Stderr = oldStderr
+	<-outputDone // wait for scanner to finish
 
 	// Update journal
 	journal := internal.InstallJournal{

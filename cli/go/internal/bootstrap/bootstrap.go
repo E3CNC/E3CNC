@@ -15,6 +15,7 @@ package bootstrap
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -37,6 +38,19 @@ type BootstrapConfig struct {
 	// current status ("running", "completed", "failed"), and any error.
 	// When nil, progress is written to stdout (original behaviour).
 	OnProgress func(step int, status string, stepErr error)
+
+	// OutputWriter receives all step stdout/stderr output in real-time.
+	// When nil, output goes to os.Stdout (original behaviour).
+	OutputWriter io.Writer
+}
+
+// Out returns the output writer for step stdout/stderr.
+// Falls back to os.Stdout when OutputWriter is nil.
+func (cfg BootstrapConfig) Out() io.Writer {
+	if cfg.OutputWriter != nil {
+		return cfg.OutputWriter
+	}
+	return os.Stdout
 }
 
 // step names matching installSteps in the TUI
@@ -104,7 +118,7 @@ func Bootstrap(cfg BootstrapConfig) error {
 		if i < cfg.StartFrom {
 			continue
 		}
-		fmt.Printf("  [%d/%d] %s...\n", i+1, len(stepFns), step.name)
+		fmt.Fprintf(cfg.Out(), "  [%d/%d] %s...\n", i+1, len(stepFns), step.name)
 		report(i, "running", nil)
 		if err := step.fn(cfg); err != nil {
 			report(i, "failed", err)
