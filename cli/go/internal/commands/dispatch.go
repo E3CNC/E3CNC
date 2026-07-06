@@ -612,22 +612,45 @@ func cmdAdminPage(jsonOut bool) bool {
 
 	inst := activeInstance()
 	version := instance.ReadCurrentVersion()
+	allInstances, _ := instance.DetectInstances()
 
 	html := fmt.Sprintf(`<!DOCTYPE html>
 <html><head><title>E3CNC Admin</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>body{font-family:sans-serif;margin:2rem;background:#1a1a2e;color:#eee}
 h1{color:#00d4aa}h2{color:#888}.card{background:#16213e;padding:1rem;margin:1rem 0;border-radius:8px}
-a{color:#00d4aa}</style></head><body>
+a{color:#00d4aa}.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.8em}
+.badge-up{background:#00aa55;color:#fff}.badge-down{background:#cc3333;color:#fff}
+table{width:100%%;border-collapse:collapse}td{padding:4px 8px}
+</style></head><body>
 <h1>E3CNC Admin</h1>
 <div class="card"><h2>System</h2>
 <p>Version: %s</p>
 <p>Host: %s</p></div>`, version, getHostname())
 
+	// List all instances
+	html += `<div class="card"><h2>Instances</h2><table>
+<tr><th>Name</th><th>Status</th><th>Port</th><th>Web</th><th>Links</th></tr>`
+	for _, i := range allInstances {
+		status := "<span class=\"badge badge-down\">○</span>"
+		if i.IsRunning {
+			status = "<span class=\"badge badge-up\">●</span>"
+		}
+		web := fmt.Sprintf("http://%s:%d/", instance.GetLocalIP(), i.WebPort)
+		admin := "<a href=\"/admin\">admin</a>"
+		if i.WebPort == 80 {
+			web = fmt.Sprintf("http://%s/", instance.GetLocalIP())
+		}
+		html += fmt.Sprintf(`<tr><td>%s</td><td>%s</td><td>%d</td><td><a href="%s">%s</a></td><td>%s</td></tr>`, i.Name, status, i.MoonrakerPort, web, web, admin)
+	}
+	html += `</table></div>`
+
+	// Active instance details
 	if inst != nil {
-		html += fmt.Sprintf(`<div class="card"><h2>Instance: %s</h2>
-<p>Port: %d</p>
-<p><a href="http://%s:%d/">Web UI</a></p></div>`, inst.Name, inst.MoonrakerPort, instance.GetLocalIP(), inst.WebPort)
+		html += fmt.Sprintf(`<div class="card"><h2>Active: %s</h2>
+<p>Config: %s</p>
+<p>Service: %s</p>
+<p><a href="http://%s:%d/">Web UI</a></p></div>`, inst.Name, inst.ConfigDir, inst.MoonrakerService, instance.GetLocalIP(), inst.WebPort)
 	}
 
 	html += `</body></html>`
