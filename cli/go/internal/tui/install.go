@@ -279,9 +279,15 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.handleStepUpdate(msg)
 
 	case stepOutputMsg:
-		m.logBuffer = append(m.logBuffer, msg.line)
+		for _, line := range strings.Split(msg.line, "\n") {
+			m.logBuffer = append(m.logBuffer, line)
+		}
 		m.logViewport.SetContent(strings.Join(m.logBuffer, "\n"))
 		m.logViewport.GotoBottom()
+		if m.progressCh != nil {
+			return m, m.pollProgressCh(m.progressCh)
+		}
+		return m, nil
 
 	case installCompleteMsg:
 		return m.handleInstallComplete(msg)
@@ -625,7 +631,7 @@ func (m InstallModel) startInstall(startStep int) (InstallModel, tea.Cmd) {
 	internal.WriteInstallJournal(journal)
 
 	// Create progress channel (buffered to avoid blocking the goroutine)
-	ch := make(chan tea.Msg, 50)
+	ch := make(chan tea.Msg, 2000)
 	m.progressCh = ch
 
 	// Start install in background goroutine
@@ -677,14 +683,25 @@ func runInstallGoroutine(m InstallModel, ch chan<- tea.Msg, installID string, st
 	os.Stdout = w
 	os.Stderr = w
 
-	// Read captured output in background
+	// Read captured output in background — batch lines to reduce message volume
 	outputDone := make(chan struct{})
 	go func() {
 		defer close(outputDone)
 		scanner := bufio.NewScanner(r)
-		for scanner.Scan() {
-			ch <- stepOutputMsg{line: scanner.Text()}
+		var batch []string
+		flush := func() {
+			if len(batch) > 0 {
+				ch <- stepOutputMsg{line: strings.Join(batch, "\n")}
+				batch = batch[:0]
+			}
 		}
+		for scanner.Scan() {
+			batch = append(batch, scanner.Text())
+			if len(batch) >= 10 {
+				flush()
+			}
+		}
+		flush() // send remaining
 	}()
 
 	err := bootstrap.Bootstrap(cfg)
