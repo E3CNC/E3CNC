@@ -496,16 +496,50 @@ func (m InstallModel) handleInstallComplete(msg installCompleteMsg) (InstallMode
 			m.err = msg.err
 			return m, nil
 		}
-		// Non-blocking — all steps ran, show verification with results
+		// Non-blocking — append summary to log and stay on dashboard
 		m.err = msg.err
-		m.screen = ScreenVerification
-		return m, nil
+		return m.appendSummaryToLog(), nil
 	}
 
 	// Store health check results
 	m.healthChecks = msg.healthChecks
+	return m.appendSummaryToLog(), nil
+}
+
+// appendSummaryToLog adds the installation summary to the log viewport and
+// updates the help text so the user knows to press Enter to return to menu.
+func (m InstallModel) appendSummaryToLog() InstallModel {
+	m.logBuffer = append(m.logBuffer, "")
+	m.logBuffer = append(m.logBuffer, "── Installation Complete ──────────────────────")
+	m.logBuffer = append(m.logBuffer, fmt.Sprintf("  E3CNC deployed to instance '%s'", m.instanceName))
+	m.logBuffer = append(m.logBuffer, "")
+
+	if m.err != nil {
+		m.logBuffer = append(m.logBuffer, fmt.Sprintf("  ⚠ %s", m.err))
+		m.logBuffer = append(m.logBuffer, "")
+	}
+
+	if len(m.healthChecks) > 0 {
+		m.logBuffer = append(m.logBuffer, "  Health checks:")
+		for _, c := range m.healthChecks {
+			symbol := "✓"
+			detail := ""
+			if !c.Passed {
+				symbol = "✗"
+			}
+			if c.Detail != "" {
+				detail = fmt.Sprintf("  (%s)", c.Detail)
+			}
+			m.logBuffer = append(m.logBuffer, fmt.Sprintf("    %s %s%s", symbol, c.Name, detail))
+		}
+	} else {
+		m.logBuffer = append(m.logBuffer, "  Health checks skipped (not running on target)")
+	}
+
+	m.logViewport.SetContent(strings.Join(m.logBuffer, "\n"))
+	m.logViewport.GotoBottom()
 	m.screen = ScreenVerification
-	return m, nil
+	return m
 }
 
 // ── Pre-flight checks ────────────────────────────────────────────
@@ -778,7 +812,7 @@ func (m InstallModel) View() string {
 	case ScreenErrorRecovery:
 		return m.viewErrorRecovery()
 	case ScreenVerification:
-		return m.viewVerification()
+		return m.viewExecDashboard()
 	case ScreenNextSteps:
 		return m.viewNextSteps()
 	default:
@@ -1065,10 +1099,14 @@ func (m InstallModel) viewExecDashboard() string {
 	}
 
 	helpText := HelpStyle.Render("v: toggle verbose (on)  ·  Ctrl+C: cancel")
+	if m.screen == ScreenVerification {
+		helpText = HelpStyle.Render("Press Enter to return to menu")
+	}
 
 	// Build the log panel (always reserve the space, fill or blank)
+	showLog := m.verbose || m.screen == ScreenVerification
 	var logContent string
-	if m.verbose && len(m.logBuffer) > 0 {
+	if showLog && len(m.logBuffer) > 0 {
 		logContent = lipgloss.JoinVertical(
 			lipgloss.Top,
 			DimStyle.Render("── Log ──────────────────────────────────────"),
