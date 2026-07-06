@@ -1,5 +1,11 @@
 # Plan: Full Go CLI + Drop Ansible
 
+> **⚠️ COMPLETED — all phases are now shipped.**  
+> The Go CLI rewrite is complete. The Python CLI has been removed entirely.
+> `e3cnc-tui` is a single static Go binary handling all 24 commands in-process.
+> Ansible has been replaced by `bootstrap.Bootstrap()` in Go.
+> See [docs/AGENTS.md](docs/AGENTS.md) for the current architecture.
+
 ## Motivation
 
 The hybrid Go/Python CLI works but carries friction: subprocess overhead

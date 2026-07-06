@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 // CommandDef represents a single command definition from commands.json.
@@ -103,30 +102,4 @@ func (m *CommandsManifest) AllCommandNames() []string {
 		names = append(names, cmd.Aliases...)
 	}
 	return names
-}
-
-// BuildPythonArgs constructs the CLI arguments for the Python subprocess.
-// Returns ["-m", "cli", "<command>", ...flags].
-func BuildPythonArgs(cliDir string, args []string) ([]string, error) {
-	if len(args) == 0 {
-		return nil, fmt.Errorf("no command specified")
-	}
-
-	// Build python args: -m cli <user args>
-	pyArgs := []string{"-m", "cli"}
-	pyArgs = append(pyArgs, args...)
-	return pyArgs, nil
-}
-
-// FormatArgsForDisplay formats CLI args for logging/display.
-func FormatArgsForDisplay(args []string) string {
-	escaped := make([]string, len(args))
-	for i, a := range args {
-		if strings.Contains(a, " ") {
-			escaped[i] = fmt.Sprintf("%q", a)
-		} else {
-			escaped[i] = a
-		}
-	}
-	return strings.Join(escaped, " ")
 }

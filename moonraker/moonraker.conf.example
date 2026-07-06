@@ -74,5 +74,5 @@ timeout: 30.0
 #      klipper-macros/ snippets.
 # ---------------------------------------------------------------------------
 
-# E3CNC updates are handled by the in-app menu and ./e3cnc-cli.
+# E3CNC updates are handled by the in-app menu and ./e3cnc-tui.
 # New installs no longer add an [update_manager E3CNC] section here.

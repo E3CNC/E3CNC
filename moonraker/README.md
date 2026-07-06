@@ -250,8 +250,8 @@ E3CNC no longer relies on Moonraker's `update_manager` for its own stack updates
 Use one of these supported paths instead:
 
 - **In-app:** E3CNC top-corner menu → **Update** / **Rollback**
-- **CLI:** `./e3cnc-cli update`, `./e3cnc-cli rollback`, `./e3cnc-cli releases`
+- **CLI:** `./e3cnc-tui update`, `./e3cnc-tui rollback`, `./e3cnc-tui releases`
 
-The Moonraker CNC agent exposes the update/rollback endpoints used by the in-app menu, and `e3cnc-cli update` remains the source of truth for full-stack deployment.
+The Moonraker CNC agent exposes the update/rollback endpoints used by the in-app menu, and `e3cnc-tui update` remains the source of truth for full-stack deployment.
 
-`build-scripts/post_update.sh` is kept as a compatibility wrapper around `./e3cnc-cli update --yes`, but new installs no longer register an `[update_manager E3CNC]` block in `moonraker.conf`.
+`build-scripts/post_update.sh` is kept as a compatibility wrapper around `./e3cnc-tui update --yes`, but new installs no longer register an `[update_manager E3CNC]` block in `moonraker.conf`.

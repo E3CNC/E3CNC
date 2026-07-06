@@ -25,24 +25,21 @@ CGO_ENABLED=0 go build -o e3cnc-tui ./cmd/e3cnc-tui/
 | Path | Description |
 |---|---|
 | `src/` | Vue 3.5 frontend (TypeScript, Vuetify 3) |
-| `cli/` | Python CLI package (commands, helpers, parser, menu) |
-| `cli/go/` | Go BubbleTea TUI (`e3cnc-tui` — static binary) |
+| `cli/` | Go BubbleTea TUI (`e3cnc-tui` — single static binary) |
 | `vendor/moonraker/` | Vendored Moonraker with CNC agent + MCP server |
 | `vendor/klipper/klippy/extras/` | Klipper extra plugins (WCS) |
 | `macros/` | CNC G-code macros |
-| `ansible/` | Ansible playbooks and roles |
-| `scripts/` | Install, deploy, and utility scripts |
+| `commands.json` | Command manifest for the TUI |
+| `scripts/` | Deploy and utility scripts |
 | `docs/` | Landing page and documentation |
 | `docs/wiki/` | Updated wiki page drafts |
-| `tests/` | Unit tests (pytest, 454+) |
 
 ## Before Committing
 
 1. Bump version: `./scripts/bump-version.sh` (or `./scripts/bump-version.sh --minor`)
 2. Run `bun run build` — must pass
-3. Run `python3 -m pytest tests/ -v --tb=short --no-header` — must pass
-4. If Go code changed: `cd cli/go && go test ./internal/ -v && go vet ./...`
-5. Validate changes in a headed browser — check console for errors
+3. Run Go tests: `cd cli/go && go test ./internal/... -short -count=1 && go vet ./...`
+4. Validate changes in a headed browser — check console for errors
 
 ## Go TUI Conventions
 
@@ -50,8 +47,7 @@ CGO_ENABLED=0 go build -o e3cnc-tui ./cmd/e3cnc-tui/
 - Version is injected at build time: `-ldflags="-s -w -X main.version=<ver>"`
 - Go 1.26+ requires **unexported** variables for `-X` injection (`version`, not `Version`)
 - TUI models follow the standard BubbleTea pattern: `Init()`, `Update(msg) (Model, Cmd)`, `View() string`
-- All commands are defined in `cli/commands.json` — edit that file, not hardcoded lists
-- The Python fallback (`cli/menu.py`, `cli/parser.py`) is **never deleted**
+- All commands are defined in `commands.json` at the repo root
 
 ## Pull Requests
 

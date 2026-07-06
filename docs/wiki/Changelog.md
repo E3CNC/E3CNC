@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.9.10 (2026-07-05)
+
+- **Pure Go rewrite complete** — all Python runtime dependencies removed. `e3cnc-tui` is now a single static Go binary handling all 24 commands in-process. No Python, no Ansible, no subprocess overhead.
+- **Python dead code removed** — deleted `cli/` (Python CLI, ~2,400 lines), `_e3cnc_shared.py` / `_e3cnc_deploy.py` / `_e3cnc_supervisor.py` (~3,600 lines), `e3cnc-cli` shell wrapper (~100 lines), `ansible/` (~663 lines YAML), `build-scripts/` stale shell scripts (6 files), `tests/` Python tests (13 files).
+- **Ansible replaced** — `bootstrap.Bootstrap()` in Go handles all provisioning: apt packages, Python venvs, pip installs, systemd services, git clones, nginx configs. Includes rollback on failure.
+- **Test coverage expanded** — from 12 tests to ~140 tests across 7 packages. New tests for `commands/`, `deploy/`, `instance/`, `bootstrap/` packages.
+- **OS guard added** — instance manager checks `runtime.GOOS` before calling `systemctl`/`apt-get`, returns clear error on non-Linux.
+- **HTTP client interface** — `deploy.DefaultHTTPClient` is an injectable interface, making health checks testable without a real Moonraker.
+- **Nginx config bug fixed** — format string had 11 `%d` specifiers but only 10 arguments (missing MoonrakerPort for `/access/` location).
+- **TUI integration tests fixed** — 7 tmux-based integration tests now skip cleanly in `-short` mode instead of hanging for 30s. Run without `-short` on a live CNC host for full testing.
+- **Moonraker CNC Agent updated** — replaced `_e3cnc_deploy`/`_e3cnc_shared` imports with `e3cnc-tui --json` subprocess calls. Agent now looks for `e3cnc-tui` (not `e3cnc-cli`) in repo dirs and PATH.
+- **All docs and wiki refreshed** — Home, Architecture, Features, Installation, Multi-Instance, Changelog, TUI, Contributing, CLAUDE, README — all updated to reflect pure Go architecture.
+- **Stale command references fixed** — all `e3cnc-cli` references in Go code, docs, and config files updated to `e3cnc-tui`.
+
 ## v0.9.9 (2026-07-04)
 
 - **BubbleTea TUI migration (Phases 0–6)** — replaces the Python `simple-term-menu` with a Go BubbleTea terminal UI (`e3cnc-tui`). Static Go binary (~3.8 MB, `CGO_ENABLED=0`) that dispatches to the Python CLI for business logic.

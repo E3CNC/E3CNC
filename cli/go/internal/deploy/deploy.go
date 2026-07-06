@@ -303,6 +303,16 @@ func ActivateRelease(version string) error {
 
 // ── Health Checks ─────────────────────────────────────────────────
 
+// HTTPClient is the interface used by health checks for HTTP requests.
+// The production implementation is http.Client; tests can mock this.
+type HTTPClient interface {
+	Get(url string) (*http.Response, error)
+}
+
+// defaultHTTPClient is the production HTTP client used by health checks.
+// Override in tests with deploy.DefaultHTTPClient = mockClient.
+var DefaultHTTPClient HTTPClient = &http.Client{Timeout: 5 * time.Second}
+
 // HealthCheck represents a single health check result.
 type HealthCheck struct {
 	Name    string `json:"name"`
@@ -341,8 +351,7 @@ func RunHealthChecks(inst *instance.Instance) []HealthCheck {
 
 func checkMoonrakerAPI(inst *instance.Instance) HealthCheck {
 	url := fmt.Sprintf("http://127.0.0.1:%d/server/info", inst.MoonrakerPort)
-	client := &http.Client{Timeout: 5 * time.Second}
-	resp, err := client.Get(url)
+	resp, err := DefaultHTTPClient.Get(url)
 	if err != nil {
 		return HealthCheck{Name: "Moonraker API", Passed: false, Detail: err.Error()}
 	}
@@ -367,8 +376,7 @@ func checkService(serviceName string) HealthCheck {
 
 func checkKlippy(inst *instance.Instance) HealthCheck {
 	url := fmt.Sprintf("http://127.0.0.1:%d/printer/info", inst.MoonrakerPort)
-	client := &http.Client{Timeout: 5 * time.Second}
-	resp, err := client.Get(url)
+	resp, err := DefaultHTTPClient.Get(url)
 	if err != nil {
 		return HealthCheck{Name: "Klippy", Passed: false, Detail: "not connected", IsOptional: true}
 	}
@@ -395,8 +403,7 @@ func isPlaceholderCfg(path string) bool {
 func checkCNCAgent(inst *instance.Instance) HealthCheck {
 	// Check if cnc_agent is loaded by looking at Moonraker's loaded components
 	url := fmt.Sprintf("http://127.0.0.1:%d/server/info", inst.MoonrakerPort)
-	client := &http.Client{Timeout: 5 * time.Second}
-	resp, err := client.Get(url)
+	resp, err := DefaultHTTPClient.Get(url)
 	if err != nil {
 		return HealthCheck{Name: "CNC Agent", Passed: false, Detail: "Moonraker not reachable"}
 	}

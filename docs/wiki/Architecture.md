@@ -4,33 +4,29 @@
 
 The system is split into five layers. Layer 0 is the CLI/TUI layer — the user's entry point to everything below.
 
-### 0. CLI Tool (`e3cnc-cli` + `e3cnc-tui`)
+### 0. CLI Tool (`e3cnc-tui`)
 
-Two-component CLI with hybrid Go/Python architecture:
+Single static Go binary with two modes:
 
 ```
-                  e3cnc-cli (Python entry point)
+                  e3cnc-tui (Go static binary)
                   │
-                  ├── ~/e3cnc/current/bin/e3cnc-tui exists?
-                  │   ├── YES → os.execv() to Go TUI binary
-                  │   └── NO  → fall through to Python CLI
+                  ├── Interactive mode (TTY present, no args)
+                  │   ├── Main menu (24 commands, categorized, keyboard nav)
+                  │   ├── Install wizard (6 screens, 9 phases, goroutine-streamed)
+                  │   ├── Instance manager (list, switch, create, delete)
+                  │   └── Streaming output + spinner + cancellation
                   │
-                  └── Go TUI (e3cnc-tui, BubbleTea)
-                      │
-                      ├── Interactive mode (TTY present)
-                      │   ├── Main menu (24 commands, categorized, keyboard nav)
-                      │   ├── Install wizard (6 screens, 9 phases)
-                      │   ├── Instance manager (list, switch, create, delete)
-                      │   └── Streaming output + spinner + cancellation
-                      │
-                      └── CLI mode (--yes or non-TTY)
-                          └── Dispatches to Python subprocess with
-                              E3CNC_FORCE_COLOR=1
-
-Key design: The Go binary applies its own lipgloss styling. Python output
-is plain text (isatty()=false when piped). The `commands.json` manifest
-at cli/commands.json is the single source of truth for all 24 commands.
+                  └── CLI mode (args provided or --yes flag)
+                      └── commands.RunDispatch(cmd, jsonOut, args)
+                          └── All 24 command handlers run in-process
 ```
+
+**Key decisions:**
+- All command handlers run as direct Go function calls — no subprocess overhead
+- `commands.json` at repo root is the single source of truth for all 24 commands
+- The binary applies its own `lipgloss` styling in TUI mode; CLI mode is plain text
+- `--json` flag on every command for structured output (used by Moonraker CNC agent)
 
 **Source layout:**
 
@@ -38,23 +34,25 @@ at cli/commands.json is the single source of truth for all 24 commands.
 |---|---|
 | `cli/go/cmd/e3cnc-tui/main.go` | Entry point (version, dispatch, signal handling) |
 | `cli/go/internal/command.go` | Commands manifest loader (`commands.json`) |
-| `cli/go/internal/runner.go` | Streaming subprocess with Ctrl+C cancellation (2s → SIGKILL) |
-| `cli/go/internal/config.go` | State persistence (`~/.e3cnc-tui/state.json`) |
-| `cli/go/internal/release_resolver.go` | Python CLI path resolution (release → repo) |
-| `cli/go/internal/tui/model.go` | Root BubbleTea model (state machine) |
-| `cli/go/internal/tui/menu.go` | Main menu (24 commands, categories) |
-| `cli/go/internal/tui/install.go` | Install wizard (6 screens, 9 phases) |
-| `cli/go/internal/tui/instance.go` | Instance manager (list, create, delete) |
-| `cli/go/internal/tui/styles.go` | Lipgloss theme (green/cyan palette) |
-| `cli/go/Makefile` | `CGO_ENABLED=0`, cross-compile for linux/arm64/amd64 + darwin/amd64 |
+| `cli/go/internal/config.go` | State persistence (`~/.e3cnc-tui/state.json`, install journal) |
+| `cli/go/internal/commands/` | All 24 command handlers in Go |
+| `cli/go/internal/deploy/` | Release management, health checks, backup/restore |
+| `cli/go/internal/instance/` | Instance model, detection, path resolution |
+| `cli/go/internal/bootstrap/` | Fresh-install provisioning (replaces Ansible) |
+| `cli/go/internal/tui/` | BubbleTea models: menu, install wizard, instance manager |
+| `cli/go/Makefile` | `CGO_ENABLED=0`, cross-compile targets |
 
-**Python fallback:** `cli/menu.py` and `cli/parser.py` are **preserved permanently** as bootstrap fallbacks. Fresh installs have no Go binary, so the Python path handles the first `install` command. After the first `update`, the Go binary exists in the release.
+**Package dependency graph:**
 
-**Bootstrap flow:**
+```
+main.go
+  ├── commands/ → deploy/, instance/, bootstrap/
+  ├── tui/      → commands/, deploy/, instance/, bootstrap/
+  ├── internal/ → (config, command)
+  └── (standalone Go stdlib)
+```
 
-1. `e3cnc-cli` checks `~/e3cnc/current/bin/e3cnc-tui` → exec Go binary
-2. If absent, tries `~/e3cnc/current/cli/` → run Python CLI from release
-3. Falls back to repo checkout
+No external services, no frameworks, no Python runtime.
 
 ### 1. Klipper + Klipper Extras
 
@@ -68,6 +66,7 @@ at cli/commands.json is the single source of truth for all 24 commands.
 - Moonraker component (`cnc_agent.py`) registered under `[cnc_agent]` in `moonraker.conf`
 - Owns CNC-specific state: spindle, coolant, units, WCS offsets, per-machine capabilities
 - Exposes guarded command endpoints under `/server/cnc/*` (jog, set-zero, WCS select, spindle, coolant)
+- Communicates with `e3cnc-tui` subprocess for deploy operations (update, rollback, releases, status)
 - Does **not** re-expose read-only Klipper state — the frontend reads that directly
 
 ### 3. E3CNC UI Frontend
@@ -88,9 +87,13 @@ at cli/commands.json is the single source of truth for all 24 commands.
 Klipper ──websocket objects──> Vuex store ──> CNC panels (read-only)
    │
    └──gcode/script──> Moonraker ──HTTP/WS──> CNC agent ──> guarded endpoints
+                                                  │
+                                                  └── subprocess ──> e3cnc-tui
+                                                       (update, rollback, info)
 ```
 
 The agent only owns what Klipper does not model. Read-only state is never duplicated.
+Deploy operations are forwarded to `e3cnc-tui` via subprocess with `--json` output.
 
 ## Key Design Rules
 
@@ -99,6 +102,7 @@ The agent only owns what Klipper does not model. Read-only state is never duplic
 - Dangerous actions require confirmation
 - Spindle/coolant state is visible during job execution
 - Agent owns only what Klipper doesn't model
-- Go TUI applies its own styling; Python output is plain text (no ANSI passthrough)
-- `cli/commands.json` is the single source of truth for all command definitions
-- Version is canonical in `_e3cnc_shared.py` and injected into the Go binary at build time via `-ldflags`
+- `e3cnc-tui` applies its own lipgloss styling in TUI mode; plain text in CLI mode
+- `commands.json` is the single source of truth for all command definitions
+- Version is canonical in `package.json` and injected into the Go binary at build time via `-ldflags`
+- The Go binary is a single static artifact — no runtime dependencies, no Python, no Ansible

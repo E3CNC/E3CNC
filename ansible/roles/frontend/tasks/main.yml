@@ -1,9 +1,0 @@
----
-# Deploy frontend — download pre-built nightly release, skip local build on-device
-- name: Deploy frontend via download_frontend script
-  ansible.builtin.command:
-    cmd: '{{ repo.dest }}/build-scripts/download_frontend.sh {{ frontend.web_root }}'
-    chdir: '{{ repo.dest }}'
-  register: frontend_deploy
-  changed_when: '"Frontend updated" in frontend_deploy.stdout or "built locally" in frontend_deploy.stdout'
-  when: not ansible_check_mode

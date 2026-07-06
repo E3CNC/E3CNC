@@ -3,25 +3,31 @@ package tui
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
+	"syscall"
 	"time"
 
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/bubbles/spinner"
+	tea "github.com/charmbracelet/bubbletea"
 
+	"github.com/E3CNC/e3cnc/cli/go/internal"
+	"github.com/E3CNC/e3cnc/cli/go/internal/bootstrap"
+	"github.com/E3CNC/e3cnc/cli/go/internal/deploy"
 	"github.com/E3CNC/e3cnc/cli/go/internal/instance"
 )
 
 // InstallStep represents one phase of the installation process.
 type InstallStep struct {
-	Number    int
-	Label     string
-	Status    StepStatus
-	StartedAt time.Time
-	Duration  time.Duration
-	Output    []string
-	ErrorCode string
+	Number      int
+	Label       string
+	Status      StepStatus
+	StartedAt   time.Time
+	Duration    time.Duration
+	Output      []string
+	ErrorCode   string
 	ErrorDetail string
 }
 
@@ -93,9 +99,15 @@ type InstallModel struct {
 	verbose      bool
 	logBuffer    []string
 
+	// Progress streaming — channel for goroutine-backed install
+	progressCh chan tea.Msg
+
 	// Error recovery
 	failedStep    int
 	recoveryAction string // "retry", "skip", "abort"
+
+	// Health check results
+	healthChecks []deploy.HealthCheck
 
 	// Next steps tracking
 	completedSteps map[string]bool
@@ -117,15 +129,15 @@ type PreFlightCheck struct {
 }
 
 var installSteps = []InstallStep{
-	{Number: 1, Label: "Bootstrap infrastructure"},
-	{Number: 2, Label: "Install system packages"},
-	{Number: 3, Label: "Configure Moonraker"},
-	{Number: 4, Label: "Download release"},
-	{Number: 5, Label: "Verify checksum"},
-	{Number: 6, Label: "Activate release"},
-	{Number: 7, Label: "Sync runtime files"},
-	{Number: 8, Label: "Restart services"},
-	{Number: 9, Label: "Health checks"},
+	{Number: 1, Label: "Install system packages"},
+	{Number: 2, Label: "Configure sudoers"},
+	{Number: 3, Label: "Create directories"},
+	{Number: 4, Label: "Vendor Moonraker and Klipper"},
+	{Number: 5, Label: "Create virtualenvs"},
+	{Number: 6, Label: "Generate config files"},
+	{Number: 7, Label: "Install systemd services"},
+	{Number: 8, Label: "Configure nginx and mDNS"},
+	{Number: 9, Label: "Start services"},
 }
 
 // NewInstallModel creates a new install wizard model.
@@ -142,64 +154,68 @@ func NewInstallModel() InstallModel {
 	}
 
 	return InstallModel{
-		screen:         ScreenPreFlight,
-		steps:          make([]InstallStep, len(installSteps)),
-		preFlightChecks: defaultPreFlightChecks(),
-		instanceName:   "default",
-		moonrakerPort:  7125,
-		webPort:        80,
-		mDNSHostname:   "e3cnc",
-		startServices:  true,
-		mcuPath:        mcuPath,
-		mcuDevices:     mcuDevices,
-		spinner:        s,
-		completedSteps: make(map[string]bool),
+		screen:          ScreenPreFlight,
+		steps:           make([]InstallStep, len(installSteps)),
+		preFlightChecks: make([]PreFlightCheck, len(defaultPreFlightLabels)),
+		instanceName:    "default",
+		moonrakerPort:   7125,
+		webPort:         80,
+		mDNSHostname:    "e3cnc",
+		startServices:   true,
+		mcuPath:         mcuPath,
+		mcuDevices:      mcuDevices,
+		spinner:         s,
+		completedSteps:  make(map[string]bool),
 	}
 }
 
-func defaultPreFlightChecks() []PreFlightCheck {
-	return []PreFlightCheck{
-		{Label: "Python 3.8+", Status: "running", Detail: "checking..."},
-		{Label: "git installed", Status: "running", Detail: "checking..."},
-		{Label: "curl installed", Status: "running", Detail: "checking..."},
-		{Label: "unzip installed", Status: "running", Detail: "checking..."},
-		{Label: "zstd installed", Status: "running", Detail: "checking..."},
-		{Label: "Disk space (>0.5 GB)", Status: "running", Detail: "checking..."},
-		{Label: "GitHub API reachable", Status: "running", Detail: "checking..."},
-		{Label: "Ansible installed", Status: "running", Detail: "checking..."},
-		{Label: "Sudo access (NOPASSWD)", Status: "running", Detail: "checking..."},
-	}
+// defaultPreFlightLabels defines what we check before install.
+var defaultPreFlightLabels = []struct {
+	label string
+	fn    func() (string, string) // returns (status, detail)
+}{
+	{"System is Linux", checkOS},
+	{"Python 3.8+", checkPython},
+	{"git installed", checkBinary("git")},
+	{"curl installed", checkBinary("curl")},
+	{"unzip installed", checkBinary("unzip")},
+	{"zstd installed", checkBinary("zstd")},
+	{"Disk space (>0.5 GB)", checkDiskSpace},
+	{"Sudo access (NOPASSWD)", checkSudo},
+	{"GitHub API reachable", checkGitHubAPI},
 }
 
 func (m InstallModel) Init() tea.Cmd {
 	return tea.Batch(
 		m.spinner.Tick,
-		// Start pre-flight checks
-		func() tea.Msg {
-			return preFlightCompleteMsg{allPassed: true}
-		},
+		m.runPreFlightChecks(),
 	)
 }
 
-// Messages for the install wizard.
+// ── Messages ─────────────────────────────────────────────────────
+
+// preFlightCompleteMsg carries the results of all pre-flight checks.
 type preFlightCompleteMsg struct {
 	allPassed bool
+	results   []PreFlightCheck
 }
 
 // backToMenuMsg signals the root model to return to the main menu.
 type backToMenuMsg struct{}
 
+// stepUpdateMsg is sent by the install goroutine for real-time step progress.
 type stepUpdateMsg struct {
-	step    int
-	status  StepStatus
-	output  string
-	errCode string
+	step      int
+	status    StepStatus
+	output    string
+	errCode   string
 	errDetail string
 }
 
-type installProgressMsg struct {
-	step    int
-	elapsed time.Duration
+// installCompleteMsg is sent when bootstrap and health checks finish.
+type installCompleteMsg struct {
+	err          error
+	healthChecks []deploy.HealthCheck
 }
 
 func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -214,34 +230,15 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, cmd
 
 	case preFlightCompleteMsg:
-		// Mark all pre-flight checks as passed
-		for i := range m.preFlightChecks {
-			m.preFlightChecks[i].Status = "passed"
-			m.preFlightChecks[i].Detail = "found"
-		}
-		m.preFlightChecks[0].Detail = "3.11.2"  // Python version
-		m.preFlightChecks[5].Detail = "4.2 GB free"
-		m.preFlightChecks[6].Detail = "reachable"
-		m.preFlightChecks[8].Detail = "passwordless"
-		// Auto-advance to MCU selection screen
+		m.preFlightChecks = msg.results
+		// Auto-advance to MCU selection
 		m.screen = ScreenMCUSelect
 
 	case stepUpdateMsg:
-		// Mark the current step as completed
-		m.steps[m.current].Status = msg.status
-		m.steps[m.current].Duration = time.Since(m.steps[m.current].StartedAt)
-		m.logBuffer = append(m.logBuffer, fmt.Sprintf("[%d/%d] %s — %s", m.current+1, len(m.steps), m.steps[m.current].Label, msg.status.String()))
+		return m.handleStepUpdate(msg)
 
-		// Advance to the next step
-		m.current++
-		if m.current < len(m.steps) {
-			m.steps[m.current].Status = StepRunning
-			m.steps[m.current].StartedAt = time.Now()
-			return m, m.simulateInstallProgress()
-		}
-
-		// All steps complete — show verification screen
-		m.screen = ScreenVerification
+	case installCompleteMsg:
+		return m.handleInstallComplete(msg)
 
 	case tea.KeyMsg:
 		// Global handler: esc, 'b', or 'q' goes back to main menu from any wizard screen
@@ -299,18 +296,7 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case ScreenFirmwareCheck:
 			if msg.String() == "enter" {
-				// Start install
-				m.screen = ScreenExecDashboard
-				m.startedAt = time.Now()
-				// Initialize steps
-				for i, s := range installSteps {
-					m.steps[i] = s
-					m.steps[i].Status = StepPending
-				}
-				m.steps[0].Status = StepRunning
-				m.steps[0].StartedAt = time.Now()
-				m.current = 0
-				return m, m.simulateInstallProgress()
+				return m.startInstall()
 			}
 
 		case ScreenExecDashboard:
@@ -326,21 +312,25 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case ScreenErrorRecovery:
 			switch msg.String() {
 			case "r":
-				// Retry
-				m.steps[m.failedStep].Status = StepRunning
-				m.screen = ScreenExecDashboard
-				return m, m.simulateInstallProgress()
+				// Retry: restart the install
+				return m.startInstall()
 			case "s":
-				// Skip
-				m.steps[m.failedStep].Status = StepSkipped
+				// Skip: mark current step as skipped and advance
+				if m.failedStep < len(m.steps) {
+					m.steps[m.failedStep].Status = StepSkipped
+				}
 				m.current++
 				if m.current < len(m.steps) {
 					m.steps[m.current].Status = StepRunning
-					m.screen = ScreenExecDashboard
-					return m, m.simulateInstallProgress()
+					m.steps[m.current].StartedAt = time.Now()
 				}
+				m.screen = ScreenExecDashboard
 			case "a":
-				// Abort
+				// Abort: rollback and return to main menu
+				cfg := bootstrap.BootstrapConfig{
+					InstanceName: m.instanceName,
+				}
+				bootstrap.Rollback(cfg)
 				m.done = true
 			}
 
@@ -359,17 +349,256 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-// simulateInstallProgress sends fake progress updates for UI development.
-// In production, this would be replaced with real subprocess streaming.
-func (m InstallModel) simulateInstallProgress() tea.Cmd {
-	return func() tea.Msg {
-		time.Sleep(500 * time.Millisecond)
-		return stepUpdateMsg{
-			step:   m.current,
-			status: StepCompleted,
+// ── Step update handlers ─────────────────────────────────────────
+
+func (m InstallModel) handleStepUpdate(msg stepUpdateMsg) (InstallModel, tea.Cmd) {
+	if msg.step >= 0 && msg.step < len(m.steps) {
+		m.steps[msg.step].Status = msg.status
+		if msg.status == StepRunning {
+			m.steps[msg.step].StartedAt = time.Now()
+		} else if msg.status == StepCompleted && !m.steps[msg.step].StartedAt.IsZero() {
+			m.steps[msg.step].Duration = time.Since(m.steps[msg.step].StartedAt)
+		}
+		if msg.errDetail != "" {
+			m.steps[msg.step].ErrorDetail = msg.errDetail
 		}
 	}
+
+	// Log the update
+	label := ""
+	if msg.step >= 0 && msg.step < len(m.steps) {
+		label = m.steps[msg.step].Label
+	}
+	m.logBuffer = append(m.logBuffer, fmt.Sprintf("[%d/%d] %s — %s",
+		msg.step+1, len(m.steps), label, msg.status.String()))
+
+	// Chain to read the next progress message
+	if m.progressCh != nil {
+		return m, m.pollProgressCh(m.progressCh)
+	}
+	return m, nil
 }
+
+func (m InstallModel) handleInstallComplete(msg installCompleteMsg) (InstallModel, tea.Cmd) {
+	m.progressCh = nil
+
+	if msg.err != nil {
+		m.screen = ScreenErrorRecovery
+		m.failedStep = m.current
+		m.err = msg.err
+		return m, nil
+	}
+
+	// Store health check results
+	m.healthChecks = msg.healthChecks
+	m.screen = ScreenVerification
+	return m, nil
+}
+
+// ── Pre-flight checks ────────────────────────────────────────────
+
+func (m InstallModel) runPreFlightChecks() tea.Cmd {
+	return func() tea.Msg {
+		var results []PreFlightCheck
+		for _, check := range defaultPreFlightLabels {
+			status, detail := check.fn()
+			results = append(results, PreFlightCheck{
+				Label:  check.label,
+				Status: status,
+				Detail: detail,
+			})
+		}
+		allPassed := true
+		for _, r := range results {
+			if r.Status == "failed" {
+				allPassed = false
+			}
+		}
+		return preFlightCompleteMsg{allPassed: allPassed, results: results}
+	}
+}
+
+func checkOS() (string, string) {
+	if runtime.GOOS == "linux" {
+		return "passed", runtime.GOARCH
+	}
+	return "failed", fmt.Sprintf("expected linux, got %s", runtime.GOOS)
+}
+
+func checkPython() (string, string) {
+	out, err := exec.Command("python3", "--version").Output()
+	if err != nil {
+		return "failed", "python3 not found"
+	}
+	version := strings.TrimSpace(string(out))
+	return "passed", version
+}
+
+func checkBinary(name string) func() (string, string) {
+	return func() (string, string) {
+		_, err := exec.LookPath(name)
+		if err != nil {
+			return "failed", "not found in PATH"
+		}
+		return "passed", fmt.Sprintf("found at %s", name)
+	}
+}
+
+func checkDiskSpace() (string, string) {
+	var stat syscall.Statfs_t
+	home, _ := os.UserHomeDir()
+	err := syscall.Statfs(home, &stat)
+	if err != nil {
+		return "failed", "cannot check disk space"
+	}
+	// Available blocks * block size = available bytes
+	available := stat.Bavail * uint64(stat.Bsize)
+	availableGB := float64(available) / (1024 * 1024 * 1024)
+	if availableGB > 0.5 {
+		return "passed", fmt.Sprintf("%.1f GB free", availableGB)
+	}
+	return "failed", fmt.Sprintf("only %.1f GB free, need >0.5 GB", availableGB)
+}
+
+func checkSudo() (string, string) {
+	// Try sudo -n true (non-interactive, no password)
+	cmd := exec.Command("sudo", "-n", "true")
+	if err := cmd.Run(); err != nil {
+		return "failed", "NOPASSWD sudo not available"
+	}
+	return "passed", "passwordless"
+}
+
+func checkGitHubAPI() (string, string) {
+	cmd := exec.Command("curl", "-s", "--connect-timeout", "5",
+		"https://api.github.com/repos/E3CNC/e3cnc")
+	if err := cmd.Run(); err != nil {
+		return "failed", "GitHub API unreachable"
+	}
+	return "passed", "reachable"
+}
+
+// ── Install execution ────────────────────────────────────────────
+
+// startInstall kicks off the real install via bootstrap.Bootstrap with
+// real-time progress streaming through a channel.
+func (m InstallModel) startInstall() (InstallModel, tea.Cmd) {
+	// Initialize steps
+	for i, s := range installSteps {
+		m.steps[i] = s
+		m.steps[i].Status = StepPending
+	}
+	m.steps[0].Status = StepRunning
+	m.steps[0].StartedAt = time.Now()
+	m.current = 0
+	m.screen = ScreenExecDashboard
+	m.startedAt = time.Now()
+	m.err = nil
+
+	// Write install journal
+	journal := internal.InstallJournal{
+		InstallID:    fmt.Sprintf("%d", time.Now().UnixNano()),
+		InstanceName: m.instanceName,
+		StartedAt:    time.Now(),
+		TotalSteps:   len(installSteps),
+		Status:       "running",
+	}
+	internal.WriteInstallJournal(journal)
+
+	// Create progress channel (buffered to avoid blocking the goroutine)
+	ch := make(chan tea.Msg, 50)
+	m.progressCh = ch
+
+	// Start install in background goroutine
+	go runInstallGoroutine(m, ch, journal.InstallID)
+
+	// Return poll cmd to read the first progress message
+	return m, m.pollProgressCh(ch)
+}
+
+// runInstallGoroutine runs in a background goroutine and sends progress
+// messages through the channel as bootstrap executes each step.
+func runInstallGoroutine(m InstallModel, ch chan<- tea.Msg, installID string) {
+	defer close(ch)
+
+	cfg := bootstrap.BootstrapConfig{
+		InstanceName:  m.instanceName,
+		MoonrakerPort: m.moonrakerPort,
+		WebPort:       m.webPort,
+		Hostname:      m.mDNSHostname,
+		StartServices: m.startServices,
+		OnProgress: func(step int, status string, stepErr error) {
+			stepStatus := StepPending
+			switch status {
+			case "running":
+				stepStatus = StepRunning
+			case "completed":
+				stepStatus = StepCompleted
+			case "failed":
+				stepStatus = StepFailed
+			}
+			errDetail := ""
+			if stepErr != nil {
+				errDetail = stepErr.Error()
+			}
+			ch <- stepUpdateMsg{
+				step:      step,
+				status:    stepStatus,
+				errDetail: errDetail,
+			}
+		},
+	}
+
+	err := bootstrap.Bootstrap(cfg)
+
+	// Update journal
+	journal := internal.InstallJournal{
+		InstallID:    installID,
+		InstanceName: m.instanceName,
+		Status:       "completed",
+		CompletedAt:  time.Now(),
+	}
+
+	if err != nil {
+		journal.Status = "failed"
+		journal.Error = err.Error()
+		// Mark the failed step
+		for i, step := range installSteps {
+			if i < len(installSteps)-1 {
+				_ = step // mark all before current as completed
+			}
+		}
+	}
+
+	internal.WriteInstallJournal(journal)
+
+	if err != nil {
+		ch <- installCompleteMsg{err: err}
+		return
+	}
+
+	// Run health checks
+	var checks []deploy.HealthCheck
+	inst, lookupErr := instance.FromName(m.instanceName)
+	if lookupErr == nil && inst != nil {
+		checks = deploy.RunHealthChecks(inst)
+	}
+
+	ch <- installCompleteMsg{healthChecks: checks}
+}
+
+// pollProgressCh returns a tea.Cmd that reads one message from the progress channel.
+func (m InstallModel) pollProgressCh(ch <-chan tea.Msg) tea.Cmd {
+	return func() tea.Msg {
+		msg, ok := <-ch
+		if !ok {
+			return nil
+		}
+		return msg
+	}
+}
+
+// ── View ─────────────────────────────────────────────────────────
 
 func (m InstallModel) View() string {
 	switch m.screen {
@@ -409,6 +638,9 @@ func (m InstallModel) viewPreFlight() string {
 
 	allPassed := true
 	for _, check := range m.preFlightChecks {
+		if check.Label == "" {
+			continue
+		}
 		symbol := "  "
 		style := DimStyle
 		switch check.Status {
@@ -440,10 +672,12 @@ func (m InstallModel) viewPreFlight() string {
 		b.WriteString(OkStyle.Render("  ✓ All checks passed"))
 		b.WriteString("\n\n")
 		b.WriteString(HelpStyle.Render("Press Enter to continue · b: back to menu"))
-	} else {
+	} else if len(m.preFlightChecks) > 0 {
 		b.WriteString(FailStyle.Render("  ✗ Some checks failed"))
 		b.WriteString("\n\n")
-		b.WriteString(HelpStyle.Render("Fix the issues above and re-run"))
+		b.WriteString(HelpStyle.Render("Fix the issues above. Press Enter to proceed anyway · b: back to menu"))
+	} else {
+		b.WriteString(SpinnerStyle.Render("  Running checks..."))
 	}
 
 	return b.String()
@@ -546,7 +780,6 @@ func (m InstallModel) viewFirmwareCheck() string {
 	b.WriteString(fmt.Sprintf("  MCU: %s\n\n", shortenMCUPath(m.mcuPath)))
 
 	// Check if the MCU appears to have Klipper firmware
-	// For now, we check the name for "Klipper" which Klipper firmware embeds
 	if strings.Contains(m.mcuPath, "Klipper") || strings.Contains(m.mcuPath, "klipper") {
 		b.WriteString(OkStyle.Render("  ✓ Klipper firmware detected"))
 		b.WriteString("\n\n")
@@ -562,24 +795,18 @@ func (m InstallModel) viewFirmwareCheck() string {
 	}
 
 	b.WriteString("\n\n")
-	b.WriteString(HelpStyle.Render("Enter to continue with installation  ·  b: back to MCU selection"))
+	b.WriteString(HelpStyle.Render("Enter to start installation  ·  b: back to MCU selection"))
 	return b.String()
 }
 
-func shortenMCUPath(path string) string {
-	if len(path) > 50 {
-		return path[:50] + "..."
-	}
-	return path
-}
-// ── Screen 3: Execution Dashboard ───────────────────────────────────────
+// ── Screen 5: Execution Dashboard ───────────────────────────────────────
 
 func (m InstallModel) viewExecDashboard() string {
 	var b strings.Builder
 
 	elapsed := time.Since(m.startedAt).Round(time.Second)
 
-	b.WriteString(TitleStyle.Render(fmt.Sprintf("Installing E3CNC — step %d of 9", m.current+1)))
+	b.WriteString(TitleStyle.Render(fmt.Sprintf("Installing E3CNC — step %d of %d", m.current+1, len(m.steps))))
 	b.WriteString("\n")
 	b.WriteString(SubtitleStyle.Render(fmt.Sprintf("Elapsed: %s", elapsed)))
 	b.WriteString("\n\n")
@@ -590,7 +817,7 @@ func (m InstallModel) viewExecDashboard() string {
 
 		switch step.Status {
 		case StepPending:
-			symbol = fmt.Sprintf("[%d/9]", step.Number)
+			symbol = fmt.Sprintf("[%d/%d]", step.Number, len(m.steps))
 			style = StepPendingStyle
 		case StepRunning:
 			symbol = m.spinner.View()
@@ -634,79 +861,80 @@ func (m InstallModel) viewExecDashboard() string {
 	return b.String()
 }
 
-// ── Screen 4: Error Recovery ────────────────────────────────────────────
+// ── Screen 6: Error Recovery ────────────────────────────────────────────
 
 func (m InstallModel) viewErrorRecovery() string {
 	var b strings.Builder
 
 	step := m.steps[m.failedStep]
 
-	b.WriteString(FailStyle.Render(fmt.Sprintf("Step [%d/9] — %s — FAILED", step.Number, step.Label)))
+	b.WriteString(FailStyle.Render(fmt.Sprintf("Step [%d/%d] — %s — FAILED", step.Number, len(m.steps), step.Label)))
 	b.WriteString("\n\n")
 
-	b.WriteString(BoxStyle.Render(
-		DimStyle.Render("An error occurred during this step.") + "\n\n" +
-			InfoStyle.Render("Likely cause:") + "\n" +
-			DimStyle.Render("  Check your network connection and permissions.") + "\n\n" +
-			InfoStyle.Render("Suggested fix:") + "\n" +
-			WarnStyle.Render("  sudo chown -R $USER:$USER ~/e3cnc"),
-	))
+	errDetail := step.ErrorDetail
+	if errDetail == "" && m.err != nil {
+		errDetail = m.err.Error()
+	}
+	if errDetail != "" {
+		b.WriteString(BoxStyle.Render(
+			DimStyle.Render("Error:") + "\n" +
+				FailStyle.Render(fmt.Sprintf("  %s", errDetail)),
+		))
+	} else {
+		b.WriteString(BoxStyle.Render(
+			DimStyle.Render("An error occurred during this step.") + "\n\n" +
+				InfoStyle.Render("Likely cause:") + "\n" +
+				DimStyle.Render("  Check your network connection and permissions.") + "\n\n" +
+				InfoStyle.Render("Suggested fix:") + "\n" +
+				WarnStyle.Render("  Check logs with 'e3cnc-tui diagnose'"),
+		))
+	}
 	b.WriteString("\n\n")
 
 	b.WriteString("[r] Retry step\n")
 	b.WriteString("[s] Skip (not recommended)\n")
-	b.WriteString("[a] Abort - rollback\n")
+	b.WriteString("[a] Abort and rollback\n")
 
 	return b.String()
 }
 
-// ── Screen 5: Verification Dashboard ────────────────────────────────────
+// ── Screen 7: Verification Dashboard ────────────────────────────────────
 
 func (m InstallModel) viewVerification() string {
 	var b strings.Builder
 
 	b.WriteString(BoxStyle.Render(
 		OkStyle.Render("Installation Complete") + "\n" +
-			DimStyle.Render("E3CNC v0.9.8 deployed to instance 'default'"),
+			DimStyle.Render(fmt.Sprintf("E3CNC deployed to instance '%s'", m.instanceName)),
 	))
 	b.WriteString("\n\n")
 
-	b.WriteString(SectionHeaderStyle.Render("Health checks"))
-	b.WriteString("\n")
+	if len(m.healthChecks) > 0 {
+		b.WriteString(SectionHeaderStyle.Render("Health checks"))
+		b.WriteString("\n")
 
-	checks := []struct {
-		label    string
-		passed   bool
-		detail   string
-		optional bool
-	}{
-		{"Moonraker API", true, "200 OK", false},
-		{"Moonraker service", true, "active", false},
-		{"Klippy ready", false, "placeholder printer.cfg", true},
-		{"cnc_agent loaded", true, "connected", false},
-		{"Frontend", true, "serving at :8080", false},
-		{"Journal consistency", true, "valid", false},
-		{"Klipper service", false, "inactive", true},
-	}
-
-	for _, c := range checks {
-		symbol := "✓"
-		style := OkStyle
-		if !c.passed {
-			if c.optional {
-				symbol = "○"
-				style = WarnStyle
-			} else {
-				symbol = "✗"
-				style = FailStyle
+		for _, c := range m.healthChecks {
+			symbol := "✓"
+			style := OkStyle
+			if !c.Passed {
+				if c.IsOptional {
+					symbol = "○"
+					style = WarnStyle
+				} else {
+					symbol = "✗"
+					style = FailStyle
+				}
 			}
-		}
 
-		line := fmt.Sprintf("  %s %s", symbol, c.label)
-		if c.detail != "" {
-			line += DimStyle.Render(fmt.Sprintf("  (%s)", c.detail))
+			line := fmt.Sprintf("  %s %s", symbol, c.Name)
+			if c.Detail != "" {
+				line += DimStyle.Render(fmt.Sprintf("  (%s)", c.Detail))
+			}
+			b.WriteString(style.Render(line))
+			b.WriteString("\n")
 		}
-		b.WriteString(style.Render(line))
+	} else {
+		b.WriteString(DimStyle.Render("  Health checks skipped (not running on target)"))
 		b.WriteString("\n")
 	}
 
@@ -716,7 +944,7 @@ func (m InstallModel) viewVerification() string {
 	return b.String()
 }
 
-// ── Screen 6: Next Steps Wizard ─────────────────────────────────────────
+// ── Screen 8: Next Steps Wizard ─────────────────────────────────────────
 
 func (m InstallModel) viewNextSteps() string {
 	var b strings.Builder
@@ -734,11 +962,11 @@ func (m InstallModel) viewNextSteps() string {
 		description string
 		completed   bool
 	}{
-		{1, "Detect MCU", "e3cnc-cli detect-mcu", "Scan USB for your controller board", false},
-		{2, "Generate printer.cfg", "e3cnc-cli init-config", "Creates a CNC template with your MCU path", false},
-		{3, "Flash firmware", "e3cnc-cli flash-mcu", "Build and flash Klipper to your MCU", false},
+		{1, "Detect MCU", "e3cnc-tui detect-mcu", "Scan USB for your controller board", false},
+		{2, "Generate printer.cfg", "e3cnc-tui init-config", "Creates a CNC template with your MCU path", false},
+		{3, "Flash firmware", "e3cnc-tui flash-mcu", "Build and flash Klipper to your MCU", false},
 		{4, "Edit printer.cfg", "", "Search for '!!! ADJUST' in the config file", false},
-		{5, "Restart Klipper", "e3cnc-cli restart", "Apply the new configuration", false},
+		{5, "Restart Klipper", "e3cnc-tui restart", "Apply the new configuration", false},
 	}
 
 	for _, s := range steps {
@@ -766,13 +994,14 @@ func (m InstallModel) viewNextSteps() string {
 	return b.String()
 }
 
-// ProgressMsgFromString converts a line of Python CLI output to a progress message.
-// This is used by the runner to parse output from `e3cnc-cli install --json`.
-type ProgressMsgFromString struct {
-	Step    int    `json:"phase"`
-	Status  string `json:"status"`
-	Output  string `json:"output,omitempty"`
-	ErrCode string `json:"error_code,omitempty"`
+// ── Utilities ────────────────────────────────────────────────────
+
+// shortenMCUPath truncates a long MCU path for display.
+func shortenMCUPath(path string) string {
+	if len(path) > 50 {
+		return path[:50] + "..."
+	}
+	return path
 }
 
 // scanMCUDevices scans /dev/serial/by-id/ for connected MCU devices.

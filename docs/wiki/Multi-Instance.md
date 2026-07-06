@@ -1,10 +1,10 @@
 # Multi-Instance Setup
 
-Some machines run multiple Klipper/Moonraker instances on one host. The `e3cnc-cli` supports both legacy KIAUH layouts and the new E3CNC instance layout.
+Some machines run multiple Klipper/Moonraker instances on one host. The `e3cnc-tui` supports both legacy KIAUH layouts and the new E3CNC instance layout.
 
 ## E3CNC Instance Layout (new)
 
-Fresh installs using `./e3cnc-cli install --name <name>` create this layout:
+Fresh installs using `./e3cnc-tui install --name <name>` create this layout:
 
 ```
 ~/e3cnc/instances/
@@ -32,7 +32,7 @@ Service names follow the pattern `e3cnc-{name}-moonraker` / `e3cnc-{name}-klippe
 
 ```bash
 cd ~/E3CNC
-./e3cnc-cli install --name cnc_2
+./e3cnc-tui install --name cnc_2
 ```
 
 ## KIAUH-style layout (legacy, migration only)
@@ -52,7 +52,7 @@ For KIAUH-style installs, E3CNC reads instance metadata from the printer data di
 ### Migrate from KIAUH to E3CNC layout
 
 ```bash
-./e3cnc-cli migrate-instances
+./e3cnc-tui migrate-instances
 ```
 
 This imports KIAUH instances into the `~/e3cnc/instances/` layout. It copies the port from `moonraker.conf` but generates a clean configuration from the bootstrap template — the original KIAUH files are never modified. Mainsail user preferences (dashboard layout, theme, webcam settings) are imported from the KIAUH Moonraker SQLite database.
@@ -76,16 +76,14 @@ When you select "Instances" from the interactive TUI menu, you see:
 | `r` | Refresh list |
 | `q`/`esc` | Return to menu |
 
-Instance data is fetched from `e3cnc-cli instances --json`. The active instance is persisted to `~/.e3cnc-tui/state.json`.
+Instance data is fetched from the Go instance manager. The active instance is persisted to `~/.e3cnc-tui/state.json`.
 
 ## Via CLI (no TUI)
 
 ```bash
-./e3cnc-cli instances              # list all instances
-./e3cnc-cli --instance cnc_2 status  # run a command on a specific instance
+./e3cnc-tui instances                    # list all instances
+./e3cnc-tui --instance cnc_2 status      # run a command on a specific instance
 ```
-
-The `[W]` menu option in the Python fallback menu also lets you switch the active instance interactively.
 
 ## Important behavior
 
@@ -109,9 +107,9 @@ After installing, configure each instance's MCU:
 
 ```bash
 # For the 'default' instance:
-e3cnc-cli detect-mcu
-e3cnc-cli init-config
+./e3cnc-tui detect-mcu
+./e3cnc-tui init-config
 nano ~/e3cnc/instances/default/data/config/printer.cfg
-e3cnc-cli flash-mcu
+./e3cnc-tui flash-mcu
 sudo systemctl start e3cnc-default-klipper
 ```

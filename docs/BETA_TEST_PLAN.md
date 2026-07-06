@@ -1,6 +1,6 @@
 # E3CNC Beta Test Plan
 
-**Target**: E3CNC v0.9.8+ (Vue 3 migration + multi-instance)  
+**Target**: E3CNC v0.9.10+ (Pure Go CLI + multi-instance)  
 **Audience**: Beta testers (familiar with Klipper/Moonraker/CNC basics)  
 **Goal**: Validate stability, CNC workflows, and upgrade safety before general release.
 
@@ -10,7 +10,7 @@
 
 ### 1. Multi‑instance Isolation
 - **Steps**:
-  1. Create two instances: `e3cnc-cli init-config --instance mytest` and `e3cnc-cli init-config --instance mytest2`.
+  1. Create two instances: `e3cnc-tui init-config --instance mytest` and `e3cnc-tui init-config --instance mytest2`.
   2. Verify each has its own directory under `~/e3cnc/instances/<name>/`.
   3. Change a setting (e.g., `max_velocity`) in `mytest`'s `printer.cfg`.
   4. Confirm `mytest2`'s `printer.cfg` is unchanged.
@@ -58,9 +58,9 @@
 
 ## 🛠️ CLI & Deployment Tests
 
-### 5. Config Generation (`e3cnc-cli init-config`)
+### 5. Config Generation (`e3cnc-tui init-config`)
 - **Steps**:
-  1. Run `e3cnc-cli init-config` (optionally specify an instance).
+  1. Run `e3cnc-tui init-config` (optionally specify an instance).
   2. Inspect the generated `printer.cfg`.
   3. Verify presence of:
      - `[virtual_sdcard]` with `path: {printer_data_dir}/gcodes`
@@ -69,9 +69,9 @@
      - No stray `!!! ADJUST` markers in sections that must be filled (e.g., `serial:` if MCU was detected).
 - **Expected**: Config is ready to edit; no missing required sections.
 
-### 6. Update Pipeline (`e3cnc-cli update` / Nightly)
+### 6. Update Pipeline (`e3cnc-tui update` / Nightly)
 - **Steps**:
-  1. Trigger an update: `e3cnc-cli update` or wait for the nightly GitHub Action to push a new ZIP.
+  1. Trigger an update: `e3cnc-tui update` or wait for the nightly GitHub Action to push a new ZIP.
   2. Confirm the update runner:
      - Runs pre‑flight health checks.
      - Backs up current state.
@@ -90,7 +90,7 @@
 ### 7. First‑Run Flow
 - **Steps**:
   1. Start with a fresh E3CNC image (or a clean `~/e3cnc` directory).
-  2. Run `e3cnc-cli install` (if testing full install) or just `e3cnc-cli init-config`.
+  2. Run `e3cnc-tui install` (if testing full install) or just `e3cnc-tui init-config`.
   3. Manually edit the generated `printer.cfg` to set at least:
      - MCU serial path
      - Stepper pins/directions
@@ -112,7 +112,7 @@
 |------|-------|---------------|
 | **Performance** | Page load time (first paint) on a RPi‑4‑class device | < 3 seconds for core pages |
 | **Logs** | Review `~/e3cnc/cli.log` and `journal.json` after 10 min of idle | No repetitive warnings/errors; only expected startup/shutdown messages |
-| **Backup** | Run `e3cnc-cli backup` → verify archive → restore to a test location | Backup contains `config/`, `scripts/`, `database/`; restore brings system back to exact state |
+| **Backup** | Run `e3cnc-tui backup` → verify archive → restore to a test location | Backup contains `config/`, `scripts/`, `database/`; restore brings system back to exact state |
 | **Low‑RAM Mode** | Simulate a 1 GB RAM device by disabling the Vite dev server and using the pre‑built nightly ZIP | UI loads without OOM kills; interaction remains responsive |
 
 ---

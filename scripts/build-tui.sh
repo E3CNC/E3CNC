@@ -19,4 +19,4 @@ cd ../..
 echo "Built: $(ls -lh e3cnc-tui | awk '{print $5}')"
 echo ""
 echo "To commit:"
-echo "  git add e3cnc-tui e3cnc-cli && git commit -m 'chore: update e3cnc-tui binary'"
+echo "  git add e3cnc-tui && git commit -m 'chore: update e3cnc-tui binary'"

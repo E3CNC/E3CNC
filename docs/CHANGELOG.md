@@ -1,4 +1,14 @@
 # Changelog
+## v0.9.10 (2026-07-05)
+- **Pure Go rewrite complete** — all Python runtime dependencies removed. Single static Go binary handles all 24 commands in-process. No Python subprocess, no Ansible, no runtime deps.
+- **Python dead code removed** — `cli/` (Python CLI, ~2,400 lines), `_e3cnc_shared.py`/`_e3cnc_deploy.py`/`_e3cnc_supervisor.py` (~3,600 lines), `e3cnc-cli` shell wrapper, `ansible/` (~663 lines), `build-scripts/` stale shell scripts, `tests/` Python tests.
+- **Test coverage expanded** — from 12 to ~140 tests across 7 packages. New tests for `commands/`, `deploy/`, `instance/`, `bootstrap/`.
+- **OS guard** — instance manager checks `runtime.GOOS` before calling `systemctl`/`apt-get`, clear error on non-Linux.
+- **HTTP client interface** — injectable `deploy.DefaultHTTPClient` for testable health checks.
+- **Nginx config bug fixed** — format string missing MoonrakerPort arg.
+- **Moonraker CNC Agent** — now calls `e3cnc-tui --json` instead of importing deleted Python modules.
+- **All docs and wiki refreshed** — all 12 doc files updated for pure Go architecture.
+
 ## v0.9.9 (2026-07-04)
 - **BubbleTea TUI migration (Phases 0–6)** — replaces the Python `simple-term-menu` with a Go BubbleTea terminal UI (`e3cnc-tui`). Static Go binary (~3.8 MB, `CGO_ENABLED=0`) that dispatches to the Python CLI for business logic.
 - **Install wizard** — 6-screen guided installation: pre-flight checklist (9 checks, hard block), instance configuration (name/ports/hostname), 9-step execution dashboard with real-time progress and spinner, error recovery (retry/skip/abort), verification dashboard (7 health checks), next-steps guide (5 steps).

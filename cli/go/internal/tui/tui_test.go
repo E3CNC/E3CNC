@@ -173,10 +173,19 @@ var allMenuItems = []menuItem{
 	{"Quit", 17, true},
 }
 
+// skipIfShort skips integration tests that need tmux + SSH access to a live CNC.
+func skipIfShort(t *testing.T) {
+	t.Helper()
+	if testing.Short() {
+		t.Skip("Skipping tmux integration test (requires live CNC host)")
+	}
+}
+
 // ── Tests ──────────────────────────────────────────────────────────
 
 // TestTUIMenuRenders verifies the main menu shows all sections.
 func TestTUIMenuRenders(t *testing.T) {
+	skipIfShort(t)
 	launchTUI(t)
 	defer quitTUI(t)
 
@@ -194,6 +203,7 @@ func TestTUIMenuRenders(t *testing.T) {
 
 // TestTUINavigation verifies cursor reaches each menu item.
 func TestTUINavigation(t *testing.T) {
+	skipIfShort(t)
 	for _, item := range allMenuItems {
 		t.Run(item.name, func(t *testing.T) {
 			launchTUI(t)
@@ -208,6 +218,7 @@ func TestTUINavigation(t *testing.T) {
 
 // TestTUIEnter verifies pressing Enter on wizard items opens the correct screen.
 func TestTUIEnter(t *testing.T) {
+	skipIfShort(t)
 	tests := []struct {
 		name       string
 		index      int
@@ -235,6 +246,7 @@ func TestTUIEnter(t *testing.T) {
 
 // TestTUIQuit verifies Quit returns to the shell.
 func TestTUIQuit(t *testing.T) {
+	skipIfShort(t)
 	launchTUI(t)
 
 	navigateTo(17) // Quit
@@ -252,6 +264,7 @@ func TestTUIQuit(t *testing.T) {
 
 // TestTUIInstanceManager verifies the instance manager loads and shows instances.
 func TestTUIInstanceManager(t *testing.T) {
+	skipIfShort(t)
 	launchTUI(t)
 	defer quitTUI(t)
 
@@ -271,6 +284,7 @@ func TestTUIInstanceManager(t *testing.T) {
 
 // TestTUIVersion verifies the binary reports the correct version.
 func TestTUIVersion(t *testing.T) {
+	skipIfShort(t)
 	// Exit any running TUI
 	sendCtrlC()
 	waitFor(500 * time.Millisecond)
@@ -292,6 +306,7 @@ func TestTUIVersion(t *testing.T) {
 
 // TestTUIHelp verifies the help output.
 func TestTUIHelp(t *testing.T) {
+	skipIfShort(t)
 	sendCtrlC()
 	waitFor(500 * time.Millisecond)
 	sendKeys("q")

@@ -4,7 +4,7 @@
 #   make build-all     Cross-compile for all targets
 #   make clean         Remove build artifacts
 
-VERSION := $(shell grep '^VERSION' ../../_e3cnc_shared.py | head -1 | sed 's/.*"\(.*\)".*/\1/')
+VERSION := $(shell node -p "require('../../package.json').version")
 LDFLAGS := -s -w -X main.version=$(VERSION)
 GOFLAGS := -ldflags="$(LDFLAGS)" -trimpath
 CGO_ENABLED := 0

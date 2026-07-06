@@ -127,28 +127,30 @@ class CncAgent:
             register_endpoint(path, methods, next(iter(handlers.values())))
         self.logger.info("CncAgent: registered E3CNC deploy endpoints")
 
-    def _e3cnc_repo_path(self) -> Optional[Path]:
-        """Find the E3CNC repo directory."""
+    def _e3cnc_tui_path(self) -> Optional[Path]:
+        """Find the e3cnc-tui binary path."""
         candidates = [Path.home() / "E3CNC", Path.home() / "E3CNC_UI"]
         for c in candidates:
-            if (c / "e3cnc-cli").exists():
-                return c
+            tui = c / "e3cnc-tui"
+            if tui.exists():
+                return tui
+        # Fallback: check PATH
+        import shutil
+        path_bin = shutil.which("e3cnc-tui")
+        if path_bin:
+            return Path(path_bin)
         return None
 
-    async def _run_e3cnc_cli(self, args: List[str]) -> Dict[str, Any]:
-        """Run e3cnc-cli with the given args and return stdout + returncode."""
-        repo = self._e3cnc_repo_path()
-        if not repo:
-            return {"ok": False, "error": "E3CNC repo not found (checked ~/E3CNC, ~/E3CNC_UI)"}
-        cli = repo / "e3cnc-cli"
-        if not cli.exists():
-            return {"ok": False, "error": f"e3cnc-cli not found at {cli}"}
+    async def _run_e3cnc_tui(self, args: List[str]) -> Dict[str, Any]:
+        """Run e3cnc-tui with the given args and return stdout + returncode."""
+        tui = self._e3cnc_tui_path()
+        if not tui:
+            return {"ok": False, "error": "e3cnc-tui not found (checked ~/E3CNC, ~/E3CNC_UI, PATH)"}
         try:
             proc = await asyncio.create_subprocess_exec(
-                sys.executable, str(cli), *args,
+                str(tui), *args,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.STDOUT,
-                cwd=str(repo),
             )
             stdout, _ = await proc.communicate()
             output = stdout.decode("utf-8", errors="replace") if stdout else ""
@@ -160,83 +162,78 @@ class CncAgent:
         except (OSError, ValueError) as e:
             return {"ok": False, "error": str(e)}
 
-    async def _import_e3cnc_deploy(self):
-        """Lazy-import _e3cnc_deploy functions for read-only queries."""
-        repo = self._e3cnc_repo_path()
-        if repo and str(repo) not in sys.path:
-            sys.path.insert(0, str(repo))
+    async def _fetch_tui_json(self, command: str, extra_args: Optional[List[str]] = None) -> Optional[dict]:
+        """Run e3cnc-tui <command> --json and parse the output."""
+        args = [command, "--json"]
+        if extra_args:
+            args.extend(extra_args)
+        result = await self._run_e3cnc_tui(args)
+        if not result["ok"]:
+            self.logger.warning("e3cnc-tui %s --json failed: %s", command, result.get("error", result.get("output", "")))
+            return None
         try:
-            import _e3cnc_deploy as d
-            return d
-        except ImportError:
+            return json.loads(result["output"])
+        except (json.JSONDecodeError, ValueError) as e:
+            self.logger.warning("e3cnc-tui %s --json: parse error: %s", command, e)
             return None
 
     async def handle_e3cnc_info(self, request: Any = None) -> Dict[str, Any]:
         """GET /machine/e3cnc/info — report version, releases, instance."""
         result = {"ok": True}
-        deploy = await self._import_e3cnc_deploy()
-        if deploy:
-            try:
-                result["current_version"] = deploy.get_active_release_version()
-                releases = deploy.get_releases()
-                result["installed_releases"] = [
-                    {"version": r.version, "size_bytes": r.size_bytes}
-                    for r in releases
-                ]
-                from _e3cnc_shared import detect_instances
-                insts = detect_instances()
-                result["instances"] = [
-                    {
-                        "name": i.name,
-                        "port": i.moonraker_port,
-                        "web_root": i.web_root,
-                        "running": i.is_running,
-                    }
-                    for i in insts
-                ]
-            except Exception as e:
-                self.logger.warning("e3cnc info error: %s", e)
-                result["error"] = str(e)
+
+        # Fetch status (version + health)
+        status_data = await self._fetch_tui_json("status")
+        if status_data:
+            result["current_version"] = status_data.get("version", "unknown")
         else:
             result["current_version"] = "unknown"
+
+        # Fetch releases
+        releases_data = await self._fetch_tui_json("releases")
+        if releases_data:
+            result["installed_releases"] = releases_data.get("releases", [])
+        else:
             result["installed_releases"] = []
+
+        # Fetch instances
+        instances_data = await self._fetch_tui_json("instances")
+        if instances_data:
+            result["instances"] = [
+                {
+                    "name": i.get("name", ""),
+                    "port": i.get("moonraker_port", 0),
+                    "web_root": i.get("web_root", ""),
+                    "running": i.get("is_running", False),
+                }
+                for i in instances_data.get("instances", [])
+            ]
+        else:
             result["instances"] = []
+
         return result
 
     async def handle_e3cnc_update(self, request: Any = None) -> Dict[str, Any]:
         """POST /machine/e3cnc/update — trigger full stack update (background task)."""
         self.logger.info("E3CNC update triggered via API")
-        # Fire the CLI in the background so the HTTP request returns immediately
-        asyncio.ensure_future(self._run_e3cnc_cli(["update", "--yes"]))
+        # Fire the TUI in the background so the HTTP request returns immediately
+        asyncio.ensure_future(self._run_e3cnc_tui(["update", "--yes"]))
         return {"ok": True, "status": "started", "message": "Update started in background"}
 
     async def handle_e3cnc_rollback(self, request: Any = None) -> Dict[str, Any]:
         """POST /machine/e3cnc/rollback — roll back to previous release."""
         self.logger.info("E3CNC rollback triggered via API")
-        result = await self._run_e3cnc_cli(["rollback"])
+        result = await self._run_e3cnc_tui(["rollback"])
         return result
 
     async def handle_e3cnc_releases(self, request: Any = None) -> Dict[str, Any]:
         """GET /machine/e3cnc/releases — list installed releases."""
-        deploy = await self._import_e3cnc_deploy()
-        if not deploy:
-            return {"ok": False, "error": "E3CNC deploy module not found"}
-        try:
-            releases = deploy.get_releases()
-            return {
-                "ok": True,
-                "releases": [
-                    {
-                        "version": r.version,
-                        "size_bytes": r.size_bytes,
-                        "created_at": r.created_at,
-                        "is_active": r.is_active,
-                    }
-                    for r in releases
-                ],
-            }
-        except Exception as e:
-            return {"ok": False, "error": str(e)}
+        data = await self._fetch_tui_json("releases")
+        if data is None:
+            return {"ok": False, "error": "e3cnc-tui releases --json failed"}
+        return {
+            "ok": True,
+            "releases": data.get("releases", []),
+        }
 
     @staticmethod
     def _make_dispatcher(handlers):

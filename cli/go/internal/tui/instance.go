@@ -2,10 +2,11 @@ package tui
 
 import (
 	"fmt"
-	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/E3CNC/e3cnc/cli/go/internal"
+	"github.com/E3CNC/e3cnc/cli/go/internal/bootstrap"
 	"github.com/E3CNC/e3cnc/cli/go/internal/instance"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -132,48 +133,40 @@ func (m InstanceModel) fetchInstances() tea.Cmd {
 	}
 }
 
-// createInstanceCmd returns a tea.Cmd that creates a new instance.
+// createInstanceCmd returns a tea.Cmd that creates a new instance
+// using the Go-native bootstrap instead of the Python CLI.
 func (m InstanceModel) createInstanceCmd() tea.Cmd {
 	return func() tea.Msg {
-		cliDir, pythonExe, err := internal.FindPythonCLI()
-		if err != nil {
-			return instanceCreatedMsg{err: fmt.Errorf("cannot find Python CLI: %w", err)}
+		if runtime.GOOS != "linux" {
+			return instanceCreatedMsg{err: fmt.Errorf("instance management requires Linux (running on %s)", runtime.GOOS)}
 		}
-
-		// Run from the parent of cliDir (release root or repo root)
-		workDir := filepath.Dir(cliDir)
-		args := []string{"-m", "cli", "install", "--name", m.createName, "--check"}
+		cfg := bootstrap.BootstrapConfig{
+			InstanceName:  m.createName,
+			StartServices: false,
+		}
 		if m.createPort != "" {
-			args = append(args, "--port", m.createPort)
+			fmt.Sscanf(m.createPort, "%d", &cfg.MoonrakerPort)
 		}
-
-		result, err := internal.RunPythonSimple(pythonExe, args, workDir)
-		if err != nil {
+		if err := bootstrap.Bootstrap(cfg); err != nil {
 			return instanceCreatedMsg{err: fmt.Errorf("create instance: %w", err)}
-		}
-		if result.ExitCode != 0 {
-			return instanceCreatedMsg{err: fmt.Errorf("create failed (exit %d): %s", result.ExitCode, result.Stderr)}
 		}
 		return instanceCreatedMsg{}
 	}
 }
 
-// deleteInstanceCmd returns a tea.Cmd that deletes an instance.
+// deleteInstanceCmd returns a tea.Cmd that deletes an instance
+// using the Go-native uninstall instead of the Python CLI.
 func (m InstanceModel) deleteInstanceCmd() tea.Cmd {
 	return func() tea.Msg {
-		cliDir, pythonExe, err := internal.FindPythonCLI()
-		if err != nil {
-			return instanceDeletedMsg{err: fmt.Errorf("cannot find Python CLI: %w", err)}
+		if runtime.GOOS != "linux" {
+			return instanceDeletedMsg{err: fmt.Errorf("instance management requires Linux (running on %s)", runtime.GOOS)}
 		}
-
-		workDir := filepath.Dir(cliDir)
-		args := []string{"-m", "cli", "uninstall", "--name", m.deleteTarget, "--yes"}
-		result, err := internal.RunPythonSimple(pythonExe, args, workDir)
+		inst, err := instance.FromName(m.deleteTarget)
 		if err != nil {
+			return instanceDeletedMsg{err: fmt.Errorf("find instance %s: %w", m.deleteTarget, err)}
+		}
+		if err := bootstrap.Uninstall(inst); err != nil {
 			return instanceDeletedMsg{err: fmt.Errorf("delete instance: %w", err)}
-		}
-		if result.ExitCode != 0 {
-			return instanceDeletedMsg{err: fmt.Errorf("delete failed (exit %d): %s", result.ExitCode, result.Stderr)}
 		}
 		return instanceDeletedMsg{}
 	}

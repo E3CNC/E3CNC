@@ -25,12 +25,30 @@ import (
 
 // BootstrapConfig holds all parameters for a fresh install bootstrap.
 type BootstrapConfig struct {
-	InstanceName string
+	InstanceName  string
 	MoonrakerPort int
 	WebPort       int
 	Hostname      string
 	StartServices bool
 	Arch          string // "arm64", "amd64"
+
+	// OnProgress is called for each install step with the step index,
+	// current status ("running", "completed", "failed"), and any error.
+	// When nil, progress is written to stdout (original behaviour).
+	OnProgress func(step int, status string, stepErr error)
+}
+
+// step names matching installSteps in the TUI
+var stepNames = []string{
+	"Install system packages",
+	"Configure sudoers",
+	"Create directories",
+	"Vendor Moonraker and Klipper",
+	"Create virtualenvs",
+	"Generate config files",
+	"Install systemd services",
+	"Configure nginx and mDNS",
+	"Start services",
 }
 
 // Bootstrap lays down a complete fresh E3CNC installation.
@@ -49,65 +67,41 @@ func Bootstrap(cfg BootstrapConfig) error {
 		cfg.Hostname = "e3cnc"
 	}
 
-	// Step 1: Install system packages
-	fmt.Println("  [1/9] Installing system packages...")
-	if err := installSystemPackages(); err != nil {
-		return fmt.Errorf("system packages: %w", err)
+	report := cfg.OnProgress
+	if report == nil {
+		report = func(int, string, error) {} // no-op fallback
 	}
 
-	// Step 2: Create sudoers drop-in for service management
-	fmt.Println("  [2/9] Configuring sudoers...")
-	if err := setupSudoers(); err != nil {
-		return fmt.Errorf("sudoers: %w", err)
+	// Run each step
+	stepFns := []struct {
+		name string
+		fn   func(BootstrapConfig) error
+	}{
+		{"Install system packages", func(cfg BootstrapConfig) error { return installSystemPackages() }},
+		{"Configure sudoers", func(cfg BootstrapConfig) error { return setupSudoers() }},
+		{"Create directories", func(cfg BootstrapConfig) error { return createDirectories(cfg) }},
+		{"Vendor Moonraker and Klipper", func(cfg BootstrapConfig) error { return copyVendoredComponents(cfg) }},
+		{"Create virtualenvs", func(cfg BootstrapConfig) error { return createVirtualenvs(cfg) }},
+		{"Generate config files", func(cfg BootstrapConfig) error { return generateConfigs(cfg) }},
+		{"Install systemd services", func(cfg BootstrapConfig) error { return installServices(cfg) }},
+		{"Configure nginx and mDNS", func(cfg BootstrapConfig) error {
+			if err := setupNginx(cfg); err != nil {
+				return err
+			}
+			return setupAvahi(cfg)
+		}},
+		{"Start services", func(cfg BootstrapConfig) error { return startBootstrapServices(cfg) }},
 	}
 
-	// Step 3: Create directory structure
-	fmt.Println("  [3/9] Creating directories...")
-	if err := createDirectories(cfg); err != nil {
-		return fmt.Errorf("directories: %w", err)
-	}
-
-	// Step 4: Copy vendored Moonraker/Klipper
-	fmt.Println("  [4/9] Vendoring Moonraker and Klipper...")
-	if err := copyVendoredComponents(cfg); err != nil {
-		return fmt.Errorf("vendor: %w", err)
-	}
-
-	// Step 5: Create Python virtualenvs
-	fmt.Println("  [5/9] Creating virtualenvs...")
-	if err := createVirtualenvs(cfg); err != nil {
-		return fmt.Errorf("virtualenvs: %w", err)
-	}
-
-	// Step 6: Generate config files
-	fmt.Println("  [6/9] Generating config files...")
-	if err := generateConfigs(cfg); err != nil {
-		return fmt.Errorf("configs: %w", err)
-	}
-
-	// Step 7: Install systemd services
-	fmt.Println("  [7/9] Installing systemd services...")
-	if err := installServices(cfg); err != nil {
-		return fmt.Errorf("services: %w", err)
-	}
-
-	// Step 8: Configure nginx and Avahi
-	fmt.Println("  [8/9] Configuring nginx and mDNS...")
-	if err := setupNginx(cfg); err != nil {
-		return fmt.Errorf("nginx: %w", err)
-	}
-	if err := setupAvahi(cfg); err != nil {
-		return fmt.Errorf("avahi: %w", err)
-	}
-
-	// Step 9: Start services
-	if cfg.StartServices {
-		fmt.Println("  [9/9] Starting services...")
-		if err := startServices(cfg); err != nil {
-			return fmt.Errorf("start services: %w", err)
+	for i, step := range stepFns {
+		fmt.Printf("  [%d/%d] %s...\n", i+1, len(stepFns), step.name)
+		report(i, "running", nil)
+		if err := step.fn(cfg); err != nil {
+			report(i, "failed", err)
+			return fmt.Errorf("step %d (%s): %w", i+1, step.name, err)
 		}
-	} else {
-		fmt.Println("  [9/9] Skipping service start (--no-start)")
+		report(i, "completed", nil)
+		fmt.Printf("  ✓ %s\n", step.name)
 	}
 
 	return nil
@@ -143,6 +137,32 @@ func Uninstall(inst *instance.Instance) error {
 
 	fmt.Println("  ✅ Uninstall complete")
 	return nil
+}
+
+// Rollback cleans up partial state when Bootstrap fails mid-install.
+// This is a best-effort cleanup — it removes instance directories, configs,
+// and services that may have been created, but does not halt on errors.
+func Rollback(cfg BootstrapConfig) {
+	inst := filepath.Join(instance.InstancesDir(), cfg.InstanceName)
+
+	// Stop any services that may have been started
+	exec.Command("systemctl", "stop", fmt.Sprintf("e3cnc-%s-moonraker", cfg.InstanceName)).Run()
+	exec.Command("systemctl", "stop", fmt.Sprintf("e3cnc-%s-klipper", cfg.InstanceName)).Run()
+
+	// Remove service files
+	exec.Command("rm", "-f", fmt.Sprintf("/etc/systemd/system/e3cnc-%s-moonraker.service", cfg.InstanceName)).Run()
+	exec.Command("rm", "-f", fmt.Sprintf("/etc/systemd/system/e3cnc-%s-klipper.service", cfg.InstanceName)).Run()
+
+	// Remove nginx site
+	exec.Command("rm", "-f", fmt.Sprintf("/etc/nginx/sites-enabled/e3cnc-%s", cfg.InstanceName)).Run()
+	exec.Command("rm", "-f", fmt.Sprintf("/etc/nginx/sites-available/e3cnc-%s", cfg.InstanceName)).Run()
+
+	// Remove instance directory
+	os.RemoveAll(inst)
+
+	// Reload daemons
+	exec.Command("systemctl", "daemon-reload").Run()
+	exec.Command("nginx", "-s", "reload").Run()
 }
 
 // ── step implementations ──────────────────────────────────────────
@@ -443,7 +463,13 @@ WantedBy=multi-user.target
 	return nil
 }
 
-func startServices(cfg BootstrapConfig) error {
+// startBootstrapServices starts services after a fresh install.
+func startBootstrapServices(cfg BootstrapConfig) error {
+	if !cfg.StartServices {
+		fmt.Println("  [9/9] Skipping service start (--no-start)")
+		return nil
+	}
+
 	// Start in dependency order
 	services := []string{
 		"avahi-daemon",

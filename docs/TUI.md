@@ -1,75 +1,104 @@
-# E3CNC TUI — BubbleTea Terminal User Interface
+# E3CNC TUI — Go BubbleTea Terminal User Interface
 
-> **Status:** Active (Phases 0–6 complete)  
-> **Binary:** `e3cnc-tui` — static Go binary  
+> **Status:** Active — full Go rewrite complete  
+> **Binary:** `e3cnc-tui` — single static Go binary (CGO_ENABLED=0)  
 > **Source:** `cli/go/`
 
-The E3CNC TUI replaces the Python `simple-term-menu` interface with a fast,
-keyboard-driven BubbleTea terminal UI. It handles interactive commands
-(install wizard, instance management) while dispatching non-interactive
-commands to the Python CLI.
+The E3CNC TUI is a keyboard-driven BubbleTea terminal UI. It handles all CLI
+commands natively in Go — no Python runtime, no subprocess overhead.
 
 ## Architecture
 
-### Hybrid Go/Python Model
+### Pure Go — No Hybrid Layer
 
 ```
-┌────────────────────────────────┐
-│  BubbleTea Go Binary           │  ← e3cnc-tui (static binary)
-│  (cli/go/)                     │
-│                                │
-│  ┌─────────────────────────┐   │
-│  │  TUI (menu, progress,   │   │
-│  │  confirmations, forms)  │   │
-│  └──────────┬──────────────┘   │
-│             │                   │
-│  ┌──────────▼──────────────┐   │
-│  │  runner.go              │   │  ← subprocess layer
-│  │  • resolve Python path  │   │
-│  │  • resolve release path │   │
-│  │  • exec.CommandContext   │   │
-│  │  • stream stdout/stderr  │   │
-│  └──────────┬──────────────┘   │
-└─────────────┼──────────────────┘
-              │ exec.CommandContext
-              │ env: E3CNC_FORCE_COLOR=1
-┌─────────────▼──────────────────┐
-│  Python CLI                     │  ← all business logic
-│  (e3cnc-cli and cli/*.py)      │
-│                                │
-│  • Commands emit plain text    │
-│  • Stderr = warnings, errors   │
-│  • Exit code = success/fail    │
-└────────────────────────────────┘
+┌──────────────────────────────────────┐
+│  e3cnc-tui (Go static binary)        │  ← ~3.8 MB, zero runtime deps
+│  (cli/go/)                           │
+│                                      │
+│  ┌────────────────────────────┐      │
+│  │  Interactive TUI (TTY)     │      │
+│  │  • Main menu (24 commands) │      │
+│  │  • Install wizard          │      │
+│  │  • Instance manager        │      │
+│  │  • Streaming output        │      │
+│  └──────────┬─────────────────┘      │
+│             │                         │
+│  ┌──────────▼─────────────────┐      │
+│  │  CLI mode (args / --json)  │      │
+│  │  • commands.RunDispatch()  │      │
+│  │  • In-process execution    │      │
+│  │  • No subprocess overhead  │      │
+│  └────────────────────────────┘      │
+└──────────────────────────────────────┘
 ```
 
-The Go binary does NOT attempt ANSI passthrough. Python output is plain text
-(piped stdout means `isatty()` returns false). The Go binary applies its own
-`lipgloss` styling to TUI chrome (menu, status bar, confirmation dialogs)
-and displays Python's output as-is in a styled viewport.
+All command handlers run in-process via `commands.RunDispatch()`. There is no
+Python subprocess — every command from `status` to `update` to `install` is
+implemented directly in Go.
 
-### Bootstrap Flow
+### Package Architecture
 
-The `e3cnc-cli` Python script is the **sole entry point forever**. On startup:
+| Package | Purpose | Test Coverage |
+|---|---|---|
+| `internal/tui/` | BubbleTea models: menu, install wizard, instance manager, output view | ✅ 90+ tests |
+| `internal/commands/` | Go-native implementations of all 24 CLI commands | ✅ 10+ tests |
+| `internal/deploy/` | Release management, health checks (7 checks), backup/restore | ✅ 15+ tests |
+| `internal/instance/` | Instance model, filesystem detection, port allocation | ✅ 10+ tests |
+| `internal/bootstrap/` | Fresh-install provisioning, uninstall, rollback | ✅ 4 tests |
+| `internal/config.go` | State persistence (`state.json`, install journal) | ✅ existing tests |
+| `internal/command.go` | Command manifest loader (`commands.json`) | ✅ existing tests |
 
-1. **Check** `~/e3cnc/current/bin/e3cnc-tui` exists
-   - YES → `os.execv()` to Go binary (invisible to the user)
-   - NO → fall through to Python CLI
-2. **Python path** handles fresh installs where no release exists yet
+### Package Diagram
 
-After the first `install` + `update`, the Go binary exists in the release
-and future invocations forward transparently.
+```
+e3cnc-tui (main.go)
+│
+├── tui/                    ← BubbleTea models
+│   ├── model.go            Root state machine
+│   ├── menu.go             Main menu (24 items)
+│   ├── install.go          Install wizard (6 screens, 9 phases)
+│   ├── instance.go         Instance manager (list/create/delete)
+│   ├── styles.go           Lipgloss theme (green/cyan)
+│   └── model_test.go et al ← 90+ unit tests
+│
+├── commands/                ← All business logic
+│   ├── dispatch.go          RunDispatch() — 24 command handlers
+│   └── dispatch_test.go     Tests
+│
+├── deploy/                  ← Release operations
+│   ├── releases.go          Scan, download, extract, activate
+│   ├── health.go            7 health checks
+│   ├── backup.go            Backup/restore
+│   └── deploy_test.go       Tests
+│
+├── instance/                ← Instance model
+│   ├── instance.go          Struct, detection, paths
+│   └── instance_test.go     Tests
+│
+├── bootstrap/               ← Fresh install provisioning
+│   ├── bootstrap.go         OS packages, venvs, systemd, configs
+│   └── bootstrap_test.go    Tests
+│
+├── internal/
+│   ├── command.go           commands.json loader
+│   ├── config.go            State/install journal persistence
+│   ├── command_test.go
+│   └── config_test.go
+│
+└── cmd/e3cnc-tui/main.go    Entry point
+```
 
 ## Using the TUI
 
 ### Starting
 
 ```bash
-./e3cnc-cli              # Opens interactive TUI (if TTY available)
-./e3cnc-cli status       # CLI mode — dispatches to Python (no TUI)
-./e3cnc-tui              # Same as above (if already in release path)
-e3cnc-tui --version      # Show version
-e3cnc-tui --help         # Show help
+./e3cnc-tui                    # Open interactive TUI
+./e3cnc-tui status             # CLI mode — run command, print output, exit
+./e3cnc-tui --version          # Show version
+./e3cnc-tui --help             # Show help
+./e3cnc-tui install --yes      # Non-interactive mode (no TTY needed)
 ```
 
 ### Main Menu
@@ -104,14 +133,14 @@ Validates the environment before any destructive operations:
 
 | Check | Method |
 |---|---|
-| Python 3.8+ | `sys.version_info` |
-| git | `shutil.which` |
-| curl | `shutil.which` |
-| unzip | `shutil.which` |
-| zstd | `shutil.which` |
-| Disk space (≥0.5 GB) | `os.statvfs` |
+| OS (Linux) | `runtime.GOOS` |
+| Python 3.8+ | `exec.LookPath("python3")` |
+| git | `exec.LookPath` |
+| curl | `exec.LookPath` |
+| unzip | `exec.LookPath` |
+| zstd | `exec.LookPath` |
+| Disk space (≥0.5 GB) | `syscall.Statfs` |
 | GitHub API reachable | HTTP HEAD to `api.github.com` |
-| ansible-playbook | `shutil.which` |
 | Sudo (NOPASSWD) | `sudo -n true` |
 
 **All checks must pass** before installation starts. This is a hard block —
@@ -128,14 +157,15 @@ the installer will not proceed with a failing environment.
 | Start services | Yes | Toggle |
 
 ### Screen 3 — Execution Dashboard
-Shows real-time progress across all 9 installation phases:
+Shows real-time progress across all 9 installation phases via goroutine-streamed
+progress from `bootstrap.Bootstrap()`:
 
 ```
-[1/9]  Bootstrap infrastructure ............ ✓ 14s
-[2/9]  Install system packages ............. ✓ 8s
-[3/9]  Configure Moonraker ................ ✓ 3s
-[4/9]  Download release .................. ◌ 34s
-[5/9]  Verify checksum .................... pending
+[1/9]  Install system packages ............. ✓ 8s
+[2/9]  Create virtual environments ......... ✓ 14s
+[3/9]  Install Python dependencies ........ ✓ 34s
+[4/9]  Configure Moonraker ................ ✓ 3s
+[5/9]  Download release .................. ◌ 12s
 ...
 ```
 
@@ -154,21 +184,21 @@ When a step fails, shows the error with actionable recovery options:
 | `s` | Skip (for optional steps only) |
 | `a` | Abort and rollback |
 
-Each error includes a likely cause and suggested fix (e.g.,
-`sudo chown -R $USER:$USER ~/e3cnc` for permission errors).
+Rollback (`a`) calls `bootstrap.Rollback(cfg)` to stop services, remove
+instance dirs, service files, and nginx configs — safe to retry fresh.
 
 ### Screen 5 — Verification Dashboard
-Post-install health checks (7 checks):
+Post-install health checks (7 checks via `deploy.RunHealthChecks()`):
 
 | Check | Source |
 |---|---|
 | Moonraker API | HTTP 200 to `/server/info` |
 | Moonraker service | `systemctl is-active` |
-| Klippy | Socket check (placeholder = expected) |
+| Klippy | Socket check |
 | cnc_agent | Moonraker component list |
 | Frontend | HTTP check on web port |
 | Journal consistency | Validate install journal |
-| Klipper service | `systemctl is-active` (expected inactive) |
+| Klipper service | `systemctl is-active` |
 
 Checks are color-coded: ✓ green (pass), ⚠ yellow (expected issue with
 guidance), ✗ red (critical — must fix).
@@ -176,16 +206,16 @@ guidance), ✗ red (critical — must fix).
 ### Screen 6 — Next Steps
 5 guided steps from "installed" to "running CNC":
 
-1. Detect MCU
-2. Generate printer.cfg
-3. Flash firmware
+1. Detect MCU: `e3cnc-tui detect-mcu`
+2. Generate printer.cfg: `e3cnc-tui init-config`
+3. Flash firmware: `e3cnc-tui flash-mcu`
 4. Edit printer.cfg (search for `!!! ADJUST`)
-5. Restart Klipper
+5. Restart Klipper: `e3cnc-tui restart`
 
 ## Instance Manager
 
 Opened by selecting "Instances" in the main menu or running
-`e3cnc-tui instances`.
+`./e3cnc-tui instances`.
 
 ```
 ● test-box         ← active
@@ -197,32 +227,37 @@ Opened by selecting "Instances" in the main menu or running
 |---|---|
 | `↑`/`↓` | Navigate list |
 | `Enter` | Switch active instance |
-| `n` | Create new instance |
+| `n` | Create new instance (name + port form) |
 | `d` | Delete instance (with confirmation) |
 | `r` | Refresh list |
 | `q`/`esc` | Return to menu |
 
-Instance data is fetched from `e3cnc-cli instances --json`. Active instance
+Instance data is fetched from `instance.DetectInstances()`. Active instance
 is persisted to `~/.e3cnc-tui/state.json`.
 
 ## Subprocess Behaviour
 
 ### Streaming Output
-Long-running commands (install, update, deploy) stream Python CLI output
-line-by-line in real-time. A spinner animates while running.
+Long-running commands (install, update, deploy) run in Go goroutines and
+stream progress via channels. A spinner animates while running.
 
 ### Cancellation
-`Ctrl+C` sends SIGINT to the Python child process. If the process doesn't
-exit within 2 seconds, SIGKILL is sent to the entire process group.
+`Ctrl+C` cancels the current operation cleanly. The BubbleTea model handles
+it as a `tea.KeyMsg` and returns to the menu.
 
-### Stdout/Stderr
-- **Stdout** from Python is plain text in the TUI output viewport
-- **Stderr** is captured separately and displayed with **red** styling
-- Exit codes determine completion status coloring
+### JSON Output Mode
+Every command supports `--json` for structured output:
+
+```bash
+./e3cnc-tui status --json
+./e3cnc-tui instances --json
+./e3cnc-tui releases --json
+```
 
 ## Non-Interactive Mode
 
 When `--yes` is passed or stdin is not a TTY, the TUI collapses:
+
 - **Pre-flight**: Runs all checks, prints failures and exits with code 1
 - **Config**: Uses defaults or `--name`/`--port` flags
 - **Execution**: Streams all output to stdout
@@ -230,7 +265,7 @@ When `--yes` is passed or stdin is not a TTY, the TUI collapses:
 
 ```bash
 # Run install without interactive TUI:
-e3cnc-tui install --yes --name cnc_2
+./e3cnc-tui install --yes --name cnc_2
 ```
 
 ## Persistence
@@ -247,14 +282,12 @@ e3cnc-tui install --yes --name cnc_2
 
 ### Install Journal
 `~/.e3cnc-tui/install-journal.json` records every install attempt with
-per-step timing, exit reason, error codes, and health check results. Schema
-version 1 — locked at PRD time.
+per-step timing, exit reason, error codes, and health check results.
 
 ## Build & Development
 
 ### Prerequisites
 - Go 1.23+
-- Python 3.8+ (for business logic)
 
 ### Building
 ```bash
@@ -283,66 +316,45 @@ All builds use `CGO_ENABLED=0` with `-ldflags="-s -w -X main.version=<ver>"`.
 
 ### Testing
 ```bash
-# Run all Go tests
-go test ./internal/ -v -count=1
+# Run all Go tests (short mode skips integration tests needing live CNC)
+go test ./... -short -count=1
 
 # Go vet
 go vet ./...
-```
 
-### Project Structure
-```
-cli/go/
-├── go.mod
-├── go.sum
-├── Makefile                       ← CGO_ENABLED=0, cross-compile targets
-├── cmd/
-│   └── e3cnc-tui/
-│       └── main.go                ← Entry point (version, TUI, dispatch)
-├── internal/
-│   ├── command.go                 ← Commands manifest loader + parser
-│   ├── command_test.go            ← Tests
-│   ├── config.go                  ← State persistence
-│   ├── config_test.go             ← Tests
-│   ├── release_resolver.go        ← Python CLI path resolution
-│   ├── runner.go                  ← Subprocess lifecycle + streaming
-│   ├── tui/
-│   │   ├── model.go               ← Root BubbleTea model (state machine)
-│   │   ├── menu.go                ← Main menu view
-│   │   ├── install.go             ← Install wizard (6 screens)
-│   │   ├── instance.go            ← Instance management TUI
-│   │   └── styles.go              ← Lipgloss theme (green/cyan)
-│   └── tui/
-└── bin/                           ← Build artifacts
+# Run integration tests (requires tmux + SSH to CNC host)
+go test ./internal/tui/... -v -count=1
 ```
 
 ### Version Injection
 Version is injected at build time via `-ldflags`:
 
 ```bash
-go build -ldflags="-s -w -X main.version=0.9.8" -trimpath -o e3cnc-tui ./cmd/e3cnc-tui/
+go build -ldflags="-s -w -X main.version=0.9.9" -trimpath -o e3cnc-tui ./cmd/e3cnc-tui/
 ```
 
-The canonical version source is `_e3cnc_shared.py` (`VERSION` constant).
-`bump-version.sh` reads it and passes it to the Go linker automatically.
+The canonical version source is `package.json`. `bump-version.sh` reads it
+and passes it to the Go linker automatically.
 **Note:** Go 1.26+ requires the variable to be **unexported** (lowercase `version`)
 for `-X` injection — the `main.go` variable is deliberately lowercase.
 
 ### CI Integration
 - **Go tests run** on every push/PR via `ci.yml` (`test-go` job)
 - **Go binary built** in `build-frontend.yml` for release workflows
-- **Stack artifact** includes `bin/e3cnc-tui` (linux/arm64)
+- **Stack artifact** includes `bin/e3cnc-tui` (linux/arm64, ~3.8 MB)
 
 ## Key Design Decisions
 
 | Decision | Choice | Rationale |
 |---|---|---|
-| ANSI handling | Go applies own lipgloss; Python output is plain text | `isatty()` disables Python ANSI when piped |
-| Python fallback | Preserved permanently as bootstrap fallback | Fresh install has no Go binary |
-| Command contract | `cli/commands.json` manifest | Single source of truth; CI validates both parsers |
-| Subprocess model | `exec.CommandContext` + streaming pipes | Native Go cancellation, exit code forwarding |
+| Language | Pure Go | Single static binary, zero runtime deps, instant startup |
+| TUI framework | BubbleTea | Native Go TUI framework, no Python bridge needed |
+| Command contract | `commands.json` manifest | Single source of truth for all 24 command definitions |
+| Execution model | In-process Go functions | Every command runs as a direct function call — no subprocess overhead |
 | State persistence | JSON file at `~/.e3cnc-tui/state.json` | Simple, human-readable, no DB dep |
 | Cross-compile | `CGO_ENABLED=0` + strip-only | UPX unreliable on ARM64 Go binaries |
-| Version sync | Build-time `-ldflags` | Single source: `_e3cnc_shared.py` |
+| Version source | `package.json` | Single source; injected at build time via `-ldflags` |
 | Install wizard: pre-flight | Hard block — all must pass | Destructive operation; environment readiness is non-optional |
 | Install wizard: error recovery | Per-step retry/skip/abort | Avoids full restart for transient failures |
+| HTTP client | Injectable interface | `deploy.DefaultHTTPClient` can be swapped in tests |
+| OS guard | `runtime.GOOS` check | `systemctl/apt-get` calls fail fast with clear message on non-Linux |

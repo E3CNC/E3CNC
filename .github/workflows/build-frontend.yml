@@ -146,11 +146,6 @@ jobs:
           # Scripts
           cp scripts/cnc_metadata_extractor.py "${STACK_DIR}/scripts/"
 
-          # CLI — bundled so e3cnc-cli runs from the current release's copy
-          cp -r cli "${STACK_DIR}/cli"
-          cp _e3cnc_shared.py _e3cnc_deploy.py _e3cnc_supervisor.py "${STACK_DIR}/"
-          cp e3cnc-cli "${STACK_DIR}/e3cnc-cli"
-
           # Go TUI binary
           if [ -f bin/e3cnc-tui ]; then
             cp bin/e3cnc-tui "${STACK_DIR}/bin/e3cnc-tui"

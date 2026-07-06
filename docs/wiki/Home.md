@@ -6,9 +6,9 @@ Welcome to the E3CNC wiki — a CNC-focused control stack built around Klipper, 
 
 ## Getting Started
 
-- **[Installation](Installation)** — full install guide (CLI, Ansible, bash)
+- **[Installation](Installation)** — full install guide (Go CLI)
 - **[Multi-Instance](Multi-Instance)** — setting up multiple instances (`~/e3cnc/instances/{name}/`)
-- **[Architecture](Architecture)** — system design, hybrid Go/Python TUI, state flow
+- **[Architecture](Architecture)** — system design, Go BubbleTea TUI, state flow
 - **[API Reference](API)** — CNC agent endpoint documentation
 - **[Moonraker MCP](Moonraker-MCP)** — MCP server tools, G-code reference, printer object queries, and AI agent integration
 - **[Design System](Design-System)** — token-based design system plan
@@ -18,69 +18,48 @@ Welcome to the E3CNC wiki — a CNC-focused control stack built around Klipper, 
 ## Quick Start
 
 **Prerequisites:** Klipper + Moonraker installed, plus `git` and `python3`.
-The CLI auto-installs everything else (ansible, curl, unzip, zstd).
+The CLI auto-installs everything else (curl, unzip, zstd).
 
 ```bash
 cd ~
 git clone https://github.com/E3CNC/E3CNC.git
 cd E3CNC
-./e3cnc-cli install
+./e3cnc-tui install
 ```
 
 After install, configure your controller:
 
 ```bash
-./e3cnc-cli detect-mcu          # find your controller board
-./e3cnc-cli init-config         # generate printer.cfg
-./e3cnc-cli flash-mcu           # build and flash firmware
+./e3cnc-tui detect-mcu          # find your controller board
+./e3cnc-tui init-config         # generate printer.cfg
+./e3cnc-tui flash-mcu           # build and flash firmware
 ```
 
 See the [Installation](Installation) page for details.
 
-## CLI Tool — `e3cnc-cli` + `e3cnc-tui`
+## CLI Tool — `e3cnc-tui`
 
-The CLI now has **two** components:
+A single **Go static binary** (`CGO_ENABLED=0`, ~3.8 MB) handling all operations:
 
-| Component | Language | Purpose |
+| Mode | How | Description |
 |---|---|---|
-| `e3cnc-cli` | Python | Shell entry point + all business logic |
-| `e3cnc-tui` | Go (BubbleTea) | Interactive TUI, install wizard, instance manager |
+| **Interactive TUI** | `./e3cnc-tui` (no args) | Keyboard-driven menu: install wizard, instance manager, command dispatch |
+| **CLI mode** | `./e3cnc-tui <command>` | Runs command, prints output, exits. Supports `--json` for structured output |
+| **Non-interactive** | `./e3cnc-tui install --yes` | Collapses TUI to CLI output — works in scripts and over SSH |
 
-Run `./e3cnc-cli` with no arguments to open the interactive TUI.
-Run `./e3cnc-tui --help` for available commands.
-
-**Dispatch order:** The Python entry point checks for the Go binary in the deployed release first (`~/e3cnc/current/bin/e3cnc-tui`). If found, it forwards to the Go TUI. Otherwise it falls back to the Python CLI. This means fresh installs work without the Go binary, and the TUI becomes available after the first update.
-
-### Version display
-
-`e3cnc-cli --version` shows the CLI version:
-
-```
-e3cnc v0.9.8                                 # same version
-e3cnc CLI v0.9.2  |  Deployed stack: v0.9.8  # different versions
-```
+Run `./e3cnc-tui --help` for all available commands.
 
 ### Interactive TUI Features
 
 - **Install wizard** — 6-screen guided install: pre-flight checks, instance config, 9-step progress tracking, error recovery (retry/skip/abort), health verification, next steps guide
 - **Instance manager** — list instances with live status, switch active, create new, delete with confirmation
 - **Real-time streaming** — long-running commands show spinner + line-by-line output
-- **Cancellation** — Ctrl+C cleanly cancels running commands, returns to menu in <2 seconds
+- **Cancellation** — Ctrl+C cleanly cancels and returns to menu in <2 seconds
+- **JSON mode** — every command outputs structured JSON with `--json` flag
 
-### Non-interactive mode
-
-Pass `--yes` flag or pipe stdin for non-TTY mode. The TUI collapses to CLI output.
+### Version display
 
 ```bash
-./e3cnc-cli install --yes        # non-interactive install
-./e3cnc-cli install --check      # dry-run (no changes)
-```
-
-### Version display (legacy)
-
-The TUI and CLI versions match the deployed stack via build-time injection:
-
-```
 ./e3cnc-tui --version
-e3cnc-tui v0.9.8
+e3cnc-tui v0.9.9
 ```

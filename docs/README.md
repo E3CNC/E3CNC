@@ -7,12 +7,13 @@
 [![Release](https://img.shields.io/github/v/release/E3CNC/E3CNC?style=flat&label=Release&color=00FF00)](https://github.com/E3CNC/E3CNC/releases)
 [![CI](https://github.com/E3CNC/E3CNC/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/E3CNC/E3CNC/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/E3CNC/E3CNC?style=flat&label=License&color=00FF00)](https://github.com/E3CNC/E3CNC/blob/main/LICENSE)
+[![Go Tests](https://github.com/E3CNC/E3CNC/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/E3CNC/E3CNC/actions/workflows/ci.yml)
 
-A modern, responsive CNC controller interface for Klipper-based machines — forked from [Mainsail](https://github.com/mainsail-crew/mainsail) and retargeted from 3D printing to CNC machine control. Built with **Vue 3.5** and **Vuetify 3**. E3CNC manages its own stack updates via the app menu and `e3cnc-cli` rather than Moonraker's update_manager. The monorepo now owns the frontend directly and carries vendored Moonraker and Klipper snapshots for fresh-install bootstrap work.
+A modern, responsive CNC controller interface for Klipper-based machines — forked from [Mainsail](https://github.com/mainsail-crew/mainsail) and retargeted from 3D printing to CNC machine control. Built with **Vue 3.5**, **Vuetify 3**, and a **Go BubbleTea TUI**.
 
 ```bash
 git clone https://github.com/E3CNC/E3CNC.git ~/E3CNC && cd ~/E3CNC
-./e3cnc-cli install   # idempotent full install (wraps Ansible)
+./e3cnc-tui install   # one-command full install
 ```
 
 ## Features
@@ -27,9 +28,9 @@ git clone https://github.com/E3CNC/E3CNC.git ~/E3CNC && cd ~/E3CNC
 - **G-code Viewer** — 3D toolpath preview with stock/toolpath anchored to machine Z0, live toolhead in WCS coordinates, CAM WCS Origin metadata parsing
 - **Job Start WCS Selection** — pre-start dialog to choose which WCS coordinates to use, all G54–G59 slots visible
 - **Fusion 360 Post Processor** — `E3CNC_Fusion360.cps` with CAM WCS Origin comments for viewer integration
-- **CNC-Safe Macros** — PAUSE/RESUME/CANCEL*PRINT with `rename_existing: BASE*\*`, M3-M9 no-ops (no spindle wired), WCS-aware parking
+- **CNC-Safe Macros** — PAUSE/RESUME/CANCEL*PRINT with `rename_existing: BASE*\\*`, M3-M9 no-ops, WCS-aware parking
 - **WCS Klipper Plugin** — full G10 L2/L20 support with JSON persistence
-- **Vendored Moonraker + Klipper Snapshots** — the repo now carries E3CNC-maintained upstream source snapshots for monorepo bootstrap/install work
+- **Vendored Moonraker + Klipper** — E3CNC-maintained upstream source snapshots for monorepo bootstrap
 - **Moonraker CNC Agent** — guarded endpoints for spindle, coolant, WCS, and CNC settings
 - **Auto-Connect** — auto-discovers Moonraker on page load, single-printer auto-connect
 - **Floating Panels** — any dashboard panel can be torn off into a draggable, resizable window
@@ -37,41 +38,33 @@ git clone https://github.com/E3CNC/E3CNC.git ~/E3CNC && cd ~/E3CNC
 - **Keyboard Jog** — arrow key jogging with toggle
 - **State Persistence** — panel positions, editor files, dashboard scroll, grid settings survive reloads
 - **E3CNC Theme** — green #00FF00 branding with custom SVG logo, persisted to Moonraker DB
-- **In-App Stack Updates** — update, rollback, and release info from the E3CNC menu via Moonraker CNC-agent endpoints
-- **BubbleTea TUI** — keyboard-driven terminal UI with install wizard (6 screens), instance manager, real-time streaming, and cancellation
-- **Ansible Deploy** — idempotent install/deploy/uninstall playbooks
+- **In-App Stack Updates** — update, rollback, and release info via Moonraker CNC-agent endpoints
+- **Go BubbleTea TUI** — single static binary, keyboard-driven terminal UI with install wizard (6 screens), instance manager, real-time streaming, and cancellation
 - **Semver Releases** — version tags on `main` and GitHub releases
 
 ## Quick Start
 
-| Method                | Command                                                            |
-| --------------------- | ------------------------------------------------------------------ |
-| **Install**           | `./e3cnc-cli install`                                              |
-| **Update from UI**    | E3CNC top-corner menu → Update                                     |
-| **Interactive menu**  | `./e3cnc-cli` (BubbleTea TUI when available, Python fallback)        |
-| **Instance manager**  | Select "Instances" in the TUI, or `e3cnc-cli instances`               |
-| **Install wizard**    | `./e3cnc-cli install` (6-screen guided TUI wizard)                    |
-| **Detect MCU**        | `./e3cnc-cli detect-mcu`                                           |
-| **Flash firmware**    | `./e3cnc-cli flash-mcu`                                            |
-| **Generate config**   | `./e3cnc-cli init-config`                                          |
-| **Deploy**            | `./e3cnc-cli deploy`                                               |
-| **Update / Redeploy** | `./e3cnc-cli update`                                               |
-| **Preview update**    | `./e3cnc-cli update --dry-run`                                     |
-| **Uninstall**         | `./e3cnc-cli uninstall`                                            |
-| **Status**            | `./e3cnc-cli status`                                               |
-| **Diagnostics**       | `./e3cnc-cli diagnose`                                             |
-| **Backup**            | `./e3cnc-cli backup`                                               |
-| **Restore**           | `./e3cnc-cli restore <backup>`                                     |
-| **Check deps**        | `./e3cnc-cli check`                                                |
-| **Remote install**    | `./e3cnc-cli install --remote pi@cnc`                              |
-| **Dry-run install**   | `./e3cnc-cli install --check`                                      |
-| **Logs**              | `./e3cnc-cli logs`                                                 |
-| **Tab completion**    | `source build-scripts/e3cnc-completion.sh`                         |
-| **Select instance**   | `./e3cnc-cli --instance cnc_2 status` or use the `[W]` menu option |
+| Method | Command |
+|---|---|
+| **Install** | `./e3cnc-tui install` |
+| **Update from UI** | E3CNC top-corner menu → Update |
+| **Interactive TUI** | `./e3cnc-tui` |
+| **Instance manager** | Select "Instances" in the TUI, or `./e3cnc-tui instances` |
+| **Install wizard** | `./e3cnc-tui install` (6-screen guided TUI wizard) |
+| **Detect MCU** | `./e3cnc-tui detect-mcu` |
+| **Flash firmware** | `./e3cnc-tui flash-mcu` |
+| **Generate config** | `./e3cnc-tui init-config` |
+| **Update / Redeploy** | `./e3cnc-tui update` |
+| **Uninstall** | `./e3cnc-tui uninstall` |
+| **Status** | `./e3cnc-tui status` |
+| **Diagnostics** | `./e3cnc-tui diagnose` |
+| **Backup** | `./e3cnc-tui backup` |
+| **Restore** | `./e3cnc-tui restore <backup>` |
+| **Check deps** | `./e3cnc-tui check` |
+| **Logs** | `./e3cnc-tui logs` |
+| **Select instance** | `./e3cnc-tui --instance cnc_2 status` |
 
 ## Documentation
-
-Full docs on the [wiki](https://github.com/E3CNC/E3CNC/wiki):
 
 - [TUI (BubbleTea Terminal UI)](docs/TUI.md)
 - [Installation](https://github.com/E3CNC/E3CNC/wiki/Installation)
@@ -83,22 +76,17 @@ Full docs on the [wiki](https://github.com/E3CNC/E3CNC/wiki):
 
 ## Repository Structure
 
-| Path                            | Purpose                                                                                        |
-| ------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `src/`                          | Mainsail frontend (Vue 3.5, Vuetify 3, TypeScript)                                             |
-| `cli/`                          | E3CNC CLI package (commands, helpers, parser, menu, BubbleTea TUI)  |
-| `cli/go/`                       | BubbleTea Go TUI (`e3cnc-tui` — static binary, interactive menus)   |
-| `macros/`                       | Klipper CNC macros (homing override, PAUSE/RESUME, WCS)                                        |
-| `vendor/klipper/klippy/extras/` | Klipper WCS plugin (`work_coordinate_systems.py`)                                              |
-| `vendor/moonraker/`             | Vendored Moonraker with cnc_agent, cnc_metadata, MCP server                                    |
-| `post_processors/`              | Fusion 360 CAM post processors                                                                 |
-| `ansible/`                      | Ansible playbooks for install/deploy/uninstall                                                 |
-| `_e3cnc_deploy.py`              | Release deployment, health checks, backup, rollback                                            |
-| `_e3cnc_shared.py`              | Shared command logic for the e3cnc-cli tool                                                    |
-| `e3cnc-cli`                     | Unified CLI — full install, deploy, update, uninstall, status, backup, restore, diagnose, logs |
-| `scripts/`                      | Utility scripts (install, deploy, download frontend)                                           |
-| `tests/`                        | Unit tests (115+), Docker integration tests (2), vendored snapshot checks                      |
-| `.github/workflows/ci.yml`      | CI: Python tests + frontend build on every push/PR                                             |
+| Path | Purpose |
+|---|---|
+| `src/` | Vue 3.5 frontend (TypeScript, Vuetify 3) |
+| `cli/go/` | Go BubbleTea TUI (`e3cnc-tui` — single static binary) |
+| `macros/` | Klipper CNC macros (homing override, PAUSE/RESUME, WCS) |
+| `vendor/klipper/klippy/extras/` | Klipper WCS plugin (`work_coordinate_systems.py`) |
+| `vendor/moonraker/` | Vendored Moonraker with cnc_agent, cnc_metadata, MCP server |
+| `post_processors/` | Fusion 360 CAM post processors |
+| `commands.json` | Command manifest for the TUI (at repo root) |
+| `scripts/` | Utility scripts (install, deploy, build) |
+| `.github/workflows/ci.yml` | CI: Go tests + frontend build on every push/PR |
 
 ## Contributors
 

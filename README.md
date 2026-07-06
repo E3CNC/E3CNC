@@ -13,12 +13,12 @@ A modern, responsive CNC controller interface for Klipper-based machines — for
 
 ```bash
 git clone https://github.com/E3CNC/E3CNC.git ~/E3CNC && cd ~/E3CNC
-./e3cnc-cli install   # one-command full install
+./e3cnc-tui install   # one-command full install
 ```
 
-## What's New — BubbleTea TUI
+## What's New — Go BubbleTea TUI
 
-The CLI now ships with a **Go BubbleTea Terminal UI** (`e3cnc-tui`) — a fast, keyboard-driven replacement for the old Python menu. Run `./e3cnc-cli` with no arguments to enter the interactive TUI.
+The CLI is now a **single static Go binary** — zero runtime dependencies. Run `./e3cnc-tui` with no arguments to enter the interactive TUI, or pass a command for non-interactive mode.
 
 | Feature | Description |
 |---|---|
@@ -26,23 +26,33 @@ The CLI now ships with a **Go BubbleTea Terminal UI** (`e3cnc-tui`) — a fast, 
 | **Instance manager** | List, switch, create, and delete instances with live status indicators |
 | **Real-time streaming** | Long-running commands show spinner + line-by-line output |
 | **Cancellation** | Ctrl+C cleanly cancels running commands, returns to menu in <2s |
-| **Non-interactive mode** | `--yes` flag collapses TUI to CLI mode — works in scripts and over SSH |
+| **Non-interactive mode** | `--json` flag outputs structured data — works in scripts and over SSH |
 
-The Go binary is included in every release at `bin/e3cnc-tui` (linux/arm64, ~3.8 MB). The Python CLI is preserved as a permanent bootstrap fallback.
+The Go binary is included in every release at `bin/e3cnc-tui` (linux/arm64, ~3.8 MB, CGO_ENABLED=0).
 
 ## Quick Start
 
 | Method | Command |
 |---|---|
-| **Install** | `./e3cnc-cli install` |
-| **Interactive TUI** | `./e3cnc-cli` |
+| **Install** | `./e3cnc-tui install` |
+| **Interactive TUI** | `./e3cnc-tui` |
 | **Instance manager** | Select "Instances" in the TUI |
-| **Install wizard** | `./e3cnc-cli install` |
-| **Detect MCU** | `./e3cnc-cli detect-mcu` |
-| **Flash firmware** | `./e3cnc-cli flash-mcu` |
-| **Generate config** | `./e3cnc-cli init-config` |
-| **Update** | `./e3cnc-cli update` |
-| **Status** | `./e3cnc-cli status` |
+| **Install wizard** | `./e3cnc-tui install` |
+| **Detect MCU** | `./e3cnc-tui detect-mcu` |
+| **Flash firmware** | `./e3cnc-tui flash-mcu` |
+| **Generate config** | `./e3cnc-tui init-config` |
+| **Update** | `./e3cnc-tui update` |
+| **Status** | `./e3cnc-tui status` |
+
+## Architecture
+
+| Layer | Technology | Location |
+|---|---|---|
+| **CLI / TUI** | Go 1.26+ / BubbleTea | `cli/go/` |
+| **Frontend** | Vue 3.5 + Vuetify 3 + TypeScript | `src/` |
+| **Services** | Vendored Moonraker + Klipper | `vendor/` |
+
+The Go binary (`e3cnc-tui`) handles all CLI commands natively — no Python runtime required. The Moonraker CNC Agent (`vendor/moonraker/`) communicates with the Go binary via subprocess for deploy operations.
 
 ## Docs
 

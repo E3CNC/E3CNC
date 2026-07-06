@@ -283,7 +283,7 @@ func cmdReleases(jsonOut bool) bool {
 
 	if len(releases) == 0 {
 		fmt.Println("  No releases installed")
-		fmt.Println("  Run 'e3cnc-cli update' to install the latest release")
+		fmt.Println("  Run 'e3cnc-tui update' to install the latest release")
 		return true
 	}
 	for _, r := range releases {
@@ -1041,7 +1041,7 @@ func cmdMigrate(jsonOut bool, args []string) bool {
 		if jsonOut {
 			printJSON(map[string]string{"status": "no_old_layout"})
 		} else {
-			fmt.Println("  No old layout detected. Use 'e3cnc-cli install' for a fresh install.")
+			fmt.Println("  No old layout detected. Use 'e3cnc-tui install' for a fresh install.")
 		}
 		return true
 	}

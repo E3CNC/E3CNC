@@ -24,26 +24,26 @@
 
 | Feature | Description |
 |---|---|
+| **Pure Go Binary** | Single static binary (~3.8 MB, `CGO_ENABLED=0`). Zero runtime dependencies — no Python, no Ansible |
 | **BubbleTea TUI** | Keyboard-driven terminal UI with install wizard, instance manager, real-time streaming, and cancellation |
-| **Install Wizard** | 6-screen guided install: pre-flight checks (9), instance config, 9-step execution dashboard, error recovery (retry/skip/abort), verification (7 health checks), next steps |
+| **Install Wizard** | 6-screen guided install: pre-flight checks (9), instance config, 9-step execution dashboard, error recovery (retry/skip/abort), rollback, verification (7 health checks), next steps |
 | **Instance Manager** | List, switch active, create, delete instances with live status indicators. Persisted to `~/.e3cnc-tui/state.json` |
-| **Streaming Output** | Long-running commands show real-time line-by-line output with spinner animation |
-| **Cancellation** | Ctrl+C cleanly cancels running subprocess (SIGINT → 2s timeout → SIGKILL) |
-| **Non-Interactive Mode** | `--yes` flag collapses TUI to CLI mode for scripts and SSH |
-| **Python Fallback** | Python CLI preserved as permanent bootstrap — fresh installs work without Go binary |
-| **cross-compiled Go binary** | ~3.8 MB, `CGO_ENABLED=0`, supports linux/arm64, linux/amd64, darwin/amd64 |
+| **Streaming Output** | Long-running commands show real-time line-by-line output with spinner animation from Go goroutines |
+| **Cancellation** | Ctrl+C cleanly cancels, returns to menu in <2 seconds |
+| **Non-Interactive Mode** | `--yes` flag collapses TUI to CLI mode for scripts and SSH; `--json` flag for structured output |
+| **All Commands In-Process** | Every command from `status` to `update` to `install` runs as a direct Go function call — no subprocess overhead |
+| **Cross-compiled** | ~3.8 MB, `CGO_ENABLED=0`, supports linux/arm64, linux/amd64, darwin/amd64 |
 
 ## Deployment & Operations
 
 | Feature | Description |
 |---|---|
-| **Ansible Deploy** | Idempotent install/deploy/uninstall playbooks |
+| **Bootstrap in Go** | Fresh-install provisioning replaces Ansible with Go functions (apt, pip, venv, systemd, git clone) |
 | **Single-Deploy Layout** | `~/e3cnc/releases/<version>/` with `current` symlink. Atomic activation via `current.new` → rename |
 | **Health Checks** | 7 checks after every install/update: Moonraker API, service, Klippy, CNC agent, frontend, journal, Klipper |
 | **Auto-Rollback** | If critical health checks fail after update, automatically reverts to previous release |
-| **7-component status** | Check all components: repo, agent, config, plugins, macros, frontend, release |
 | **Diagnose** | Probes Moonraker API, Klippy state, CNC agent, metadata agent, nginx |
-| **Backup/Restore** | Timestamped snapshots of frontend, config, and WCS offsets |
+| **Backup/Restore** | Timestamped snapshots of config, Moonraker DB, and WCS offsets |
 
 ## Macros & Plugins
 
@@ -63,8 +63,7 @@
 | **Keyboard Jog** | Arrow key jogging with toggle |
 | **State Persistence** | Panel positions, editor files, dashboard scroll, grid settings survive reloads |
 | **E3CNC Theme** | Green #00FF00 branding, custom SVG logo, persisted to Moonraker DB |
-| **In-App Stack Updates** | Update, rollback, and release info from the E3CNC menu |
-| **Semver Releases** | Version tags on `main`, GitHub releases + nightly pre-releases |
+| **In-App Stack Updates** | Update, rollback, and release info from the E3CNC menu via Moonraker CNC Agent → `e3cnc-tui` subprocess |
 
 ## Release & CI
 
@@ -72,5 +71,5 @@
 |---|---|
 | **Semver Releases** | Version tags on `main` trigger GitHub releases |
 | **Nightly Pre-Releases** | Every push to `main` creates/updates a `nightly-main-YYYYMMDD` pre-release |
-| **Stack Artifact** | `e3cnc-stack-v<ver>.tar.zst` containing frontend, Moonraker, Klipper extras, macros, CLI, TUI binary, manifest |
-| **CI** | Python tests (454) + Go tests (12) + frontend build on every push/PR |
+| **Stack Artifact** | `e3cnc-stack-v<ver>.tar.zst` containing frontend, Moonraker, Klipper extras, macros, TUI binary, manifest |
+| **CI** | Go tests (~140) + frontend build on every push/PR |
