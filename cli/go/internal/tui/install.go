@@ -408,6 +408,14 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.logViewport, _ = m.logViewport.Update(msg)
 			}
 
+		case ScreenVerification:
+			if msg.String() == "enter" {
+				m.done = true
+			}
+			if key := msg.String(); key == "pgup" || key == "pgdn" {
+				m.logViewport, _ = m.logViewport.Update(msg)
+			}
+
 		case ScreenErrorRecovery:
 			switch msg.String() {
 			case "r":
@@ -426,11 +434,6 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					Arch:         runtime.GOARCH,
 				}
 				bootstrap.Rollback(cfg)
-				m.done = true
-			}
-
-		case ScreenVerification:
-			if msg.String() == "enter" {
 				m.done = true
 			}
 
@@ -516,6 +519,25 @@ func (m InstallModel) handleInstallComplete(msg installCompleteMsg) (InstallMode
 // appendSummaryToLog adds the installation summary to the log viewport and
 // updates the help text so the user knows to press Enter to return to menu.
 func (m InstallModel) appendSummaryToLog() InstallModel {
+	// Filter log to show only warnings and errors
+	var filtered []string
+	for _, line := range m.logBuffer {
+		lower := strings.ToLower(line)
+		if strings.Contains(lower, "fail") ||
+			strings.Contains(lower, "error") ||
+			strings.Contains(lower, "warn") ||
+			strings.Contains(lower, "✗") ||
+			strings.Contains(lower, "⚠") {
+			filtered = append(filtered, line)
+		}
+	}
+	// If no warnings/errors found, keep last few lines for context
+	if len(filtered) == 0 && len(m.logBuffer) > 0 {
+		start := max(0, len(m.logBuffer)-5)
+		filtered = append(filtered, m.logBuffer[start:]...)
+	}
+	m.logBuffer = filtered
+
 	m.logBuffer = append(m.logBuffer, "")
 	m.logBuffer = append(m.logBuffer, "── Installation Complete ──────────────────────")
 	m.logBuffer = append(m.logBuffer, fmt.Sprintf("  E3CNC deployed to instance '%s'", m.instanceName))
