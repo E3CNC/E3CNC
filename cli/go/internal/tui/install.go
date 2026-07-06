@@ -1113,10 +1113,26 @@ func (m InstallModel) viewExecDashboard() string {
 	showLog := m.verbose || m.screen == ScreenVerification
 	var logContent string
 	if showLog && len(m.logBuffer) > 0 {
+		// Render viewport with scrollbar
+		vpView := m.logViewport.View()
+		sp := m.logViewport.ScrollPercent()
+		vpLines := strings.Split(vpView, "\n")
+		thumb := int(sp * float64(len(vpLines)-1))
+		var sb strings.Builder
+		for i, line := range vpLines {
+			if i == thumb {
+				sb.WriteString(line + DimStyle.Render(" █"))
+			} else {
+				sb.WriteString(line)
+			}
+			if i < len(vpLines)-1 {
+				sb.WriteString("\n")
+			}
+		}
 		logContent = lipgloss.JoinVertical(
 			lipgloss.Top,
-			DimStyle.Render("── Log ──────────────────────────────────────"),
-			m.logViewport.View(),
+			DimStyle.Render(fmt.Sprintf("── Log ─────────────────────── %02d%% ──", int(sp*100))),
+			sb.String(),
 		)
 	} else if m.verbose {
 		// Reserve space even when empty so layout doesn't jump when first log arrives
