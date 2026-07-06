@@ -1084,7 +1084,7 @@ func (m InstallModel) viewExecDashboard() string {
 			duration := ""
 			if step.Status == StepCompleted && step.Duration > 0 {
 				if step.Duration < time.Second {
-					duration = " <1s"
+					duration = fmt.Sprintf(" %dms", step.Duration.Milliseconds())
 				} else {
 					duration = fmt.Sprintf(" %s", step.Duration.Round(time.Second))
 				}
