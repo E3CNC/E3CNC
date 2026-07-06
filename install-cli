@@ -1,0 +1,213 @@
+#!/usr/bin/env bash
+# install-cli — Build and install the e3cnc-tui binary as a system command
+#
+# Usage:
+#   ./install-cli              # interactive (asks questions)
+#   ./install-cli -y           # non-interactive, uses defaults
+#   ./install-cli --help       # show this message
+#
+# What it does:
+#   1. Checks prerequisites (Go, repo structure)
+#   2. Asks where to install (default: ~/.local/bin)
+#   3. Builds the static Go binary
+#   4. Installs it as 'e3cli' (or custom name)
+#   5. Adds install dir to PATH in ~/.zshrc / ~/.bashrc
+#   6. Verifies the installation
+set -euo pipefail
+
+# ─── Config ─────────────────────────────────────────────────────────────
+REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
+GO_SRC="$REPO_DIR/cli/go/cmd/e3cnc-tui"
+WRAPPER="$REPO_DIR/e3cnc-tui"
+
+# ─── Colors ──────────────────────────────────────────────────────────────
+BOLD='\033[1m'
+GREEN='\033[0;32m'
+CYAN='\033[0;36m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+CHECK="${GREEN}✓${NC}"
+CROSS="${RED}✗${NC}"
+ARROW="${CYAN}→${NC}"
+
+info()  { echo -e " ${ARROW} $*"; }
+ok()    { echo -e " ${CHECK} $*"; }
+warn()  { echo -e " ${YELLOW}⚠${NC} $*"; }
+fail()  { echo -e " ${CROSS} ${RED}$*${NC}"; }
+header(){ echo -e "\n${BOLD}$*${NC}\n$(printf '%*s' ${#*} | tr ' ' '─')"; }
+prompt(){ echo -en " ${ARROW} ${BOLD}$*${NC} "; }
+
+# ─── Help ───────────────────────────────────────────────────────────────
+if [[ "${1:-}" == "--help" ]]; then
+	head -20 "$0" | tail -n+3 | sed 's/^#//' | sed 's/^ //'
+	exit 0
+fi
+
+NONINTERACTIVE=false
+if [[ "${1:-}" == "-y" ]]; then
+	NONINTERACTIVE=true
+fi
+
+# ─── Check prerequisites ────────────────────────────────────────────────
+header "Checking prerequisites"
+
+# Go
+if ! command -v go &>/dev/null; then
+	fail "Go is not installed. Install it from https://go.dev/dl/"
+	exit 1
+fi
+GO_VER="$(go version | sed 's/.*go\([0-9]*\.[0-9]*\).*/\1/')"
+ok "Go version: $(go version | sed 's/.*go\([0-9.]*\).*/\1/')"
+
+# Go source directory
+if [[ ! -f "$GO_SRC/main.go" ]]; then
+	fail "Can't find Go source at $GO_SRC"
+	exit 1
+fi
+ok "Go source found at $GO_SRC"
+
+# ─── Ask install target ─────────────────────────────────────────────────
+header "Install target"
+
+DEFAULT_INSTALL_DIR="${HOME}/.local/bin"
+INSTALL_DIR="$DEFAULT_INSTALL_DIR"
+DEFAULT_CMD_NAME="e3cli"
+
+if ! $NONINTERACTIVE; then
+	prompt "Install directory [${DEFAULT_INSTALL_DIR}]:"
+	read -r INPUT_DIR
+	if [[ -n "$INPUT_DIR" ]]; then
+		INSTALL_DIR="$INPUT_DIR"
+	fi
+
+	prompt "Command name [${DEFAULT_CMD_NAME}]:"
+	read -r INPUT_NAME
+	if [[ -n "$INPUT_NAME" ]]; then
+		CMD_NAME="$INPUT_NAME"
+	else
+		CMD_NAME="$DEFAULT_CMD_NAME"
+	fi
+else
+	CMD_NAME="$DEFAULT_CMD_NAME"
+fi
+
+BIN_PATH="$INSTALL_DIR/$CMD_NAME"
+info "Will install as: ${BOLD}${BIN_PATH}${NC}"
+
+# Create install dir if needed
+if [[ ! -d "$INSTALL_DIR" ]]; then
+	mkdir -p "$INSTALL_DIR"
+	ok "Created $INSTALL_DIR"
+fi
+
+# ─── Build ───────────────────────────────────────────────────────────────
+header "Building binary"
+
+BUILD_DIR="$(mktemp -d)"
+trap 'rm -rf "$BUILD_DIR"' EXIT
+
+BUILD_BIN="$BUILD_DIR/e3cnc-tui"
+info "Building e3cnc-tui (static binary)..."
+cd "$REPO_DIR/cli/go"
+
+BUILD_OUTPUT="$(go build \
+	-ldflags='-s -w -X=main.version=0.0.0-installed' \
+	-o "$BUILD_BIN" \
+	./cmd/e3cnc-tui/ 2>&1)" || {
+	fail "Build failed:"
+	echo "$BUILD_OUTPUT"
+	exit 1
+}
+ok "Binary built ($(du -h "$BUILD_BIN" | cut -f1))"
+
+cd "$REPO_DIR"
+
+# ─── Install ─────────────────────────────────────────────────────────────
+header "Installing"
+
+# Install the binary
+install -m 755 "$BUILD_BIN" "$BIN_PATH"
+ok "Installed to ${BOLD}${BIN_PATH}${NC}"
+
+# ─── Verify ──────────────────────────────────────────────────────────────
+header "Verification"
+
+if "$BIN_PATH" --version &>/dev/null; then
+	VER="$("$BIN_PATH" --version)"
+	ok "Command works: ${GREEN}${VER}${NC}"
+else
+	warn "Binary installed but --version failed. Check $BIN_PATH"
+fi
+
+# ─── PATH setup ──────────────────────────────────────────────────────────
+header "PATH setup"
+
+detect_shell_rc() {
+	if [[ -f "${HOME}/.zshrc" ]]; then
+		echo "${HOME}/.zshrc"
+	elif [[ -f "${HOME}/.bashrc" ]]; then
+		echo "${HOME}/.bashrc"
+	elif [[ -f "${HOME}/.bash_profile" ]]; then
+		echo "${HOME}/.bash_profile"
+	else
+		echo ""
+	fi
+}
+
+in_path() {
+	case ":${PATH}:" in
+		*:"$1":*) return 0 ;;
+		*) return 1 ;;
+	esac
+}
+
+if in_path "$INSTALL_DIR"; then
+	ok "$INSTALL_DIR is already in your PATH"
+else
+	RC_FILE="$(detect_shell_rc)"
+	if [[ -z "$RC_FILE" ]]; then
+		warn "Could not detect shell config file (.zshrc/.bashrc)"
+		info "Add the following to your shell config:"
+		echo ""
+		echo "    export PATH=\"\$PATH:$INSTALL_DIR\""
+		echo ""
+	else
+		if $NONINTERACTIVE; then
+			echo "export PATH=\"\$PATH:$INSTALL_DIR\"" >> "$RC_FILE"
+			ok "Added to ${BOLD}$RC_FILE${NC}"
+			info "Restart your shell or run: source $RC_FILE"
+		else
+			prompt "Add 'export PATH=\"\$PATH:$INSTALL_DIR\"' to ${RC_FILE}? [Y/n]:"
+			read -r ADD_PATH
+			if [[ -z "$ADD_PATH" || "$ADD_PATH" =~ ^[Yy] ]]; then
+				echo "export PATH=\"\$PATH:$INSTALL_DIR\"" >> "$RC_FILE"
+				ok "Added to ${BOLD}$RC_FILE${NC}"
+				info "Restart your shell or run: source $RC_FILE"
+			else
+				info "Skipped — add it manually later:"
+				echo "    export PATH=\"\$PATH:$INSTALL_DIR\""
+			fi
+		fi
+	fi
+fi
+
+# ─── Done ────────────────────────────────────────────────────────────────
+header "Installation complete"
+
+echo ""
+echo "  ${GREEN}${CMD_NAME}${NC} is now available at ${BOLD}${BIN_PATH}${NC}"
+echo ""
+echo "  Quick start:"
+echo "    ${CYAN}${CMD_NAME}${NC}               Open the interactive TUI menu"
+echo "    ${CYAN}${CMD_NAME}${NC} status        Check installation status"
+echo "    ${CYAN}${CMD_NAME}${NC} update        Update E3CNC stack"
+echo "    ${CYAN}${CMD_NAME}${NC} --help        Show all commands"
+echo ""
+
+if ! in_path "$INSTALL_DIR"; then
+	echo "  ${YELLOW}Note:${NC} ${INSTALL_DIR} is not in your PATH yet."
+	echo "  Run:  ${BOLD}source ${RC_FILE:-~/.zshrc}${NC}"
+	echo "  Or:   ${BOLD}export PATH=\"\$PATH:$INSTALL_DIR\"${NC}"
+	echo ""
+fi

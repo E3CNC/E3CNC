@@ -120,6 +120,14 @@ func (m MenuModel) View() string {
 	b.WriteString(TitleStyle.Render("E3CNC CLI"))
 	b.WriteString("\n\n")
 
+	// Calculate the widest label for alignment
+	labelWidth := 0
+	for _, item := range m.items {
+		if len(item.Label) > labelWidth {
+			labelWidth = len(item.Label)
+		}
+	}
+
 	var lastCategory string
 	for i, item := range m.items {
 		if item.Command == "" {
@@ -145,9 +153,11 @@ func (m MenuModel) View() string {
 			}
 		}
 
-		line := cursor + item.Label
+		// Pad label to align descriptions
+		paddedLabel := item.Label + strings.Repeat(" ", labelWidth-len(item.Label)+2)
+		line := cursor + paddedLabel
 		if item.Description != "" {
-			line += strings.Repeat(" ", 4) + DimStyle.Render(item.Description)
+			line += DimStyle.Render(item.Description)
 		}
 		b.WriteString(style.Render(line))
 		b.WriteString("\n")
