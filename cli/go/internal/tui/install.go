@@ -172,6 +172,8 @@ func NewInstallModel() InstallModel {
 	ni.Width = 30
 	ni.Prompt = "▸ "
 
+	vp := viewport.New(70, 8)
+
 	return InstallModel{
 		screen:           ScreenModeSelect,
 		installMode:      0,
@@ -189,6 +191,7 @@ func NewInstallModel() InstallModel {
 		mcuDevices:      mcuDevices,
 		spinner:         s,
 		progBar:         newProgressBar(),
+		logViewport:     vp,
 		completedSteps:  make(map[string]bool),
 	}
 }
@@ -247,7 +250,7 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = msg.Width
 		m.height = msg.Height
 		m.logViewport.Width = msg.Width - 4
-		m.logViewport.Height = 8
+		m.logViewport.Height = max(6, (msg.Height-8)/2)
 
 	case spinner.TickMsg:
 		var cmd tea.Cmd
@@ -601,7 +604,7 @@ func (m InstallModel) startInstall(startStep int) (InstallModel, tea.Cmd) {
 	m.screen = ScreenExecDashboard
 	m.startedAt = time.Now()
 	m.err = nil
-	m.logViewport = viewport.New(70, 8)
+	m.logViewport = viewport.New(max(70, m.width-4), max(6, (max(m.height, 44)-8)/2))
 	m.logViewport.KeyMap.PageUp.SetKeys("pgup")
 	m.logViewport.KeyMap.PageDown.SetKeys("pgdn")
 	m.logBuffer = nil
@@ -962,17 +965,19 @@ func (m InstallModel) viewExecDashboard() string {
 		b.WriteString(SubtitleStyle.Render(fmt.Sprintf("Elapsed: %s", elapsed)))
 		b.WriteString("\n\n")
 
-		// Progress bar
+		// Progress bar (always reserve space for stability)
 		if m.progressPct > 0 {
 			bar := m.progBar.ViewAs(m.progressPct)
 			b.WriteString(DimStyle.Render("  Progress: "))
 			b.WriteString(bar)
-			b.WriteString("\n")
+		} else {
+			b.WriteString(strings.Repeat(" ", 12)) // placeholder to keep layout
 		}
+		b.WriteString("\n")
 		header = b.String()
 	}
 
-	// Step list (rendered separately for fixed-height padding)
+	// Step list with enforced height
 	{
 		var b strings.Builder
 		for i, step := range m.steps {
@@ -1009,11 +1014,14 @@ func (m InstallModel) viewExecDashboard() string {
 			b.WriteString(style.Render(line))
 			b.WriteString("\n")
 		}
-		// Pad steps to fixed height so log panel doesn't jump
-		stepsBody = lipgloss.NewStyle().Height(len(m.steps) + 1).Render(b.String())
+		// Fill the top half (minus header) so the log panel starts at a fixed position
+		topRows := m.logViewport.Height + 1 // match log height for balance
+		stepsBody = lipgloss.NewStyle().Height(topRows).MaxHeight(topRows).Render(b.String())
 	}
 
-	// Verbose log panel (only when verbose is on)
+	helpText := HelpStyle.Render("v: toggle verbose (on)  ·  Ctrl+C: cancel")
+
+	// Build the log panel (always reserve the space, fill or blank)
 	var logContent string
 	if m.verbose && len(m.logBuffer) > 0 {
 		logContent = lipgloss.JoinVertical(
@@ -1021,10 +1029,13 @@ func (m InstallModel) viewExecDashboard() string {
 			DimStyle.Render("── Log ──────────────────────────────────────"),
 			m.logViewport.View(),
 		)
+	} else if m.verbose {
+		// Reserve space even when empty so layout doesn't jump when first log arrives
+		logContent = lipgloss.JoinVertical(lipgloss.Top,
+			DimStyle.Render("── Log ──────────────────────────────────────"),
+			strings.Repeat("\n", max(0, m.logViewport.Height-1)),
+		)
 	}
-
-	// Combine: header + steps (fixed height) + log panel + help
-	helpText := HelpStyle.Render("v: toggle verbose (on)  ·  Ctrl+C: cancel")
 
 	if logContent != "" {
 		return lipgloss.JoinVertical(lipgloss.Top,
