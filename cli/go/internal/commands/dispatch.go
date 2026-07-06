@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/E3CNC/e3cnc/cli/go/internal/bootstrap"
@@ -841,6 +842,7 @@ func cmdCliLog(jsonOut bool) bool {
 func cmdInstall(jsonOut bool, args []string) bool {
 	cfg := bootstrap.BootstrapConfig{
 		StartServices: true,
+		Arch:          runtime.GOARCH,
 	}
 
 	for i, arg := range args {

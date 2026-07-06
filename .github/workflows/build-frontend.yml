@@ -97,9 +97,20 @@ jobs:
           cd cli/go
           CGO_ENABLED=0 GOOS=linux GOARCH=arm64 \
             go build -ldflags="-s -w -X main.version=$V" \
-            -trimpath -o ../../bin/e3cnc-tui ./cmd/e3cnc-tui/
+            -trimpath -o ../../bin/e3cnc-tui-arm64 ./cmd/e3cnc-tui/
           echo "Go TUI binary built for linux/arm64:"
-          ls -lh ../../bin/e3cnc-tui
+          ls -lh ../../bin/e3cnc-tui-arm64
+
+      - name: Build Go TUI binary (linux/amd64)
+        run: |
+          V="${{ steps.version.outputs.VERSION }}"
+          V="${V#v}"
+          cd cli/go
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+            go build -ldflags="-s -w -X main.version=$V" \
+            -trimpath -o ../../bin/e3cnc-tui-amd64 ./cmd/e3cnc-tui/
+          echo "Go TUI binary built for linux/amd64:"
+          ls -lh ../../bin/e3cnc-tui-amd64
 
       - name: Write version.json into dist
         run: |
@@ -146,11 +157,14 @@ jobs:
           # Scripts
           cp scripts/cnc_metadata_extractor.py "${STACK_DIR}/scripts/"
 
-          # Go TUI binary
-          if [ -f bin/e3cnc-tui ]; then
-            cp bin/e3cnc-tui "${STACK_DIR}/bin/e3cnc-tui"
-            echo "  Included e3cnc-tui in stack artifact"
-          fi
+          # Go TUI binary (multi-arch)
+          for arch in arm64 amd64; do
+            src="bin/e3cnc-tui-${arch}"
+            if [ -f "$src" ]; then
+              cp "$src" "${STACK_DIR}/bin/e3cnc-tui-${arch}"
+              echo "  Included e3cnc-tui-${arch} in stack artifact ($(ls -lh "$src" | awk '{print $5}'))"
+            fi
+          done
 
           # Bootstrap template
           cp -r config/bootstrap "${STACK_DIR}/config/bootstrap"

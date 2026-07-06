@@ -329,6 +329,7 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				// Abort: rollback and return to main menu
 				cfg := bootstrap.BootstrapConfig{
 					InstanceName: m.instanceName,
+					Arch:         runtime.GOARCH,
 				}
 				bootstrap.Rollback(cfg)
 				m.done = true
@@ -527,6 +528,7 @@ func runInstallGoroutine(m InstallModel, ch chan<- tea.Msg, installID string) {
 		WebPort:       m.webPort,
 		Hostname:      m.mDNSHostname,
 		StartServices: m.startServices,
+		Arch:          runtime.GOARCH,
 		OnProgress: func(step int, status string, stepErr error) {
 			stepStatus := StepPending
 			switch status {

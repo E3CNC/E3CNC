@@ -69,11 +69,14 @@ echo "  ✓ _e3cnc_shared.py"
 # ── build Go TUI binary with injected version ────────────────────────────────
 GO_DIR="cli/go"
 if [[ -d "$GO_DIR" ]]; then
-    echo "  Building Go TUI binary (version=$NEW)..."
-    (cd "$GO_DIR" && CGO_ENABLED=0 go build -ldflags="-s -w -X main.version=$NEW" -trimpath -o e3cnc-tui ./cmd/e3cnc-tui/) 2>&1 | sed 's/^/    /'
-    VERIFIED=$(cd "$GO_DIR" && ./e3cnc-tui --version 2>&1)
-    echo "  ✓ Go TUI binary built: $VERIFIED"
-    ls -lh "$GO_DIR/e3cnc-tui" | sed 's/^/    /'
+    echo "  Building Go TUI binaries (version=$NEW)..."
+    for arch in arm64 amd64; do
+        (cd "$GO_DIR" && CGO_ENABLED=0 GOOS=linux GOARCH=$arch \
+            go build -ldflags="-s -w -X main.version=$NEW" \
+            -trimpath -o "e3cnc-tui-${arch}" ./cmd/e3cnc-tui/) 2>&1 | sed 's/^/    /'
+        size=$(ls -lh "$GO_DIR/e3cnc-tui-${arch}" | awk '{print $5}')
+        echo "  ✓ e3cnc-tui-${arch} built ($size)"
+    done
 fi
 
 # ── add stub entry to CHANGELOG.md ───────────────────────────────────────────
@@ -98,7 +101,17 @@ echo ""
 echo "All version files synced to $NEW."
 
 # ── auto-commit ──────────────────────────────────────────────────────────────
-git add package.json _e3cnc_shared.py CHANGELOG.md package-lock.json cli/go/e3cnc-tui
+git add package.json _e3cnc_shared.py CHANGELOG.md package-lock.json
+# Stage Go TUI binaries for both architectures
+for arch in arm64 amd64; do
+    src="$GO_DIR/e3cnc-tui-${arch}"
+    if [[ -f "$src" ]]; then
+        # Copy to repo root so the wrapper sees them
+        cp "$src" "e3cnc-tui-${arch}"
+        git add "e3cnc-tui-${arch}"
+    fi
+done
+git add e3cnc-tui 2>/dev/null || true  # the wrapper script
 git commit -m "chore: bump v$CURRENT → v$NEW" --no-verify 2>/dev/null || true
 echo "  ✓ Commit created: chore: bump v$CURRENT → v$NEW"
 
