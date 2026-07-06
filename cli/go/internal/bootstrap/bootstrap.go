@@ -145,8 +145,8 @@ func Uninstall(inst *instance.Instance) error {
 	fmt.Println("  Uninstalling E3CNC...")
 
 	// Stop services
-	exec.Command("systemctl", "stop", inst.MoonrakerService).Run()
-	exec.Command("systemctl", "stop", inst.KlipperService).Run()
+	exec.Command("sudo", "systemctl", "stop", inst.MoonrakerService).Run()
+	exec.Command("sudo", "systemctl", "stop", inst.KlipperService).Run()
 
 	// Remove instance directory
 	instPath := filepath.Join(instance.InstancesDir(), inst.Name)
@@ -164,7 +164,7 @@ func Uninstall(inst *instance.Instance) error {
 	exec.Command("rm", "-f", "/etc/systemd/system/avahi-publish-e3cnc.service").Run()
 
 	// Reload systemd + nginx
-	exec.Command("systemctl", "daemon-reload").Run()
+	exec.Command("sudo", "systemctl", "daemon-reload").Run()
 	exec.Command("nginx", "-s", "reload").Run()
 
 	fmt.Println("  ✅ Uninstall complete")
@@ -178,8 +178,8 @@ func Rollback(cfg BootstrapConfig) {
 	inst := filepath.Join(instance.InstancesDir(), cfg.InstanceName)
 
 	// Stop any services that may have been started
-	exec.Command("systemctl", "stop", fmt.Sprintf("e3cnc-%s-moonraker", cfg.InstanceName)).Run()
-	exec.Command("systemctl", "stop", fmt.Sprintf("e3cnc-%s-klipper", cfg.InstanceName)).Run()
+	exec.Command("sudo", "systemctl", "stop", fmt.Sprintf("e3cnc-%s-moonraker", cfg.InstanceName)).Run()
+	exec.Command("sudo", "systemctl", "stop", fmt.Sprintf("e3cnc-%s-klipper", cfg.InstanceName)).Run()
 
 	// Remove service files
 	exec.Command("rm", "-f", fmt.Sprintf("/etc/systemd/system/e3cnc-%s-moonraker.service", cfg.InstanceName)).Run()
@@ -193,6 +193,6 @@ func Rollback(cfg BootstrapConfig) {
 	os.RemoveAll(inst)
 
 	// Reload daemons
-	exec.Command("systemctl", "daemon-reload").Run()
+	exec.Command("sudo", "systemctl", "daemon-reload").Run()
 	exec.Command("nginx", "-s", "reload").Run()
 }

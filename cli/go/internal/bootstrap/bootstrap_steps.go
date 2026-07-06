@@ -222,7 +222,7 @@ WantedBy=multi-user.target
 
 	writeFileSudo(fmt.Sprintf("/etc/systemd/system/%s.service", klipperName), klipperUnit, 0644)
 
-	exec.Command("systemctl", "daemon-reload").Run()
+	exec.Command("sudo", "systemctl", "daemon-reload").Run()
 	return nil
 }
 
@@ -315,7 +315,7 @@ func startBootstrapServices(cfg BootstrapConfig) error {
 	}
 
 	for _, svc := range services {
-		cmd := exec.Command("systemctl", "enable", "--now", svc)
+		cmd := exec.Command("sudo", "systemctl", "enable", "--now", svc)
 		cmd.Stderr = os.Stderr
 		cmd.Run()
 	}
