@@ -125,11 +125,44 @@ func Bootstrap(cfg BootstrapConfig) error {
 		return fmt.Errorf("%d step(s) failed: %v", len(stepErrors), stepErrors[0])
 	}
 
+	// Generate admin page after successful install
+	generateAdminPage(cfg)
+
 	return nil
 }
 
+// generateAdminPage creates the admin index.html so the /admin nginx route works immediately.
+func generateAdminPage(cfg BootstrapConfig) {
+	adminDir := filepath.Join(instance.E3CNCHome(), "admin")
+	os.MkdirAll(adminDir, 0755)
+	html := fmt.Sprintf(`<!DOCTYPE html>
+<html><head><title>E3CNC Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>body{font-family:sans-serif;margin:2rem;background:#1a1a2e;color:#eee}
+h1{color:#00d4aa}h2{color:#888}.card{background:#16213e;padding:1rem;margin:1rem 0;border-radius:8px}
+a{color:#00d4aa}</style></head><body>
+<h1>E3CNC Admin</h1>
+<div class="card"><h2>System</h2>
+<p>Version: %s</p>
+<p>Host: %s</p></div>
+<div class="card"><h2>Instance: %s</h2>
+<p>Port: %d</p>
+<p><a href="http://%s:%d/">Web UI</a></p></div>
+</body></html>`,
+		instance.ReadCurrentVersion(), getHostname(),
+		cfg.InstanceName, cfg.MoonrakerPort, instance.GetLocalIP(), cfg.WebPort)
+	os.WriteFile(filepath.Join(adminDir, "index.html"), []byte(html), 0644)
+}
+
+func getHostname() string {
+	h, err := os.Hostname()
+	if err != nil {
+		return "unknown"
+	}
+	return h
+}
+
 // Uninstall removes all E3CNC components.
-// This is the Go equivalent of the Ansible uninstall playbook.
 func Uninstall(inst *instance.Instance) error {
 	fmt.Println("  Uninstalling E3CNC...")
 
