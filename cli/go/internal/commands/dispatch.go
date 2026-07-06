@@ -15,8 +15,11 @@ import (
 
 	"github.com/E3CNC/e3cnc/cli/go/internal/bootstrap"
 	"github.com/E3CNC/e3cnc/cli/go/internal/deploy"
+	"github.com/E3CNC/e3cnc/cli/go/internal/domain"
 	"github.com/E3CNC/e3cnc/cli/go/internal/instance"
 )
+
+var outputFmt = domain.OutputFormatter{}
 
 // RunDispatch runs a command natively in Go.
 // Returns true if the command was handled (even if it failed — the error
@@ -144,10 +147,7 @@ func cmdStatus(jsonOut bool) bool {
 		fmt.Printf("  Instance: %s (port %d)\n", inst.Name, inst.MoonrakerPort)
 		checks := deploy.RunHealthChecks(inst)
 		for _, c := range checks {
-			mark := "✓"
-			if !c.Passed {
-				mark = "✗"
-			}
+			mark := outputFmt.Mark(c.Passed, false)
 			fmt.Printf("  %s %s\n", mark, c.Name)
 		}
 		ip := instance.GetLocalIP()
@@ -193,10 +193,7 @@ func cmdCheck(jsonOut bool) bool {
 	}
 
 	for _, c := range checks {
-		mark := "✓"
-		if !c.Passed {
-			mark = "✗"
-		}
+		mark := outputFmt.Mark(c.Passed, false)
 		fmt.Printf("  %s %s\n", mark, c.Name)
 	}
 	return true
@@ -370,10 +367,7 @@ func cmdUpdate(jsonOut bool, args []string) bool {
 	if inst != nil {
 		checks := deploy.RunHealthChecks(inst)
 		for _, c := range checks {
-			mark := "✓"
-			if !c.Passed {
-				mark = "✗"
-			}
+			mark := outputFmt.Mark(c.Passed, false)
 			fmt.Printf("  %s %s\n", mark, c.Name)
 			if !c.Passed && c.Detail != "" {
 				fmt.Printf("       %s\n", c.Detail)
@@ -884,10 +878,7 @@ func cmdInstall(jsonOut bool, args []string) bool {
 	if inst != nil {
 		checks := deploy.RunHealthChecks(inst)
 		for _, c := range checks {
-			mark := "✓"
-			if !c.Passed {
-				mark = "✗"
-			}
+			mark := outputFmt.Mark(c.Passed, false)
 			fmt.Printf("  %s %s\n", mark, c.Name)
 		}
 	}
