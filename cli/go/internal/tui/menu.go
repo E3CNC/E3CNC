@@ -26,7 +26,7 @@ type MenuModel struct {
 
 // menuItems defines all menu entries.
 var menuItems = []MenuItem{
-	{Label: "Install", Command: "install", Destructive: true, Category: "Setup", Description: "Bootstrap + download release"},
+	{Label: "Installation Wizard", Command: "install", Destructive: true, Category: "Setup", Description: "Bootstrap + download release"},
 	{Label: "Update", Command: "update", Destructive: true, Category: "Setup", Description: "Full-stack update and verify"},
 	{Label: "Uninstall", Command: "uninstall", Destructive: true, Category: "Setup", Description: "Remove all E3CNC components"},
 	{Label: "", Command: "", Category: ""},

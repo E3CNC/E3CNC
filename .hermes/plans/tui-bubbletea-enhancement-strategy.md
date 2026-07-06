@@ -174,44 +174,22 @@ m.progBar = progress.New(progress.WithDefaultGradient())
 
 ## Phase 2: Structural Polish (Medium Effort, High Polish)
 
-### 2.1 — Destructive Action Confirmation Component
+### 2.1 — Destructive Action Confirmation Component ✅ Done
 
 **Why:** Currently delete instance and destructive install actions use manual
 `y/n` string matching. `bubbles/confirm` provides a polished confirmation dialog
 with focus management and keyboard handling.
 
 **Implementation:**
-Use `confirm.Model` for:
-- Instance deletion confirmation (already has prompt)
-- Uninstall/rollback confirmation (currently none — goes straight to output)
-- Flash MCU confirmation
-
-```go
-import "github.com/charmbracelet/bubbles/confirm"
-
-// Add to Model or relevant sub-model
-type Model struct {
-    // ...
-    confirmDialog confirm.Model
-    confirmAction string  // what to do if confirmed
-    confirmPrompt string
-}
-```
-
-The confirm component gives:
+Uses custom `ConfirmModel` (confirm.go) with:
 - "Yes" / "No" buttons with keyboard navigation (Tab/arrows)
 - Enter to confirm, Esc to cancel
+- `y`/`n` quick keys
 - Customizable prompt text and button labels
-- Built-in focus state
+- Destructive actions highlighted in red
+- Default focus is "No" (safer default)
 
-**Files to touch:**
-- `model.go` — add confirm fields, add state
-- `menu.go` — intercept destructive command selection
-- `instance.go` — replace manual y/n with confirm
-- `install.go` — wrap destructive actions
-
-**Estimated:** ~100 lines
-**Risk:** Low — confirm component is dropdown-simple
+**Commands covered:** uninstall, rollback, flash-mcu, init-config
 
 ---
 
