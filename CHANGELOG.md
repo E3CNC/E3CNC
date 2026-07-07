@@ -1,4 +1,7 @@
 # Changelog
+## v0.9.17 (2026-07-07)
+- _No changelog entry yet. Describe changes here before releasing._
+
 
 ## v0.9.13 (2026-07-04)
 - **Install wizard escape fix** — `Esc` or `q` now properly exits the install wizard from any step. Previously only `Enter` on completion worked, forcing users to go through the full flow. Closes #26.
