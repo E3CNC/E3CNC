@@ -149,9 +149,9 @@ jobs:
           cp -r vendor/klipper/* "${STACK_DIR}/vendor/klipper/"
 
           # Macros (merge with post_processors)
-          cp macros/*.cfg "${STACK_DIR}/config/macros/"
-          if [ -d post_processors/klipper/macros ]; then
-            cp post_processors/klipper/macros/*.cfg "${STACK_DIR}/config/macros/"
+          cp config/macros/*.cfg "${STACK_DIR}/config/macros/"
+          if [ -d docs/post-processors/klipper/macros ]; then
+            cp docs/post-processors/klipper/macros/*.cfg "${STACK_DIR}/config/macros/"
           fi
 
           # Scripts
@@ -208,7 +208,7 @@ jobs:
           VERSION='${{ steps.version.outputs.VERSION }}'
           echo "### What's Changed" > release-notes.md
           echo "" >> release-notes.md
-          python3 build-scripts/_get_changelog_entry.py "$VERSION" >> release-notes.md 2>/dev/null \
+          python3 scripts/build/_get_changelog_entry.py "$VERSION" >> release-notes.md 2>/dev/null \
             || echo "  See the [CHANGELOG](https://github.com/E3CNC/E3CNC/blob/main/CHANGELOG.md) for details." >> release-notes.md
 
       - name: Guard — stack artifact must exist before publishing

@@ -42,7 +42,7 @@ cd cli/go
 
 for arch in "${ARCHS[@]}"; do
   VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo '0.0.0-dev')
-  output="../../e3cnc-tui-${arch}"
+  output="../../bin/e3cnc-tui-${arch}"
   echo "Building e3cnc-tui for linux/${arch} (${VERSION})..."
   CGO_ENABLED=0 GOOS=linux GOARCH="${arch}" go build \
     -ldflags="-s -w -X main.version=${VERSION}" \
@@ -55,4 +55,4 @@ done
 cd ../..
 echo ""
 echo "Done. To commit:"
-echo "  git add e3cnc-tui-* && git commit -m 'chore: update e3cnc-tui binaries'"
+echo "  git add bin/e3cnc-tui-* && git commit -m 'chore: update e3cnc-tui binaries'"

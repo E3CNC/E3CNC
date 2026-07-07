@@ -39,18 +39,18 @@ type CommandsManifest struct {
 func LoadCommands() (*CommandsManifest, error) {
 	// Find commands.json relative to the binary
 	candidates := []string{
-		// From bin/e3cnc-tui: ../../commands.json
-		filepath.Join("..", "..", "commands.json"),
-		// From cmd/e3cnc-tui/: ../../../../commands.json
-		filepath.Join("..", "..", "..", "..", "commands.json"),
+		// From bin/e3cnc-tui: ../../cli/commands.json
+		filepath.Join("..", "..", "cli", "commands.json"),
+		// From cmd/e3cnc-tui/: ../../../../cli/commands.json
+		filepath.Join("..", "..", "..", "..", "cli", "commands.json"),
 	}
 
 	// Also try absolute path relative to executable
 	if exe, err := os.Executable(); err == nil {
 		exeDir := filepath.Dir(exe)
 		candidates = append(candidates,
-			filepath.Join(exeDir, "..", "..", "commands.json"),
-			filepath.Join(exeDir, "..", "..", "..", "..", "commands.json"),
+			filepath.Join(exeDir, "..", "..", "cli", "commands.json"),
+			filepath.Join(exeDir, "..", "..", "..", "..", "cli", "commands.json"),
 		)
 	}
 

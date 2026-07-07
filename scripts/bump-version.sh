@@ -73,7 +73,7 @@ if [[ -d "$GO_DIR" ]]; then
     for arch in arm64 amd64; do
         (cd "$GO_DIR" && CGO_ENABLED=0 GOOS=linux GOARCH=$arch \
             go build -ldflags="-s -w -X main.version=$NEW" \
-            -trimpath -o "e3cnc-tui-${arch}" ./cmd/e3cnc-tui/) 2>&1 | sed 's/^/    /'
+            -trimpath -o "bin/e3cnc-tui-${arch}" ./cmd/e3cnc-tui/) 2>&1 | sed 's/^/    /'
         size=$(ls -lh "$GO_DIR/e3cnc-tui-${arch}" | awk '{print $5}')
         echo "  ✓ e3cnc-tui-${arch} built ($size)"
     done
@@ -101,17 +101,16 @@ echo ""
 echo "All version files synced to $NEW."
 
 # ── auto-commit ──────────────────────────────────────────────────────────────
-git add package.json _e3cnc_shared.py CHANGELOG.md package-lock.json
+git add package.json CHANGELOG.md package-lock.json
 # Stage Go TUI binaries for both architectures
 for arch in arm64 amd64; do
-    src="$GO_DIR/e3cnc-tui-${arch}"
+    src="$GO_DIR/bin/e3cnc-tui-${arch}"
     if [[ -f "$src" ]]; then
-        # Copy to repo root so the wrapper sees them
-        cp "$src" "e3cnc-tui-${arch}"
-        git add "e3cnc-tui-${arch}"
+        cp "$src" "bin/e3cnc-tui-${arch}"
+        git add "bin/e3cnc-tui-${arch}"
     fi
 done
-git add e3cnc-tui 2>/dev/null || true  # the wrapper script
+git add bin/e3cnc-tui 2>/dev/null || true  # the wrapper script
 git commit -m "chore: bump v$CURRENT → v$NEW" --no-verify 2>/dev/null || true
 echo "  ✓ Commit created: chore: bump v$CURRENT → v$NEW"
 

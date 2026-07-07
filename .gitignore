@@ -25,7 +25,7 @@ cypress/videos/
 design/
 dev-dist/
 dist/
-i18n-extract
+/build/
 E3CNC_UI-nightly.zip
 E3CNC_UI.zip
 node_modules/
@@ -37,7 +37,7 @@ temp/
 validation_screenshot*.png
 verbose-snapshot*.txt
 .playwright-cli/
-prd/
+/prd/
 # e3cnc-cli backup artifacts
 e3cnc-backup-*/
 
