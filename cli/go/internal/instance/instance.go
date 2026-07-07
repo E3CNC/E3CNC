@@ -10,6 +10,7 @@ package instance
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"net"
 	"os"
@@ -358,18 +359,13 @@ func fileExists(path string) bool {
 	return err == nil
 }
 
-// ── State persistence ─────────────────────────────────────────────
+// ── State persistence ────────────────────────────────────────────
 
 // State represents persistent CLI state.
 type State struct {
 	ActiveInstance string `json:"active_instance,omitempty"`
 	Theme          string `json:"theme,omitempty"`
 	LastInstallID  string `json:"last_install_id,omitempty"`
-}
-
-// statePath returns the path to the state file.
-func statePath() string {
-	return filepath.Join(StateDir(), "state.json")
 }
 
 // LoadState reads persistent state from disk.
@@ -379,20 +375,23 @@ func LoadState() State {
 	if err != nil {
 		return s
 	}
-	fmt.Sscanf(string(data), `{"active_instance":"%s`, &s.ActiveInstance)
-	// Simpler: just try to find the active_instance field
-	re := regexp.MustCompile(`"active_instance"\s*:\s*"([^"]+)"`)
-	if m := re.FindStringSubmatch(string(data)); len(m) > 1 {
-		s.ActiveInstance = m[1]
-	}
+	json.Unmarshal(data, &s)
 	return s
 }
 
 // SaveState writes persistent state to disk.
 func SaveState(s State) error {
 	os.MkdirAll(StateDir(), 0755)
-	data := fmt.Sprintf(`{"active_instance":"%s"}`, s.ActiveInstance)
-	return os.WriteFile(statePath(), []byte(data), 0644)
+	data, err := json.MarshalIndent(s, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(statePath(), data, 0644)
+}
+
+// statePath returns the path to the state file.
+func statePath() string {
+	return filepath.Join(StateDir(), "state.json")
 }
 
 // ── Network helpers ───────────────────────────────────────────────

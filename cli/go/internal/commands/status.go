@@ -7,7 +7,7 @@ import (
 	"github.com/E3CNC/e3cnc/cli/go/internal/instance"
 )
 
-// ── status ────────────────────────────────────────────────────────
+// ── status ─────────────────────────────────────────────────
 
 func cmdStatus(jsonOut bool) bool {
 	inst := activeInstance()
@@ -41,6 +41,7 @@ func cmdStatus(jsonOut bool) bool {
 		return true
 	}
 
+	// Human-readable output
 	fmt.Printf("  E3CNC v%s\n", version)
 	if inst != nil {
 		fmt.Printf("  Instance: %s (port %d)\n", inst.Name, inst.MoonrakerPort)
