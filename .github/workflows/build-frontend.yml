@@ -170,7 +170,7 @@ jobs:
           cp -r config/bootstrap "${STACK_DIR}/config/bootstrap"
 
           # Theme
-          cp theme.json "${STACK_DIR}/"
+          cp config/theme.json "${STACK_DIR}/"
 
           # Write manifest.json
           echo "{\"e3cnc_version\": \"${VERSION}\", \"moonraker_component_version\": \"${VERSION}\", \"klipper_extras_version\": \"1\", \"config_schema\": 1, \"klipper_requires\": \">=0.12.0\", \"python_requires\": \">=3.9\"}" > "${STACK_DIR}/manifest.json"
