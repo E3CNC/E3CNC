@@ -190,6 +190,14 @@
       "name": "admin-page",
       "aliases": [],
       "destructive": false,
+      "blocking": false,
+      "interactive": false,
+      "flags": []
+    },
+    {
+      "name": "admin-server",
+      "aliases": [],
+      "destructive": false,
       "blocking": true,
       "interactive": false,
       "flags": []

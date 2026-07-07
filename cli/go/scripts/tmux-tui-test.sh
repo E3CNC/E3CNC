@@ -208,7 +208,7 @@ test_item "Restore" "restore" "Restore"
 test_item "CLI Log" "clilog" "CLI Log"
 test_item "Diagnose" "diagnose" "Diagnose"
 test_item "Logs" "logs" "Logs"
-test_item "Admin Page" "admin-page" "Admin Page"
+test_item "Admin Dashboard" "admin-page" "Admin Dashboard"
 test_item "Quit" "quit" "Quit" "yes"
 
 # ── Test Install wizard opens ──

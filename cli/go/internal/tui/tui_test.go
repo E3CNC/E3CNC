@@ -169,7 +169,7 @@ var allMenuItems = []menuItem{
 	{"CLI Log", 13, false},
 	{"Diagnose", 14, false},
 	{"Logs", 15, false},
-	{"Admin Page", 16, false},
+	{"Admin Dashboard", 16, false},
 	{"Quit", 17, true},
 }
 

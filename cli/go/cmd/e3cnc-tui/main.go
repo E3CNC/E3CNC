@@ -81,6 +81,7 @@ Commands:
   migrate-instances  Migrate KIAUH instances
   restart         Restart services
   admin-page      Regenerate admin page
+  admin-server    Start admin HTTP server (API + frontend)
   import-instance Import KIAUH instance
   clilog          View CLI log
   backup          Create backup

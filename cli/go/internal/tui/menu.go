@@ -46,7 +46,7 @@ var menuItems = []MenuItem{
 	{Label: "CLI Log", Command: "clilog", Category: "Tools", Description: "View CLI operation logs"},
 	{Label: "Diagnose", Command: "diagnose", Category: "Tools", Description: "Run system diagnostics"},
 	{Label: "Logs", Command: "logs", Category: "Tools", Description: "Tail Moonraker and nginx logs"},
-	{Label: "Admin Page", Command: "admin-page", Category: "Tools", Description: "Generate admin overview page"},
+	{Label: "Admin Dashboard", Command: "admin-page", Category: "Tools", Description: "Show admin dashboard URL (port 8081)"},
 	{Label: "", Command: "", Category: ""},
 	{Label: "Quit", Command: "quit", Category: "", Description: "Exit the CLI"},
 }
