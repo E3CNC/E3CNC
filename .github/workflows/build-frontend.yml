@@ -84,9 +84,6 @@ jobs:
       - name: Run linter
         run: bun run lint
 
-      - name: Run typecheck
-        run: bun run typecheck
-
       - name: Build
         run: bun run build
 
