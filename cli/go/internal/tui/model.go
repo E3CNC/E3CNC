@@ -11,6 +11,7 @@ type AppState int
 
 const (
 	StateMainMenu AppState = iota
+	StateConfirm
 	StateInstallWizard
 	StateErrorRecovery
 	StateInstanceMgr
@@ -21,6 +22,7 @@ const (
 type Model struct {
 	state       AppState
 	menu        MenuModel
+	confirm     ConfirmModel
 	install     InstallModel
 	instance    InstanceModel
 	output      OutputViewModel
@@ -62,11 +64,19 @@ var defaultKeys = keyMap{
 	Cancel: key.NewBinding(key.WithKeys("ctrl+c"), key.WithHelp("ctrl+c", "cancel")),
 }
 
+// confirmPromptMsg carries info to show a confirmation dialog for a destructive command.
+type confirmPromptMsg struct {
+	prompt      string
+	warning     string
+	destructive bool
+	command     string // the command to run if confirmed
+}
+
 // New creates a new root Model and initializes all sub-models.
-func New() Model {
+func New(version string) Model {
 	return Model{
 		state:    StateMainMenu,
-		menu:     NewMenuModel(),
+		menu:     NewMenuModel(version),
 		install:  NewInstallModel(),
 		instance: NewInstanceModel(),
 		help:     help.New(),
@@ -95,16 +105,34 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.menu.SelectedCmd = ""
 		return m, nil
 
+	case confirmPromptMsg:
+		// Show confirmation dialog for a destructive command
+		m.confirm = NewConfirmModel(ConfirmScreen{
+			Prompt:      msg.prompt,
+			Warning:     msg.warning,
+			Destructive: msg.destructive,
+			Command:     msg.command,
+		})
+		m.state = StateConfirm
+		return m, m.confirm.Init()
+
+	case confirmResultMsg:
+		if msg.Confirmed {
+			// Set up output view and run the command
+			m.output = NewOutputViewModel()
+			m.state = StateOutputView
+			return m, RunCommand(msg.Command, false, nil)
+		} else {
+			// User cancelled — back to menu
+			m.state = StateMainMenu
+			m.menu.SelectedCmd = ""
+		}
+		return m, nil
+
 	case tea.KeyMsg:
 		// Ctrl+C from any state quits the program
 		if msg.String() == "ctrl+c" {
 			return m, tea.Quit
-		}
-		// 'b' from output view goes back to menu
-		if m.state == StateOutputView && (msg.String() == "b" || msg.String() == "q" || msg.String() == "esc") {
-			m.state = StateMainMenu
-			m.menu.SelectedCmd = ""
-			return m, nil
 		}
 		// 'q' from main menu quits
 		if m.state == StateMainMenu && msg.String() == "q" {
@@ -132,12 +160,21 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "quit":
 				return m, tea.Quit
 			default:
-				// Run command inside the TUI and show output
+				// Check if this is a destructive command that needs confirmation
+				if needsConfirm(m.menu.SelectedCmd) {
+					return m.handleDestructiveCmd(m.menu.SelectedCmd)
+				}
+				// Run command directly
 				m.output = NewOutputViewModel()
 				m.state = StateOutputView
 				return m, RunCommand(m.menu.SelectedCmd, false, nil)
 			}
 		}
+		return m, cmd
+
+	case StateConfirm:
+		newConfirm, cmd := m.confirm.Update(msg)
+		m.confirm = newConfirm
 		return m, cmd
 
 	case StateInstallWizard:
@@ -168,8 +205,50 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// needsConfirm returns true if the command should show a confirmation dialog
+// before executing.
+func needsConfirm(cmd string) bool {
+	switch cmd {
+	case "uninstall", "rollback", "flash-mcu", "init-config":
+		return true
+	}
+	return false
+}
+
+// handleDestructiveCmd returns a confirmPromptMsg for the given command.
+func (m Model) handleDestructiveCmd(cmd string) (Model, tea.Cmd) {
+	var prompt, warning string
+	destructive := true
+
+	switch cmd {
+	case "uninstall":
+		prompt = "Are you sure you want to uninstall E3CNC?"
+		warning = "This will remove all E3CNC components, configs, and data."
+	case "rollback":
+		prompt = "Roll back to a previous release?"
+		warning = "The current release will be replaced. Services will restart."
+	case "flash-mcu":
+		prompt = "Flash firmware to your MCU?"
+		warning = "This will build and flash Klipper firmware. Your MCU will reset."
+	case "init-config":
+		prompt = "Generate a new printer.cfg?"
+		warning = "This will overwrite any existing printer.cfg for the active instance."
+	}
+
+	return m, func() tea.Msg {
+		return confirmPromptMsg{
+			prompt:      prompt,
+			warning:     warning,
+			destructive: destructive,
+			command:     cmd,
+		}
+	}
+}
+
 func (m Model) View() string {
 	switch m.state {
+	case StateConfirm:
+		return m.confirm.View()
 	case StateMainMenu:
 		return m.menu.View()
 	case StateInstallWizard:

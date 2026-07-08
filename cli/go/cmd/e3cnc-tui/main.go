@@ -31,7 +31,7 @@ func main() {
 
 	// No args: enter interactive TUI
 	if len(args) == 0 {
-		p := tea.NewProgram(tui.New(), tea.WithAltScreen())
+		p := tea.NewProgram(tui.New(version), tea.WithAltScreen(), tea.WithMouseAllMotion())
 		if _, err := p.Run(); err != nil {
 			fmt.Fprintf(os.Stderr, "Error starting TUI: %v\n", err)
 			os.Exit(1)

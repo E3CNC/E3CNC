@@ -153,18 +153,6 @@ func DetectInstances() ([]*Instance, error) {
 		instances = append(instances, inst)
 	}
 
-	// Also scan KIAUH layout for any instances not in new layout
-	existing := make(map[string]bool)
-	for _, inst := range instances {
-		existing[inst.Name] = true
-	}
-	kiauhInstances, _ := scanKIAUHInstances()
-	for _, inst := range kiauhInstances {
-		if !existing[inst.Name] {
-			instances = append(instances, inst)
-		}
-	}
-
 	return instances, nil
 }
 
@@ -284,14 +272,39 @@ func FromPrinterData(base string, home string) (*Instance, error) {
 // ── helpers ───────────────────────────────────────────────────────
 
 // ComputeWebPort derives the web port from the instance name.
-// Port 7125 → web port 80, port 7126 → 8080, etc.
 func ComputeWebPort(name string) int {
 	if name == "default" || name == "" {
-		return 80
+		if !portInUse(80) {
+			return 80
+		}
+		return findFreeWebPort()
 	}
-	// Check if this name has a port suffix
-	// For now, return 80 for default instances and 8080 for others
+	webPort := findFreeWebPort()
+	if webPort > 0 {
+		return webPort
+	}
 	return 8080
+}
+
+// portInUse checks if a TCP port is already bound (by any process).
+func portInUse(port int) bool {
+	addr := fmt.Sprintf(":%d", port)
+	ln, err := net.Listen("tcp", addr)
+	if err != nil {
+		return true // port is in use
+	}
+	ln.Close()
+	return false
+}
+
+// findFreeWebPort scans for an available web port starting from 8080.
+func findFreeWebPort() int {
+	for port := 8080; port < 8100; port++ {
+		if !portInUse(port) {
+			return port
+		}
+	}
+	return 0
 }
 
 func instanceNameFromPrinterData(path string) string {
@@ -464,7 +477,7 @@ func FindNextAvailablePort() (int, error) {
 		used[inst.MoonrakerPort] = true
 	}
 	for port := 7125; port < 7200; port++ {
-		if !used[port] {
+		if !used[port] && !portInUse(port) {
 			return port, nil
 		}
 	}

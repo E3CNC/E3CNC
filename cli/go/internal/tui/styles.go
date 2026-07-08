@@ -7,7 +7,7 @@ import (
 // Color palette matching the current green/cyan theme.
 var (
 	ColorGreen  = lipgloss.Color("#00ff66")
-	ColorCyan   = lipgloss.Color("#00ffff")
+	ColorCyan   = lipgloss.Color("#00dd55")
 	ColorYellow = lipgloss.Color("#ffcc00")
 	ColorRed    = lipgloss.Color("#ff3333")
 	ColorDim    = lipgloss.Color("#666666")
@@ -69,8 +69,9 @@ var (
 		Bold(true)
 
 	DimStyle = lipgloss.NewStyle().
-			Foreground(ColorDim)
-
+		Foreground(ColorDim)
+	WhiteStyle = lipgloss.NewStyle().
+		Foreground(ColorWhite)
 	HelpStyle = lipgloss.NewStyle().
 			Foreground(ColorDim).
 			MarginTop(1)
@@ -107,11 +108,9 @@ var (
 			MarginBottom(1)
 
 	SectionHeaderStyle = lipgloss.NewStyle().
-			Foreground(ColorCyan).
-			Bold(true).
-			MarginTop(1).
-			MarginBottom(1)
-
+		Foreground(ColorCyan).
+		Bold(true).
+		MarginTop(1)
 	CheckPassStyle = lipgloss.NewStyle().
 			Foreground(ColorGreen)
 

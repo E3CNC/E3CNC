@@ -1,7 +1,5 @@
 // Package deploy provides release management, health checks, and backup/restore.
-//
-// This replaces _e3cnc_deploy.py's functionality with in-process Go code,
-// eliminating the need for Python subprocess calls.
+// All operations are pure Go.
 package deploy
 
 import (
@@ -14,6 +12,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -363,15 +362,20 @@ func checkMoonrakerAPI(inst *instance.Instance) HealthCheck {
 }
 
 func checkService(serviceName string) HealthCheck {
-	// Check systemd service status
-	// On systems without systemd, check pid file
 	if serviceName == "" {
 		return HealthCheck{Name: "Service", Passed: false, Detail: "no service name"}
 	}
 
-	// For e3cnc-managed instances, check the supervisor
-	// We use a simple presence check since systemctl may not be available
-	return HealthCheck{Name: serviceName, Passed: true, Detail: "configured"}
+	// Check supervisor status
+	out, err := exec.Command("sudo", "supervisorctl", "status", serviceName).Output()
+	if err != nil {
+		return HealthCheck{Name: serviceName, Passed: false, Detail: "not found"}
+	}
+	status := strings.TrimSpace(string(out))
+	if strings.Contains(status, "RUNNING") {
+		return HealthCheck{Name: serviceName, Passed: true, Detail: "running"}
+	}
+	return HealthCheck{Name: serviceName, Passed: false, Detail: status}
 }
 
 func checkKlippy(inst *instance.Instance) HealthCheck {

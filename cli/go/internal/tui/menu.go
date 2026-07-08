@@ -23,185 +23,45 @@ type MenuModel struct {
 	cursor       int
 	width        int
 	height       int
+	version      string
 	SelectedCmd  string // set when a command is chosen
 }
 
 // menuItems defines all menu entries.
-// It is initialized in init() by loading commands.json and mapping to menu items.
-// If loading fails, it falls back to a hardcoded menu (preserving original order and categories).
-var menuItems []MenuItem
-
-// Category order as they appear in the original menu.
-var categoryOrder = []string{
-	"Setup",
-	"Monitor",
-	"Hardware",
-	"Manage",
-	"Tools",
-	"", // empty category for Quit (handled specially)
+var menuItems = []MenuItem{
+	{Label: "Installation Wizard", Command: "install", Destructive: true, Category: "Setup", Description: "Bootstrap and download release"},
+	{Label: "Update", Command: "update", Destructive: true, Category: "Setup", Description: "Update all E3CNC components"},
+	{Label: "Uninstall", Command: "uninstall", Destructive: true, Category: "Setup", Description: "Remove all E3CNC components"},
+	{Label: "", Command: "", Category: ""},
+	{Label: "Status", Command: "status", Category: "Monitor", Description: "Check installation status"},
+	{Label: "Check Deps", Command: "check", Category: "Monitor", Description: "Verify system dependencies"},
+	{Label: "Instances", Command: "instances", Category: "Monitor", Description: "List all instances and URLs"},
+	{Label: "", Command: "", Category: ""},
+	{Label: "Detect MCU", Command: "detect-mcu", Category: "Hardware", Description: "Scan for connected MCU devices"},
+	{Label: "Flash MCU", Command: "flash-mcu", Destructive: true, Category: "Hardware", Description: "Build and flash Klipper firmware"},
+	{Label: "Init Config", Command: "init-config", Destructive: true, Category: "Hardware", Description: "Generate printer.cfg for active instance"},
+	{Label: "", Command: "", Category: ""},
+	{Label: "Releases", Command: "releases", Category: "Manage", Description: "List installed releases"},
+	{Label: "Rollback", Command: "rollback", Destructive: true, Category: "Manage", Description: "Roll back to a previous release"},
+	{Label: "Backup", Command: "backup", Category: "Manage", Description: "Create a timestamped backup"},
+	{Label: "Restore", Command: "restore", Category: "Manage", Description: "Restore from a backup"},
+	{Label: "", Command: "", Category: ""},
+	{Label: "CLI Log", Command: "clilog", Category: "Tools", Description: "View CLI operation logs"},
+	{Label: "Diagnose", Command: "diagnose", Category: "Tools", Description: "Run system diagnostics"},
+	{Label: "Logs", Command: "logs", Category: "Tools", Description: "Tail Moonraker and nginx logs"},
+	{Label: "Admin Page", Command: "admin-page", Category: "Tools", Description: "Generate admin overview page"},
+	{Label: "", Command: "", Category: ""},
+	{Label: "Quit", Command: "quit", Category: "", Description: "Exit the CLI"},
 }
 
-// CommandsInCategory maps category to list of command names.
-var commandsInCategory = map[string][]string{
-	"Setup":     {"install", "update", "uninstall"},
-	"Monitor":   {"status", "check", "instances"},
-	"Hardware":  {"detect-mcu", "flash-mcu", "init-config"},
-	"Manage":    {"releases", "rollback", "backup", "restore"},
-	"Tools":     {"clilog", "diagnose", "logs", "admin-page"},
-}
-
-// Label overrides for each command (to match original menu wording).
-var commandToLabel = map[string]string{
-	"install":        "Install",
-	"update":         "Update",
-	"uninstall":      "Uninstall",
-	"status":         "Status",
-	"check":          "Check Deps",
-	"instances":      "Instances",
-	"detect-mcu":     "Detect MCU",
-	"flash-mcu":      "Flash MCU",
-	"init-config":    "Init Config",
-	"releases":       "Releases",
-	"rollback":       "Rollback",
-	"backup":         "Backup",
-	"restore":        "Restore",
-	"clilog":         "CLI Log",
-	"diagnose":       "Diagnose",
-	"logs":           "Logs",
-	"admin-page":     "Admin Dashboard",
-}
-
-// Description overrides for each command (to match original menu wording).
-var commandToDescription = map[string]string{
-	"install":        "Bootstrap + download release",
-	"update":         "Full-stack update and verify",
-	"uninstall":      "Remove all E3CNC components",
-	"status":         "Check installation status",
-	"check":          "Verify system dependencies",
-	"instances":      "List all instances with URLs",
-	"detect-mcu":     "Scan for connected MCU devices",
-	"flash-mcu":      "Build and flash Klipper firmware",
-	"init-config":    "Generate CNC printer.cfg",
-	"releases":       "List installed releases",
-	"rollback":       "Roll back to a previous release",
-	"backup":         "Create timestamped backup",
-	"restore":        "Restore from a backup",
-	"clilog":         "View CLI operation logs",
-	"diagnose":       "Run system diagnostics",
-	"logs":           "Tail Moonraker and nginx logs",
-	"admin-page":     "Show admin dashboard URL (port 8081)",
-}
-
-func init() {
-	// Load commands.json to get command definitions (for destructive flag, etc.)
-	manifest, err := internal.LoadCommands()
-	if err != nil {
-		// Fallback to hardcoded menu if we cannot load commands.json.
-		setHardcodedMenu()
-		return
-	}
-
-	// Build a map from command name to its definition for quick lookup.
-	cmdMap := make(map[string]*internal.CommandDef)
-	for _, cmd := range manifest.Commands {
-		cmdMap[cmd.Name] = &cmd
-	}
-
-	// Build menu items according to category order.
-	var items []MenuItem
-	for _, cat := range categoryOrder {
-		if cat == "" {
-			// Special case: empty category is for the Quit item (handled separately).
-			continue
-		}
-		// Add separator before category (except before the first category).
-		if len(items) > 0 {
-			items = append(items, MenuItem{Label: "", Command: "", Category: ""})
-		}
-		// Add commands in this category.
-		for _, cmdName := range commandsInCategory[cat] {
-			if def, ok := cmdMap[cmdName]; ok {
-				label := commandToLabel[cmdName]
-				if label == "" {
-					// Fallback: format the command name nicely.
-					label = strings.Title(strings.ReplaceAll(cmdName, "-", " "))
-				}
-				description := commandToDescription[cmdName]
-				if description == "" {
-					// Fallback to first flag help if available, otherwise empty.
-					if len(def.Flags) > 0 {
-						description = def.Flags[0].Help
-					}
-				}
-				items = append(items, MenuItem{
-					Label:       label,
-					Command:     cmdName,
-					Destructive: def.Destructive,
-					Description: description,
-					Category:    cat,
-				})
-			} else {
-				// Command not found in JSON (should not happen if JSON is correct).
-				// Fallback to hardcoded label/description.
-				items = append(items, MenuItem{
-					Label:       commandToLabel[cmdName],
-					Command:     cmdName,
-					Destructive: false, // unknown, assume safe
-					Description: commandToDescription[cmdName],
-					Category:    cat,
-				})
-			}
-		}
-	}
-
-	// After all categories, add a separator before Quit.
-	items = append(items, MenuItem{Label: "", Command: "", Category: ""})
-	// Add Quit item (always last).
-	items = append(items, MenuItem{
-		Label:       "Quit",
-		Command:     "quit",
-		Destructive: false,
-		Description: "Exit the CLI",
-		Category:    "",
-	})
-
-	menuItems = items
-}
-
-// setHardcodedMenu populates menuItems with the original hardcoded menu.
-// Used as a fallback if commands.json cannot be loaded.
-func setHardcodedMenu() {
-	menuItems = []MenuItem{
-		{Label: "Install", Command: "install", Destructive: true, Category: "Setup", Description: "Bootstrap + download release"},
-		{Label: "Update", Command: "update", Destructive: true, Category: "Setup", Description: "Full-stack update and verify"},
-		{Label: "Uninstall", Command: "uninstall", Destructive: true, Category: "Setup", Description: "Remove all E3CNC components"},
-		{Label: "", Command: "", Category: ""},
-		{Label: "Status", Command: "status", Category: "Monitor", Description: "Check installation status"},
-		{Label: "Check Deps", Command: "check", Category: "Monitor", Description: "Verify system dependencies"},
-		{Label: "Instances", Command: "instances", Category: "Monitor", Description: "List all instances with URLs"},
-		{Label: "", Command: "", Category: ""},
-		{Label: "Detect MCU", Command: "detect-mcu", Category: "Hardware", Description: "Scan for connected MCU devices"},
-		{Label: "Flash MCU", Command: "flash-mcu", Destructive: true, Category: "Hardware", Description: "Build and flash Klipper firmware"},
-		{Label: "Init Config", Command: "init-config", Destructive: true, Category: "Hardware", Description: "Generate CNC printer.cfg"},
-		{Label: "", Command: "", Category: ""},
-		{Label: "Releases", Command: "releases", Category: "Manage", Description: "List installed releases"},
-		{Label: "Rollback", Command: "rollback", Destructive: true, Category: "Manage", Description: "Roll back to a previous release"},
-		{Label: "Backup", Command: "backup", Category: "Manage", Description: "Create timestamped backup"},
-		{Label: "Restore", Command: "restore", Category: "Manage", Description: "Restore from a backup"},
-		{Label: "", Command: "", Category: ""},
-		{Label: "CLI Log", Command: "clilog", Category: "Tools", Description: "View CLI operation logs"},
-		{Label: "Diagnose", Command: "diagnose", Category: "Tools", Description: "Run system diagnostics"},
-		{Label: "Logs", Command: "logs", Category: "Tools", Description: "Tail Moonraker and nginx logs"},
-		{Label: "Admin Dashboard", Command: "admin-page", Category: "Tools", Description: "Show admin dashboard URL (port 8081)"},
-		{Label: "", Command: "", Category: ""},
-		{Label: "Quit", Command: "quit", Category: "", Description: "Exit the CLI"},
-	}
-}
+// e3cncBanner is the ASCII art banner shown at the top of the main menu.
+var e3cncBanner = " ███████╗ ██████╗   ██████╗ ███╗   ██╗  ██████╗ \n ██╔════╝ ╚════██╗ ██╔════╝ ████╗  ██║ ██╔════╝ \n █████╗    █████╔╝ ██║      ██╔██╗ ██║ ██║      \n ██╔══╝    ╚═══██╗ ██║      ██║╚██╗██║ ██║      \n ███████╗ ██████╔╝ ╚██████╗ ██║ ╚████║ ╚██████╗ \n ╚══════╝ ╚═════╝   ╚═════╝ ╚═╝  ╚═══╝  ╚═════╝"
 
 // NewMenuModel creates a new menu model.
-func NewMenuModel() MenuModel {
+func NewMenuModel(version string) MenuModel {
 	return MenuModel{
-		items: menuItems,
+		items:   menuItems,
+		version: version,
 	}
 }
 
@@ -263,20 +123,29 @@ func (m MenuModel) skipEmpty(current int, dir int) int {
 	return current
 }
 
+// menuItemPadding is the minimum width reserved for the label column
+// so descriptions are aligned across all menu items.
+var menuItemPadding = func() int {
+	maxLen := 0
+	for _, item := range menuItems {
+		if len(item.Label) > maxLen {
+			maxLen = len(item.Label)
+		}
+	}
+	return maxLen + 4 // extra spacing after longest label
+}()
+
 func (m MenuModel) View() string {
 	var b strings.Builder
 
-	// ASCII art banner
-	banner := `   ___________ _______   ________
-  / ____/__  // ____/ | / / ____/
- / __/   /_ </ /   /  |/ / /     \
-/ /___ ___/ / /___/ /|  / /___   \
-/_____//____/\\____/_/ |_/\\____/`
-	b.WriteString(BannerStyle.Render(banner))
-	b.WriteString("\n\n")
-
-	b.WriteString(TitleStyle.Render("E3CNC CLI"))
-	b.WriteString("\n\n")
+	b.WriteString("\n")
+	b.WriteString(InfoStyle.Render(e3cncBanner))
+	b.WriteString("\n")
+	titleText := "CLI version ->"
+	if m.version != "" {
+		titleText += "  " + m.version
+	}
+	b.WriteString(TitleStyle.Render(titleText))
 
 	// Calculate the widest label for alignment.
 	labelWidth := 0
@@ -301,23 +170,29 @@ func (m MenuModel) View() string {
 		}
 
 		cursor := "  "
-		style := MenuItemStyle
 		if i == m.cursor {
 			cursor = "▸ "
-			if item.Destructive {
-				style = DestructiveStyle
-			} else {
-				style = MenuItemSelectedStyle
-			}
 		}
 
-		// Pad label to align descriptions.
-		paddedLabel := item.Label + strings.Repeat(" ", labelWidth-len(item.Label)+2)
-		line := cursor + paddedLabel
-		if item.Description != "" {
-			line += DimStyle.Render(item.Description)
+		// Label with dashed connector to align descriptions
+		gap := menuItemPadding - len(item.Label)
+		connector := strings.Repeat("-", gap)
+		if gap > 2 {
+			connector = " " + strings.Repeat("-", gap-2) + " "
 		}
-		b.WriteString(style.Render(line))
+		labelPart := cursor + item.Label + connector
+		if i == m.cursor {
+			b.WriteString(MenuItemSelectedStyle.Render(labelPart))
+		} else {
+			b.WriteString(MenuItemStyle.Render(labelPart))
+		}
+		if item.Description != "" {
+			descStyle := OkStyle
+			if i != m.cursor {
+				descStyle = DimStyle
+			}
+			b.WriteString(descStyle.Render(item.Description))
+		}
 		b.WriteString("\n")
 	}
 
