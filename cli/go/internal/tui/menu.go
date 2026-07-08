@@ -4,8 +4,6 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
-
-	"github.com/E3CNC/e3cnc/cli/go/internal"
 )
 
 // MenuItem represents a single entry in the main menu.
