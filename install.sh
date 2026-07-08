@@ -4,7 +4,7 @@
 set -uo pipefail
 
 # ─── Configuration ────────────────────────────────────────────────────────────
-INSTALL_VERSION="v0.9.17"
+INSTALL_VERSION="v0.9.18-merged"
 INSTALL_DIR="/usr/local/bin"
 # Allow customizing E3CNC_DIR via environment variable or command-line argument
 E3CNC_DIR="${E3CNC_DIR:-$HOME/e3cnc}"
