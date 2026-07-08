@@ -20,77 +20,107 @@ var (
 	AppStyle = lipgloss.NewStyle().
 		Padding(1, 2).
 		Background(ColorBg)
+
 	TitleStyle = lipgloss.NewStyle().
-		Foreground(ColorGreen).
-		Bold(true).
-		MarginBottom(1)
+			Foreground(ColorGreen).
+			Bold(true).
+			MarginBottom(1)
+
+	// ASCII art banner style
+	BannerStyle = lipgloss.NewStyle().
+			Foreground(ColorGreen).
+			Bold(true)
+
 	SubtitleStyle = lipgloss.NewStyle().
-		Foreground(ColorDim).
-		Italic(true).
-		MarginBottom(1)
+			Foreground(ColorDim).
+			Italic(true).
+			MarginBottom(1)
+
 	StatusBarStyle = lipgloss.NewStyle().
-		Foreground(ColorDim).
-		Padding(0, 1).
-		MarginTop(1)
+			Foreground(ColorDim).
+			Padding(0, 1).
+			MarginTop(1)
+
 	MenuItemStyle = lipgloss.NewStyle().
-		Foreground(ColorWhite).
-		Padding(0, 1)
+			Foreground(ColorWhite).
+			Padding(0, 1)
+
 	MenuItemSelectedStyle = lipgloss.NewStyle().
-		Foreground(ColorGreen).
-		Bold(true).
-		Padding(0, 1)
+			Foreground(ColorGreen).
+			Bold(true).
+			Padding(0, 1)
+
 	DestructiveStyle = lipgloss.NewStyle().
-		Foreground(ColorRed).
-		Bold(true).
-		Padding(0, 1)
+			Foreground(ColorRed).
+			Bold(true).
+			Padding(0, 1)
+
 	InfoStyle = lipgloss.NewStyle().
 		Foreground(ColorCyan)
+
 	OkStyle = lipgloss.NewStyle().
 		Foreground(ColorGreen)
+
 	WarnStyle = lipgloss.NewStyle().
 		Foreground(ColorYellow)
+
 	FailStyle = lipgloss.NewStyle().
 		Foreground(ColorRed).
 		Bold(true)
+
 	DimStyle = lipgloss.NewStyle().
-		Foreground(ColorDim)
+			Foreground(ColorDim)
+
 	HelpStyle = lipgloss.NewStyle().
-		Foreground(ColorDim).
-		MarginTop(1)
+			Foreground(ColorDim).
+			MarginTop(1)
+
 	SpinnerStyle = lipgloss.NewStyle().
-		Foreground(ColorGreen)
+			Foreground(ColorGreen)
+
 	ProgressBarStyle = lipgloss.NewStyle().
-		Foreground(ColorGreen).
-		Background(lipgloss.Color("#333333"))
+			Foreground(ColorGreen).
+			Background(lipgloss.Color("#333333"))
+
 	StepPendingStyle = lipgloss.NewStyle().
-		Foreground(ColorDim)
+			Foreground(ColorDim)
+
 	StepRunningStyle = lipgloss.NewStyle().
-		Foreground(ColorCyan).
-		Bold(true)
+			Foreground(ColorCyan).
+			Bold(true)
+
 	StepCompletedStyle = lipgloss.NewStyle().
-		Foreground(ColorGreen)
+			Foreground(ColorGreen)
+
 	StepFailedStyle = lipgloss.NewStyle().
-		Foreground(ColorRed).
-		Bold(true)
+			Foreground(ColorRed).
+			Bold(true)
+
 	ConfirmTitleStyle = lipgloss.NewStyle().
-		Foreground(ColorYellow).
-		Bold(true).
-		MarginBottom(1)
+			Foreground(ColorYellow).
+			Bold(true).
+			MarginBottom(1)
+
 	ConfirmDestructiveStyle = lipgloss.NewStyle().
-		Foreground(ColorRed).
-		Bold(true).
-		MarginBottom(1)
+			Foreground(ColorRed).
+			Bold(true).
+			MarginBottom(1)
+
 	SectionHeaderStyle = lipgloss.NewStyle().
-		Foreground(ColorCyan).
-		Bold(true).
-		MarginTop(1).
-		MarginBottom(1)
+			Foreground(ColorCyan).
+			Bold(true).
+			MarginTop(1).
+			MarginBottom(1)
+
 	CheckPassStyle = lipgloss.NewStyle().
-		Foreground(ColorGreen)
+			Foreground(ColorGreen)
+
 	CheckFailStyle = lipgloss.NewStyle().
-		Foreground(ColorRed)
+			Foreground(ColorRed)
+
 	CheckWarnStyle = lipgloss.NewStyle().
-		Foreground(ColorYellow)
+			Foreground(ColorYellow)
+
 	BoxStyle = lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(ColorDim).

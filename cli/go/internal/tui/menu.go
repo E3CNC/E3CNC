@@ -266,6 +266,15 @@ func (m MenuModel) skipEmpty(current int, dir int) int {
 func (m MenuModel) View() string {
 	var b strings.Builder
 
+	// ASCII art banner
+	banner := `   ___________ _______   ________
+  / ____/__  // ____/ | / / ____/
+ / __/   /_ </ /   /  |/ / /     \
+/ /___ ___/ / /___/ /|  / /___   \
+/_____//____/\\____/_/ |_/\\____/`
+	b.WriteString(BannerStyle.Render(banner))
+	b.WriteString("\n\n")
+
 	b.WriteString(TitleStyle.Render("E3CNC CLI"))
 	b.WriteString("\n\n")
 
