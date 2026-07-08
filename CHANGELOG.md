@@ -1,4 +1,17 @@
 # Changelog
+## v0.9.18-merged (2026-07-08)
+- **Full Go + BubbleTea migration complete** — pure Go CLI, no Python fallback
+- **ASCII art banner** — `█` banner at top of TUI menu
+- **Go-native bootstrap** — `internal/bootstrap/` replaces Ansible for instance setup
+- **Instance manager rewrite** — viewport scrolling, no "Create Instance" option, only shows E3CNC-managed instances
+- **Install wizard rewrite** — `install.go` + `install_screens.go`, fully interactive
+- **Admin server removed** — `admin-server` and `admin-page` commands removed
+- **Pipeline hardening** — all 3 workflows (CI, Create Release, PyPI) now have tests, lint, typecheck, and artifact uploads
+- **TUI tests** — 90+ BubbleTea tea program tests, all passing
+- **Binary tracking** — `e3cnc-tui` (linux/arm64 + amd64) committed to `bin/`
+- **Wiki alignment** — all docs updated to match current codebase
+- **Installer script** — `install.sh` supports multi-package managers, HTTP health checks, custom `E3CNC_DIR`
+
 ## v0.9.17 (2026-07-07)
 - _No changelog entry yet. Describe changes here before releasing._
 
