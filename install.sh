@@ -70,24 +70,24 @@ step_skip() {
     progress_bar $CURRENT_STEP $TOTAL_STEPS
 }
 
-# Run a command with a simple inline spinner
-# Shows spinner while command runs, preserves its stderr on failure
+# Run a command with an animated inline spinner
+# Shows a rotating green spinner while command runs
 spinner_run() {
     local desc="$1"
     shift
-    local -a chars=("⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏")
+    local -a spin_chars=("⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏")
     local i=0
     local temp_out
     temp_out=$(mktemp)
 
-    # Run command in background, capturing stderr
+    # Run command in background, capturing combined output
     "$@" > "$temp_out" 2>&1 &
     local pid=$!
 
     while kill -0 "$pid" 2>/dev/null; do
-        printf "\r  ${YELLOW}%s${NC} %s" "${chars[$i]}" "$desc"
-        i=$(( (i + 1) % ${#chars[@]} ))
-        sleep 0.1
+        printf "\r  ${GREEN}%s${NC} %s" "${spin_chars[$i]}" "$desc"
+        i=$(( (i + 1) % ${#spin_chars[@]} ))
+        sleep 0.08
     done
 
     wait "$pid"
@@ -103,6 +103,31 @@ spinner_run() {
 
     rm -f "$temp_out"
     return $exit_code
+}
+
+# Show animated dots while waiting for a service to respond
+# Usage: wait_with_spinner <message> <command>
+wait_with_spinner() {
+    local desc="$1"
+    shift
+    local temp_out
+    temp_out=$(mktemp)
+
+    "$@" > "$temp_out" 2>&1 &
+    local pid=$!
+    local dots=0
+
+    while kill -0 "$pid" 2>/dev/null; do
+        local d=""
+        for ((j=0; j<dots; j++)); do d+="."; done
+        printf "\r  ${YELLOW}%s${NC}  %s" "⟳" "$desc$d"
+        dots=$(( (dots + 1) % 4 ))
+        sleep 0.5
+    done
+
+    wait "$pid"
+    printf "\r%$(tput cols)s\r"
+    rm -f "$temp_out"
 }
 
 # ─── Logging ───────────────────────────────────────────────────────────────────
@@ -154,49 +179,49 @@ wait_for_service() {
     local retries=10
     local delay=2
     local timeout=5
+    local attempt=0
     
-    for i in $(seq 1 $retries); do
-        # First check if port is listening
-        if ! ss -tuln | grep -q ":$port "; then
-            log_warn "$name port $port not yet listening (attempt $i/$retries)"
-            sleep $delay
-            continue
+    while true; do
+        attempt=$((attempt + 1))
+        
+        # Animated dots for waiting
+        local dots=""
+        for ((j=0; j<((attempt - 1) % 4); j++)); do dots+="."; done
+        printf "\r  ${YELLOW}⟳${NC}  Waiting for %s on port %s%s" "$name" "$port" "$dots"
+        
+        # Try to connect
+        if ss -tuln | grep -q ":$port "; then
+            case "$port" in
+                7125)
+                    if curl -sf --max-time $timeout http://localhost:7125/printer/info > /dev/null 2>&1; then
+                        printf "\r  ${GREEN}✓${NC}  %s ready (port %s)\n" "$name" "$port"
+                        return 0
+                    fi
+                    ;;
+                8081)
+                    if curl -sf --max-time $timeout http://localhost:8081/ > /dev/null 2>&1; then
+                        printf "\r  ${GREEN}✓${NC}  %s ready (port %s)\n" "$name" "$port"
+                        return 0
+                    fi
+                    ;;
+                7126)
+                    printf "\r  ${GREEN}✓${NC}  %s listening (port %s)\n" "$name" "$port"
+                    return 0
+                    ;;
+                *)
+                    printf "\r  ${GREEN}✓${NC}  %s listening (port %s)\n" "$name" "$port"
+                    return 0
+                    ;;
+            esac
         fi
         
-        # Then check if service is responding
-        case "$port" in
-            7125)  # Moonraker API
-                if curl -sf --max-time $timeout http://localhost:7125/printer/info > /dev/null 2>&1; then
-                    log_info "$name is healthy and responding (port $port)"
-                    return 0
-                fi
-                ;;
-            8081)  # Admin UI
-                if curl -sf --max-time $timeout http://localhost:8081/ > /dev/null 2>&1; then
-                    log_info "$name is serving requests (port $port)"
-                    return 0
-                fi
-                ;;
-            7126)  # Klipper
-                if ss -tuln | grep -q ":$port "; then
-                    # Klipper doesn't have HTTP API, just check port
-                    log_info "$name is listening (port $port)"
-                    return 0
-                fi
-                ;;
-            *)
-                # Generic check: just verify port is listening
-                log_info "$name is listening (port $port)"
-                return 0
-                ;;
-        esac
+        if [[ $attempt -ge $retries ]]; then
+            printf "\r  ${RED}✗${NC}  %s health check failed after %d retries\n" "$name" "$retries"
+            return 1
+        fi
         
-        log_warn "$name not responding on port $port (attempt $i/$retries)"
         sleep $delay
     done
-    
-    log_warn "$name health check failed after ${retries} retries"
-    return 1
 }
 backup_existing() {
     step_start "Backing up existing installation"
