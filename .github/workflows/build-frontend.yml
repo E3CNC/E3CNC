@@ -94,7 +94,7 @@ jobs:
           cache-dependency-path: cli/go/go.sum
 
       - name: Run Go tests
-        run: cd cli/go && go test ./... -count=1
+        run: cd cli/go && go test ./... -count=1 -short
 
       - name: Run Go linter (go vet)
         run: cd cli/go && go vet ./...

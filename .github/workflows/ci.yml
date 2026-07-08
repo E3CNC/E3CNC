@@ -27,7 +27,7 @@ jobs:
           cache-dependency-path: cli/go/go.sum
 
       - name: Run Go tests
-        run: go test ./internal/... -count=1 -short
+        run: cd cli/go && go test ./... -count=1 -short
 
       - name: Check Go build
         run: |
