@@ -85,7 +85,7 @@ spinner_run() {
     local pid=$!
 
     while kill -0 "$pid" 2>/dev/null; do
-        printf "\r  ${GREEN}%s${NC} %s" "${spin_chars[$i]}" "$desc"
+        printf "\r  ${GREEN}%s${NC} %s" "${spin_chars[$i]}" "$desc" >&2
         i=$(( (i + 1) % ${#spin_chars[@]} ))
         sleep 0.08
     done
@@ -93,12 +93,17 @@ spinner_run() {
     wait "$pid"
     local exit_code=$?
 
-    # Clear the spinner line
-    printf "\r%$(tput cols)s\r"
+    # Clear the spinner line (stderr so it doesn't pollute captured output)
+    printf "\r%$(tput cols)s\r" >&2
 
-    # Show output on failure
-    if [[ $exit_code -ne 0 ]]; then
+    # Echo captured output to stdout (for callers using $(spinner_run ...))
+    if [[ -s "$temp_out" ]]; then
         cat "$temp_out"
+    fi
+
+    # Show output on stderr on failure
+    if [[ $exit_code -ne 0 && -s "$temp_out" ]]; then
+        cat "$temp_out" >&2
     fi
 
     rm -f "$temp_out"
@@ -120,13 +125,13 @@ wait_with_spinner() {
     while kill -0 "$pid" 2>/dev/null; do
         local d=""
         for ((j=0; j<dots; j++)); do d+="."; done
-        printf "\r  ${YELLOW}%s${NC}  %s" "⟳" "$desc$d"
+        printf "\r  ${YELLOW}%s${NC}  %s" "⟳" "$desc$d" >&2
         dots=$(( (dots + 1) % 4 ))
         sleep 0.5
     done
 
     wait "$pid"
-    printf "\r%$(tput cols)s\r"
+    printf "\r%$(tput cols)s\r" >&2
     rm -f "$temp_out"
 }
 
@@ -187,36 +192,36 @@ wait_for_service() {
         # Animated dots for waiting
         local dots=""
         for ((j=0; j<((attempt - 1) % 4); j++)); do dots+="."; done
-        printf "\r  ${YELLOW}⟳${NC}  Waiting for %s on port %s%s" "$name" "$port" "$dots"
+        printf "\r  ${YELLOW}⟳${NC}  Waiting for %s on port %s%s" "$name" "$port" "$dots" >&2
         
         # Try to connect
         if ss -tuln | grep -q ":$port "; then
             case "$port" in
                 7125)
                     if curl -sf --max-time $timeout http://localhost:7125/printer/info > /dev/null 2>&1; then
-                        printf "\r  ${GREEN}✓${NC}  %s ready (port %s)\n" "$name" "$port"
+                        printf "\r  ${GREEN}✓${NC}  %s ready (port %s)\n" "$name" "$port" >&2
                         return 0
                     fi
                     ;;
                 8081)
                     if curl -sf --max-time $timeout http://localhost:8081/ > /dev/null 2>&1; then
-                        printf "\r  ${GREEN}✓${NC}  %s ready (port %s)\n" "$name" "$port"
+                        printf "\r  ${GREEN}✓${NC}  %s ready (port %s)\n" "$name" "$port" >&2
                         return 0
                     fi
                     ;;
                 7126)
-                    printf "\r  ${GREEN}✓${NC}  %s listening (port %s)\n" "$name" "$port"
+                    printf "\r  ${GREEN}✓${NC}  %s listening (port %s)\n" "$name" "$port" >&2
                     return 0
                     ;;
                 *)
-                    printf "\r  ${GREEN}✓${NC}  %s listening (port %s)\n" "$name" "$port"
+                    printf "\r  ${GREEN}✓${NC}  %s listening (port %s)\n" "$name" "$port" >&2
                     return 0
                     ;;
             esac
         fi
         
         if [[ $attempt -ge $retries ]]; then
-            printf "\r  ${RED}✗${NC}  %s health check failed after %d retries\n" "$name" "$retries"
+            printf "\r  ${RED}✗${NC}  %s health check failed after %d retries\n" "$name" "$retries" >&2
             return 1
         fi
         
@@ -372,7 +377,7 @@ download_binary() {
         exit 1
     fi
     
-    download_url="https://github.com/E3CNC/E3CNC/releases/download/$tag_name/$BINARY_NAME-linux-$arch"
+    download_url="https://github.com/E3CNC/E3CNC/releases/download/$tag_name/$BINARY_NAME-$arch"
     
     if spinner_run "Downloading $BINARY_NAME for $arch..." curl -fsSL "$download_url" -o "$temp_file"; then
         chmod +x "$temp_file"
