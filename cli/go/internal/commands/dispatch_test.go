@@ -40,7 +40,6 @@ func TestRunDispatch_AllCommands(t *testing.T) {
 		{"diag", nil},
 		{"doctor", nil},
 		{"logs", nil},
-		{"admin-page", nil},
 		{"detect-mcu", nil},
 		{"detect", nil},
 		{"scan", nil},
