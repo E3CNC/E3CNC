@@ -117,6 +117,7 @@
         "vite-plugin-package-version": "^1.1.0",
         "vite-plugin-pwa": "^1.2.0",
         "vitest": "^3.2.6",
+        "vue-tsc": "^2.0.0",
         "workbox-core": "^7.0.0"
     },
     "postcss": {
