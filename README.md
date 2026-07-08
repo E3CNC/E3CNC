@@ -12,8 +12,15 @@
 A modern, responsive CNC controller interface for Klipper-based machines — forked from [Mainsail](https://github.com/mainsail-crew/mainsail) and retargeted from 3D printing to CNC machine control. Built with **Vue 3.5**, **Vuetify 3**, and a **Go BubbleTea TUI**.
 
 ```bash
+# Clone the repo
 git clone https://github.com/E3CNC/E3CNC.git ~/E3CNC && cd ~/E3CNC
-./e3cnc-tui install   # one-command full install
+
+# Run the installer (sudo required)
+sudo ./install.sh
+
+# Or with custom options:
+sudo ./install.sh --unattended          # no prompts
+sudo ./install.sh --dir /opt/e3cnc  # custom dir
 ```
 
 ## What's New — Go BubbleTea TUI
