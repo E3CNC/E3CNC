@@ -41,7 +41,7 @@ progress_bar() {
     for ((i=0; i<filled; i++)); do bar+="█"; done
     for ((i=0; i<empty; i++)); do bar+="░"; done
 
-    printf "\r  ${BLUE}[${NC}%s${BLUE}]${NC} ${GREEN}%3d%%${NC}" "$bar" "$percent"
+    printf "\r  ${GREEN}[${NC}%s${GREEN}]${NC} ${GREEN}%3d%%${NC}" "$bar" "$percent"
 }
 
 # Begin a step: shows progress bar + step header
@@ -49,7 +49,7 @@ step_start() {
     CURRENT_STEP=$((CURRENT_STEP + 1))
     local desc="$1"
     progress_bar $((CURRENT_STEP - 1)) $TOTAL_STEPS
-    echo -e "\n  ${BLUE}➜${NC} ${BOLD}Step ${CURRENT_STEP}/${TOTAL_STEPS}:${NC} ${desc}"
+    echo -e "\n  ${GREEN}➜${NC} ${BOLD}Step ${CURRENT_STEP}/${TOTAL_STEPS}:${NC} ${desc}"
     printf "  ${YELLOW}⟳${NC} Running..."
 }
 
@@ -111,7 +111,7 @@ log() {
     echo -e "$msg" | tee -a "$LOG_FILE"
 }
 
-log_info() { log "${BLUE}[INFO]${NC} $*"; }
+log_info() { log "${GREEN}[INFO]${NC} $*"; }
 log_warn() { log "${YELLOW}[WARN]${NC} $*"; }
 log_error() { log "${RED}[ERROR]${NC} $*" >&2; }
 log_success() { log "${GREEN}[SUCCESS]${NC} $*"; }
@@ -668,7 +668,7 @@ print_next_steps() {
     echo -e "${GREEN}║${NC}          ${BOLD}INSTALLATION COMPLETE${NC}            ${GREEN}║${NC}"
     echo -e "${GREEN}╚══════════════════════════════════════════════════╝${NC}"
     echo
-    echo -e "${BLUE}Next Steps:${NC}"
+    echo -e "${GREEN}Next Steps:${NC}"
     echo "  1. Open browser → http://$ip:8081"
     echo "  2. Verify DRO shows correct position"
     echo "  3. Test jog controls (XY/Z feedrate sliders)"
@@ -741,12 +741,12 @@ main() {
     LOG_FILE="$E3CNC_DIR/logs/installer.log"
     
     echo
-    echo -e "  ${BLUE}╔══════════════════════════════════════════════════╗${NC}"
-    echo -e "  ${BLUE}║${NC}  ${BOLD}E3CNC Installer${NC}                           ${BLUE}║${NC}"
-    echo -e "  ${BLUE}║${NC}  Version: ${GREEN}$INSTALL_VERSION${NC}                      ${BLUE}║${NC}"
-    echo -e "  ${BLUE}║${NC}  Hostname: ${CYAN}$(hostname)${NC}                     ${BLUE}║${NC}"
-    echo -e "  ${BLUE}║${NC}  Arch: ${YELLOW}$(detect_architecture)${NC}                           ${BLUE}║${NC}"
-    echo -e "  ${BLUE}╚══════════════════════════════════════════════════╝${NC}"
+    echo -e "  ${GREEN}╔══════════════════════════════════════════════════╗${NC}"
+    echo -e "  ${GREEN}║${NC}  ${BOLD}E3CNC Installer${NC}                           ${GREEN}║${NC}"
+    echo -e "  ${GREEN}║${NC}  Version: ${CYAN}$INSTALL_VERSION${NC}                       ${GREEN}║${NC}"
+    echo -e "  ${GREEN}║${NC}  Hostname: ${YELLOW}$(hostname)${NC}                      ${GREEN}║${NC}"
+    echo -e "  ${GREEN}║${NC}  Arch: ${YELLOW}$(detect_architecture)${NC}                            ${GREEN}║${NC}"
+    echo -e "  ${GREEN}╚══════════════════════════════════════════════════╝${NC}"
     echo
     
     # Run installation steps
