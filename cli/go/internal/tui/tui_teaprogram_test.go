@@ -15,7 +15,7 @@ func newTestProgram(t *testing.T) (*tea.Program, *bytes.Buffer) {
 	t.Helper()
 	var buf bytes.Buffer
 	p := tea.NewProgram(
-		New(),
+		New("test-version"),
 		tea.WithInput(nil),
 		tea.WithOutput(&buf),
 		tea.WithoutSignalHandler(),
@@ -46,8 +46,8 @@ func TestTeaProgram_MenuRenders(t *testing.T) {
 		p.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'q'}})
 	})
 
-	if !strings.Contains(output, "E3CNC CLI") {
-		t.Errorf("Output should contain 'E3CNC CLI'\n--- got ---\n%q", output)
+	if !strings.Contains(output, "█") {
+		t.Errorf("Output should contain E3CNC ASCII art banner\n--- got ---\n%q", output)
 	}
 }
 
@@ -58,7 +58,7 @@ func TestTeaProgram_QQuitsCleanly(t *testing.T) {
 		p.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'q'}})
 	})
 
-	if !strings.Contains(output, "E3CNC CLI") {
+	if !strings.Contains(output, "█") {
 		t.Errorf("expected menu output before quit\n--- got ---\n%q", output)
 	}
 }
@@ -70,7 +70,7 @@ func TestTeaProgram_CtrlCQuitsCleanly(t *testing.T) {
 		p.Send(tea.KeyMsg{Type: tea.KeyCtrlC})
 	})
 
-	if !strings.Contains(output, "E3CNC CLI") {
+	if !strings.Contains(output, "█") {
 		t.Errorf("expected menu output before Ctrl+C\n--- got ---\n%q", output)
 	}
 }
@@ -102,8 +102,8 @@ func TestTeaProgram_NavigateDownUp(t *testing.T) {
 		p.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'q'}})
 	})
 
-	if !strings.Contains(output, "E3CNC CLI") {
-		t.Errorf("expected menu after navigation\n--- got ---\n%q", output)
+	if !strings.Contains(output, "█") {
+		t.Errorf("expected menu after navigation\n--- got ---\n%q", output[:min(len(output), 500)])
 	}
 }
 
@@ -175,7 +175,7 @@ func TestTeaProgram_AllScreensRender(t *testing.T) {
 	for _, sc := range screens {
 		t.Run(sc.name, func(t *testing.T) {
 			var buf bytes.Buffer
-			m := New()
+			m := New("test-version")
 			m.state = sc.state
 			if sc.setup != nil {
 				sc.setup(&m)
