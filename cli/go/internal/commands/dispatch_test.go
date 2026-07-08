@@ -69,10 +69,10 @@ func TestRunDispatch_AllCommands(t *testing.T) {
 }
 
 func TestRunDispatch_Unknown(t *testing.T) {
-	// Unknown commands should still return true (no fall-through to Python)
+	// Unknown commands should return false (fall-through to Python)
 	result := RunDispatch("nonexistent-command", false, nil)
-	if !result {
-		t.Errorf("RunDispatch('nonexistent') = false, expected true")
+	if result {
+		t.Errorf("RunDispatch('nonexistent') = true, expected false (should fall through to Python)")
 	}
 }
 
@@ -136,7 +136,7 @@ func TestResolveInstance_WithName(t *testing.T) {
 	// Resolve with --name flag
 	inst := resolveInstance([]string{"--name", "test-box"})
 	if inst == nil {
-		t.Fatal("resolveInstance('--name test-box') = nil, expected instance")
+		t.Fatalf("resolveInstance('--name test-box') = nil, expected instance")
 	}
 	if inst.Name != "test-box" {
 		t.Errorf("resolveInstance: Name = %q, expected 'test-box'", inst.Name)
@@ -155,7 +155,7 @@ func TestResolveInstance_WithShortFlag(t *testing.T) {
 
 	inst := resolveInstance([]string{"-p", "dev-box"})
 	if inst == nil {
-		t.Fatal("resolveInstance('-p dev-box') = nil, expected instance")
+		t.Fatalf("resolveInterface('-p dev-box') = nil, expected instance")
 	}
 	if inst.Name != "dev-box" {
 		t.Errorf("resolveInstance: Name = %q, expected 'dev-box'", inst.Name)

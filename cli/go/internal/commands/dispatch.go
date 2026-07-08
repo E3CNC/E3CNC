@@ -69,7 +69,7 @@ func RunDispatch(cmd string, jsonOut bool, args []string) bool {
 	case "import-instance":
 		return cmdImportInstance(jsonOut, args)
 	}
-	return true // handled (even if unknown, don't fall through to Python)
+	return false // not handled, fall through to Python
 }
 
 // ── helpers ───────────────────────────────────────────────────────

@@ -59,12 +59,8 @@ fi
 echo "  ✓ package.json"
 
 # ── update _e3cnc_shared.py ──────────────────────────────────────────────────
-if [[ "$(uname -s)" == "Darwin" ]]; then
-    sed -i '' "s/^VERSION = \"$CURRENT\"/VERSION = \"$NEW\"/" _e3cnc_shared.py
-else
-    sed -i "s/^VERSION = \"$CURRENT\"/VERSION = \"$NEW\"/" _e3cnc_shared.py
-fi
-echo "  ✓ _e3cnc_shared.py"
+# File removed in v0.9.14+ (Python CLI retired). Skipping.
+echo "  ✓ _e3cnc_shared.py (skipped - file removed)"
 
 # ── build Go TUI binary with injected version ────────────────────────────────
 GO_DIR="cli/go"
@@ -74,7 +70,7 @@ if [[ -d "$GO_DIR" ]]; then
         (cd "$GO_DIR" && CGO_ENABLED=0 GOOS=linux GOARCH=$arch \
             go build -ldflags="-s -w -X main.version=$NEW" \
             -trimpath -o "bin/e3cnc-tui-${arch}" ./cmd/e3cnc-tui/) 2>&1 | sed 's/^/    /'
-        size=$(ls -lh "$GO_DIR/e3cnc-tui-${arch}" | awk '{print $5}')
+        size=$(ls -lh "bin/e3cnc-tui-${arch}" | awk '{print $5}')
         echo "  ✓ e3cnc-tui-${arch} built ($size)"
     done
 fi
