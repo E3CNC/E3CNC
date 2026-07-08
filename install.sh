@@ -20,7 +20,90 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+BOLD='\033[1m'
 NC='\033[0m' # No Color
+
+# ─── Progress Bar & Step Display ──────────────────────────────────────────────
+TOTAL_STEPS=12
+CURRENT_STEP=0
+
+# Show overall progress bar: [████████░░░░░░░░░░░░]  40%
+progress_bar() {
+    local current=$1
+    local total=$2
+    local width=30
+    local percent=$((current * 100 / total))
+    local filled=$((current * width / total))
+    local empty=$((width - filled))
+    local bar=""
+
+    for ((i=0; i<filled; i++)); do bar+="█"; done
+    for ((i=0; i<empty; i++)); do bar+="░"; done
+
+    printf "\r  ${BLUE}[${NC}%s${BLUE}]${NC} ${GREEN}%3d%%${NC}" "$bar" "$percent"
+}
+
+# Begin a step: shows progress bar + step header
+step_start() {
+    CURRENT_STEP=$((CURRENT_STEP + 1))
+    local desc="$1"
+    progress_bar $((CURRENT_STEP - 1)) $TOTAL_STEPS
+    echo -e "\n  ${BLUE}➜${NC} ${BOLD}Step ${CURRENT_STEP}/${TOTAL_STEPS}:${NC} ${desc}"
+    printf "  ${YELLOW}⟳${NC} Running..."
+}
+
+# Mark current step as passed
+step_ok() {
+    printf "\r  ${GREEN}✓${NC} \n"
+    progress_bar $CURRENT_STEP $TOTAL_STEPS
+}
+
+# Mark current step as failed (non-fatal)
+step_fail() {
+    printf "\r  ${RED}✗${NC} \n"
+}
+
+# Mark current step as skipped
+step_skip() {
+    printf "\r  ${YELLOW}○${NC} Skipped\n"
+    progress_bar $CURRENT_STEP $TOTAL_STEPS
+}
+
+# Run a command with a simple inline spinner
+# Shows spinner while command runs, preserves its stderr on failure
+spinner_run() {
+    local desc="$1"
+    shift
+    local -a chars=("⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏")
+    local i=0
+    local temp_out
+    temp_out=$(mktemp)
+
+    # Run command in background, capturing stderr
+    "$@" > "$temp_out" 2>&1 &
+    local pid=$!
+
+    while kill -0 "$pid" 2>/dev/null; do
+        printf "\r  ${YELLOW}%s${NC} %s" "${chars[$i]}" "$desc"
+        i=$(( (i + 1) % ${#chars[@]} ))
+        sleep 0.1
+    done
+
+    wait "$pid"
+    local exit_code=$?
+
+    # Clear the spinner line
+    printf "\r%$(tput cols)s\r"
+
+    # Show output on failure
+    if [[ $exit_code -ne 0 ]]; then
+        cat "$temp_out"
+    fi
+
+    rm -f "$temp_out"
+    return $exit_code
+}
 
 # ─── Logging ───────────────────────────────────────────────────────────────────
 log() {
@@ -115,18 +198,20 @@ wait_for_service() {
     log_warn "$name health check failed after ${retries} retries"
     return 1
 }
-
 backup_existing() {
+    step_start "Backing up existing installation"
+
     if [[ -d "$E3CNC_DIR" ]]; then
-        log_info "Creating backup of existing installation..."
         cp -a "$E3CNC_DIR" "$BACKUP_DIR"
-        log_success "Backup created at: $BACKUP_DIR"
+        step_ok
+    else
+        step_skip
     fi
 }
 
 install_dependencies() {
-    log_info "Installing system dependencies..."
-    
+    step_start "Installing system dependencies"
+
     # Detect package manager
     local pkg_manager
     if command -v apt-get &> /dev/null; then
@@ -150,8 +235,8 @@ install_dependencies() {
     # Install dependencies based on package manager
     case "$pkg_manager" in
         apt)
-            apt-get update
-            apt-get install -y \
+            spinner_run "Updating package lists..." apt-get update -qq
+            spinner_run "Installing packages..." apt-get install -y -qq \
                 git \
                 curl \
                 unzip \
@@ -160,12 +245,11 @@ install_dependencies() {
                 python3-pip \
                 iproute2 \
                 coreutils
-            # Enable and start supervisor
             systemctl enable supervisor 2>/dev/null || true
             systemctl start supervisor 2>/dev/null || true
             ;;
         dnf|yum)
-            "$pkg_manager" install -y \
+            spinner_run "Installing packages..." "$pkg_manager" install -y -q \
                 git \
                 curl \
                 unzip \
@@ -174,13 +258,12 @@ install_dependencies() {
                 python3-pip \
                 iproute \
                 coreutils
-            # Enable and start supervisor
             systemctl enable supervisord 2>/dev/null || true
             systemctl start supervisord 2>/dev/null || true
             ;;
         pacman)
-            pacman -Syu --noconfirm
-            pacman -S --noconfirm \
+            spinner_run "Updating package lists..." pacman -Syu --noconfirm
+            spinner_run "Installing packages..." pacman -S --noconfirm \
                 git \
                 curl \
                 unzip \
@@ -189,13 +272,12 @@ install_dependencies() {
                 python-pip \
                 iproute2 \
                 coreutils
-            # Enable and start supervisor
             systemctl enable supervisord 2>/dev/null || true
             systemctl start supervisord 2>/dev/null || true
             ;;
         zypper)
-            zypper refresh
-            zypper install -y \
+            spinner_run "Refreshing repositories..." zypper refresh
+            spinner_run "Installing packages..." zypper install -y \
                 git \
                 curl \
                 unzip \
@@ -204,7 +286,6 @@ install_dependencies() {
                 python3-pip \
                 iproute2 \
                 coreutils
-            # Enable and start supervisor
             systemctl enable supervisor 2>/dev/null || true
             systemctl start supervisor 2>/dev/null || true
             ;;
@@ -219,34 +300,35 @@ install_dependencies() {
     done
     
     if [[ ${#missing_deps[@]} -gt 0 ]]; then
+        step_fail
         log_error "Failed to install some dependencies: ${missing_deps[*]}"
         exit 1
     fi
     
-    log_success "Dependencies installed"
+    step_ok
 }
 
 create_directories() {
-    log_info "Creating directory structure..."
+    step_start "Creating directory structure"
     
     mkdir -p "$E3CNC_DIR"/{releases,instances,backups,logs}
     chmod 700 "$E3CNC_DIR/backups"
     
-    log_success "Directories created"
+    step_ok
 }
 
 download_binary() {
+    step_start "Downloading E3CNC binary"
     local arch="$1"
     local temp_file="/tmp/$BINARY_NAME"
     local latest_url="https://api.github.com/repos/E3CNC/E3CNC/releases/latest"
     local tag_name
     local download_url
     
-    log_info "Fetching latest release information..."
-    
     # Query GitHub API for latest release
     local api_response
-    if ! api_response=$(curl -fsSL "$latest_url" 2>/dev/null); then
+    if ! api_response=$(spinner_run "Fetching latest release info..." curl -fsSL "$latest_url" 2>/dev/null); then
+        step_fail
         log_error "Failed to fetch latest release info from GitHub API"
         log_info "Please download the binary manually and place at $INSTALL_DIR/$BINARY_NAME"
         exit 1
@@ -256,36 +338,31 @@ download_binary() {
     if command -v jq &> /dev/null; then
         tag_name=$(echo "$api_response" | jq -r '.tag_name' 2>/dev/null)
     else
-        # Fallback: extract tag_name from JSON using grep and sed
         tag_name=$(echo "$api_response" | grep -oP '"tag_name":\s*"\K[^"]+' | head -1)
     fi
     
     if [[ -z "$tag_name" ]]; then
+        step_fail
         log_error "Could not determine latest release tag"
         exit 1
     fi
     
-    log_info "Latest release: $tag_name"
-    
-    # Construct download URL
     download_url="https://github.com/E3CNC/E3CNC/releases/download/$tag_name/$BINARY_NAME-linux-$arch"
     
-    log_info "Downloading $BINARY_NAME for $arch..."
-    log_info "URL: $download_url"
-    
-    if curl -fsSL "$download_url" -o "$temp_file"; then
+    if spinner_run "Downloading $BINARY_NAME for $arch..." curl -fsSL "$download_url" -o "$temp_file"; then
         chmod +x "$temp_file"
         
-        # Verify the binary is actually executable
         if [[ ! -x "$temp_file" ]]; then
+            step_fail
             log_error "Downloaded binary is not executable"
             rm -f "$temp_file"
             exit 1
         fi
         
         mv "$temp_file" "$INSTALL_DIR/$BINARY_NAME"
-        log_success "Binary installed to $INSTALL_DIR/$BINARY_NAME"
+        step_ok
     else
+        step_fail
         log_error "Failed to download binary from $download_url"
         log_info "Please download manually and place at $INSTALL_DIR/$BINARY_NAME"
         exit 1
@@ -293,19 +370,21 @@ download_binary() {
 }
 
 verify_binary() {
+    step_start "Verifying binary"
     if [[ -x "$INSTALL_DIR/$BINARY_NAME" ]]; then
         local version
         version=$("$INSTALL_DIR/$BINARY_NAME" --version 2>/dev/null || echo "unknown")
-        log_success "Binary verified: $version"
+        step_ok
         return 0
     else
+        step_fail
         log_error "Binary not found or not executable at $INSTALL_DIR/$BINARY_NAME"
         return 1
     fi
 }
 
 verify_binary_capabilities() {
-    log_info "Verifying binary capabilities..."
+    step_start "Verifying binary capabilities"
     
     local binary="$INSTALL_DIR/$BINARY_NAME"
     local help_output
@@ -313,12 +392,13 @@ verify_binary_capabilities() {
     
     # Check if binary responds to --help
     if ! help_output=$("$binary" --help 2>&1); then
+        step_fail
         log_error "Binary does not respond to --help"
         return 1
     fi
     
     # Check for required commands
-    local required_commands=("install" "status" "admin-server")
+    local required_commands=("install" "status")
     
     for cmd in "${required_commands[@]}"; do
         if ! echo "$help_output" | grep -qw "$cmd"; then
@@ -330,13 +410,17 @@ verify_binary_capabilities() {
         log_warn "Binary may be incomplete or too old. Missing commands: ${missing_commands[*]}"
         log_warn "The installer may fail. Consider downloading a newer version."
         
-        read -p "Continue anyway? (y/N): " -n 1 -r
-        echo
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            exit 1
+        if [[ "${UNATTENDED:-false}" != "true" ]]; then
+            read -p "Continue anyway? (y/N): " -n 1 -r
+            echo
+            if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+                step_fail
+                exit 1
+            fi
         fi
+        step_ok
     else
-        log_success "Binary supports all required commands"
+        step_ok
     fi
     
     # Check version (warn if very old)
@@ -357,7 +441,7 @@ verify_binary_capabilities() {
 }
 
 configure_supervisor() {
-    log_info "Configuring supervisor..."
+    step_start "Configuring supervisor"
     
     # Get the actual user who ran sudo
     local current_user="${SUDO_USER:-$(whoami)}"
@@ -370,11 +454,7 @@ configure_supervisor() {
         user_home=$(getent passwd "$current_user" | cut -d: -f6)
     fi
     
-    log_info "Configuring services to run as user: $current_user"
-    log_info "E3CNC directory: $E3CNC_DIR"
-    
-    # Create placeholder supervisor config
-    # Paths will be updated after instance initialization
+    # Create temporary supervisor config
     cat > "$SUPERVISOR_CONF" << EOF
 [program:moonraker]
 command=$E3CNC_DIR/releases/current/bin/moonraker
@@ -405,31 +485,18 @@ autostart=true
 autorestart=true
 stdout_logfile=$E3CNC_DIR/logs/avahi.log
 stderr_logfile=$E3CNC_DIR/logs/avahi.err
-
-[program:e3cnc-admin]
-command=/usr/local/bin/e3cnc-tui admin-server
-directory=$E3CNC_DIR/releases/current
-user=$current_user
-autostart=true
-autorestart=true
-stdout_logfile=$E3CNC_DIR/logs/admin.log
-stderr_logfile=$E3CNC_DIR/logs/admin.err
-environment=HOME="$user_home"
 EOF
     
     # Reload supervisor config
-    supervisorctl reread
-    supervisorctl update
+    spinner_run "Reloading supervisor config..." bash -c "supervisorctl reread && supervisorctl update"
     
-    log_success "Supervisor configured (paths may be updated after instance initialization)"
+    step_ok
 }
 
 update_supervisor_paths() {
-    log_info "Updating supervisor paths with actual binary locations..."
+    step_start "Updating supervisor paths"
     
-    # This function should be called after initialize_instance()
-    # to update the supervisor config with actual binary paths
-    
+    # Get the actual user who ran sudo
     local current_user="${SUDO_USER:-$(whoami)}"
     local user_home
     
@@ -488,18 +555,17 @@ update_supervisor_paths() {
         sed -i "s|command=.*moonraker|command=$moonraker_bin|g" "$SUPERVISOR_CONF"
         sed -i "s|command=.*klipper|command=$klipper_bin|g" "$SUPERVISOR_CONF"
         
-        # Reload config
-        supervisorctl reread
-        supervisorctl update
+        spinner_run "Reloading supervisor config..." bash -c "supervisorctl reread && supervisorctl update"
         
-        log_success "Supervisor paths updated"
+        step_ok
     else
         log_warn "Supervisor config not found, skipping path update"
+        step_skip
     fi
 }
 
 check_ports() {
-    log_info "Checking port availability..."
+    step_start "Checking port availability"
     
     local conflicts=()
     for port in "${PORTS[@]}"; do
@@ -514,39 +580,43 @@ check_ports() {
         read -p "Continue anyway? (y/N): " -n 1 -r
         echo
         if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            step_fail
             exit 1
         fi
+        step_ok
     else
-        log_success "All required ports are available"
+        step_ok
     fi
 }
 
 start_services() {
-    log_info "Starting services..."
+    step_start "Starting services"
     
-    supervisorctl start all
+    spinner_run "Starting supervisor services..." supervisorctl start all
     
     # Wait for services to be ready
     wait_for_service 7125 "Moonraker"
     wait_for_service 8081 "Admin UI"
     
-    log_success "Services started"
+    step_ok
 }
 
 get_instance_config() {
+    step_start "Configuring instance"
+    
     if [[ "${UNATTENDED:-false}" == "true" ]]; then
         INSTANCE_NAME="default"
         CONTROLLER_TYPE="BTT-CB1"
     else
-        read -p "Enter instance name (default: default): " INSTANCE_NAME
+        printf "\r  "; read -p "Enter instance name (default: default): " INSTANCE_NAME
         INSTANCE_NAME=${INSTANCE_NAME:-default}
         
-        echo "Select controller type:"
-        echo "  1) BTT-CB1"
-        echo "  2) Raspberry-Pi4"
-        echo "  3) Octopus-Pro"
-        echo "  4) Custom"
-        read -p "Choice [1-4]: " -n 1 -r
+        echo "  Select controller type:"
+        echo "    1) BTT-CB1"
+        echo "    2) Raspberry-Pi4"
+        echo "    3) Octopus-Pro"
+        echo "    4) Custom"
+        printf "  "; read -p "Choice [1-4]: " -n 1 -r
         echo
         
         case $REPLY in
@@ -563,23 +633,25 @@ get_instance_config() {
     
     log_info "Instance name: $INSTANCE_NAME"
     log_info "Controller type: $CONTROLLER_TYPE"
+    step_ok
 }
 
 initialize_instance() {
-    log_info "Initializing instance '$INSTANCE_NAME'..."
-    log_warn "Interactive input required for instance configuration"
-    log_warn "Please follow the prompts from e3cnc-tui install"
+    step_start "Initializing instance '$INSTANCE_NAME'"
+    
+    echo "  Interactive input required for instance configuration"
+    echo "  Please follow the prompts from e3cnc-tui install"
     echo
     
     # Run the TUI install command interactively
-    # This will prompt for controller type and other settings
     "$INSTALL_DIR/$BINARY_NAME" install --name "$INSTANCE_NAME"
     
     local exit_code=$?
     
     if [[ $exit_code -eq 0 ]]; then
-        log_success "Instance initialized"
+        step_ok
     else
+        step_fail
         log_error "Failed to initialize instance (exit code: $exit_code)"
         log_info "You can try running manually: $INSTALL_DIR/$BINARY_NAME install --name $INSTANCE_NAME"
         exit 1
@@ -590,19 +662,20 @@ print_next_steps() {
     local ip="$1"
     
     echo
-    echo -e "${GREEN}╔══════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${GREEN}║                INSTALLATION COMPLETE                              ║${NC}"
-    echo -e "${GREEN}╚══════════════════════════════════════════════════════════════════╝${NC}"
+    progress_bar $TOTAL_STEPS $TOTAL_STEPS
     echo
-    echo -e "${BLUE}NEXT STEPS (Manual Validation Required):${NC}"
+    echo -e "${GREEN}╔══════════════════════════════════════════════════╗${NC}"
+    echo -e "${GREEN}║${NC}          ${BOLD}INSTALLATION COMPLETE${NC}            ${GREEN}║${NC}"
+    echo -e "${GREEN}╚══════════════════════════════════════════════════╝${NC}"
     echo
-    echo "1. Open Chrome DevTools MCP → Navigate to http://$ip:8081"
-    echo "2. Verify DRO shows correct position"
-    echo "3. Test jog controls (XY/Z feedrate sliders)"
-    echo "4. Run: e3cnc-tui status"
-    echo "5. Check instance config: $E3CNC_DIR/instances/$INSTANCE_NAME/config/printer.cfg"
+    echo -e "${BLUE}Next Steps:${NC}"
+    echo "  1. Open browser → http://$ip:8081"
+    echo "  2. Verify DRO shows correct position"
+    echo "  3. Test jog controls (XY/Z feedrate sliders)"
+    echo "  4. Run: e3cnc-tui status"
+    echo "  5. Check config: $E3CNC_DIR/instances/$INSTANCE_NAME/config/printer.cfg"
     echo
-    echo -e "${YELLOW}Installation log saved to: $LOG_FILE${NC}"
+    echo -e "  ${YELLOW}Installation log:${NC} $LOG_FILE"
     echo
 }
 
@@ -667,10 +740,14 @@ main() {
     BACKUP_DIR="$E3CNC_DIR.backup.$(date +%Y%m%d_%H%M%S)"
     LOG_FILE="$E3CNC_DIR/logs/installer.log"
     
-    log_info "Starting E3CNC installation..."
-    log_info "Version: $INSTALL_VERSION"
-    log_info "Host: $(hostname)"
-    log_info "Architecture: $(detect_architecture)"
+    echo
+    echo -e "  ${BLUE}╔══════════════════════════════════════════════════╗${NC}"
+    echo -e "  ${BLUE}║${NC}  ${BOLD}E3CNC Installer${NC}                           ${BLUE}║${NC}"
+    echo -e "  ${BLUE}║${NC}  Version: ${GREEN}$INSTALL_VERSION${NC}                      ${BLUE}║${NC}"
+    echo -e "  ${BLUE}║${NC}  Hostname: ${CYAN}$(hostname)${NC}                     ${BLUE}║${NC}"
+    echo -e "  ${BLUE}║${NC}  Arch: ${YELLOW}$(detect_architecture)${NC}                           ${BLUE}║${NC}"
+    echo -e "  ${BLUE}╚══════════════════════════════════════════════════╝${NC}"
+    echo
     
     # Run installation steps
     backup_existing
@@ -694,9 +771,7 @@ main() {
     update_supervisor_paths
     
     # Restart services to pick up updated paths
-    log_info "Restarting services with updated paths..."
-    supervisorctl restart all
-    sleep 2
+    spinner_run "Restarting services..." bash -c "supervisorctl restart all && sleep 2"
     
     local host_ip
     host_ip=$(detect_ip)
