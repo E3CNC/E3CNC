@@ -232,7 +232,7 @@ backup_existing() {
     step_start "Backing up existing installation"
 
     if [[ -d "$E3CNC_DIR" ]]; then
-        cp -a "$E3CNC_DIR" "$BACKUP_DIR"
+        spinner_run "Copying $E3CNC_DIR to backup..." bash -c "cp -a '$E3CNC_DIR' '$BACKUP_DIR'"
         step_ok
     else
         step_skip
@@ -769,6 +769,13 @@ main() {
     # Update derived paths
     BACKUP_DIR="$E3CNC_DIR.backup.$(date +%Y%m%d_%H%M%S)"
     LOG_FILE="$E3CNC_DIR/logs/installer.log"
+    
+    # Create log directory early so log() calls don't fail
+    if ! mkdir -p "$(dirname "$LOG_FILE")" 2>/dev/null; then
+        # Fallback: log to /tmp if we can't create the log dir
+        LOG_FILE="/tmp/e3cnc-installer.log"
+        mkdir -p "$(dirname "$LOG_FILE")"
+    fi
     
     echo
     echo -e "  ${GREEN}╔══════════════════════════════════════════════════╗${NC}"
