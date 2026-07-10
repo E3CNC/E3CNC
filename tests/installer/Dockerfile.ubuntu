@@ -35,11 +35,10 @@ RUN chmod +x /usr/local/bin/e3cnc-tui /tmp/e3cnc-tui
 
 WORKDIR /workspace
 
-# Copy the install script and test scripts
+# Copy the install script and test runner
 COPY install.sh /workspace/install.sh
 COPY tests/installer/test-runner.sh /workspace/test-runner.sh
-COPY tests/installer/test-install.sh /workspace/test-install.sh
-RUN chmod +x /workspace/install.sh /workspace/test-runner.sh /workspace/test-install.sh
+RUN chmod +x /workspace/install.sh /workspace/test-runner.sh
 
 # Set default shell
 SHELL ["/bin/bash", "-c"]
