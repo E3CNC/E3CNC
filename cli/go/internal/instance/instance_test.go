@@ -9,8 +9,8 @@ import (
 
 func TestE3CNCHome(t *testing.T) {
 	home := E3CNCHome()
-	if !strings.HasSuffix(home, "/e3cnc") && !strings.HasSuffix(home, "\\e3cnc") {
-		t.Errorf("E3CNCHome() = %q, should end with 'e3cnc'", home)
+	if !strings.HasSuffix(home, "/E3CNC") && !strings.HasSuffix(home, "\\E3CNC") {
+		t.Errorf("E3CNCHome() = %q, should end with 'E3CNC'", home)
 	}
 }
 
