@@ -1,8 +1,5 @@
 <template>
-    <responsive
-        :breakpoints="{
-            mobile: (el: { width: number }) => el.width <= 395,
-        }">
+    <responsive :breakpoints="breakpoints">
         <template #default="{ el }">
             <v-table class="temperature-panel-table">
                 <thead>
@@ -49,6 +46,10 @@
 import { computed } from 'vue'
 import { useStore } from 'vuex'
 import Responsive from '@/components/ui/Responsive.vue'
+
+const breakpoints = computed(() => ({
+    mobile: (el: { width: number }) => el.width <= 395,
+}))
 
 const store = useStore()
 

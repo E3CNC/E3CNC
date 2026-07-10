@@ -5,11 +5,7 @@
         :title="$t('Panels.MachineSettingsPanel.Headline')"
         :collapsible="true"
         card-class="machine-settings-panel">
-        <responsive
-            :breakpoints="{
-                small: (el: { width: number }) => el.width < 375,
-                medium: (el: { width: number }) => el.width >= 375,
-            }">
+        <responsive :breakpoints="breakpoints">
             <template #default="{ el }">
                 <v-card-text class="pt-5">
                     <v-row>
@@ -110,6 +106,11 @@ import Panel from '@/components/ui/Panel.vue'
 import { mdiEngine } from '@mdi/js'
 import NumberInput from '@/components/inputs/NumberInput.vue'
 import Responsive from '@/components/ui/Responsive.vue'
+
+const breakpoints = computed(() => ({
+    small: (el: { width: number }) => el.width < 375,
+    medium: (el: { width: number }) => el.width >= 375,
+}))
 
 const { klipperReadyForGui } = useBase()
 const { doSend } = useControl()
