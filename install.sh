@@ -303,12 +303,17 @@ backup_existing() {
 
 # Migrate data from old lowercase ~/e3cnc to new uppercase ~/E3CNC if needed
 migrate_old_dir() {
-    local old_dir="$HOME/e3cnc"
-    if [[ -d "$old_dir" && ! -d "$E3CNC_DIR" ]]; then
+    local old_dir="$E3CNC_DIR"  # Use the actual E3CNC_DIR, not $HOME/e3cnc
+    local new_dir="$E3CNC_DIR"
+    
+    # Only migrate if old lowercase dir exists and new uppercase dir doesn't
+    if [[ -d "$HOME/e3cnc" && ! -d "$E3CNC_DIR" ]]; then
+        old_dir="$HOME/e3cnc"
         step_start "Migrating data from $old_dir to $E3CNC_DIR"
         spinner_run "Moving runtime data..." bash -c "mv '$old_dir' '$E3CNC_DIR'"
         step_ok
-    elif [[ -d "$old_dir" && -d "$E3CNC_DIR" ]]; then
+    elif [[ -d "$HOME/e3cnc" && -d "$E3CNC_DIR" ]]; then
+        old_dir="$HOME/e3cnc"
         step_start "Merging data from $old_dir into $E3CNC_DIR"
         spinner_run "Copying old data..." bash -c "cp -an '$old_dir/'* '$E3CNC_DIR/' 2>/dev/null; cp -an '$old_dir/'.* '$E3CNC_DIR/' 2>/dev/null"
         step_ok
@@ -531,12 +536,19 @@ verify_binary_capabilities() {
     
     # Check version (warn if very old)
     local version
-    version=$("$binary" --version 2>/dev/null | grep -oP 'v[0-9]+\.[0-9]+' | head -1)
+    version=$("$binary" --version 2>/dev/null | grep -oE 'v[0-9]+\.[0-9]+' | head -1)
     
     if [[ -n "$version" ]]; then
         local major minor
         major=$(echo "$version" | cut -d. -f1 | tr -d 'v')
         minor=$(echo "$version" | cut -d. -f2)
+        
+        # Skip warning for development/installed builds (v0.0.x-dev, v0.0.0-installed, etc.)
+        # Check if version starts with "v0.0" (covers v0.0, v0.0.0-dev, v0.0.0-installed, etc.)
+        if [[ "$version" == v0.0* ]]; then
+            log_info "Binary version: $version (development build, skipping version check)"
+            return 0
+        fi
         
         # Warn if version is older than v0.9
         if [[ $major -lt 1 && $minor -lt 9 ]]; then
@@ -559,115 +571,18 @@ configure_supervisor() {
     else
         user_home=$(getent passwd "$current_user" | cut -d: -f6)
     fi
-    
-    # Create temporary supervisor config
-    cat > "$SUPERVISOR_CONF" << EOF
-[program:moonraker]
-command=$E3CNC_DIR/releases/current/bin/moonraker
-directory=$E3CNC_DIR/releases/current
-user=$current_user
-autostart=true
-autorestart=true
-stdout_logfile=$E3CNC_DIR/logs/moonraker.log
-stderr_logfile=$E3CNC_DIR/logs/moonraker.err
-environment=HOME="$user_home",E3CNC_MOONRAKER_PORT="${E3CNC_MOONRAKER_PORT:-7125}"
 
-[program:klipper]
-command=$E3CNC_DIR/releases/current/bin/klipper $E3CNC_DIR/instances/%(process_num)s/config/printer.cfg
-directory=$E3CNC_DIR/releases/current
-user=$current_user
-autostart=true
-autorestart=true
-stdout_logfile=$E3CNC_DIR/logs/klipper_%(process_num)s.log
-stderr_logfile=$E3CNC_DIR/logs/klipper_%(process_num)s.err
-numprocs=1
-process_name=%(program_name)_%(process_num)s
-environment=HOME="$user_home",E3CNC_KLIPPER_PORT="${E3CNC_KLIPPER_PORT:-7126}"
-
-[program:avahi-publish]
-command=avahi-publish-address -R
-user=$current_user
-autostart=true
-autorestart=true
-stdout_logfile=$E3CNC_DIR/logs/avahi.log
-stderr_logfile=$E3CNC_DIR/logs/avahi.err
-EOF
-    
-    # Reload supervisor config
-    spinner_run "Reloading supervisor config..." bash -c "supervisorctl reread && supervisorctl update"
-    
-    step_ok
+    step_skip
 }
 
 update_supervisor_paths() {
     step_start "Updating supervisor paths"
     
-    # Get the actual user who ran sudo
-    local current_user="${SUDO_USER:-$(whoami)}"
-    local user_home
+    # E3CNC now manages per-instance supervisor configs via the TUI
+    # The legacy monolithic config has been removed
+    # This function is kept as a no-op for backwards compatibility
     
-    if [[ "$current_user" == "root" ]]; then
-        user_home="/root"
-    else
-        user_home=$(getent passwd "$current_user" | cut -d: -f6)
-    fi
-    
-    # Find actual moonraker/klipper binaries
-    # First check common locations, then use find as fallback
-    local moonraker_bin=""
-    local klipper_bin=""
-    
-    # Common binary locations to check first
-    local common_paths=(
-        "$E3CNC_DIR/releases/current/bin"
-        "$E3CNC_DIR/releases/current"
-        "$E3CNC_DIR/venv/bin"
-    )
-    
-    for path in "${common_paths[@]}"; do
-        if [[ -z "$moonraker_bin" && -f "$path/moonraker" ]]; then
-            moonraker_bin="$path/moonraker"
-        fi
-        if [[ -z "$klipper_bin" && -f "$path/klipper" ]]; then
-            klipper_bin="$path/klipper"
-        fi
-    done
-    
-    # Fallback to find if not found in common paths
-    if [[ -z "$moonraker_bin" ]]; then
-        log_warn "Moonraker not found in common paths, searching..."
-        moonraker_bin=$(find "$E3CNC_DIR/releases/current" -name "moonraker" -type f 2>/dev/null | head -1)
-    fi
-    
-    if [[ -z "$klipper_bin" ]]; then
-        log_warn "Klipper not found in common paths, searching..."
-        klipper_bin=$(find "$E3CNC_DIR/releases/current" -name "klipper" -type f 2>/dev/null | head -1)
-    fi
-    
-    if [[ -z "$moonraker_bin" ]]; then
-        log_warn "Moonraker binary not found, using placeholder path"
-        moonraker_bin="$E3CNC_DIR/releases/current/bin/moonraker"
-    fi
-    
-    if [[ -z "$klipper_bin" ]]; then
-        log_warn "Klipper binary not found, using placeholder path"
-        klipper_bin="$E3CNC_DIR/releases/current/bin/klipper"
-    fi
-    
-    log_info "Found binaries: moonraker=$moonraker_bin, klipper=$klipper_bin"
-    
-    # Update supervisor config with actual paths
-    if [[ -f "$SUPERVISOR_CONF" ]]; then
-        sed -i "s|command=.*moonraker|command=$moonraker_bin|g" "$SUPERVISOR_CONF"
-        sed -i "s|command=.*klipper|command=$klipper_bin|g" "$SUPERVISOR_CONF"
-        
-        spinner_run "Reloading supervisor config..." bash -c "supervisorctl reread && supervisorctl update"
-        
-        step_ok
-    else
-        log_warn "Supervisor config not found, skipping path update"
-        step_skip
-    fi
+    step_skip
 }
 
 # Test function for port auto-detection (called by --test-ports)
