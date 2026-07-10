@@ -28,8 +28,18 @@ type InstallStep struct {
 	StartedAt   time.Time
 	Duration    time.Duration
 	Output      []string
-	ErrorCode   string
 	ErrorDetail string
+}
+
+// getEnvPort reads a port from an environment variable, falling back to default.
+func getEnvPort(envVar string, defaultPort int) int {
+	if v := os.Getenv(envVar); v != "" {
+		var port int
+		if _, err := fmt.Sscanf(v, "%d", &port); err == nil && port > 0 && port <= 65535 {
+			return port
+		}
+	}
+	return defaultPort
 }
 
 // StepStatus tracks the state of an install phase.
@@ -178,8 +188,8 @@ func NewInstallModel() InstallModel {
 		preFlightChecks: make([]PreFlightCheck, len(defaultPreFlightLabels)),
 		instanceName:    "default",
 		nameInput:       ni,
-		moonrakerPort:   7125,
-		webPort:         80,
+		moonrakerPort:   getEnvPort("E3CNC_MOONRAKER_PORT", 7125),
+		webPort:         getEnvPort("E3CNC_WEB_PORT", 80),
 		mDNSHostname:    "e3cnc",
 		startServices:   true,
 		verbose:         true,

@@ -190,6 +190,61 @@ check_port() {
     return 0  # Port is free
 }
 
+# Find a free port starting from $1, trying up to $2 ports
+# Usage: find_free_port <start_port> [<max_tries>=100]
+find_free_port() {
+    local start_port="$1"
+    local max_tries="${2:-100}"
+    local port=$start_port
+    
+    for ((i=0; i<max_tries; i++)); do
+        if check_port "$port"; then
+            echo "$port"
+            return 0
+        fi
+        port=$((port + 1))
+    done
+    
+    log_error "Could not find a free port after $max_tries tries (starting from $start_port)"
+    return 1
+}
+
+# Auto-detect free ports for all services
+# Updates E3CNC_ADMIN_PORT, E3CNC_MOONRAKER_PORT, E3CNC_KLIPPER_PORT
+auto_detect_ports() {
+    step_start "Auto-detecting free ports"
+    
+    # Try preferred ports first, fallback to auto-detect
+    local admin_pref=${E3CNC_ADMIN_PORT:-8081}
+    local moonraker_pref=${E3CNC_MOONRAKER_PORT:-7125}
+    local klipper_pref=${E3CNC_KLIPPER_PORT:-7126}
+    
+    # Check if preferred ports are free
+    if check_port "$admin_pref"; then
+        E3CNC_ADMIN_PORT="$admin_pref"
+    else
+        log_warn "Port $admin_pref is in use, finding free port..."
+        E3CNC_ADMIN_PORT=$(find_free_port "$admin_pref")
+    fi
+    
+    if check_port "$moonraker_pref"; then
+        E3CNC_MOONRAKER_PORT="$moonraker_pref"
+    else
+        log_warn "Port $moonraker_pref is in use, finding free port..."
+        E3CNC_MOONRAKER_PORT=$(find_free_port "$moonraker_pref")
+    fi
+    
+    if check_port "$klipper_pref"; then
+        E3CNC_KLIPPER_PORT="$klipper_pref"
+    else
+        log_warn "Port $klipper_pref is in use, finding free port..."
+        E3CNC_KLIPPER_PORT=$(find_free_port "$klipper_pref")
+    fi
+    
+    log_info "Using ports: Admin=$E3CNC_ADMIN_PORT, Moonraker=$E3CNC_MOONRAKER_PORT, Klipper=$E3CNC_KLIPPER_PORT"
+    step_ok
+}
+
 wait_for_service() {
     local port="$1"
     local name="$2"
@@ -208,28 +263,23 @@ wait_for_service() {
         
         # Try to connect
         if ss -tuln | grep -q ":$port "; then
-            case "$port" in
-                7125)
-                    if curl -sf --max-time $timeout http://localhost:7125/printer/info > /dev/null 2>&1; then
-                        printf "\r  ${GREEN}✓${NC}  %s ready (port %s)\n" "$name" "$port" >&2
-                        return 0
-                    fi
-                    ;;
-                8081)
-                    if curl -sf --max-time $timeout http://localhost:8081/ > /dev/null 2>&1; then
-                        printf "\r  ${GREEN}✓${NC}  %s ready (port %s)\n" "$name" "$port" >&2
-                        return 0
-                    fi
-                    ;;
-                7126)
-                    printf "\r  ${GREEN}✓${NC}  %s listening (port %s)\n" "$name" "$port" >&2
+            # For Moonraker port (7125 or detected), check API
+            if [[ "$port" == "${E3CNC_MOONRAKER_PORT:-7125}" ]]; then
+                if curl -sf --max-time $timeout "http://localhost:$port/printer/info" > /dev/null 2>&1; then
+                    printf "\r  ${GREEN}✓${NC}  %s ready (port %s)\n" "$name" "$port" >&2
                     return 0
-                    ;;
-                *)
-                    printf "\r  ${GREEN}✓${NC}  %s listening (port %s)\n" "$name" "$port" >&2
+                fi
+            # For Admin UI port (8081 or detected), check HTTP
+            elif [[ "$port" == "${E3CNC_ADMIN_PORT:-8081}" ]]; then
+                if curl -sf --max-time $timeout "http://localhost:$port/" > /dev/null 2>&1; then
+                    printf "\r  ${GREEN}✓${NC}  %s ready (port %s)\n" "$name" "$port" >&2
                     return 0
-                    ;;
-            esac
+                fi
+            # For all other ports, just check if listening
+            else
+                printf "\r  ${GREEN}✓${NC}  %s listening (port %s)\n" "$name" "$port" >&2
+                return 0
+            fi
         fi
         
         if [[ $attempt -ge $retries ]]; then
@@ -520,7 +570,7 @@ autostart=true
 autorestart=true
 stdout_logfile=$E3CNC_DIR/logs/moonraker.log
 stderr_logfile=$E3CNC_DIR/logs/moonraker.err
-environment=HOME="$user_home"
+environment=HOME="$user_home",E3CNC_MOONRAKER_PORT="${E3CNC_MOONRAKER_PORT:-7125}"
 
 [program:klipper]
 command=$E3CNC_DIR/releases/current/bin/klipper $E3CNC_DIR/instances/%(process_num)s/config/printer.cfg
@@ -532,7 +582,7 @@ stdout_logfile=$E3CNC_DIR/logs/klipper_%(process_num)s.log
 stderr_logfile=$E3CNC_DIR/logs/klipper_%(process_num)s.err
 numprocs=1
 process_name=%(program_name)_%(process_num)s
-environment=HOME="$user_home"
+environment=HOME="$user_home",E3CNC_KLIPPER_PORT="${E3CNC_KLIPPER_PORT:-7126}"
 
 [program:avahi-publish]
 command=avahi-publish-address -R
@@ -621,38 +671,27 @@ update_supervisor_paths() {
 }
 
 check_ports() {
-    step_start "Checking port availability"
+    auto_detect_ports
     
-    local conflicts=()
-    for port in "${PORTS[@]}"; do
-        if ! check_port "$port"; then
-            conflicts+=("$port")
-        fi
-    done
-    
-    if [[ ${#conflicts[@]} -gt 0 ]]; then
-        log_warn "The following ports are already in use: ${conflicts[*]}"
-        log_warn "Services may fail to start. Consider stopping conflicting services."
-        read -p "Continue anyway? (y/N): " -n 1 -r
-        echo
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            step_fail
-            exit 1
-        fi
-        step_ok
-    else
-        step_ok
-    fi
+    # Export for e3cnc-tui (admin server reads E3CNC_ADMIN_PORT env)
+    export E3CNC_ADMIN_PORT
+    export E3CNC_MOONRAKER_PORT
+    export E3CNC_KLIPPER_PORT
 }
 
 start_services() {
     step_start "Starting services"
     
+    # Export ports for services that read env vars
+    export E3CNC_ADMIN_PORT
+    export E3CNC_MOONRAKER_PORT
+    export E3CNC_KLIPPER_PORT
+    
     spinner_run "Starting supervisor services..." supervisorctl start all
     
-    # Wait for services to be ready
-    wait_for_service 7125 "Moonraker"
-    wait_for_service 8081 "Admin UI"
+    # Wait for services to be ready (use detected ports)
+    wait_for_service "${E3CNC_MOONRAKER_PORT:-7125}" "Moonraker"
+    wait_for_service "${E3CNC_ADMIN_PORT:-8081}" "Admin UI"
     
     step_ok
 }
@@ -732,11 +771,13 @@ print_next_steps() {
     printf "${GREEN}╝${NC}\n"
     echo
     echo -e "${GREEN}Next Steps:${NC}"
-    echo "  1. Open browser → http://$ip:8081"
+    echo "  1. Open browser → http://$ip:${E3CNC_ADMIN_PORT:-8081}"
     echo "  2. Verify DRO shows correct position"
     echo "  3. Test jog controls (XY/Z feedrate sliders)"
     echo "  4. Run: e3cnc-tui status"
     echo "  5. Check config: $E3CNC_DIR/instances/$INSTANCE_NAME/config/printer.cfg"
+    echo
+    echo -e "  ${YELLOW}Ports: Admin=${E3CNC_ADMIN_PORT:-8081}, Moonraker=${E3CNC_MOONRAKER_PORT:-7125}, Klipper=${E3CNC_KLIPPER_PORT:-7126}${NC}"
     echo
     echo -e "  ${YELLOW}Installation log:${NC} $LOG_FILE"
     echo
