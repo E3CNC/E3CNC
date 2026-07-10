@@ -72,7 +72,7 @@ func Bootstrap(cfg BootstrapConfig) error {
 		cfg.WebPort = instance.ComputeWebPort(cfg.InstanceName)
 	}
 	if cfg.Hostname == "" {
-		cfg.Hostname = "e3cnc"
+		cfg.Hostname = "E3CNC"
 	}
 
 	report := cfg.OnProgress

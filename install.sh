@@ -7,7 +7,7 @@ set -uo pipefail
 INSTALL_VERSION="v0.9.18-merged"
 INSTALL_DIR="/usr/local/bin"
 # Allow customizing E3CNC_DIR via environment variable or command-line argument
-E3CNC_DIR="${E3CNC_DIR:-$HOME/e3cnc}"
+E3CNC_DIR="${E3CNC_DIR:-$HOME/E3CNC}"
 BACKUP_DIR="$E3CNC_DIR.backup.$(date +%Y%m%d_%H%M%S)"
 LOG_FILE="$E3CNC_DIR/logs/installer.log"
 SUPERVISOR_CONF="/etc/supervisor/conf.d/e3cnc.conf"
@@ -756,7 +756,7 @@ main() {
                 echo
                 echo "Environment variables:"
                 echo "  E3CNC_DIR        Set installation directory"
-                echo "                      Default: \$HOME/e3cnc (auto-updated for sudo user)"
+                echo "                      Default: \$HOME/E3CNC (auto-updated for sudo user)"
                 echo "                      Tip: Use --dir flag instead when running with sudo"
                 echo
                 exit 0

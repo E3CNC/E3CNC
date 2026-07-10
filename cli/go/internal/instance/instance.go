@@ -40,10 +40,10 @@ type Instance struct {
 	IsRunning        bool
 }
 
-// E3CNCHome returns ~/e3cnc.
+// E3CNCHome returns ~/E3CNC.
 func E3CNCHome() string {
 	home, _ := os.UserHomeDir()
-	return filepath.Join(home, "e3cnc")
+	return filepath.Join(home, "E3CNC")
 }
 
 // InstancesDir returns ~/e3cnc/instances.

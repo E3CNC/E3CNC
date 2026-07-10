@@ -88,10 +88,10 @@ func ReadInstallJournal() InstallJournal {
 func DefaultPaths() map[string]string {
 	home, _ := os.UserHomeDir()
 	return map[string]string{
-		"e3cnc_root":    filepath.Join(home, "e3cnc"),
-		"instances_dir": filepath.Join(home, "e3cnc", "instances"),
-		"current_link":  filepath.Join(home, "e3cnc", "current"),
-		"releases_dir":  filepath.Join(home, "e3cnc", "releases"),
-		"cli_log":       filepath.Join(home, "e3cnc", "cli.log"),
+		"e3cnc_root":    filepath.Join(home, "E3CNC"),
+		"instances_dir": filepath.Join(home, "E3CNC", "instances"),
+		"current_link":  filepath.Join(home, "E3CNC", "current"),
+		"releases_dir":  filepath.Join(home, "E3CNC", "releases"),
+		"cli_log":       filepath.Join(home, "E3CNC", "cli.log"),
 	}
 }
