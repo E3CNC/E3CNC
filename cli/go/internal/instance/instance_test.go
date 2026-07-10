@@ -43,8 +43,8 @@ func TestFromName(t *testing.T) {
 	tmpHome := t.TempDir()
 	os.Setenv("HOME", tmpHome)
 
-	// Create the instance directory structure
-	instDir := filepath.Join(tmpHome, "e3cnc", "instances", "test-box")
+	// Create the instance directory structure (use uppercase E3CNC to match E3CNCHome())
+	instDir := filepath.Join(tmpHome, "E3CNC", "instances", "test-box")
 	os.MkdirAll(filepath.Join(instDir, "data", "config"), 0755)
 	os.MkdirAll(filepath.Join(instDir, "frontend"), 0755)
 

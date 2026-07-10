@@ -135,8 +135,8 @@ func TestReleaseIsActive(t *testing.T) {
 	t.Cleanup(func() { os.Setenv("HOME", origHome) })
 	os.Setenv("HOME", t.TempDir())
 
-	// Create a current symlink pointing to a release
-	e3cncDir := filepath.Join(os.Getenv("HOME"), "e3cnc")
+	// Create a current symlink pointing to a release (use uppercase E3CNC to match E3CNCHome())
+	e3cncDir := filepath.Join(os.Getenv("HOME"), "E3CNC")
 	os.MkdirAll(filepath.Join(e3cncDir, "releases", "v0.9.0"), 0755)
 	os.Symlink(filepath.Join(e3cncDir, "releases", "v0.9.0"), filepath.Join(e3cncDir, "current"))
 

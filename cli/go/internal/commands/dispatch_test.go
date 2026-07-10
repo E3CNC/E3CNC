@@ -127,8 +127,8 @@ func TestResolveInstance_WithName(t *testing.T) {
 	tmpHome := t.TempDir()
 	os.Setenv("HOME", tmpHome)
 
-	// Create a test instance
-	instDir := filepath.Join(tmpHome, "e3cnc", "instances", "test-box")
+	// Create a test instance (use uppercase E3CNC to match E3CNCHome())
+	instDir := filepath.Join(tmpHome, "E3CNC", "instances", "test-box")
 	os.MkdirAll(filepath.Join(instDir, "data", "config"), 0755)
 	os.MkdirAll(filepath.Join(instDir, "frontend"), 0755)
 
@@ -148,7 +148,7 @@ func TestResolveInstance_WithShortFlag(t *testing.T) {
 	tmpHome := t.TempDir()
 	os.Setenv("HOME", tmpHome)
 
-	instDir := filepath.Join(tmpHome, "e3cnc", "instances", "dev-box")
+	instDir := filepath.Join(tmpHome, "E3CNC", "instances", "dev-box")
 	os.MkdirAll(filepath.Join(instDir, "data", "config"), 0755)
 	os.MkdirAll(filepath.Join(instDir, "frontend"), 0755)
 
