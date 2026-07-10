@@ -251,6 +251,20 @@ backup_existing() {
     fi
 }
 
+# Migrate data from old lowercase ~/e3cnc to new uppercase ~/E3CNC if needed
+migrate_old_dir() {
+    local old_dir="$HOME/e3cnc"
+    if [[ -d "$old_dir" && ! -d "$E3CNC_DIR" ]]; then
+        step_start "Migrating data from $old_dir to $E3CNC_DIR"
+        spinner_run "Moving runtime data..." bash -c "mv '$old_dir' '$E3CNC_DIR'"
+        step_ok
+    elif [[ -d "$old_dir" && -d "$E3CNC_DIR" ]]; then
+        step_start "Merging data from $old_dir into $E3CNC_DIR"
+        spinner_run "Copying old data..." bash -c "cp -an '$old_dir/'* '$E3CNC_DIR/' 2>/dev/null; cp -an '$old_dir/'.* '$E3CNC_DIR/' 2>/dev/null"
+        step_ok
+    fi
+}
+
 install_dependencies() {
     step_start "Installing system dependencies"
 
@@ -781,7 +795,7 @@ main() {
     if [[ "$E3CNC_DIR" == "$HOME/e3cnc" && -n "${SUDO_USER:-}" ]]; then
         local sudo_user_home
         sudo_user_home=$(getent passwd "$SUDO_USER" | cut -d: -f6)
-        E3CNC_DIR="$sudo_user_home/e3cnc"
+        E3CNC_DIR="$sudo_user_home/E3CNC"
         log_info "Updated E3CNC_DIR to: $E3CNC_DIR (sudo user: $SUDO_USER)"
     fi
     
@@ -816,6 +830,7 @@ main() {
     echo
     
     # Run installation steps
+    migrate_old_dir
     backup_existing
     check_ports
     install_dependencies
