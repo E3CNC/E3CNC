@@ -135,6 +135,18 @@ wait_with_spinner() {
     rm -f "$temp_out"
 }
 
+# Draw a box line with automatic right-padding to 50 chars internal width
+# Strips ANSI codes for accurate visual length calculation
+boxline() {
+    local str="$1"
+    local plain
+    plain=$(printf '%s' "$str" | sed 's/\x1b\[[0-9;]*m//g')
+    local len=${#plain}
+    local pad=$((48 - len))
+    [[ $pad -lt 0 ]] && pad=0
+    printf "  ${GREEN}║${NC}  %s%${pad}s${GREEN}║${NC}\n" "$str" ""
+}
+
 # ─── Logging ───────────────────────────────────────────────────────────────────
 log() {
     local msg="[$(date +'%Y-%m-%d %H:%M:%S')] $*"
@@ -694,9 +706,16 @@ print_next_steps() {
     echo
     progress_bar $TOTAL_STEPS $TOTAL_STEPS
     echo
-    echo -e "${GREEN}╔══════════════════════════════════════════════════╗${NC}"
-    echo -e "${GREEN}║${NC}          ${BOLD}INSTALLATION COMPLETE${NC}            ${GREEN}║${NC}"
-    echo -e "${GREEN}╚══════════════════════════════════════════════════╝${NC}"
+    
+    printf "  ${GREEN}╔"
+    printf '═%.0s' $(seq 1 50)
+    printf "${GREEN}╗${NC}\n"
+    
+    boxline "${BOLD}INSTALLATION COMPLETE${NC}"
+    
+    printf "  ${GREEN}╚"
+    printf '═%.0s' $(seq 1 50)
+    printf "${GREEN}╝${NC}\n"
     echo
     echo -e "${GREEN}Next Steps:${NC}"
     echo "  1. Open browser → http://$ip:8081"
@@ -778,12 +797,22 @@ main() {
     fi
     
     echo
-    echo -e "  ${GREEN}╔══════════════════════════════════════════════════╗${NC}"
-    echo -e "  ${GREEN}║${NC}  ${BOLD}E3CNC Installer${NC}                           ${GREEN}║${NC}"
-    echo -e "  ${GREEN}║${NC}  Version: ${CYAN}$INSTALL_VERSION${NC}                       ${GREEN}║${NC}"
-    echo -e "  ${GREEN}║${NC}  Hostname: ${YELLOW}$(hostname)${NC}                      ${GREEN}║${NC}"
-    echo -e "  ${GREEN}║${NC}  Arch: ${YELLOW}$(detect_architecture)${NC}                            ${GREEN}║${NC}"
-    echo -e "  ${GREEN}╚══════════════════════════════════════════════════╝${NC}"
+    # Box width = 50 chars internal (between ║ and ║)
+    printf "  ${GREEN}╔"
+    printf '═%.0s' $(seq 1 50)
+    printf "${GREEN}╗${NC}\n"
+    
+    boxline "${BOLD}E3CNC Installer${NC}"
+    boxline "Version: ${CYAN}$INSTALL_VERSION${NC}"
+    
+    local host=$(hostname)
+    local arch=$(detect_architecture)
+    boxline "Hostname: ${YELLOW}$host${NC}"
+    boxline "Arch: ${YELLOW}$arch${NC}"
+    
+    printf "  ${GREEN}╚"
+    printf '═%.0s' $(seq 1 50)
+    printf "${GREEN}╝${NC}\n"
     echo
     
     # Run installation steps
