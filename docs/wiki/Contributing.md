@@ -22,17 +22,17 @@ CGO_ENABLED=0 go build -o e3cnc-tui ./cmd/e3cnc-tui/
 
 ## Project Structure
 
-| Path | Description |
-|---|---|
-| `src/` | Vue 3.5 frontend (TypeScript, Vuetify 3) |
-| `cli/` | Go BubbleTea TUI (`e3cnc-tui` — single static binary) |
-| `vendor/moonraker/` | Vendored Moonraker with CNC agent + MCP server |
-| `vendor/klipper/klippy/extras/` | Klipper extra plugins (WCS) |
-| `macros/` | CNC G-code macros |
-| `commands.json` | Command manifest for the TUI |
-| `scripts/` | Deploy and utility scripts |
-| `docs/` | Landing page and documentation |
-| `docs/wiki/` | Updated wiki page drafts |
+| Path                            | Description                                           |
+| ------------------------------- | ----------------------------------------------------- |
+| `src/`                          | Vue 3.5 frontend (TypeScript, Vuetify 3)              |
+| `cli/`                          | Go BubbleTea TUI (`e3cnc-tui` — single static binary) |
+| `vendor/moonraker/`             | Vendored Moonraker with CNC agent + MCP server        |
+| `vendor/klipper/klippy/extras/` | Klipper extra plugins (WCS)                           |
+| `macros/`                       | CNC G-code macros                                     |
+| `commands.json`                 | Command manifest for the TUI                          |
+| `scripts/`                      | Deploy and utility scripts                            |
+| `docs/`                         | Landing page and documentation                        |
+| `docs/wiki/`                    | Updated wiki page drafts                              |
 
 ## Before Committing
 

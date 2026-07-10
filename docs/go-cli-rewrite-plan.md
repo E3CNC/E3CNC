@@ -13,6 +13,7 @@ The hybrid Go/Python CLI works but carries friction: subprocess overhead
 and Ansible as a heavyweight dependency for what's essentially shell commands.
 
 Eliminating Python and Ansible means:
+
 - Single static binary — zero runtime dependencies
 - Every command runs in-process — instant startup
 - One codebase, one build system, one language
@@ -51,11 +52,13 @@ Go TUI existing (already built):
 ## Phase Plan
 
 ### ✅ Phase 1 — Instance Model + Paths (0.5 day)
+
 **Port `_e3cnc_shared.py` → `cli/go/internal/instance/`**
 
 The Instance struct is the foundation — everything references it.
 
 Deliverable:
+
 - `Instance` struct with Name, Ports, Paths, Services
 - `detect_instances()` — scan `~/e3cnc/instances/`
 - `get_active_instance()` — read `~/.e3cnc-tui/state.json`
@@ -66,11 +69,13 @@ Input: `_e3cnc_shared.py` (Instance class, ~200 lines of the 1,577 total)
 Output: `cli/go/internal/instance/instance.go`
 
 ### Phase 2 — Releases + Health Checks (1 day)
+
 **Port `_e3cnc_deploy.py` → `cli/go/internal/deploy/`**
 
 Self-contained file ops + HTTP — no Ansible, no system deps.
 
 Deliverable:
+
 - Release scanning (`~/e3cnc/releases/`)
 - Release activation (atomic symlink swap)
 - Health checks (HTTP GET to Moonraker)
@@ -88,11 +93,13 @@ Output: `cli/go/internal/deploy/releases.go`,
 `cli/go/internal/deploy/backup.go`
 
 ### Phase 3 — Go-native Command Handlers (1 day)
+
 **Port `cli/commands.py` → `cli/go/internal/commands/`**
 
 Already started in `dispatch.go`. Wire up remaining commands.
 
 Deliverable:
+
 - Wire handlers for all 24 commands
 - JSON output mode for every command
 - Formatted terminal output (matching current Python output)
@@ -127,6 +134,7 @@ Output: Extended `cli/go/internal/commands/dispatch.go`
 (~800 lines total when complete)
 
 ### Phase 4 — Replace Ansible (2 days)
+
 **Port `ansible/roles/bootstrap-stack/` → Go**
 
 Ansible's 488-line bootstrap playbook is 90% basic system admin wrapped
@@ -157,6 +165,7 @@ The install command calls them in sequence with error handling.
 Idempotency is explicit (`os.Stat` → skip if exists).
 
 Deliverable:
+
 - `cli/go/internal/bootstrap/bootstrap.go` — replaces entire
   `bootstrap-stack` playbook (~400 lines Go)
 - `cli/go/internal/bootstrap/uninstall.go` — replaces `uninstall.yml`
@@ -166,6 +175,7 @@ Deliverable:
 ### Phase 5 — Wire Entry Point + Drop Python (1 day)
 
 Deliverable:
+
 - `main.go` becomes the sole entry point
 - Go binary handles all 24 commands in-process
 - Python `cli/` directory is archived but preserved for reference
@@ -181,28 +191,28 @@ Deliverable:
 
 ## Total Effort: ~6 days
 
-| Phase | Days | Dependency |
-|---|---|---|
-| 1 — Instance model | 0.5 | None |
-| 2 — Releases + health | 1 | Phase 1 |
-| 3 — Command handlers | 1 | Phase 1 |
-| 4 — Replace Ansible | 2 | Phase 1 |
-| 5 — Wire entry point | 1 | Phases 1-4 |
-| 6 — Test + docs | 0.5 | Phases 1-5 |
-| **Total** | **6 days** | |
+| Phase                 | Days       | Dependency |
+| --------------------- | ---------- | ---------- |
+| 1 — Instance model    | 0.5        | None       |
+| 2 — Releases + health | 1          | Phase 1    |
+| 3 — Command handlers  | 1          | Phase 1    |
+| 4 — Replace Ansible   | 2          | Phase 1    |
+| 5 — Wire entry point  | 1          | Phases 1-4 |
+| 6 — Test + docs       | 0.5        | Phases 1-5 |
+| **Total**             | **6 days** |            |
 
 ## What Splitting Looks Like
 
 The work is naturally incremental — each phase ships independently
 and is a net improvement even if later phases don't happen.
 
-| Phase | What it unlocks | Fully reversible? |
-|---|---|---|
-| 1 | Native Instance type, used by Go commands | Yes — Python still works |
-| 2 | Releases/health in Go, faster CLI experience | Yes — Python fallback |
-| 3 | All commands run in-process, no subprocess | Yes — Python fallback |
-| 4 | Zero Ansible dependency on CNC | No — can't revert easily |
-| 5 | Remove Python from release entirely | No — Python dir archived |
+| Phase | What it unlocks                              | Fully reversible?        |
+| ----- | -------------------------------------------- | ------------------------ |
+| 1     | Native Instance type, used by Go commands    | Yes — Python still works |
+| 2     | Releases/health in Go, faster CLI experience | Yes — Python fallback    |
+| 3     | All commands run in-process, no subprocess   | Yes — Python fallback    |
+| 4     | Zero Ansible dependency on CNC               | No — can't revert easily |
+| 5     | Remove Python from release entirely          | No — Python dir archived |
 
 ## Open Questions
 

@@ -84,6 +84,7 @@ Replace mode may:
 - assume E3CNC is now the primary UI/control-plane for that instance
 
 **Stock stack backup:** Before mutating any stock path, replace mode must snapshot the original state to `~/e3cnc/stock-backup-<date>/`. The snapshot must include:
+
 - `~/mainsail` or the web root directory (full copy)
 - The Moonraker service unit file or override
 - The original `moonraker.conf`
@@ -143,32 +144,35 @@ E3CNC/                        # the repo (formerly E3CNC_UI)
 
 Not everything in the repo is a runtime artifact:
 
-| Category | Content | In stack artifact? | Runtime path |
-|---|---|---|---|
-| Frontend built assets | `src/` + `public/` → compiled SPA | Yes | `~/e3cnc/releases/vX.Y.Z/frontend/` |
-| Moonraker components | `moonraker/cnc_agent/`, `moonraker/cnc_metadata/` | Yes | Installed into target Moonraker's `components/` dir |
-| MCP server | `moonraker/mcp/` + pip deps | Yes | Installed as systemd unit or sidecar |
-| Metadata extractor | `scripts/cnc_metadata_extractor.py` | Yes | `~/e3cnc/releases/vX.Y.Z/scripts/` (symlinked to `~/printer_data/scripts/`) |
-| Klipper extras | `extras/` | Yes | Installed into Klipper's `klippy/extras/` |
-| Macros | `macros/` | Yes | `~/e3cnc/releases/vX.Y.Z/config/macros/` |
-| Post-processor macros | `post_processors/klipper/macros/` | Yes | Same as macros above (merged) |
-| Handwheel firmware | `post_processors/handwheel/firmware/` | No | User-managed; shipped in repo only |
-| Handwheel Linux app | `post_processors/handwheel/linux/` | No | User-managed; shipped in repo only |
-| CAM post-processors | `post_processors/*.cps` | No | User-managed; shipped in repo only |
-| Example configs | `examples/` | No | Documentation only |
-| theme.json | `theme.json` | Yes | Bundled with frontend or deployed alongside |
+| Category              | Content                                           | In stack artifact? | Runtime path                                                                |
+| --------------------- | ------------------------------------------------- | ------------------ | --------------------------------------------------------------------------- |
+| Frontend built assets | `src/` + `public/` → compiled SPA                 | Yes                | `~/e3cnc/releases/vX.Y.Z/frontend/`                                         |
+| Moonraker components  | `moonraker/cnc_agent/`, `moonraker/cnc_metadata/` | Yes                | Installed into target Moonraker's `components/` dir                         |
+| MCP server            | `moonraker/mcp/` + pip deps                       | Yes                | Installed as systemd unit or sidecar                                        |
+| Metadata extractor    | `scripts/cnc_metadata_extractor.py`               | Yes                | `~/e3cnc/releases/vX.Y.Z/scripts/` (symlinked to `~/printer_data/scripts/`) |
+| Klipper extras        | `extras/`                                         | Yes                | Installed into Klipper's `klippy/extras/`                                   |
+| Macros                | `macros/`                                         | Yes                | `~/e3cnc/releases/vX.Y.Z/config/macros/`                                    |
+| Post-processor macros | `post_processors/klipper/macros/`                 | Yes                | Same as macros above (merged)                                               |
+| Handwheel firmware    | `post_processors/handwheel/firmware/`             | No                 | User-managed; shipped in repo only                                          |
+| Handwheel Linux app   | `post_processors/handwheel/linux/`                | No                 | User-managed; shipped in repo only                                          |
+| CAM post-processors   | `post_processors/*.cps`                           | No                 | User-managed; shipped in repo only                                          |
+| Example configs       | `examples/`                                       | No                 | Documentation only                                                          |
+| theme.json            | `theme.json`                                      | Yes                | Bundled with frontend or deployed alongside                                 |
 
 ## 3.4 Deployment model
 
 The runtime should be updated from **one bundle**, not from a series of unrelated copy operations.
 
 ### Source truth
+
 - source lives in the `E3CNC` repo
 
 ### Release truth
+
 - CI produces one stack artifact per release
 
 ### Runtime truth
+
 - target machine activates one release at a time
 
 ---
@@ -251,11 +255,11 @@ If any check fails, the update command must refuse to proceed and print an actio
 
 The Moonraker MCP server and metadata extractor have Python dependencies. These must be handled during deploy:
 
-| Component | Dependencies | Strategy |
-|---|---|---|
-| `moonraker/mcp/` | `httpx`, `mcp` | CI vendors wheels into artifact at `moonraker/wheels/`. Deploy step runs `pip install --no-index --find-links wheels/ -r requirements.txt` into the host's venv. |
-| `scripts/cnc_metadata_extractor.py` | Usually stdlib only | Include in script payload. If deps are added later, vendor wheels the same way. |
-| `cnc_agent.py` / `cnc_metadata.py` | Moonraker's venv | These run inside Moonraker's process; they inherit Moonraker's venv. No additional pip install needed unless E3CNC adds non-stdlib imports. |
+| Component                           | Dependencies        | Strategy                                                                                                                                                         |
+| ----------------------------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `moonraker/mcp/`                    | `httpx`, `mcp`      | CI vendors wheels into artifact at `moonraker/wheels/`. Deploy step runs `pip install --no-index --find-links wheels/ -r requirements.txt` into the host's venv. |
+| `scripts/cnc_metadata_extractor.py` | Usually stdlib only | Include in script payload. If deps are added later, vendor wheels the same way.                                                                                  |
+| `cnc_agent.py` / `cnc_metadata.py`  | Moonraker's venv    | These run inside Moonraker's process; they inherit Moonraker's venv. No additional pip install needed unless E3CNC adds non-stdlib imports.                      |
 
 CI should run `pip download` to vendor all transitive dependencies into the artifact. This avoids network access during deploy and ensures reproducible deployments.
 
@@ -303,12 +307,14 @@ The command should:
 The CNC host should **not** build the full stack locally during normal updates.
 
 ### Build in CI
+
 - frontend build
 - stack packaging
 - release metadata generation
 - pip wheel vendoring
 
 ### Apply on host
+
 - download
 - checksum verify
 - pre-flight checks
@@ -324,15 +330,15 @@ This is especially important for low-memory devices.
 
 After activation, the CLI must run these health checks in order. If any check fails, the update is considered unhealthy:
 
-| # | Check | Method | Max timeout |
-|---|---|---|---|
-| 1 | Moonraker process is running | `systemctl is-active <moonraker-service>` | 10s |
-| 2 | Moonraker HTTP API responds | `curl -f http://localhost:<port>/server/info` | 15s |
-| 3 | Moonraker reports `klippy_connected: true` | Parse `/server/info` JSON response | 15s |
-| 4 | New E3CNC component loaded | `curl /machine/cnc_agent/info` returns 200 | 10s |
-| 5 | Frontend serves index.html | `curl -f http://localhost:<frontend-port>/index.html` or check web root file | 10s |
-| 6 | Deployment journal is consistent | Read `~/e3cnc/journal.json` — `current` matches the new release | 2s |
-| 7 | Klipper process is running | `systemctl is-active <klipper-service>` | 10s |
+| #   | Check                                      | Method                                                                       | Max timeout |
+| --- | ------------------------------------------ | ---------------------------------------------------------------------------- | ----------- |
+| 1   | Moonraker process is running               | `systemctl is-active <moonraker-service>`                                    | 10s         |
+| 2   | Moonraker HTTP API responds                | `curl -f http://localhost:<port>/server/info`                                | 15s         |
+| 3   | Moonraker reports `klippy_connected: true` | Parse `/server/info` JSON response                                           | 15s         |
+| 4   | New E3CNC component loaded                 | `curl /machine/cnc_agent/info` returns 200                                   | 10s         |
+| 5   | Frontend serves index.html                 | `curl -f http://localhost:<frontend-port>/index.html` or check web root file | 10s         |
+| 6   | Deployment journal is consistent           | Read `~/e3cnc/journal.json` — `current` matches the new release              | 2s          |
+| 7   | Klipper process is running                 | `systemctl is-active <klipper-service>`                                      | 10s         |
 
 If health check #1 or #2 fails, the CLI should wait and retry up to 3 times with a 5-second backoff before declaring failure.
 
@@ -396,6 +402,7 @@ mv -T ~/e3cnc/current.new ~/e3cnc/current   # atomic rename on same filesystem
 ```
 
 **Crash during activation:** If power is lost between the `mv` and the service restart, the system boots with `current` pointing to the new (unactivated) release. To handle this:
+
 - The activation step is idempotent: if services are down, the CLI can detect this during the next `status` or `update` call and re-run activation.
 - An `e3cnc-cli repair` command detects broken state (services not running, current symlink pointing to an unactivated release) and re-runs the activation sequence.
 - The journal's `last_known_good` field provides a fallback: if `current` is broken, the CLI can fall back to `last_known_good`.
@@ -410,12 +417,12 @@ The stack still needs to connect to the live machine paths, but activation shoul
 
 Moonraker and Klipper systemd units reference specific paths. The activation step must update these to point to the current release:
 
-| Service | Path to update | Mechanism |
-|---|---|---|
-| Moonraker | `WorkingDirectory`, `ExecStart` path to Moonraker source | Systemd drop-in (`/etc/systemd/system/<service>.d/e3cnc-override.conf`) |
-| Moonraker | `-c <config_path>` argument | Via env file or drop-in override of `MOONRAKER_ARGS` |
-| Klipper | `ExecStart` path to Klipper source (if extras changed) | Drop-in override of `KLIPPER_ARGS` |
-| MCP server | New systemd unit referencing `~/e3cnc/current/moonraker/mcp/` | Full unit file, installed on first deploy |
+| Service    | Path to update                                                | Mechanism                                                               |
+| ---------- | ------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Moonraker  | `WorkingDirectory`, `ExecStart` path to Moonraker source      | Systemd drop-in (`/etc/systemd/system/<service>.d/e3cnc-override.conf`) |
+| Moonraker  | `-c <config_path>` argument                                   | Via env file or drop-in override of `MOONRAKER_ARGS`                    |
+| Klipper    | `ExecStart` path to Klipper source (if extras changed)        | Drop-in override of `KLIPPER_ARGS`                                      |
+| MCP server | New systemd unit referencing `~/e3cnc/current/moonraker/mcp/` | Full unit file, installed on first deploy                               |
 
 The systemd drop-in approach is preferred because it doesn't modify the upstream unit file and can be cleanly removed on uninstall.
 
@@ -561,15 +568,15 @@ This is the control-plane source of truth.
 
 ## 7.2 What moves into `moonraker/`
 
-| Source (old, `E3CNC_UI` layout) | Destination (new, `E3CNC` layout) | Type |
-|---|---|---|
-| `E3CNC/moonraker-mcp/src/moonraker_mcp/cnc_agent.py` | `moonraker/cnc_agent/cnc_agent.py` | Moonraker component |
-| `E3CNC/moonraker-mcp/src/moonraker_mcp/cnc_metadata.py` | `moonraker/cnc_metadata/cnc_metadata.py` | Moonraker component |
-| `E3CNC/moonraker-mcp/src/moonraker_mcp/mcp_server.py` | `moonraker/mcp/mcp_server.py` | Standalone MCP server |
-| `E3CNC/moonraker-mcp/src/moonraker_mcp/__init__.py` | `moonraker/mcp/__init__.py` | MCP server package init |
-| `E3CNC/moonraker-mcp/pyproject.toml` | `moonraker/pyproject.toml` | Python project metadata |
-| `E3CNC/moonraker-mcp/moonraker.conf` | `moonraker/moonraker.conf.example` | Example config |
-| `E3CNC/moonraker-mcp/tests/` | `tests/moonraker/` | Tests |
+| Source (old, `E3CNC_UI` layout)                         | Destination (new, `E3CNC` layout)        | Type                    |
+| ------------------------------------------------------- | ---------------------------------------- | ----------------------- |
+| `E3CNC/moonraker-mcp/src/moonraker_mcp/cnc_agent.py`    | `moonraker/cnc_agent/cnc_agent.py`       | Moonraker component     |
+| `E3CNC/moonraker-mcp/src/moonraker_mcp/cnc_metadata.py` | `moonraker/cnc_metadata/cnc_metadata.py` | Moonraker component     |
+| `E3CNC/moonraker-mcp/src/moonraker_mcp/mcp_server.py`   | `moonraker/mcp/mcp_server.py`            | Standalone MCP server   |
+| `E3CNC/moonraker-mcp/src/moonraker_mcp/__init__.py`     | `moonraker/mcp/__init__.py`              | MCP server package init |
+| `E3CNC/moonraker-mcp/pyproject.toml`                    | `moonraker/pyproject.toml`               | Python project metadata |
+| `E3CNC/moonraker-mcp/moonraker.conf`                    | `moonraker/moonraker.conf.example`       | Example config          |
+| `E3CNC/moonraker-mcp/tests/`                            | `tests/moonraker/`                       | Tests                   |
 
 ### What about the existing `moonraker-mcp`?
 
@@ -758,6 +765,7 @@ Rollback then becomes:
 Rollback must distinguish between:
 
 ### Immutable release payload
+
 These should live inside a release directory:
 
 - frontend assets
@@ -771,6 +779,7 @@ These should live inside a release directory:
 - vendored pip wheels
 
 ### Mutable instance state
+
 These should be backed up before update/migration:
 
 - `printer.cfg`
@@ -784,11 +793,11 @@ These should be backed up before update/migration:
 
 E3CNC components write data to Moonraker's internal database. The plan must identify every DB namespace used:
 
-| Component | DB namespace | Data | Rollback-safe? |
-|---|---|---|---|
+| Component   | DB namespace         | Data                               | Rollback-safe?                          |
+| ----------- | -------------------- | ---------------------------------- | --------------------------------------- |
 | `cnc_agent` | `cnc_agent.settings` | Dashboard settings, jog rate limit | Yes — can be backed up/restored as JSON |
-| `cnc_agent` | `cnc_agent.state` | Last WCS, spindle state | Yes — restored from backup |
-| Frontend | `mainsail.*` | UI settings, file browser state | Yes — backed up/restored |
+| `cnc_agent` | `cnc_agent.state`    | Last WCS, spindle state            | Yes — restored from backup              |
+| Frontend    | `mainsail.*`         | UI settings, file browser state    | Yes — backed up/restored                |
 
 **Backup strategy for Moonraker DB:** Before update, export all E3CNC-owned DB namespaces via Moonraker's `/server/database/export` API. On rollback, import them back. This avoids backing up the entire SQLite file (which could be large and include other Moonraker internal state).
 
@@ -828,6 +837,7 @@ Recommended commands:
 ```
 
 ### `releases`
+
 Should show:
 
 - installed releases (with size and date)
@@ -837,6 +847,7 @@ Should show:
 - available disk space
 
 ### `rollback --previous`
+
 Should:
 
 - select the previously active release
@@ -846,6 +857,7 @@ Should:
 - run health checks
 
 ### `rollback <version>`
+
 Should:
 
 - activate a specific installed release
@@ -992,9 +1004,11 @@ The migration work should preserve this policy throughout the redesign.
 ## Phase 0 — Rename repo and flatten layout
 
 ### Objective
+
 Rename the repo from `E3CNC_UI` to `E3CNC` on GitHub and flatten the internal directory structure.
 
 ### Work
+
 - Rename `https://github.com/E3CNC/E3CNC_UI` → `https://github.com/E3CNC/E3CNC`
 - Update all local remote URLs on developer machines
 - Flatten directory layout per §3.3:
@@ -1016,6 +1030,7 @@ Rename the repo from `E3CNC_UI` to `E3CNC` on GitHub and flatten the internal di
 - Update `AGENTS.md`
 
 ### Exit criteria
+
 - Repo is renamed on GitHub
 - All paths in code reference the new layout
 - CI produces assets named `E3CNC-*.zip`
@@ -1025,9 +1040,11 @@ Rename the repo from `E3CNC_UI` to `E3CNC` on GitHub and flatten the internal di
 ## Phase 1 — Identify all stack artifact outputs
 
 ### Objective
+
 Inventory everything that the stack artifact must contain.
 
 ### Work
+
 - identify all runtime outputs currently produced by install/redeploy (frontend, moonraker components, klipper extras, macros, metadata extractor, scripts)
 - identify all files that are shipped vs deployed (see §3.3 table)
 - define the future stack artifact contents (complete inventory per §4.1)
@@ -1035,6 +1052,7 @@ Inventory everything that the stack artifact must contain.
 - define the `migrations/` directory convention
 
 ### Exit criteria
+
 - there is a written inventory of what the stack artifact must contain
 - every deployable file has a home in the source layout
 
@@ -1043,9 +1061,11 @@ Inventory everything that the stack artifact must contain.
 ## Phase 2 — Move Moonraker source into `moonraker/`
 
 ### Objective
+
 Move the control-plane component files into the repo at `moonraker/`.
 
 ### Work
+
 - create `moonraker/` with subdirectories `cnc_agent/`, `cnc_metadata/`, `mcp/`
 - move all 4 Python files from `E3CNC/moonraker-mcp/` into their new homes
 - move `pyproject.toml` and tests
@@ -1054,6 +1074,7 @@ Move the control-plane component files into the repo at `moonraker/`.
 - update all internal references that import from the old paths
 
 ### Exit criteria
+
 - all E3CNC Moonraker runtime code is owned by `moonraker/`
 - the old `E3CNC/moonraker-mcp/` directory is deleted
 
@@ -1062,9 +1083,11 @@ Move the control-plane component files into the repo at `moonraker/`.
 ## Phase 3 — Build one stack artifact in CI
 
 ### Objective
+
 Replace loose runtime outputs with one packaged release.
 
 ### Work
+
 - build frontend in CI
 - vendor pip wheels via `pip download`
 - package Moonraker components payload
@@ -1079,6 +1102,7 @@ Replace loose runtime outputs with one packaged release.
 - update nightly release to also publish the stack artifact
 
 ### Exit criteria
+
 - one release artifact can represent the full E3CNC runtime
 - CI output includes `*.tar.zst` and `*.tar.zst.sha256`
 
@@ -1087,9 +1111,11 @@ Replace loose runtime outputs with one packaged release.
 ## Phase 4 — Introduce staged runtime activation
 
 ### Objective
+
 Deploy releases through a release root rather than direct ad-hoc copies.
 
 ### Work
+
 - implement `~/e3cnc/releases/...`
 - implement `~/e3cnc/current` (atomic symlink)
 - implement `~/e3cnc/journal.json`
@@ -1101,6 +1127,7 @@ Deploy releases through a release root rather than direct ad-hoc copies.
 - add `rollback` CLI command
 
 ### Exit criteria
+
 - updates are staged and activated as one release
 - rollback is functional
 - old releases are cleaned up automatically
@@ -1110,9 +1137,11 @@ Deploy releases through a release root rather than direct ad-hoc copies.
 ## Phase 5 — Add migration path for existing installations
 
 ### Objective
+
 Give existing installs a way to adopt the new layout and repo name.
 
 ### Work
+
 - implement `e3cnc-cli migrate-layout` (handles repo rename + layout migration)
 - implement bootstrap `e3cnc-cli install` for clean hosts
 - handle `[update_manager E3CNC_UI]` → `[update_manager E3CNC]` rewrite
@@ -1120,6 +1149,7 @@ Give existing installs a way to adopt the new layout and repo name.
 - disable old Ansible-based update path after migration
 
 ### Exit criteria
+
 - existing installations can migrate to the new layout and repo name
 - clean hosts can install directly into the new layout
 
@@ -1128,9 +1158,11 @@ Give existing installs a way to adopt the new layout and repo name.
 ## Phase 6 — Implement config/schema migration system
 
 ### Objective
+
 Make config and database changes safe to apply and roll back.
 
 ### Work
+
 - define migration script interface (`up()` / `down()`)
 - implement migration runner in CLI
 - add Moonraker DB namespace backup/restore
@@ -1139,6 +1171,7 @@ Make config and database changes safe to apply and roll back.
 - define schema 1 (baseline) and schema 2 (first migration)
 
 ### Exit criteria
+
 - config schema migrations are applied and reversed correctly
 - Moonraker DB state is backed up before updates
 
@@ -1147,9 +1180,11 @@ Make config and database changes safe to apply and roll back.
 ## Phase 7 — Add health checks and crash safety
 
 ### Objective
+
 Make the update flow reliable even under adverse conditions.
 
 ### Work
+
 - implement all 7 health checks defined in §5.4
 - implement automatic rollback on health-check failure
 - implement idempotent activation (recoverable after power loss)
@@ -1157,6 +1192,7 @@ Make the update flow reliable even under adverse conditions.
 - implement pre-flight checks (Python, Klipper, disk space, compatibility)
 
 ### Exit criteria
+
 - updates are automatically rolled back if health checks fail
 - power-loss during activation is recoverable
 
@@ -1165,9 +1201,11 @@ Make the update flow reliable even under adverse conditions.
 ## Phase 8 — Rewrite `e3cnc-cli update` as the stack apply tool
 
 ### Objective
+
 Make one command the full-stack deployment authority.
 
 ### Work
+
 - artifact download + checksum validation
 - pre-flight compatibility checks
 - mutable state backup
@@ -1181,6 +1219,7 @@ Make one command the full-stack deployment authority.
 - release GC
 
 ### Exit criteria
+
 - one command updates the full E3CNC stack together
 - all rollback paths are tested
 
@@ -1189,9 +1228,11 @@ Make one command the full-stack deployment authority.
 ## Phase 9 — Reduce legacy deploy roles
 
 ### Objective
+
 Retire the old multi-copy mental model.
 
 ### Work
+
 - remove Ansible Moonraker vendoring role
 - remove Ansible Klipper-extras copy role
 - remove Ansible macros copy role
@@ -1200,6 +1241,7 @@ Retire the old multi-copy mental model.
 - update `build-scripts/post_update.sh` to call `./e3cnc-cli update` instead of `ansible-playbook`
 
 ### Exit criteria
+
 - deploy no longer feels like many unrelated copy operations
 - `build-scripts/post_update.sh` delegates to `e3cnc-cli update`
 

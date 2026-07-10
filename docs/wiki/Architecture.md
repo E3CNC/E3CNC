@@ -23,6 +23,7 @@ Single static Go binary with two modes:
 ```
 
 **Key decisions:**
+
 - All command handlers run as direct Go function calls — no subprocess overhead
 - `commands.json` at repo root is the single source of truth for all 24 commands
 - The binary applies its own `lipgloss` styling in TUI mode; CLI mode is plain text
@@ -30,17 +31,17 @@ Single static Go binary with two modes:
 
 **Source layout:**
 
-| Path | Purpose |
-|---|---|
-| `cli/go/cmd/e3cnc-tui/main.go` | Entry point (version, dispatch, signal handling) |
-| `cli/go/internal/command.go` | Commands manifest loader (`commands.json`) |
-| `cli/go/internal/config.go` | State persistence (`~/.e3cnc-tui/state.json`, install journal) |
-| `cli/go/internal/commands/` | All 24 command handlers in Go |
-| `cli/go/internal/deploy/` | Release management, health checks, backup/restore |
-| `cli/go/internal/instance/` | Instance model, detection, path resolution |
-| `cli/go/internal/bootstrap/` | Fresh-install provisioning (replaces Ansible) |
-| `cli/go/internal/tui/` | BubbleTea models: menu, install wizard, instance manager |
-| `cli/go/Makefile` | `CGO_ENABLED=0`, cross-compile targets |
+| Path                           | Purpose                                                        |
+| ------------------------------ | -------------------------------------------------------------- |
+| `cli/go/cmd/e3cnc-tui/main.go` | Entry point (version, dispatch, signal handling)               |
+| `cli/go/internal/command.go`   | Commands manifest loader (`commands.json`)                     |
+| `cli/go/internal/config.go`    | State persistence (`~/.e3cnc-tui/state.json`, install journal) |
+| `cli/go/internal/commands/`    | All 24 command handlers in Go                                  |
+| `cli/go/internal/deploy/`      | Release management, health checks, backup/restore              |
+| `cli/go/internal/instance/`    | Instance model, detection, path resolution                     |
+| `cli/go/internal/bootstrap/`   | Fresh-install provisioning (replaces Ansible)                  |
+| `cli/go/internal/tui/`         | BubbleTea models: menu, install wizard, instance manager       |
+| `cli/go/Makefile`              | `CGO_ENABLED=0`, cross-compile targets                         |
 
 **Package dependency graph:**
 

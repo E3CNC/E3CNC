@@ -37,7 +37,7 @@ jobs:
         run: |
           INPUT_TAG='${{ github.event.inputs.version_tag }}'
           HEAD_TAG=$(git describe --tags --exact-match HEAD 2>/dev/null || true)
-          
+
           if [[ -n "$INPUT_TAG" ]]; then
             VERSION="$INPUT_TAG"
           elif [[ -n "$HEAD_TAG" ]]; then
@@ -45,7 +45,7 @@ jobs:
           else
             VERSION="v$(node -p "require('./package.json').version")"
           fi
-          
+
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
           echo "Using release version: $VERSION"
 

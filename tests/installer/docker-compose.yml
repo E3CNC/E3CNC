@@ -14,7 +14,7 @@ services:
     platform: linux/amd64
     container_name: e3cnc-test-ubuntu
     hostname: e3cnc-ubuntu
-    command: ["bash", "-c", "cd /workspace && bash test-runner.sh ubuntu"]
+    command: ['bash', '-c', 'cd /workspace && bash test-runner.sh ubuntu']
     networks:
       - installer-test
 
@@ -25,7 +25,7 @@ services:
     platform: linux/amd64
     container_name: e3cnc-test-fedora
     hostname: e3cnc-fedora
-    command: ["bash", "-c", "cd /workspace && bash test-runner.sh fedora"]
+    command: ['bash', '-c', 'cd /workspace && bash test-runner.sh fedora']
     networks:
       - installer-test
 
@@ -36,7 +36,7 @@ services:
     platform: linux/amd64
     container_name: e3cnc-test-rocky
     hostname: e3cnc-rocky
-    command: ["bash", "-c", "cd /workspace && bash test-runner.sh rocky"]
+    command: ['bash', '-c', 'cd /workspace && bash test-runner.sh rocky']
     networks:
       - installer-test
 

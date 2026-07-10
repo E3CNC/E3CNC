@@ -116,10 +116,7 @@ export class WebSocketClient {
 
             this.reconnects++
             // Exponential backoff: 1s, 2s, 4s, 8s, ... up to 30s
-            const delay = Math.min(
-                this.reconnectInterval * Math.pow(2, this.reconnects - 1),
-                this.maxReconnectInterval
-            )
+            const delay = Math.min(this.reconnectInterval * Math.pow(2, this.reconnects - 1), this.maxReconnectInterval)
             this.store?.dispatch('socket/onReconnecting', {})
             setTimeout(() => {
                 this.connect()

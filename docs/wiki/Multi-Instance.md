@@ -37,10 +37,10 @@ cd ~/E3CNC
 
 ## KIAUH-style layout (legacy, migration only)
 
-| Directory | Instance name |
-|---|---|
-| `~/printer_data` | `cnc` |
-| `~/printer_test1_data` | `test1` |
+| Directory              | Instance name |
+| ---------------------- | ------------- |
+| `~/printer_data`       | `cnc`         |
+| `~/printer_test1_data` | `test1`       |
 
 For KIAUH-style installs, E3CNC reads instance metadata from the printer data dir:
 
@@ -67,14 +67,14 @@ When you select "Instances" from the interactive TUI menu, you see:
 ○ lab
 ```
 
-| Key | Action |
-|---|---|
-| `↑`/`↓` | Navigate list |
-| `Enter` | Switch active instance |
-| `n` | Create new instance (name + port form) |
-| `d` | Delete instance (with destructive confirmation) |
-| `r` | Refresh list |
-| `q`/`esc` | Return to menu |
+| Key       | Action                                          |
+| --------- | ----------------------------------------------- |
+| `↑`/`↓`   | Navigate list                                   |
+| `Enter`   | Switch active instance                          |
+| `n`       | Create new instance (name + port form)          |
+| `d`       | Delete instance (with destructive confirmation) |
+| `r`       | Refresh list                                    |
+| `q`/`esc` | Return to menu                                  |
 
 Instance data is fetched from the Go instance manager. The active instance is persisted to `~/.e3cnc-tui/state.json`.
 

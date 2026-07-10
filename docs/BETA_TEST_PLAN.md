@@ -9,6 +9,7 @@
 ## 🧪 Core Stability Tests
 
 ### 1. Multi‑instance Isolation
+
 - **Steps**:
   1. Create two instances: `e3cnc-tui init-config --instance mytest` and `e3cnc-tui init-config --instance mytest2`.
   2. Verify each has its own directory under `~/e3cnc/instances/<name>/`.
@@ -18,6 +19,7 @@
 - **Expected**: No cross‑talk; each instance manages its own files.
 
 ### 2. Vue 3 Migration Validation
+
 - **Steps**:
   1. Open Chrome DevTools (non‑headless, remote‑debugging port 9222).
   2. Navigate to each of the seven core routes:
@@ -39,14 +41,16 @@
 ## ⚙️ CNC‑Specific Workflow Tests
 
 ### 3. Probing Workflows (EPICs #3‑9)
-| Workflow | Test Steps | Success Criteria |
-|----------|------------|------------------|
-| **Touch‑plate / Work Zero** | - Attach a touch plate.<br>- Run the probe wizard.<br>- After probing, check that the selected WCS (G54‑G59) is updated with the new zero. | New zero persists in the selected WCS; machine moves correctly to the zeroed position. |
-| **Dry‑run Preview** | - Enable dry‑run mode in the probe settings.<br>- Start a probe cycle.<br>- Observe the on‑screen preview showing the planned offset before it is applied. | Preview displays the offset; applying the probe updates the coordinate system as shown. |
-| **Tool‑Setter** | - Install a tool‑setter probe.<br>- Change a tool manually.<br>- Trigger the tool‑sensor macro.<br>- Verify the tool length offset is updated and stored. | Tool length offset changes correctly; subsequent moves respect the new length. |
-| **Edge / Corner / Center / Bore Probing** | - For each probe type, run the corresponding macro.<br>- Check that the probe completes without errors and updates the workpiece coordinate system accordingly. | All probing types generate valid motion and set the expected work offsets. |
+
+| Workflow                                  | Test Steps                                                                                                                                                      | Success Criteria                                                                        |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| **Touch‑plate / Work Zero**               | - Attach a touch plate.<br>- Run the probe wizard.<br>- After probing, check that the selected WCS (G54‑G59) is updated with the new zero.                      | New zero persists in the selected WCS; machine moves correctly to the zeroed position.  |
+| **Dry‑run Preview**                       | - Enable dry‑run mode in the probe settings.<br>- Start a probe cycle.<br>- Observe the on‑screen preview showing the planned offset before it is applied.      | Preview displays the offset; applying the probe updates the coordinate system as shown. |
+| **Tool‑Setter**                           | - Install a tool‑setter probe.<br>- Change a tool manually.<br>- Trigger the tool‑sensor macro.<br>- Verify the tool length offset is updated and stored.       | Tool length offset changes correctly; subsequent moves respect the new length.          |
+| **Edge / Corner / Center / Bore Probing** | - For each probe type, run the corresponding macro.<br>- Check that the probe completes without errors and updates the workpiece coordinate system accordingly. | All probing types generate valid motion and set the expected work offsets.              |
 
 ### 4. Safety Layer Verification
+
 - **Steps**:
   1. Enable the shared safety layer (already active in probe macros).
   2. Intentionally trigger a fault during probing (e.g., hit a soft limit or simulate a probe failure).
@@ -59,6 +63,7 @@
 ## 🛠️ CLI & Deployment Tests
 
 ### 5. Config Generation (`e3cnc-tui init-config`)
+
 - **Steps**:
   1. Run `e3cnc-tui init-config` (optionally specify an instance).
   2. Inspect the generated `printer.cfg`.
@@ -70,6 +75,7 @@
 - **Expected**: Config is ready to edit; no missing required sections.
 
 ### 6. Update Pipeline (`e3cnc-tui update` / Nightly)
+
 - **Steps**:
   1. Trigger an update: `e3cnc-tui update` or wait for the nightly GitHub Action to push a new ZIP.
   2. Confirm the update runner:
@@ -88,6 +94,7 @@
 ## 👤 User Experience Tests
 
 ### 7. First‑Run Flow
+
 - **Steps**:
   1. Start with a fresh E3CNC image (or a clean `~/e3cnc` directory).
   2. Run `e3cnc-tui install` (if testing full install) or just `e3cnc-tui init-config`.
@@ -108,12 +115,12 @@
 
 ## 📊 Non‑Functional Checks
 
-| Area | Check | Pass Criteria |
-|------|-------|---------------|
-| **Performance** | Page load time (first paint) on a RPi‑4‑class device | < 3 seconds for core pages |
-| **Logs** | Review `~/e3cnc/cli.log` and `journal.json` after 10 min of idle | No repetitive warnings/errors; only expected startup/shutdown messages |
-| **Backup** | Run `e3cnc-tui backup` → verify archive → restore to a test location | Backup contains `config/`, `scripts/`, `database/`; restore brings system back to exact state |
-| **Low‑RAM Mode** | Simulate a 1 GB RAM device by disabling the Vite dev server and using the pre‑built nightly ZIP | UI loads without OOM kills; interaction remains responsive |
+| Area             | Check                                                                                           | Pass Criteria                                                                                 |
+| ---------------- | ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| **Performance**  | Page load time (first paint) on a RPi‑4‑class device                                            | < 3 seconds for core pages                                                                    |
+| **Logs**         | Review `~/e3cnc/cli.log` and `journal.json` after 10 min of idle                                | No repetitive warnings/errors; only expected startup/shutdown messages                        |
+| **Backup**       | Run `e3cnc-tui backup` → verify archive → restore to a test location                            | Backup contains `config/`, `scripts/`, `database/`; restore brings system back to exact state |
+| **Low‑RAM Mode** | Simulate a 1 GB RAM device by disabling the Vite dev server and using the pre‑built nightly ZIP | UI loads without OOM kills; interaction remains responsive                                    |
 
 ---
 
@@ -136,4 +143,4 @@ Please add your findings as a comment to the relevant GitHub issue or, if this i
 ---
 
 **Thank you for helping improve E3CNC!**  
-*Maintainers: @Futtawuh (Ravenkeeper) & the E3CNC team*
+_Maintainers: @Futtawuh (Ravenkeeper) & the E3CNC team_

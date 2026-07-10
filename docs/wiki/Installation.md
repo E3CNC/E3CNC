@@ -8,13 +8,13 @@ E3CNC UI is a maintained fork of Mainsail extended with CNC-native dashboard pan
 
 The CLI is a single Go static binary — the only things needed on the target machine are:
 
-| Dependency | Why | Install |
-|---|---|---|
-| `git` | Clone the repo | `sudo apt install git` |
-| `python3` | Moonraker/Klipper runtime (not for the CLI) | `sudo apt install python3` |
-| `curl` | Download release artifacts | Auto-installed by bootstrap |
-| `unzip` | Extract artifacts | Auto-installed by bootstrap |
-| `zstd` | Extract compressed stack artifacts | Auto-installed by bootstrap |
+| Dependency | Why                                         | Install                     |
+| ---------- | ------------------------------------------- | --------------------------- |
+| `git`      | Clone the repo                              | `sudo apt install git`      |
+| `python3`  | Moonraker/Klipper runtime (not for the CLI) | `sudo apt install python3`  |
+| `curl`     | Download release artifacts                  | Auto-installed by bootstrap |
+| `unzip`    | Extract artifacts                           | Auto-installed by bootstrap |
+| `zstd`     | Extract compressed stack artifacts          | Auto-installed by bootstrap |
 
 > `bun`, `node`, and `Go` are **not** needed on the target machine — everything runs as a pre-built static binary.
 
@@ -93,20 +93,20 @@ sudo systemctl start e3cnc-default-klipper
 
 ## Common operations
 
-| Operation | Command |
-|---|---|
-| Full install | `./e3cnc-tui install` |
-| Update stack | `./e3cnc-tui update` |
-| Uninstall | `./e3cnc-tui uninstall` |
-| Status | `./e3cnc-tui status` |
-| Check deps | `./e3cnc-tui check` |
-| Diagnostics | `./e3cnc-tui diagnose` |
-| Backup | `./e3cnc-tui backup` |
-| Restore | `./e3cnc-tui restore <backup>` |
-| List releases | `./e3cnc-tui releases` |
-| Rollback | `./e3cnc-tui rollback` |
-| Prune old releases | `./e3cnc-tui prune` |
-| Prune old backups | `./e3cnc-tui prune-backups` |
-| Manage instances | Select "Instances" in the TUI, or `./e3cnc-tui instances` |
-| View logs | `./e3cnc-tui logs` |
-| Admin page | `./e3cnc-tui admin-page` |
+| Operation          | Command                                                   |
+| ------------------ | --------------------------------------------------------- |
+| Full install       | `./e3cnc-tui install`                                     |
+| Update stack       | `./e3cnc-tui update`                                      |
+| Uninstall          | `./e3cnc-tui uninstall`                                   |
+| Status             | `./e3cnc-tui status`                                      |
+| Check deps         | `./e3cnc-tui check`                                       |
+| Diagnostics        | `./e3cnc-tui diagnose`                                    |
+| Backup             | `./e3cnc-tui backup`                                      |
+| Restore            | `./e3cnc-tui restore <backup>`                            |
+| List releases      | `./e3cnc-tui releases`                                    |
+| Rollback           | `./e3cnc-tui rollback`                                    |
+| Prune old releases | `./e3cnc-tui prune`                                       |
+| Prune old backups  | `./e3cnc-tui prune-backups`                               |
+| Manage instances   | Select "Instances" in the TUI, or `./e3cnc-tui instances` |
+| View logs          | `./e3cnc-tui logs`                                        |
+| Admin page         | `./e3cnc-tui admin-page`                                  |

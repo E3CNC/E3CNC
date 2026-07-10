@@ -20,6 +20,7 @@ The E3CNC CLI codebase interleaves business logic with direct platform calls acr
 - `simple_term_menu.TerminalMenu` (interactive TUI)
 
 These calls are embedded directly in business logic functions, making them impossible to test without either:
+
 1. Running on actual Linux hardware, or
 2. Applying deep `unittest.mock` patches that break on nested call chains and are brittle to refactors.
 
@@ -89,6 +90,7 @@ Tests import `cli.bootstrap` and replace services before invoking commands.
 Every refactored function follows this pattern:
 
 **Before (current):**
+
 ```python
 def restart_services(inst: Instance) -> bool:
     result = subprocess.run(["sudo", "systemctl", "restart", inst.moonraker_service], ...)
@@ -96,6 +98,7 @@ def restart_services(inst: Instance) -> bool:
 ```
 
 **After:**
+
 ```python
 def restart_services(inst: Instance, svc: ISystemService | None = None) -> bool:
     svc = svc or bootstrap.system
@@ -139,6 +142,7 @@ class SubprocessResult:
 ```
 
 **Coverage unlocked:**
+
 - `_e3cnc_supervisor.py` — `install_supervisor`, `register_instance`, `_run_supervisorctl`
 - `_e3cnc_deploy.py` — `update_systemd_paths`, `restart_services`, `_check_service`
 - `cli/commands.py` — `cmd_restart`
@@ -162,6 +166,7 @@ class IFilesystemOperator(ABC):
 ```
 
 **Coverage unlocked:**
+
 - `_e3cnc_deploy.py` — `sync_runtime_files`, `migrate_layout`, `migrate_instances`
 - `_e3cnc_deploy.py` — `activate_release`, `deactivate_release`
 - `_e3cnc_deploy.py` — `run_backup`, `run_diagnose`, `prune_releases`
@@ -179,6 +184,7 @@ class ISerialDetector(ABC):
 ```
 
 **Coverage unlocked:**
+
 - `cli/helpers.py` — `scan_serial_devices` (entire 80-line function)
 
 ### 4.4 IFirmwareBuilder
@@ -191,6 +197,7 @@ class IFirmwareBuilder(ABC):
 ```
 
 **Coverage unlocked:**
+
 - `cli/helpers.py` — `build_klipper_firmware` (entire 80-line function)
 
 ### 4.5 IMenu
@@ -205,6 +212,7 @@ class IMenu(ABC):
 ```
 
 **Coverage unlocked:**
+
 - `cli/menu.py` — `_tui_menu`, TUI path of `_switch_instance`
 
 ---
@@ -213,87 +221,87 @@ class IMenu(ABC):
 
 ### Phase 1: Foundation (Days 1-2)
 
-| Task | Deliverable | Est. impact |
-|------|------------|-------------|
-| Create `_e3cnc_interfaces.py` with all 5 interfaces + dataclasses | Reviewable module | — |
-| Create `cli/bootstrap.py` with real implementations | Wire file | — |
-| Create `tests/conftest.py` with factory fixtures for all mocks | Shared test infra | — |
-| Run full suite — 0 regressions | Green CI | — |
+| Task                                                              | Deliverable       | Est. impact |
+| ----------------------------------------------------------------- | ----------------- | ----------- |
+| Create `_e3cnc_interfaces.py` with all 5 interfaces + dataclasses | Reviewable module | —           |
+| Create `cli/bootstrap.py` with real implementations               | Wire file         | —           |
+| Create `tests/conftest.py` with factory fixtures for all mocks    | Shared test infra | —           |
+| Run full suite — 0 regressions                                    | Green CI          | —           |
 
 ### Phase 2: ISystemService (Days 3-4)
 
-| Task | Deliverable | Est. impact |
-|------|------------|-------------|
-| Refactor `_e3cnc_supervisor.py` to accept `ISystemService` | ~115 lines refactored | 99% → 100% |
-| Refactor `_e3cnc_deploy.py::_check_service` | ~30 lines refactored | +2% on deploy |
-| Refactor `_e3cnc_deploy.py::update_systemd_paths`, `restart_services` | ~60 lines refactored | +3% on deploy |
-| Refactor `cli/commands.py::cmd_restart` | ~15 lines refactored | +1% on commands |
-| Write `MockSystemService` + tests | ~50 lines test | verifiable |
+| Task                                                                  | Deliverable           | Est. impact     |
+| --------------------------------------------------------------------- | --------------------- | --------------- |
+| Refactor `_e3cnc_supervisor.py` to accept `ISystemService`            | ~115 lines refactored | 99% → 100%      |
+| Refactor `_e3cnc_deploy.py::_check_service`                           | ~30 lines refactored  | +2% on deploy   |
+| Refactor `_e3cnc_deploy.py::update_systemd_paths`, `restart_services` | ~60 lines refactored  | +3% on deploy   |
+| Refactor `cli/commands.py::cmd_restart`                               | ~15 lines refactored  | +1% on commands |
+| Write `MockSystemService` + tests                                     | ~50 lines test        | verifiable      |
 
 ### Phase 3: IFilesystemOperator (Days 5-6)
 
-| Task | Deliverable | Est. impact |
-|------|------------|-------------|
-| Refactor `sync_runtime_files` to accept `IFilesystemOperator` | ~40 lines refactored | +3% on deploy |
-| Refactor `activate_release` / `deactivate_release` | ~30 lines refactored | +2% on deploy |
-| Refactor `migrate_layout` | ~50 lines refactored | +4% on deploy |
-| Refactor `migrate_instances` | ~130 lines refactored | +6% on deploy |
-| Refactor `run_backup` | ~30 lines refactored | +2% on deploy |
-| Refactor `prune_releases` | ~30 lines refactored | +2% on deploy |
-| Write `MockFilesystemOperator` + tests | ~80 lines test | verifiable |
+| Task                                                          | Deliverable           | Est. impact   |
+| ------------------------------------------------------------- | --------------------- | ------------- |
+| Refactor `sync_runtime_files` to accept `IFilesystemOperator` | ~40 lines refactored  | +3% on deploy |
+| Refactor `activate_release` / `deactivate_release`            | ~30 lines refactored  | +2% on deploy |
+| Refactor `migrate_layout`                                     | ~50 lines refactored  | +4% on deploy |
+| Refactor `migrate_instances`                                  | ~130 lines refactored | +6% on deploy |
+| Refactor `run_backup`                                         | ~30 lines refactored  | +2% on deploy |
+| Refactor `prune_releases`                                     | ~30 lines refactored  | +2% on deploy |
+| Write `MockFilesystemOperator` + tests                        | ~80 lines test        | verifiable    |
 
 ### Phase 4: ISerialDetector + IFirmwareBuilder (Day 7)
 
-| Task | Deliverable | Est. impact |
-|------|------------|-------------|
-| Refactor `scan_serial_devices` | ~80 lines refactored | +10% on helpers |
-| Refactor `build_klipper_firmware` | ~80 lines refactored | +10% on helpers |
+| Task                                 | Deliverable          | Est. impact     |
+| ------------------------------------ | -------------------- | --------------- |
+| Refactor `scan_serial_devices`       | ~80 lines refactored | +10% on helpers |
+| Refactor `build_klipper_firmware`    | ~80 lines refactored | +10% on helpers |
 | Refactor `cmd_flash_mcu` user choice | ~20 lines refactored | +2% on commands |
-| Write mocks + tests | ~80 lines test | verifiable |
+| Write mocks + tests                  | ~80 lines test       | verifiable      |
 
 ### Phase 5: IMenu (Day 8)
 
-| Task | Deliverable | Est. impact |
-|------|------------|-------------|
-| Refactor `_tui_menu` to use `IMenu` | ~75 lines refactored | +15% on menu |
-| Refactor `_switch_instance` TUI path | ~20 lines refactored | +5% on menu |
+| Task                                             | Deliverable          | Est. impact   |
+| ------------------------------------------------ | -------------------- | ------------- |
+| Refactor `_tui_menu` to use `IMenu`              | ~75 lines refactored | +15% on menu  |
+| Refactor `_switch_instance` TUI path             | ~20 lines refactored | +5% on menu   |
 | Refactor `select_instance` in `_e3cnc_shared.py` | ~30 lines refactored | +1% on shared |
-| Write `MockMenu` + tests | ~60 lines test | verifiable |
+| Write `MockMenu` + tests                         | ~60 lines test       | verifiable    |
 
 ### Phase 6: Polish & Verify (Day 9)
 
-| Task | Deliverable |
-|------|------------|
-| Run full test suite — 0 regressions | Green CI |
-| Coverage report — verify ≥90% across target modules | Report |
-| Update `ARCHITECTURE.md` with new layering | Documentation |
-| Remove dead mock patches from old tests | Cleanup |
+| Task                                                | Deliverable   |
+| --------------------------------------------------- | ------------- |
+| Run full test suite — 0 regressions                 | Green CI      |
+| Coverage report — verify ≥90% across target modules | Report        |
+| Update `ARCHITECTURE.md` with new layering          | Documentation |
+| Remove dead mock patches from old tests             | Cleanup       |
 
 ---
 
 ## 6. Success Metrics
 
-| Metric | Current | Target |
-|--------|---------|--------|
-| `_e3cnc_deploy.py` coverage | 51% | ≥85% |
-| `cli/helpers.py` coverage | 64% | ≥90% |
-| `cli/commands.py` coverage | 62% | ≥85% |
-| `cli/menu.py` coverage | 74% | ≥90% |
-| **Overall project coverage** | **79%** | **≥90%** |
-| Test suite pass rate | 100% (428/428) | 100% |
-| New test files added | 0 | ≥5 |
+| Metric                       | Current        | Target   |
+| ---------------------------- | -------------- | -------- |
+| `_e3cnc_deploy.py` coverage  | 51%            | ≥85%     |
+| `cli/helpers.py` coverage    | 64%            | ≥90%     |
+| `cli/commands.py` coverage   | 62%            | ≥85%     |
+| `cli/menu.py` coverage       | 74%            | ≥90%     |
+| **Overall project coverage** | **79%**        | **≥90%** |
+| Test suite pass rate         | 100% (428/428) | 100%     |
+| New test files added         | 0              | ≥5       |
 
 ---
 
 ## 7. Risks & Mitigations
 
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| Interface scope creep (YAGNI violations) | Medium | High | Strict review: max 5 methods per interface, defer speculative methods |
-| Existing callers miss the optional parameter | Low | Medium | Type-check with mypy; all cmd_* functions get a new `svc=None` default |
-| Test mock complexity exceeds original patch complexity | Medium | Medium | Each MockService is a single class under 40 lines; hardcode return values |
-| Phase interdependency (deploy → interfaces changes needed first) | Low | Low | Phases are independent; each interface stands alone |
-| `migrate_instances` rewrites are large | Medium | Medium | Split into 3 sub-tasks: (a) dir creation, (b) file copy, (c) config update |
+| Risk                                                             | Likelihood | Impact | Mitigation                                                                 |
+| ---------------------------------------------------------------- | ---------- | ------ | -------------------------------------------------------------------------- |
+| Interface scope creep (YAGNI violations)                         | Medium     | High   | Strict review: max 5 methods per interface, defer speculative methods      |
+| Existing callers miss the optional parameter                     | Low        | Medium | Type-check with mypy; all cmd\_\* functions get a new `svc=None` default   |
+| Test mock complexity exceeds original patch complexity           | Medium     | Medium | Each MockService is a single class under 40 lines; hardcode return values  |
+| Phase interdependency (deploy → interfaces changes needed first) | Low        | Low    | Phases are independent; each interface stands alone                        |
+| `migrate_instances` rewrites are large                           | Medium     | Medium | Split into 3 sub-tasks: (a) dir creation, (b) file copy, (c) config update |
 
 ---
 
@@ -301,33 +309,33 @@ class IMenu(ABC):
 
 ### Current Coverage Detail
 
-| Module | Stmts | Missed | % | Primary blockers |
-|--------|-------|--------|---|-----------------|
-| `_e3cnc_deploy.py` | 888 | 436 | 51% | subprocess, shutil, systemd, serial, make |
-| `_e3cnc_shared.py` | 832 | 167 | 80% | select_instance TUI, run_ansible |
-| `cli/commands.py` | 530 | 201 | 62% | cmd_flash_mcu, cmd_backup, sudo |
-| `cli/helpers.py` | 333 | 121 | 64% | scan_serial_devices, build_firmware |
-| `cli/menu.py` | 198 | 51 | 74% | _tui_menu TerminalMenu |
-| **Total** | **6,629** | **1,392** | **79%** | |
+| Module             | Stmts     | Missed    | %       | Primary blockers                          |
+| ------------------ | --------- | --------- | ------- | ----------------------------------------- |
+| `_e3cnc_deploy.py` | 888       | 436       | 51%     | subprocess, shutil, systemd, serial, make |
+| `_e3cnc_shared.py` | 832       | 167       | 80%     | select_instance TUI, run_ansible          |
+| `cli/commands.py`  | 530       | 201       | 62%     | cmd_flash_mcu, cmd_backup, sudo           |
+| `cli/helpers.py`   | 333       | 121       | 64%     | scan_serial_devices, build_firmware       |
+| `cli/menu.py`      | 198       | 51        | 74%     | \_tui_menu TerminalMenu                   |
+| **Total**          | **6,629** | **1,392** | **79%** |                                           |
 
 ### Estimated Lines of New Code
 
-| Artifact | Lines |
-|----------|-------|
-| `_e3cnc_interfaces.py` (5 interfaces + dataclasses) | ~150 |
-| `cli/bootstrap.py` (default wiring) | ~30 |
-| `tests/conftest.py` (shared fixtures) | ~60 |
-| Mock implementations (5 x ~40 lines) | ~200 |
-| Test code (new tests for refactored functions) | ~400 |
-| **Total** | **~840** |
+| Artifact                                            | Lines    |
+| --------------------------------------------------- | -------- |
+| `_e3cnc_interfaces.py` (5 interfaces + dataclasses) | ~150     |
+| `cli/bootstrap.py` (default wiring)                 | ~30      |
+| `tests/conftest.py` (shared fixtures)               | ~60      |
+| Mock implementations (5 x ~40 lines)                | ~200     |
+| Test code (new tests for refactored functions)      | ~400     |
+| **Total**                                           | **~840** |
 
 ### Estimated Lines of Source Changed
 
-| Refactoring | Lines changed |
-|-------------|--------------|
-| `_e3cnc_supervisor.py` (add `svc:` param) | ~15 |
-| `_e3cnc_deploy.py` (add `fs:` / `svc:` params to 8 functions) | ~50 |
-| `cli/helpers.py` (extract serial + firmware) | ~20 |
-| `cli/commands.py` (add `svc:` to 3 cmd_* functions) | ~10 |
-| `cli/menu.py` (extract IMenu) | ~25 |
-| **Total** | **~120** |
+| Refactoring                                                   | Lines changed |
+| ------------------------------------------------------------- | ------------- |
+| `_e3cnc_supervisor.py` (add `svc:` param)                     | ~15           |
+| `_e3cnc_deploy.py` (add `fs:` / `svc:` params to 8 functions) | ~50           |
+| `cli/helpers.py` (extract serial + firmware)                  | ~20           |
+| `cli/commands.py` (add `svc:` to 3 cmd\_\* functions)         | ~10           |
+| `cli/menu.py` (extract IMenu)                                 | ~25           |
+| **Total**                                                     | **~120**      |

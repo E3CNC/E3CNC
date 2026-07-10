@@ -26,17 +26,17 @@ A design system will:
 
 ### 2.1 What exists today
 
-| Layer | What | Problems |
-|---|---|---|
-| **Vuetify theme** | `src/main.ts` — dark/light with single `accent: '#ff9800'` override | Minimal. Every colour override is scattered in components. |
-| **Vuetify config** | `createVuetify({ theme: { dark, light } })` | No shared colour tokens. |
-| **Theme composable** | `src/composables/useTheme.ts` — computed fg/bg colours, sidebar images, logo paths | 200+ lines of computed values. Mixes colour calculation, image path logic, and CSS variable generation. |
-| **CSS files** | `src/assets/styles/{utils,page,sidebar,fonts,toastr,updateManager}.css` | Global, flat, no design tokens. `page.css` uses CSS custom properties (`--v-theme-*`) that are Vuetify internals. |
-| **SVG themes** | `public/img/themes/` — 9 sidebar logos, 1 sidebar background | Logo+background per theme works, but there's no tokenisation — just image swaps. |
-| **Colour constants** | `src/store/variables.ts` — `defaultLogoColor`, `defaultPrimaryColor`, `colorArray`, `colorHeaterBed`, `colorChamber` | Mixed concerns — some are design tokens, some are defaults, some are sensor colours. No grouping. |
-| **Panel layout** | `src/components/panels/Cnc/README.md` documents panel wiring | Panels use ad-hoc inline styles, computed colour bindings, no shared component primitives. |
-| **Custom properties (CSS vars)** | `App.vue` sets `--v-btn-text-primary`, `--color-logo`, `--color-primary`, `--sidebar-logo` etc. | Good start but incomplete. Only ~10 CSS vars, mostly Vuetify overrides. |
-| **Fonts** | `0xProto Nerd Font Mono` in `fonts.css` | Single monospace font for everything. Readability on dense DRO/JOG panels is untested at small sizes. |
+| Layer                            | What                                                                                                                 | Problems                                                                                                          |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| **Vuetify theme**                | `src/main.ts` — dark/light with single `accent: '#ff9800'` override                                                  | Minimal. Every colour override is scattered in components.                                                        |
+| **Vuetify config**               | `createVuetify({ theme: { dark, light } })`                                                                          | No shared colour tokens.                                                                                          |
+| **Theme composable**             | `src/composables/useTheme.ts` — computed fg/bg colours, sidebar images, logo paths                                   | 200+ lines of computed values. Mixes colour calculation, image path logic, and CSS variable generation.           |
+| **CSS files**                    | `src/assets/styles/{utils,page,sidebar,fonts,toastr,updateManager}.css`                                              | Global, flat, no design tokens. `page.css` uses CSS custom properties (`--v-theme-*`) that are Vuetify internals. |
+| **SVG themes**                   | `public/img/themes/` — 9 sidebar logos, 1 sidebar background                                                         | Logo+background per theme works, but there's no tokenisation — just image swaps.                                  |
+| **Colour constants**             | `src/store/variables.ts` — `defaultLogoColor`, `defaultPrimaryColor`, `colorArray`, `colorHeaterBed`, `colorChamber` | Mixed concerns — some are design tokens, some are defaults, some are sensor colours. No grouping.                 |
+| **Panel layout**                 | `src/components/panels/Cnc/README.md` documents panel wiring                                                         | Panels use ad-hoc inline styles, computed colour bindings, no shared component primitives.                        |
+| **Custom properties (CSS vars)** | `App.vue` sets `--v-btn-text-primary`, `--color-logo`, `--color-primary`, `--sidebar-logo` etc.                      | Good start but incomplete. Only ~10 CSS vars, mostly Vuetify overrides.                                           |
+| **Fonts**                        | `0xProto Nerd Font Mono` in `fonts.css`                                                                              | Single monospace font for everything. Readability on dense DRO/JOG panels is untested at small sizes.             |
 
 ### 2.2 Design tokens that are missing
 
@@ -165,6 +165,7 @@ Tokens must never import from Vue, Vuetify, or the store — they are pure data.
 - [ ] Update `App.vue` CSS vars to reference `--ds-*` tokens instead of hardcoded values
 
 **Example output:**
+
 ```css
 :root {
   --ds-color-surface: #1e1e1e;
@@ -288,15 +289,15 @@ Tokens must never import from Vue, Vuetify, or the store — they are pure data.
 
 ## 5. File Change Summary
 
-| Phase | Files to Create | Files to Modify | Files to Remove |
-|---|---|---|---|
-| 1 | `src/design-system/tokens/{colors,typography,spacing,border-radius,elevation,motion,breakpoints,cnc}.ts`, `tokens/index.ts` | — | — |
-| 2 | `scripts/generate-tokens-css.mjs` | `vite.config.ts`, `src/main.ts`, `src/App.vue` | — |
-| 3 | `src/design-system/composables/useDesignTokens.ts` | `src/composables/useTheme.ts` | — |
-| 4 | 8+ `src/design-system/components/*.vue` + `index.ts` | — | — |
-| 5 | — | 6 `src/components/panels/Cnc/*.vue`, `TemperaturePanel.vue` | — |
-| 6 | `src/design-system/README.md` | `.github/PULL_REQUEST_TEMPLATE.md` | — |
-| 7 | — | Various component files | — |
+| Phase | Files to Create                                                                                                             | Files to Modify                                             | Files to Remove |
+| ----- | --------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | --------------- |
+| 1     | `src/design-system/tokens/{colors,typography,spacing,border-radius,elevation,motion,breakpoints,cnc}.ts`, `tokens/index.ts` | —                                                           | —               |
+| 2     | `scripts/generate-tokens-css.mjs`                                                                                           | `vite.config.ts`, `src/main.ts`, `src/App.vue`              | —               |
+| 3     | `src/design-system/composables/useDesignTokens.ts`                                                                          | `src/composables/useTheme.ts`                               | —               |
+| 4     | 8+ `src/design-system/components/*.vue` + `index.ts`                                                                        | —                                                           | —               |
+| 5     | —                                                                                                                           | 6 `src/components/panels/Cnc/*.vue`, `TemperaturePanel.vue` | —               |
+| 6     | `src/design-system/README.md`                                                                                               | `.github/PULL_REQUEST_TEMPLATE.md`                          | —               |
+| 7     | —                                                                                                                           | Various component files                                     | —               |
 
 **Total new files:** ~16  
 **Total modified files:** ~12  
@@ -306,13 +307,13 @@ Tokens must never import from Vue, Vuetify, or the store — they are pure data.
 
 ## 6. Risks & Mitigations
 
-| Risk | Mitigation |
-|---|---|
-| **Token API churn** during early phases | Keep Phase 1 short (one session per token file). Lock token shapes before Phase 3. |
-| **Existing inline styles are deeply entangled** | Migrate panel-by-panel; keep old styles until the new component is verified. No big-bang migration. |
-| **Vuetify 3 theme changes** in future upgrades | Wrap Vuetify theme access behind `useDesignTokens()` — only one composable needs updating. |
-| **Performance — reactive token waterfall** | Tokens are plain objects, not reactive. Only `useDesignTokens()` is reactive. Components that render many DRO cells (WCS grid: 9×6 = 54 cells) use `computed` at the grid level, not per cell. |
-| **Bundle size from design system** | Tree-shakeable imports via named exports. No `plugin` registration — just import components where used. |
+| Risk                                            | Mitigation                                                                                                                                                                                     |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Token API churn** during early phases         | Keep Phase 1 short (one session per token file). Lock token shapes before Phase 3.                                                                                                             |
+| **Existing inline styles are deeply entangled** | Migrate panel-by-panel; keep old styles until the new component is verified. No big-bang migration.                                                                                            |
+| **Vuetify 3 theme changes** in future upgrades  | Wrap Vuetify theme access behind `useDesignTokens()` — only one composable needs updating.                                                                                                     |
+| **Performance — reactive token waterfall**      | Tokens are plain objects, not reactive. Only `useDesignTokens()` is reactive. Components that render many DRO cells (WCS grid: 9×6 = 54 cells) use `computed` at the grid level, not per cell. |
+| **Bundle size from design system**              | Tree-shakeable imports via named exports. No `plugin` registration — just import components where used.                                                                                        |
 
 ---
 

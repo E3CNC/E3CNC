@@ -191,7 +191,9 @@
                         <td class="text-no-wrap text-center text-caption text-grey" style="width: 80px">
                             {{ item.isDirectory ? 'folder' : getFileTypeLabel(item.filename) }}
                         </td>
-                        <td class="text-right">{{ item.modified instanceof Date ? formatDateTime(item.modified.getTime()) : '--' }}</td>
+                        <td class="text-right">
+                            {{ item.modified instanceof Date ? formatDateTime(item.modified.getTime()) : '--' }}
+                        </td>
                     </tr>
                 </template>
                 <template #bottom>

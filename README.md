@@ -27,37 +27,37 @@ sudo ./install.sh --dir /opt/e3cnc  # custom dir
 
 The CLI is now a **single static Go binary** — zero runtime dependencies. Run `./e3cnc-tui` with no arguments to enter the interactive TUI, or pass a command for non-interactive mode.
 
-| Feature | Description |
-|---|---|
-| **Install wizard** | 6-screen guided install: pre-flight checks, instance config, 9-step progress, error recovery, health verification, next steps |
-| **Instance manager** | List, switch, create, and delete instances with live status indicators |
-| **Real-time streaming** | Long-running commands show spinner + line-by-line output |
-| **Cancellation** | Ctrl+C cleanly cancels running commands, returns to menu in <2s |
-| **Non-interactive mode** | `--json` flag outputs structured data — works in scripts and over SSH |
+| Feature                  | Description                                                                                                                   |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| **Install wizard**       | 6-screen guided install: pre-flight checks, instance config, 9-step progress, error recovery, health verification, next steps |
+| **Instance manager**     | List, switch, create, and delete instances with live status indicators                                                        |
+| **Real-time streaming**  | Long-running commands show spinner + line-by-line output                                                                      |
+| **Cancellation**         | Ctrl+C cleanly cancels running commands, returns to menu in <2s                                                               |
+| **Non-interactive mode** | `--json` flag outputs structured data — works in scripts and over SSH                                                         |
 
 The Go binary is included in every release at `bin/e3cnc-tui` (linux/arm64, ~3.8 MB, CGO_ENABLED=0).
 
 ## Quick Start
 
-| Method | Command |
-|---|---|
-| **Install** | `./e3cnc-tui install` |
-| **Interactive TUI** | `./e3cnc-tui` |
+| Method               | Command                       |
+| -------------------- | ----------------------------- |
+| **Install**          | `./e3cnc-tui install`         |
+| **Interactive TUI**  | `./e3cnc-tui`                 |
 | **Instance manager** | Select "Instances" in the TUI |
-| **Install wizard** | `./e3cnc-tui install` |
-| **Detect MCU** | `./e3cnc-tui detect-mcu` |
-| **Flash firmware** | `./e3cnc-tui flash-mcu` |
-| **Generate config** | `./e3cnc-tui init-config` |
-| **Update** | `./e3cnc-tui update` |
-| **Status** | `./e3cnc-tui status` |
+| **Install wizard**   | `./e3cnc-tui install`         |
+| **Detect MCU**       | `./e3cnc-tui detect-mcu`      |
+| **Flash firmware**   | `./e3cnc-tui flash-mcu`       |
+| **Generate config**  | `./e3cnc-tui init-config`     |
+| **Update**           | `./e3cnc-tui update`          |
+| **Status**           | `./e3cnc-tui status`          |
 
 ## Architecture
 
-| Layer | Technology | Location |
-|---|---|---|
-| **CLI / TUI** | Go 1.26+ / BubbleTea | `cli/go/` |
-| **Frontend** | Vue 3.5 + Vuetify 3 + TypeScript | `src/` |
-| **Services** | Vendored Moonraker + Klipper | `vendor/` |
+| Layer         | Technology                       | Location  |
+| ------------- | -------------------------------- | --------- |
+| **CLI / TUI** | Go 1.26+ / BubbleTea             | `cli/go/` |
+| **Frontend**  | Vue 3.5 + Vuetify 3 + TypeScript | `src/`    |
+| **Services**  | Vendored Moonraker + Klipper     | `vendor/` |
 
 The Go binary (`e3cnc-tui`) handles all CLI commands natively — no Python runtime required. The Moonraker CNC Agent (`vendor/moonraker/`) communicates with the Go binary via subprocess for deploy operations.
 

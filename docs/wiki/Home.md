@@ -41,11 +41,11 @@ See the [Installation](Installation) page for details.
 
 A single **Go static binary** (`CGO_ENABLED=0`, ~3.8 MB) handling all operations:
 
-| Mode | How | Description |
-|---|---|---|
-| **Interactive TUI** | `./e3cnc-tui` (no args) | Keyboard-driven menu: install wizard, instance manager, command dispatch |
-| **CLI mode** | `./e3cnc-tui <command>` | Runs command, prints output, exits. Supports `--json` for structured output |
-| **Non-interactive** | `./e3cnc-tui install --yes` | Collapses TUI to CLI output — works in scripts and over SSH |
+| Mode                | How                         | Description                                                                 |
+| ------------------- | --------------------------- | --------------------------------------------------------------------------- |
+| **Interactive TUI** | `./e3cnc-tui` (no args)     | Keyboard-driven menu: install wizard, instance manager, command dispatch    |
+| **CLI mode**        | `./e3cnc-tui <command>`     | Runs command, prints output, exits. Supports `--json` for structured output |
+| **Non-interactive** | `./e3cnc-tui install --yes` | Collapses TUI to CLI output — works in scripts and over SSH                 |
 
 Run `./e3cnc-tui --help` for all available commands.
 

@@ -16,17 +16,17 @@ smooth.
 
 The TUI has a solid foundation but leaves UX on the table:
 
-| Area | Current | Problem |
-|------|---------|---------|
-| Menu | Custom list with manual cursor | No filtering/search, keyboard-only |
-| Text Input | Manual keystroke tracking | No cursor movement, paste, validation UI |
-| Output View | Flat text dump | Can't scroll back, no pagination |
-| Instance mgr | Manual form list | No text editing, no autocomplete |
-| Confirmations | Custom y/n string match | No visual confirmation component |
-| Install progress | Text-based spinners | No progress bars, no estimated time |
-| Help | Fixed footer text | No interactive/exposed help panel |
-| Mouse | None | Can't click anything |
-| Tab completion | None | Can't tab-complete instance names/paths |
+| Area             | Current                        | Problem                                  |
+| ---------------- | ------------------------------ | ---------------------------------------- |
+| Menu             | Custom list with manual cursor | No filtering/search, keyboard-only       |
+| Text Input       | Manual keystroke tracking      | No cursor movement, paste, validation UI |
+| Output View      | Flat text dump                 | Can't scroll back, no pagination         |
+| Instance mgr     | Manual form list               | No text editing, no autocomplete         |
+| Confirmations    | Custom y/n string match        | No visual confirmation component         |
+| Install progress | Text-based spinners            | No progress bars, no estimated time      |
+| Help             | Fixed footer text              | No interactive/exposed help panel        |
+| Mouse            | None                           | Can't click anything                     |
+| Tab completion   | None                           | Can't tab-complete instance names/paths  |
 
 ---
 
@@ -38,12 +38,14 @@ The TUI has a solid foundation but leaves UX on the table:
 navigating with arrow keys only. Critical for fool-proof UX.
 
 **Implementation:**
+
 ```go
 // main.go — add to tea.NewProgram options
 tea.WithMouseCellMotion()
 ```
 
 **Files to touch:**
+
 - `cli/go/cmd/e3cnc-tui/main.go` — add `tea.WithMouseCellMotion()` to `NewProgram`
 - `cli/go/internal/tui/model.go` — add `tea.MouseMsg` handler to route clicks
   - Check `msg.X`, `msg.Y` coordinates against menu item positions
@@ -79,6 +81,7 @@ type OutputViewModel struct {
 ```
 
 **Key bindings to support:**
+
 - `↑/↓` or `j/k` — scroll line by line
 - `PgUp`/`PgDn` — scroll page by page
 - `g`/`G` — top/bottom
@@ -87,6 +90,7 @@ type OutputViewModel struct {
 - `q` — quit (already works)
 
 **Files to touch:**
+
 - `output.go` — embed viewport.Model, add Update routing, add View rendering
 - `styles.go` — maybe a viewport border style
 - `model.go` — route viewport key messages to output model
@@ -115,6 +119,7 @@ type InstanceModel struct {
 ```
 
 The textinput component handles:
+
 - Character insertion/deletion
 - Cursor movement (left/right)
 - Paste (Ctrl+V / Cmd+V)
@@ -122,6 +127,7 @@ The textinput component handles:
 - Focus state and visual cursor
 
 **Migration from current manual approach:**
+
 - Remove `createName` / `createPort` strings
 - Remove `createFocusedIdx` counter
 - Remove manual keystroke handling in `handleCreateKey`
@@ -129,6 +135,7 @@ The textinput component handles:
 - Style them with lipgloss to match the theme
 
 **Files to touch:**
+
 - `instance.go` — replace form state, update Update/View
 - `styles.go` — add textinput-focused style
 
@@ -164,6 +171,7 @@ m.progBar = progress.New(progress.WithDefaultGradient())
 **Gradient:** Use `#00ff66` → `#00ffff` (green to cyan) to match existing theme.
 
 **Files to touch:**
+
 - `install.go` — add progress model, update viewExecDashboard
 - `styles.go` — customize progress bar colors/full/empty chars
 
@@ -182,6 +190,7 @@ with focus management and keyboard handling.
 
 **Implementation:**
 Uses custom `ConfirmModel` (confirm.go) with:
+
 - "Yes" / "No" buttons with keyboard navigation (Tab/arrows)
 - Enter to confirm, Esc to cancel
 - `y`/`n` quick keys
@@ -216,12 +225,14 @@ case tea.KeyMsg:
 ```
 
 **Per-screen help content:**
+
 - Main menu: navigation, search/filter, category jumps
 - Instance manager: list navigation, create/delete, switch active
 - Install wizard: step descriptions, recovery options
 - Output view: scroll controls, search within output
 
 **Files to touch:**
+
 - `model.go` — add `?` toggle handler
 - Sub-model Views — incorporate help rendering
 
@@ -237,6 +248,7 @@ of something generic. Add a status bar at the bottom showing current screen, ver
 and active instance.
 
 **Implementation:**
+
 ```go
 // On init:
 return tea.Batch(
@@ -247,7 +259,7 @@ return tea.Batch(
 // Status bar in root Model.View():
 // Use lipgloss.JoinVertical to combine content with status bar
 func (m Model) statusBar() string {
-    screenName := [...]string{"Main Menu", "Install Wizard", "Error Recovery", 
+    screenName := [...]string{"Main Menu", "Install Wizard", "Error Recovery",
         "Instance Mgr", "Output View"}[m.state]
     return lipgloss.NewStyle().Foreground(ColorDim).Render(
         fmt.Sprintf("e3cnc-tui v%s · %s · %s", version, screenName, time.Now().Format("15:04")))
@@ -255,6 +267,7 @@ func (m Model) statusBar() string {
 ```
 
 **Files to touch:**
+
 - `model.go` — add statusBar(), include in View()
 - `main.go` — pass version to TUI model
 
@@ -291,6 +304,7 @@ type Model struct {
 Replace scattered `loadErr` fields in sub-models with notification messages.
 
 **Files to touch:**
+
 - `model.go` — add Notification type and rendering
 - `instance.go` — replace `loadErr` with root notifications
 - `output.go` — integrate with notification system
@@ -325,10 +339,12 @@ type ReleasesModel struct {
 ```
 
 **Table columns:**
+
 - Releases: Version, Date, Size, Channel (stable/nightly)
 - Backups: ID, Date, Size, Instance
 
 **Files to touch:**
+
 - `tui/table.go` — new file for ReleasesModel / BackupModel
 - `model.go` — add new state(s)
 - `menu.go` — route specific commands to table view
@@ -355,7 +371,7 @@ type MenuItemData struct {
     destructive bool
 }
 
-func (i MenuItemData) FilterValue() string { 
+func (i MenuItemData) FilterValue() string {
     return i.label + " " + i.category + " " + i.desc
 }
 
@@ -364,6 +380,7 @@ func (i MenuItemData) Description() string { return i.desc }
 ```
 
 The list component provides:
+
 - `/` to start filtering, type to narrow
 - Fuzzy matching (uses `sahilm/fuzzy`)
 - Shows matched characters highlighted
@@ -379,6 +396,7 @@ item styling. This is doable but takes ~80 lines of delegate code.
 filter/quick-jump overlay. Less polished but preserves existing layout.
 
 **Files to touch:**
+
 - `menu.go` — major refactor to use list.Model
 - `styles.go` — list delegate styling
 - `model.go` — adapt to list.Model interface
@@ -415,6 +433,7 @@ Add a detail screen when pressing `enter` on an instance:
 ```
 
 **Files to touch:**
+
 - `instance.go` — add detail screen, action dispatch
 - `model.go` — new state or sub-state
 
@@ -448,14 +467,14 @@ effort for the biggest usability jump.
 
 ## Files Summary (all changes under `cli/go/internal/tui/` and `cli/go/cmd/e3cnc-tui/`)
 
-| File | Phase | Change |
-|------|-------|--------|
-| `cmd/e3cnc-tui/main.go` | 1.1 | Add `tea.WithMouseCellMotion()` |
-| `model.go` | 1.1, 2.2, 2.3, 2.4 | Mouse handler, help toggle, status bar, notifications |
-| `output.go` | 1.2 | Replace flat output with viewport.Model |
-| `instance.go` | 1.3, 2.1 | Use textinput, confirm for delete |
-| `install.go` | 1.4, 2.1 | Add progress bar, confirm for destructive |
-| `menu.go` | 3.2 | (Phase 3) Use list.Model with custom delegate |
-| `styles.go` | 1.4, 2.2 | Progress bar gradient, textinput style |
-| NEW `table.go` | 3.1 | (Phase 3) Releases/backups table model |
-| `go.mod` | 1.2, 1.3, 1.4 | Already have dependencies (bubbles v0.20.0) |
+| File                    | Phase              | Change                                                |
+| ----------------------- | ------------------ | ----------------------------------------------------- |
+| `cmd/e3cnc-tui/main.go` | 1.1                | Add `tea.WithMouseCellMotion()`                       |
+| `model.go`              | 1.1, 2.2, 2.3, 2.4 | Mouse handler, help toggle, status bar, notifications |
+| `output.go`             | 1.2                | Replace flat output with viewport.Model               |
+| `instance.go`           | 1.3, 2.1           | Use textinput, confirm for delete                     |
+| `install.go`            | 1.4, 2.1           | Add progress bar, confirm for destructive             |
+| `menu.go`               | 3.2                | (Phase 3) Use list.Model with custom delegate         |
+| `styles.go`             | 1.4, 2.2           | Progress bar gradient, textinput style                |
+| NEW `table.go`          | 3.1                | (Phase 3) Releases/backups table model                |
+| `go.mod`                | 1.2, 1.3, 1.4      | Already have dependencies (bubbles v0.20.0)           |

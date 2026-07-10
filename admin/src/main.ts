@@ -8,33 +8,33 @@ import App from './App.vue'
 import router from './router'
 
 const vuetify = createVuetify({
-  components,
-  directives,
-  theme: {
-    defaultTheme: 'dark',
-    themes: {
-      dark: {
-        colors: {
-          primary: '#00d4aa',
-          secondary: '#16213e',
-          surface: '#1a1a2e',
-          background: '#121212',
-          error: '#ff5252',
-          info: '#2196f3',
-          success: '#4caf50',
-          warning: '#ff8300',
+    components,
+    directives,
+    theme: {
+        defaultTheme: 'dark',
+        themes: {
+            dark: {
+                colors: {
+                    primary: '#00d4aa',
+                    secondary: '#16213e',
+                    surface: '#1a1a2e',
+                    background: '#121212',
+                    error: '#ff5252',
+                    info: '#2196f3',
+                    success: '#4caf50',
+                    warning: '#ff8300',
+                },
+            },
         },
-      },
     },
-  },
-  defaults: {
-    VCard: {
-      color: 'surface',
+    defaults: {
+        VCard: {
+            color: 'surface',
+        },
+        VBtn: {
+            variant: 'tonal',
+        },
     },
-    VBtn: {
-      variant: 'tonal',
-    },
-  },
 })
 
 const app = createApp(App)
