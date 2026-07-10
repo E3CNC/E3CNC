@@ -670,6 +670,48 @@ update_supervisor_paths() {
     fi
 }
 
+# Test function for port auto-detection (called by --test-ports)
+test_port_detection() {
+    echo "=== Port Auto-Detection Test ==="
+    echo ""
+    
+    # Test 1: Check default ports
+    echo "[1] Check default ports (8081, 7125, 7126)..."
+    for p in 8081 7125 7126; do
+        if check_port "$p"; then
+            echo "   Port $p: FREE"
+        else
+            echo "   Port $p: IN USE (will auto-assign)"
+        fi
+    done
+    
+    # Test 2: Simulate port conflict and auto-detect
+    echo ""
+    echo "[2] Simulate port 8081 in use, test auto-detection..."
+    # Use python3 to listen on 8081 (compatible with most systems)
+    python3 -c "import socket; s=socket.socket(); s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1); s.bind(('', 8082)); s.listen(1); print('Fake service on 8082')" &
+    local nc_pid=$!
+    sleep 1
+    
+    echo "   Running auto_detect_ports..."
+    E3CNC_ADMIN_PORT=8082
+    E3CNC_MOONRAKER_PORT=7125
+    E3CNC_KLIPPER_PORT=7126
+    auto_detect_ports 2>&1
+    
+    echo ""
+    echo "[3] Results..."
+    echo "   E3CNC_ADMIN_PORT=${E3CNC_ADMIN_PORT:-8081}"
+    echo "   E3CNC_MOONRAKER_PORT=${E3CNC_MOONRAKER_PORT:-7125}"
+    echo "   E3CNC_KLIPPER_PORT=${E3CNC_KLIPPER_PORT:-7126}"
+    
+    # Clean up
+    kill $nc_pid 2>/dev/null
+    
+    echo ""
+    echo "=== Test complete ==="
+}
+
 check_ports() {
     auto_detect_ports
     
@@ -800,6 +842,11 @@ main() {
                 fi
                 E3CNC_DIR="$2"
                 shift 2
+                ;;
+            --test-ports)
+                # Test port auto-detection (no sudo required)
+                test_port_detection
+                exit 0
                 ;;
             --help|-h)
                 echo "Usage: sudo $0 [OPTIONS]"
