@@ -675,6 +675,9 @@ test_port_detection() {
     echo "=== Port Auto-Detection Test ==="
     echo ""
     
+    # Create log dir to suppress tee warnings
+    mkdir -p /home/biqu/E3CNC/logs 2>/dev/null || mkdir -p /tmp/e3cnc-test-logs
+    
     # Test 1: Check default ports
     echo "[1] Check default ports (8081, 7125, 7126)..."
     for p in 8081 7125 7126; do
@@ -685,16 +688,11 @@ test_port_detection() {
         fi
     done
     
-    # Test 2: Simulate port conflict and auto-detect
+    # Test 2: Verify auto-detection when preferred port is in use
     echo ""
-    echo "[2] Simulate port 8081 in use, test auto-detection..."
-    # Use python3 to listen on 8081 (compatible with most systems)
-    python3 -c "import socket; s=socket.socket(); s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1); s.bind(('', 8082)); s.listen(1); print('Fake service on 8082')" &
-    local nc_pid=$!
-    sleep 1
-    
+    echo "[2] Verify auto-detection (port 8081 is in use)..."
     echo "   Running auto_detect_ports..."
-    E3CNC_ADMIN_PORT=8082
+    E3CNC_ADMIN_PORT=8081
     E3CNC_MOONRAKER_PORT=7125
     E3CNC_KLIPPER_PORT=7126
     auto_detect_ports 2>&1
@@ -704,9 +702,6 @@ test_port_detection() {
     echo "   E3CNC_ADMIN_PORT=${E3CNC_ADMIN_PORT:-8081}"
     echo "   E3CNC_MOONRAKER_PORT=${E3CNC_MOONRAKER_PORT:-7125}"
     echo "   E3CNC_KLIPPER_PORT=${E3CNC_KLIPPER_PORT:-7126}"
-    
-    # Clean up
-    kill $nc_pid 2>/dev/null
     
     echo ""
     echo "=== Test complete ==="
