@@ -1,0 +1,55 @@
+#!/bin/bash
+# Mock e3cnc-tui binary for installer testing
+# Simulates the real binary's CLI interface
+
+VERSION="v0.9.18-merged"
+COMMAND="${1:-}"
+
+case "$COMMAND" in
+    --version)
+        echo "$VERSION"
+        exit 0
+        ;;
+    --help|-h)
+        echo "E3CNC TUI - CNC controller management tool"
+        echo ""
+        echo "Usage: e3cnc-tui [command] [options]"
+        echo ""
+        echo "Commands:"
+        echo "  install     Run the interactive install wizard"
+        echo "  status      Show status of all services"
+        echo "  update      Update E3CNC to the latest version"
+        echo "  detect-mcu  Detect connected MCU devices"
+        echo "  init-config Generate initial configuration"
+        echo ""
+        echo "Options:"
+        echo "  --version   Show version"
+        echo "  --help      Show this help message"
+        echo "  --json      Output in JSON format"
+        exit 0
+        ;;
+    install)
+        echo "Mock install: Initializing instance..."
+        echo "Mock install: Instance created successfully."
+        exit 0
+        ;;
+    status)
+        echo "Admin UI: running (port 8081)"
+        echo "Moonraker: running (port 7125)"
+        echo "Klipper: running (port 7126)"
+        exit 0
+        ;;
+    detect-mcu)
+        echo "No MCU detected (mock mode)"
+        exit 0
+        ;;
+    init-config)
+        echo "Mock config generated."
+        exit 0
+        ;;
+    *)
+        echo "Unknown command: $COMMAND"
+        echo "Use --help for usage information."
+        exit 1
+        ;;
+esac

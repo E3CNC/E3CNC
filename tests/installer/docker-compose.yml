@@ -1,0 +1,63 @@
+# E3CNC Installer Test Matrix
+# Usage:
+#   docker compose build          # Build all images
+#   docker compose up             # Run all tests
+#   docker compose up ubuntu     # Run single OS test
+#   docker compose down           # Clean up
+
+services:
+  ubuntu:
+    build:
+      context: ../..
+      dockerfile: tests/installer/Dockerfile.ubuntu
+    platform: linux/amd64
+    container_name: e3cnc-test-ubuntu
+    hostname: e3cnc-ubuntu
+    volumes:
+      - ../../tests/installer/test-runner.sh:/workspace/test-runner.sh
+    command: ["bash", "-c", "/workspace/test-runner.sh ubuntu && /workspace/test-install.sh ubuntu"]
+    networks:
+      - installer-test
+
+  debian-arm64:
+    build:
+      context: ../..
+      dockerfile: tests/installer/Dockerfile.debian-arm64
+    platform: linux/arm64
+    container_name: e3cnc-test-debian-arm64
+    hostname: e3cnc-debian-arm64
+    volumes:
+      - ../../tests/installer/test-runner.sh:/workspace/test-runner.sh
+    command: ["bash", "-c", "/workspace/test-runner.sh debian-arm64 && /workspace/test-install.sh debian-arm64"]
+    networks:
+      - installer-test
+
+  fedora:
+    build:
+      context: ../..
+      dockerfile: tests/installer/Dockerfile.fedora
+    platform: linux/amd64
+    container_name: e3cnc-test-fedora
+    hostname: e3cnc-fedora
+    volumes:
+      - ../../tests/installer/test-runner.sh:/workspace/test-runner.sh
+    command: ["bash", "-c", "/workspace/test-runner.sh fedora && /workspace/test-install.sh fedora"]
+    networks:
+      - installer-test
+
+  rocky:
+    build:
+      context: ../..
+      dockerfile: tests/installer/Dockerfile.rocky
+    platform: linux/amd64
+    container_name: e3cnc-test-rocky
+    hostname: e3cnc-rocky
+    volumes:
+      - ../../tests/installer/test-runner.sh:/workspace/test-runner.sh
+    command: ["bash", "-c", "/workspace/test-runner.sh rocky && /workspace/test-install.sh rocky"]
+    networks:
+      - installer-test
+
+networks:
+  installer-test:
+    driver: bridge

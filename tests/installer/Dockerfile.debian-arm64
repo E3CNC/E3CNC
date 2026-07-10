@@ -1,0 +1,42 @@
+# syntax=docker/dockerfile:1
+# E3CNC Installer Test - Debian 11 Bullseye (arm64, BTT-CB1 target)
+FROM --platform=linux/arm64 debian:bullseye
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    unzip \
+    zstd \
+    supervisor \
+    python3-pip \
+    iproute2 \
+    coreutils \
+    sudo \
+    jq \
+    procps \
+    net-tools \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create a non-root user for sudo tests
+RUN useradd -m -s /bin/bash testuser && \
+    echo "testuser:testpass" | chpasswd && \
+    echo "testuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+# Copy mock binary
+COPY tests/installer/mock-binary/e3cnc-tui /usr/local/bin/e3cnc-tui
+RUN chmod +x /usr/local/bin/e3cnc-tui
+
+WORKDIR /workspace
+
+# Copy install script and test scripts
+COPY install.sh /workspace/install.sh
+COPY tests/installer/test-runner.sh /workspace/test-runner.sh
+COPY tests/installer/test-install.sh /workspace/test-install.sh
+RUN chmod +x /workspace/install.sh /workspace/test-runner.sh /workspace/test-install.sh
+
+SHELL ["/bin/bash", "-c"]
+
+CMD ["/bin/bash"]

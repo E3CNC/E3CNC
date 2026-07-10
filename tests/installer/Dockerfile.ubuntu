@@ -1,0 +1,47 @@
+# syntax=docker/dockerfile:1
+# E3CNC Installer Test - Ubuntu 22.04 (apt)
+ARG UBUNTU_VERSION=22.04
+FROM --platform=${TARGETPLATFORM:-linux/amd64} ubuntu:${UBUNTU_VERSION}
+
+ARG TARGETPLATFORM
+ARG TARGETARCH
+ARG DEBIAN_FRONTEND=noninteractive
+
+# Install system dependencies (mirrors install.sh install_dependencies)
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    unzip \
+    zstd \
+    supervisor \
+    python3-pip \
+    iproute2 \
+    coreutils \
+    sudo \
+    jq \
+    procps \
+    net-tools \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create a non-root user for sudo tests
+RUN useradd -m -s /bin/bash testuser && \
+    echo "testuser:testpass" | chpasswd && \
+    echo "testuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+# Copy mock binary and install script
+COPY tests/installer/mock-binary/e3cnc-tui /usr/local/bin/e3cnc-tui
+COPY tests/installer/mock-binary/e3cnc-tui /tmp/e3cnc-tui
+RUN chmod +x /usr/local/bin/e3cnc-tui /tmp/e3cnc-tui
+
+WORKDIR /workspace
+
+# Copy the install script and test scripts
+COPY install.sh /workspace/install.sh
+COPY tests/installer/test-runner.sh /workspace/test-runner.sh
+COPY tests/installer/test-install.sh /workspace/test-install.sh
+RUN chmod +x /workspace/install.sh /workspace/test-runner.sh /workspace/test-install.sh
+
+# Set default shell
+SHELL ["/bin/bash", "-c"]
+
+CMD ["/bin/bash"]
