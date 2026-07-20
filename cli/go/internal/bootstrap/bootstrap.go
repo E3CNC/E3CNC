@@ -60,6 +60,31 @@ func Bootstrap(cfg BootstrapConfig) error {
 	if cfg.InstanceName == "" {
 		cfg.InstanceName = "default"
 	}
+
+	// ── Pre-install steps ──────────────────────────────────────
+
+	// Migrate from legacy ~/e3cnc to ~/E3CNC
+	fmt.Println("  Checking for legacy installation...")
+	if err := MigrateOldDir(); err != nil {
+		// Non-blocking: migration failure shouldn't stop a fresh install
+		fmt.Fprintf(os.Stderr, "  Warning: migration skipped: %v\n", err)
+	} else {
+		fmt.Println("  ✓ Migration check complete")
+	}
+
+	// Create pre-install backup
+	fmt.Println("  Creating pre-install backup...")
+	backupPath, err := BackupExisting()
+	if err != nil {
+		// Non-blocking: backup failure shouldn't stop the install
+		fmt.Fprintf(os.Stderr, "  Warning: backup failed: %v\n", err)
+	} else if backupPath != "" {
+		fmt.Printf("  ✓ Backup created: %s\n", filepath.Base(backupPath))
+	} else {
+		fmt.Println("  ✓ Nothing to back up")
+	}
+
+	// Auto-detect ports if not explicitly set
 	if cfg.MoonrakerPort == 0 {
 		freePort, err := instance.FindNextAvailablePort()
 		if err == nil && freePort > 0 {
@@ -69,7 +94,8 @@ func Bootstrap(cfg BootstrapConfig) error {
 		}
 	}
 	if cfg.WebPort == 0 {
-		cfg.WebPort = instance.ComputeWebPort(cfg.InstanceName)
+		ports := AutoDetectPorts()
+		cfg.WebPort = ports.AdminPort
 	}
 	if cfg.Hostname == "" {
 		cfg.Hostname = "E3CNC"

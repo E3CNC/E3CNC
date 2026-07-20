@@ -108,6 +108,10 @@ func cmdInstall(jsonOut bool, args []string) bool {
 		Arch:          runtime.GOARCH,
 	}
 
+	portDetectOnly := false
+	migrateOnly := false
+	backupOnly := false
+
 	for i, arg := range args {
 		switch arg {
 		case "--name":
@@ -128,9 +132,51 @@ func cmdInstall(jsonOut bool, args []string) bool {
 			}
 		case "--no-start":
 			cfg.StartServices = false
+		case "--port-detect", "--port-detect-only":
+			portDetectOnly = true
+		case "--migrate-only":
+			migrateOnly = true
+		case "--backup-only":
+			backupOnly = true
 		}
 	}
 
+	// Standalone port detection mode
+	if portDetectOnly {
+		ports := bootstrap.AutoDetectPorts()
+		if jsonOut {
+			printJSON(ports)
+		} else {
+			fmt.Println(bootstrap.PortSummary(ports))
+		}
+		return true
+	}
+
+	// Run pre-install steps: migration, backup, port detection
+	if migrateOnly {
+		if err := bootstrap.MigrateOldDir(); err != nil {
+			fmt.Fprintf(os.Stderr, "  ❌ Migration failed: %v\n", err)
+			return true
+		}
+		fmt.Println("  ✅ Migration complete")
+		return true
+	}
+
+	if backupOnly {
+		backupPath, err := bootstrap.BackupExisting()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "  ❌ Backup failed: %v\n", err)
+			return true
+		}
+		if jsonOut {
+			printJSON(map[string]string{"backup_path": backupPath})
+		} else {
+			fmt.Printf("  ✅ Backup created at: %s\n", backupPath)
+		}
+		return true
+	}
+
+	// Full install flow
 	if jsonOut {
 		fmt.Println(`{"status":"starting","phase":"bootstrap"}`)
 	}

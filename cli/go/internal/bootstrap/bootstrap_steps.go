@@ -22,7 +22,7 @@ func installSystemPackages() error {
 	}
 
 	packages := []string{
-		"git", "curl", "unzip", "nginx", "supervisor",
+		"git", "curl", "unzip", "zstd", "nginx", "supervisor",
 		"python3", "python3-pip", "python3-venv", "python3-dev",
 		"build-essential", "libffi-dev", "libssl-dev", "avahi-utils",
 	}
