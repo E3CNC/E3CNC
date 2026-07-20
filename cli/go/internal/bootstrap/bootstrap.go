@@ -41,7 +41,7 @@ func (cfg BootstrapConfig) Out() io.Writer {
 	return os.Stdout
 }
 
-// step names matching installSteps in the TUI
+// step names matching freshInstallSteps in the TUI
 var stepNames = []string{
 	"Install system packages",
 	"Configure sudoers",

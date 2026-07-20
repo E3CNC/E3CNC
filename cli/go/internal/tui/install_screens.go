@@ -11,59 +11,22 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// ── Screen 0: Mode Selection ─────────────────────────────────────
+// ── Screen 1: Detection (streaming system checks) ─────────────────
 
-func (m InstallModel) viewModeSelect() string {
+func (m InstallModel) viewDetection() string {
 	var b strings.Builder
 
 	b.WriteString(BoxStyle.Render(
 		TitleStyle.Render("E3CNC Install Wizard") + "\n" +
-			SubtitleStyle.Render("Choose how to set up your CNC"),
+			SubtitleStyle.Render("Checking your system"),
 	))
 	b.WriteString("\n\n")
 
-	items := []struct {
-		label       string
-		description string
-	}{
-		{"Import existing Klipper", "Use an existing Klipper installation on this machine"},
-		{"Create new E3CNC instance", "Set up a fresh E3CNC instance from scratch"},
-	}
-
-	for i, item := range items {
-		cursor := "  "
-		style := MenuItemStyle
-		if i == m.modeCursor {
-			cursor = "▸ "
-			style = MenuItemSelectedStyle
-		}
-		b.WriteString(style.Render(fmt.Sprintf("%s%s", cursor, item.label)))
-		b.WriteString("\n")
-		b.WriteString(DimStyle.Render(fmt.Sprintf("  %s", item.description)))
-		b.WriteString("\n\n")
-	}
-
-	b.WriteString("\n")
-	b.WriteString(HelpStyle.Render("↑/↓ navigate  ·  Enter: select  ·  b: back to menu"))
-	return b.String()
-}
-
-// ── Screen 1: Pre-Flight Checks ──────────────────────────────────
-
-func (m InstallModel) viewPreFlight() string {
-	var b strings.Builder
-
-	b.WriteString(BoxStyle.Render(
-		TitleStyle.Render("Pre-Flight Checks") + "\n" +
-			SubtitleStyle.Render("Checking your system meets the requirements"),
-	))
-	b.WriteString("\n\n")
-
-	for _, check := range m.preFlightChecks {
+	for _, d := range m.detectionResults {
 		mark := "○"
 		style := DimStyle
 
-		switch check.Status {
+		switch d.Status {
 		case "passed":
 			mark = "✓"
 			style = OkStyle
@@ -73,150 +36,206 @@ func (m InstallModel) viewPreFlight() string {
 		case "running":
 			mark = m.spinner.View()
 			style = InfoStyle
+		case "pending":
+			mark = "○"
+			style = DimStyle
+		case "timedout":
+			mark = "⚠"
+			style = WarnStyle
 		}
 
-		line := fmt.Sprintf("  %s %s", mark, check.Label)
-		if check.Detail != "" {
-			line += DimStyle.Render(fmt.Sprintf("  (%s)", check.Detail))
+		line := fmt.Sprintf("  %s %s", mark, d.Label)
+		if d.Detail != "" {
+			line += DimStyle.Render(fmt.Sprintf("  (%s)", d.Detail))
 		}
 		b.WriteString(style.Render(line))
 		b.WriteString("\n")
 	}
 
 	b.WriteString("\n")
-
-	allPassed := true
-	for _, r := range m.preFlightChecks {
-		if r.Status == "failed" {
-			allPassed = false
-			break
-		}
-	}
-
-	if allPassed {
-		b.WriteString(OkStyle.Render("  ✓ All checks passed"))
-		b.WriteString("\n\n")
-		b.WriteString(HelpStyle.Render("Press Enter to continue · b: back to menu"))
-	} else if len(m.preFlightChecks) > 0 {
-		b.WriteString(FailStyle.Render("  ✗ Some checks failed"))
-		b.WriteString("\n\n")
-		b.WriteString(HelpStyle.Render("Fix the issues above. Press Enter to proceed anyway · b: back to menu"))
-	} else {
-		b.WriteString(SpinnerStyle.Render("  Running checks..."))
-	}
+	b.WriteString(SpinnerStyle.Render("  Scanning system..."))
 
 	return b.String()
 }
 
-// ── Screen 2: MCU Selection ───────────────────────────────────────
+// ── Screen 1a: MCU Picker (when >3 devices detected) ──────────────
 
-func (m InstallModel) viewMCUSelect() string {
+func (m InstallModel) viewMCUPicker() string {
 	var b strings.Builder
 
 	b.WriteString(BoxStyle.Render(
-		TitleStyle.Render("Select MCU") + "\n" +
-			SubtitleStyle.Render("Choose the controller board for this instance"),
+		TitleStyle.Render("Select MCU Device") + "\n" +
+			SubtitleStyle.Render("Multiple MCU devices detected — choose one"),
 	))
 	b.WriteString("\n\n")
 
-	if len(m.mcuDevices) == 0 {
-		b.WriteString(WarnStyle.Render("  No MCU devices detected"))
-		b.WriteString("\n\n")
-		b.WriteString(DimStyle.Render("  Connect your controller board via USB"))
+	for i, dev := range m.mcuDevices {
+		cursor := "  "
+		style := MenuItemStyle
+		if i == m.mcuCursor {
+			cursor = "▸ "
+			style = MenuItemSelectedStyle
+		}
+		short := shortenMCUPath(dev)
+		b.WriteString(style.Render(fmt.Sprintf("  %s%s", cursor, short)))
 		b.WriteString("\n")
-		b.WriteString(DimStyle.Render("  then press 'r' to rescan."))
-	} else {
-		for i, dev := range m.mcuDevices {
-			cursor := "  "
-			style := MenuItemStyle
-			if i == m.mcuCursor {
-				cursor = "▸ "
-				style = MenuItemSelectedStyle
-			}
-			fullPath := filepath.Join("/dev/serial/by-id", dev)
-			realPath, _ := os.Readlink(fullPath)
-			if realPath != "" && !filepath.IsAbs(realPath) {
-				realPath = filepath.Join("/dev", realPath)
-			}
-			display := dev
-			if len(dev) > 55 {
-				display = dev[:55] + "..."
-			}
-			b.WriteString(style.Render(fmt.Sprintf("%s%s", cursor, display)))
-			b.WriteString("\n")
-			if realPath != "" {
-				b.WriteString(DimStyle.Render(fmt.Sprintf("     → %s", realPath)))
-				b.WriteString("\n")
-			}
-			b.WriteString("\n")
-		}
 	}
 
 	b.WriteString("\n")
-	b.WriteString(HelpStyle.Render("↑/↓ navigate  ·  Enter to confirm  ·  r: rescan  ·  b: back to menu"))
+	b.WriteString(HelpStyle.Render("↑/↓: select  ·  Enter: confirm  ·  r: rescan  ·  q: back to menu"))
 	return b.String()
 }
 
-// ── Screen 3: Instance Configuration ────────────────────────────────────
+// ── Klipper Install Picker ─────────────────────────────────────────
 
-func (m InstallModel) viewConfig() string {
+func (m InstallModel) viewKlipperPicker() string {
 	var b strings.Builder
 
 	b.WriteString(BoxStyle.Render(
-		TitleStyle.Render("Name Your Instance") + "\n" +
-			SubtitleStyle.Render("Give this CNC instance a name"),
+		TitleStyle.Render("Select Klipper Installation") + "\n" +
+			SubtitleStyle.Render("Multiple Klipper installations found — choose one to import"),
 	))
 	b.WriteString("\n\n")
 
-	b.WriteString(DimStyle.Render("  Instance name"))
+	for i, inst := range m.klipperInstalls {
+		cursor := "  "
+		style := MenuItemStyle
+		if i == m.klipperCursor {
+			cursor = "▸ "
+			style = MenuItemSelectedStyle
+		}
+
+		// Build a short description for each install
+		desc := inst.KlipperDir
+		if desc == "" {
+			desc = inst.PrinterCfg
+		}
+		if desc == "" {
+			desc = fmt.Sprintf("Service: %s", inst.ServiceName)
+		}
+
+		// Add MCU info if available
+		detail := ""
+		if inst.MCUPath != "" {
+			detail = fmt.Sprintf(" (MCU: %s)", shortenMCUPath(inst.MCUPath))
+		}
+		if inst.MoonrakerInstalled {
+			detail += " [Moonraker]"
+		}
+		if inst.ViaSystemd {
+			detail += " [systemd]"
+		}
+
+		b.WriteString(style.Render(fmt.Sprintf("  %s%s%s", cursor, desc, detail)))
+		b.WriteString("\n")
+	}
+
 	b.WriteString("\n")
+	b.WriteString(HelpStyle.Render("↑/↓: select  ·  Enter: confirm  ·  b: back  ·  q: quit"))
+	return b.String()
+}
+
+// ── Screen 2: Decision/Confirm ────────────────────────────────────
+
+func (m InstallModel) viewDecision() string {
+	var b strings.Builder
+
+	b.WriteString(BoxStyle.Render(
+		TitleStyle.Render("Installation Summary") + "\n" +
+			SubtitleStyle.Render("Review and confirm your setup"),
+	))
+	b.WriteString("\n\n")
+
+	// Mode selector
+	b.WriteString(DimStyle.Render("  Install mode:"))
+	b.WriteString("\n")
+	modes := []struct {
+		label       string
+		description string
+	}{
+		{"Import existing Klipper", "Use an existing Klipper installation on this machine"},
+		{"Create new E3CNC instance", "Set up a fresh E3CNC instance from scratch"},
+	}
+	for i, mode := range modes {
+		cursor := "  "
+		style := MenuItemStyle
+		if i == m.modeCursor {
+			cursor = "▸ "
+			style = MenuItemSelectedStyle
+		}
+		b.WriteString(style.Render(fmt.Sprintf("  %s%s", cursor, mode.label)))
+		b.WriteString("\n")
+	}
+	b.WriteString("\n")
+
+	// Instance name input
+	b.WriteString(DimStyle.Render("  Instance name:"))
+	b.WriteString("\n  ")
 	b.WriteString(m.nameInput.View())
 	b.WriteString("\n")
 	b.WriteString(DimStyle.Render("   Lowercase letters, numbers, hyphens"))
 	b.WriteString("\n\n")
 
+	// Auto-detected summary
 	b.WriteString(BoxStyle.Render(
-		fmt.Sprintf("Moonraker port: %d (auto-assigned)", m.moonrakerPort),
+		DimStyle.Render("  Auto-detected:"),
 	))
 	b.WriteString("\n")
-	b.WriteString(BoxStyle.Render(
-		fmt.Sprintf("MCU: %s", shortenMCUPath(m.mcuPath)),
-	))
-	b.WriteString("\n\n")
-
-	b.WriteString(HelpStyle.Render("Type the name  ·  Enter: confirm  ·  Esc: back to menu"))
-	return b.String()
-}
-
-// ── Screen 4: Firmware Check ─────────────────────────────────────
-
-func (m InstallModel) viewFirmwareCheck() string {
-	var b strings.Builder
-
-	b.WriteString(BoxStyle.Render(
-		TitleStyle.Render("MCU Firmware") + "\n" +
-			SubtitleStyle.Render("Check if your controller board needs flashing"),
-	))
-	b.WriteString("\n\n")
-
-	b.WriteString(fmt.Sprintf("  MCU: %s\n\n", shortenMCUPath(m.mcuPath)))
-
-	if strings.Contains(m.mcuPath, "Klipper") || strings.Contains(m.mcuPath, "klipper") {
-		b.WriteString(OkStyle.Render("  ✓ Klipper firmware detected"))
-		b.WriteString("\n\n")
-		b.WriteString(DimStyle.Render("  Your MCU appears to already have Klipper firmware."))
+	for _, d := range m.detectionResults {
+		symbol := "○"
+		style := DimStyle
+		switch d.Status {
+		case "passed":
+			symbol = "✓"
+			style = OkStyle
+		case "failed":
+			symbol = "✗"
+			style = FailStyle
+		case "timedout":
+			symbol = "⚠"
+			style = WarnStyle
+		}
+		line := fmt.Sprintf("    %s %s", symbol, d.Label)
+		if d.Detail != "" {
+			line += DimStyle.Render(fmt.Sprintf("  (%s)", d.Detail))
+		}
+		b.WriteString(style.Render(line))
 		b.WriteString("\n")
-		b.WriteString(DimStyle.Render("  You can proceed with the installation."))
-	} else {
-		b.WriteString(WarnStyle.Render("  ⚠ No Klipper firmware detected"))
-		b.WriteString("\n\n")
-		b.WriteString(DimStyle.Render("  The MCU may need to be flashed with Klipper firmware."))
-		b.WriteString("\n")
-		b.WriteString(DimStyle.Render("  You can do this after installation via 'Flash MCU' in the menu."))
 	}
 
-	b.WriteString("\n\n")
-	b.WriteString(HelpStyle.Render("Enter to start installation  ·  b: back to MCU selection"))
+	// MCU devices summary
+	if len(m.mcuDevices) > 0 {
+		b.WriteString("\n")
+		b.WriteString(OkStyle.Render(fmt.Sprintf("  MCU: %s", shortenMCUPath(m.mcuDevices[0]))))
+		b.WriteString("\n")
+		if len(m.mcuDevices) > 1 {
+			b.WriteString(DimStyle.Render(fmt.Sprintf("  + %d more device(s)", len(m.mcuDevices)-1)))
+			b.WriteString("\n")
+		}
+	}
+
+	// Firmware status
+	if m.mcuPath != "" {
+		b.WriteString("  ")
+		if isKlipperFirmware(m.mcuPath) {
+			b.WriteString(OkStyle.Render("  ✓ Klipper firmware detected"))
+		} else {
+			b.WriteString(WarnStyle.Render("  ⚠ No Klipper firmware detected"))
+		}
+		b.WriteString("\n")
+	}
+
+	// Import warning: no Klipper installations found
+	if m.installMode == 1 && len(m.klipperInstalls) == 0 {
+		b.WriteString("\n")
+		b.WriteString(FailStyle.Render("  ✗ No existing Klipper installation found"))
+		b.WriteString("\n")
+		b.WriteString(WarnStyle.Render("     Select \"Create new E3CNC instance\" for a fresh install"))
+		b.WriteString("\n")
+	}
+
+	b.WriteString("\n")
+	b.WriteString(HelpStyle.Render("↑/↓: mode  ·  Enter: install  ·  r: rescan  ·  q: back to menu"))
 	return b.String()
 }
 
@@ -393,6 +412,11 @@ func shortenMCUPath(path string) string {
 		return path[:50] + "..."
 	}
 	return path
+}
+
+// isKlipperFirmware checks whether the selected MCU path indicates Klipper firmware.
+func isKlipperFirmware(path string) bool {
+	return strings.Contains(strings.ToLower(path), "klipper")
 }
 
 // scanMCUDevices scans /dev/serial/by-id/ for connected MCU devices.

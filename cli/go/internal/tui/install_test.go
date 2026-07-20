@@ -36,8 +36,8 @@ func TestNewInstallModel(t *testing.T) {
 	if len(m.preFlightChecks) != len(defaultPreFlightLabels) {
 		t.Errorf("NewInstallModel(): preFlightChecks len = %d, expected %d", len(m.preFlightChecks), len(defaultPreFlightLabels))
 	}
-	if len(m.steps) != len(installSteps) {
-		t.Errorf("NewInstallModel(): steps len = %d, expected %d", len(m.steps), len(installSteps))
+	if len(m.steps) != len(freshInstallSteps) {
+		t.Errorf("NewInstallModel(): steps len = %d, expected %d", len(m.steps), len(freshInstallSteps))
 	}
 	if m.completedSteps == nil {
 		t.Errorf("NewInstallModel(): completedSteps map should be initialized")
@@ -280,7 +280,7 @@ func TestInstallStepUpdateMsg(t *testing.T) {
 	m := NewInstallModel()
 
 	// Initialize steps
-	for i, s := range installSteps {
+	for i, s := range freshInstallSteps {
 		m.steps[i] = s
 		m.steps[i].Status = StepPending
 	}
@@ -305,7 +305,7 @@ func TestInstallStepUpdateMsg(t *testing.T) {
 func TestInstallStepUpdateRunning(t *testing.T) {
 	m := NewInstallModel()
 
-	for i, s := range installSteps {
+	for i, s := range freshInstallSteps {
 		m.steps[i] = s
 		m.steps[i].Status = StepPending
 	}
@@ -363,7 +363,7 @@ func TestInstallErrorRecoverySkip(t *testing.T) {
 	m.current = 2
 	m.failedStep = 2
 	m.steps[2] = InstallStep{Number: 3, Label: "Download release", Status: StepFailed}
-	m.steps[3] = installSteps[3] // "Verify checksum"
+	m.steps[3] = freshInstallSteps[3] // "Verify checksum"
 
 	// Press 's' to skip
 	mod, cmd := m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'s'}})
@@ -518,12 +518,12 @@ func TestStepStatusString(t *testing.T) {
 }
 
 func TestInstallStepsSchema(t *testing.T) {
-	for i, step := range installSteps {
+	for i, step := range freshInstallSteps {
 		if step.Number != i+1 {
-			t.Errorf("installSteps[%d].Number = %d, expected %d", i, step.Number, i+1)
+			t.Errorf("freshInstallSteps[%d].Number = %d, expected %d", i, step.Number, i+1)
 		}
 		if step.Label == "" {
-			t.Errorf("installSteps[%d]: empty Label", i)
+			t.Errorf("freshInstallSteps[%d]: empty Label", i)
 		}
 	}
 }
@@ -559,7 +559,7 @@ func TestInstallViewRenderings(t *testing.T) {
 		}},
 		{"ExecDashboard", ScreenExecDashboard, func(m *InstallModel) {
 			m.startedAt = m.startedAt.Add(-100)
-			for i, s := range installSteps {
+			for i, s := range freshInstallSteps {
 				m.steps[i] = s
 				m.steps[i].Status = StepPending
 			}
@@ -595,7 +595,7 @@ func TestInstallExecDashboardView(t *testing.T) {
 	m.startedAt = time.Now().Add(-30 * time.Second) // 30s ago
 
 	// Setup steps with a mix of statuses
-	for i, s := range installSteps {
+	for i, s := range freshInstallSteps {
 		m.steps[i] = s
 		switch {
 		case i < 2:
@@ -673,7 +673,7 @@ func TestInstallCompleteMsgClearsChannel(t *testing.T) {
 
 func TestHandleStepUpdateLogs(t *testing.T) {
 	m := NewInstallModel()
-	for i, s := range installSteps {
+	for i, s := range freshInstallSteps {
 		m.steps[i] = s
 		m.steps[i].Status = StepPending
 	}
@@ -722,7 +722,7 @@ func TestPollProgressChClosedChannel(t *testing.T) {
 
 func TestHandleStepUpdateWithChannel(t *testing.T) {
 	m := NewInstallModel()
-	for i, s := range installSteps {
+	for i, s := range freshInstallSteps {
 		m.steps[i] = s
 		m.steps[i].Status = StepPending
 	}

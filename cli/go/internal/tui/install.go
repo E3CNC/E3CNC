@@ -6,6 +6,7 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/charmbracelet/bubbles/progress"
@@ -19,6 +20,10 @@ import (
 	"github.com/E3CNC/e3cnc/cli/go/internal/deploy"
 	"github.com/E3CNC/e3cnc/cli/go/internal/instance"
 )
+
+// detectionTimeout is the maximum time to wait for a single detection check
+// before it is marked as timed out and the detection phase continues.
+const detectionTimeout = 10 * time.Second
 
 // InstallStep represents one phase of the installation process.
 type InstallStep struct {
@@ -74,11 +79,10 @@ func (s StepStatus) String() string {
 type InstallScreen int
 
 const (
-	ScreenModeSelect InstallScreen = iota
-	ScreenPreFlight
-	ScreenMCUSelect
-	ScreenConfig
-	ScreenFirmwareCheck
+	ScreenDetection     InstallScreen = iota
+	ScreenMCUPicker
+	ScreenKlipperPicker
+	ScreenDecision
 	ScreenExecDashboard
 	ScreenErrorRecovery
 	ScreenVerification
@@ -91,11 +95,12 @@ type InstallModel struct {
 	current int // current step index being executed
 
 	// Installation mode
-	installMode int // 0 = unselected, 1 = import existing, 2 = new instance
+	installMode int // 1 = import existing, 2 = new instance
 	modeCursor  int
 
-	// Pre-flight state
-	preFlightChecks []PreFlightCheck
+	// Detection results
+	detectionResults []DetectionResult
+	detectionCh      chan tea.Msg
 
 	// Configuration state
 	instanceName   string
@@ -104,10 +109,14 @@ type InstallModel struct {
 	webPort        int
 	mDNSHostname   string
 	startServices  bool
-	configField    int // which config field is focused (0-5)
 	mcuPath        string
 	mcuDevices     []string
 	mcuCursor      int
+
+	// Klipper install picker (import mode)
+	klipperInstalls []bootstrap.DetectedKlipper
+	klipperCursor   int
+	selectedKlipper *bootstrap.DetectedKlipper
 
 	// Execution state
 	startedAt    time.Time
@@ -119,7 +128,7 @@ type InstallModel struct {
 	progressCh chan tea.Msg
 
 	// Error recovery
-	failedStep    int
+	failedStep     int
 	recoveryAction string // "retry", "skip", "abort"
 
 	// Health check results
@@ -139,6 +148,13 @@ type InstallModel struct {
 	height      int
 }
 
+// DetectionResult represents a single system detection check result.
+type DetectionResult struct {
+	Label  string
+	Status string // "pending", "running", "passed", "failed", "skipped"
+	Detail string
+}
+
 // PreFlightCheck represents a single pre-flight validation item.
 type PreFlightCheck struct {
 	Label      string
@@ -147,7 +163,7 @@ type PreFlightCheck struct {
 	AutoFixCmd string // command to auto-fix (e.g., "sudo apt install zstd")
 }
 
-var installSteps = []InstallStep{
+var freshInstallSteps = []InstallStep{
 	{Number: 1, Label: "Install system packages"},
 	{Number: 2, Label: "Configure sudoers"},
 	{Number: 3, Label: "Create directories"},
@@ -157,6 +173,18 @@ var installSteps = []InstallStep{
 	{Number: 7, Label: "Install system services"},
 	{Number: 8, Label: "Configure nginx and mDNS"},
 	{Number: 9, Label: "Start services"},
+}
+
+// importSteps defines the step list when importing an existing Klipper installation.
+// It has 7 steps that detect, configure, and integrate rather than provisioning from scratch.
+var importSteps = []InstallStep{
+	{Number: 1, Label: "Install system packages"},
+	{Number: 2, Label: "Configure sudoers"},
+	{Number: 3, Label: "Detect existing Klipper install"},
+	{Number: 4, Label: "Create directories"},
+	{Number: 5, Label: "Configure Moonraker"},
+	{Number: 6, Label: "Configure nginx and mDNS"},
+	{Number: 7, Label: "Start services and integrate"},
 }
 
 // NewInstallModel creates a new install wizard model.
@@ -181,11 +209,11 @@ func NewInstallModel() InstallModel {
 	vp := viewport.New(70, 8)
 
 	return InstallModel{
-		screen:           ScreenModeSelect,
-		installMode:      0,
-		modeCursor:       0,
-		steps:           make([]InstallStep, len(installSteps)),
-		preFlightChecks: make([]PreFlightCheck, len(defaultPreFlightLabels)),
+		screen:          ScreenDetection,
+		installMode:     0,
+		modeCursor:      0,
+		steps:           make([]InstallStep, len(freshInstallSteps)),
+		detectionCh:     make(chan tea.Msg, 50),
 		instanceName:    "default",
 		nameInput:       ni,
 		moonrakerPort:   getEnvPort("E3CNC_MOONRAKER_PORT", 7125),
@@ -221,10 +249,27 @@ var defaultPreFlightLabels = []struct {
 func (m InstallModel) Init() tea.Cmd {
 	return tea.Batch(
 		m.spinner.Tick,
+		m.runDetection(),
 	)
 }
 
 // ── Messages ─────────────────────────────────────────────────────
+
+// detectionUpdateMsg carries a single detection result as it completes.
+type detectionUpdateMsg struct {
+	index  int
+	result DetectionResult
+}
+
+// detectionCompleteMsg signals the detection phase is done.
+type detectionCompleteMsg struct {
+	results []DetectionResult
+}
+
+// detectionTimeoutMsg is sent when a single detection check times out.
+type detectionTimeoutMsg struct {
+	index int
+}
 
 // preFlightCompleteMsg carries the results of all pre-flight checks.
 type preFlightCompleteMsg struct {
@@ -280,12 +325,32 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, cmd
 		}
 
-	case preFlightCompleteMsg:
-		m.preFlightChecks = msg.results
-		// Auto-advance to MCU selection (only if still on pre-flight screen)
-		if m.screen == ScreenPreFlight {
-			m.screen = ScreenMCUSelect
+	case detectionUpdateMsg:
+		if msg.index >= 0 && msg.index < len(m.detectionResults) {
+			m.detectionResults[msg.index] = msg.result
 		}
+		if m.detectionCh != nil {
+			return m, m.pollDetectionCh(m.detectionCh)
+		}
+
+	case detectionCompleteMsg:
+		m.detectionResults = msg.results
+		m.detectionCh = nil
+		if len(m.mcuDevices) > 3 {
+			m.screen = ScreenMCUPicker
+			m.mcuCursor = 0
+		} else {
+			m.screen = ScreenDecision
+		}
+
+	case detectionTimeoutMsg:
+		if msg.index >= 0 && msg.index < len(m.detectionResults) {
+			m.detectionResults[msg.index].Status = "timedout"
+			m.detectionResults[msg.index].Detail = "timeout exceeded"
+		}
+
+	case preFlightCompleteMsg:
+		m.screen = ScreenDecision
 
 	case stepUpdateMsg:
 		return m.handleStepUpdate(msg)
@@ -313,7 +378,54 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 		switch m.screen {
-		case ScreenModeSelect:
+		case ScreenMCUPicker:
+			switch msg.String() {
+			case "up", "k":
+				if m.mcuCursor > 0 {
+					m.mcuCursor--
+				}
+			case "down", "j":
+				if m.mcuCursor < len(m.mcuDevices)-1 {
+					m.mcuCursor++
+				}
+			case "enter", " ":
+				if m.mcuCursor >= 0 && m.mcuCursor < len(m.mcuDevices) {
+					m.mcuPath = m.mcuDevices[m.mcuCursor]
+				}
+				m.screen = ScreenDecision
+			case "r":
+				m.screen = ScreenDetection
+				m.detectionResults = nil
+				m.detectionCh = make(chan tea.Msg, 50)
+				m.mcuDevices = scanMCUDevices()
+				m.mcuPath = ""
+				if len(m.mcuDevices) > 0 {
+					m.mcuPath = m.mcuDevices[0]
+				}
+				return m, m.runDetection()
+			}
+
+		case ScreenKlipperPicker:
+			switch msg.String() {
+			case "up", "k":
+				if m.klipperCursor > 0 {
+					m.klipperCursor--
+				}
+			case "down", "j":
+				if m.klipperCursor < len(m.klipperInstalls)-1 {
+					m.klipperCursor++
+				}
+			case "enter", " ":
+				if m.klipperCursor >= 0 && m.klipperCursor < len(m.klipperInstalls) {
+					m.selectedKlipper = &m.klipperInstalls[m.klipperCursor]
+				}
+				return m.startInstall(0)
+			case "b", "esc":
+				m.screen = ScreenDecision
+				m.selectedKlipper = nil
+			}
+
+		case ScreenDecision:
 			switch msg.String() {
 			case "up", "k":
 				if m.modeCursor > 0 {
@@ -326,75 +438,32 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "enter", " ":
 				if m.modeCursor == 0 {
 					m.installMode = 1 // import existing
+					// Detect Klipper installations for the import flow
+					installs, err := bootstrap.DetectAllKlipperInstalls()
+					m.klipperInstalls = installs
+					m.klipperCursor = 0
+					if err != nil || len(installs) == 0 {
+						// No Klipper found — stay on decision screen with warning
+						// (the view will show the error)
+						return m, nil
+					}
+					if len(installs) == 1 {
+						// Auto-select the single install
+						m.selectedKlipper = &installs[0]
+						return m.startInstall(0)
+					}
+					// Multiple installs — show picker
+					m.screen = ScreenKlipperPicker
+					return m, nil
 				} else {
 					m.installMode = 2 // new instance
-				}
-				m.screen = ScreenPreFlight
-				return m, m.runPreFlightChecks()
-			case "b", "q", "esc":
-				return m, func() tea.Msg { return backToMenuMsg{} }
-			}
-
-		case ScreenPreFlight:
-			if msg.String() == "enter" {
-				m.screen = ScreenMCUSelect
-			}
-
-		case ScreenMCUSelect:
-			switch msg.String() {
-			case "up", "k":
-				m.mcuCursor--
-				if m.mcuCursor < 0 {
-					m.mcuCursor = len(m.mcuDevices) - 1
-				}
-			case "down", "j":
-				m.mcuCursor++
-				if m.mcuCursor >= len(m.mcuDevices) {
-					m.mcuCursor = 0
+					return m.startInstall(0)
 				}
 			case "r":
-				m.mcuDevices = scanMCUDevices()
-				if len(m.mcuDevices) > 0 {
-					m.mcuPath = m.mcuDevices[0]
-					m.mcuCursor = 0
-				}
-			case "enter":
-				if len(m.mcuDevices) > 0 && m.mcuCursor >= 0 && m.mcuCursor < len(m.mcuDevices) {
-					m.mcuPath = m.mcuDevices[m.mcuCursor]
-				}
-				// Auto-assign free ports
-				freePort, _ := instance.FindNextAvailablePort()
-				if freePort > 0 {
-					m.moonrakerPort = freePort
-				}
-				m.webPort = instance.ComputeWebPort(m.instanceName)
-				m.screen = ScreenConfig
-				m.nameInput.Focus()
-				m.nameInput.Prompt = "▸ "
-				return m, textinput.Blink
-			}
-
-		case ScreenConfig:
-			// Route key messages to textinput; Enter confirms
-			if msg.String() == "enter" {
-				name := m.nameInput.Value()
-				if name == "" {
-					name = m.nameInput.Placeholder
-				}
-				m.instanceName = name
-				m.screen = ScreenFirmwareCheck
-				return m, nil
-			}
-			if msg.String() == "esc" || msg.String() == "b" {
-				return m, func() tea.Msg { return backToMenuMsg{} }
-			}
-			var cmd tea.Cmd
-			m.nameInput, cmd = m.nameInput.Update(msg)
-			return m, cmd
-
-		case ScreenFirmwareCheck:
-			if msg.String() == "enter" {
-				return m.startInstall(0)
+				m.screen = ScreenDetection
+				m.detectionResults = nil
+				m.detectionCh = make(chan tea.Msg, 50)
+				return m, m.runDetection()
 			}
 
 		case ScreenExecDashboard:
@@ -592,13 +661,21 @@ func (m InstallModel) appendSummaryToLog() InstallModel {
 // real-time progress streaming through a channel.
 // startStep is the step index to start from (0 = beginning).
 func (m InstallModel) startInstall(startStep int) (InstallModel, tea.Cmd) {
-	// Initialize or preserve steps
-	for i, s := range installSteps {
+	// Select the correct step list based on install mode
+	steps := freshInstallSteps
+	if m.installMode == 1 {
+		steps = importSteps
+	}
+
+	// Re-initialize steps slice to match the selected pipeline length
+	m.steps = make([]InstallStep, len(steps))
+
+	// Initialize steps
+	for i, s := range steps {
 		if startStep > 0 && i < startStep {
-			// Preserve completed/skipped status for steps before startStep
-			if m.steps[i].Status == StepPending {
-				m.steps[i].Status = StepSkipped
-			}
+			// For retry/skip: mark steps before startStep as skipped
+			m.steps[i] = s
+			m.steps[i].Status = StepSkipped
 			continue
 		}
 		m.steps[i] = s
@@ -620,7 +697,7 @@ func (m InstallModel) startInstall(startStep int) (InstallModel, tea.Cmd) {
 		InstallID:    fmt.Sprintf("%d", time.Now().UnixNano()),
 		InstanceName: m.instanceName,
 		StartedAt:    time.Now(),
-		TotalSteps:   len(installSteps),
+		TotalSteps:   len(steps),
 		Status:       "running",
 	}
 	internal.WriteInstallJournal(journal)
@@ -630,7 +707,7 @@ func (m InstallModel) startInstall(startStep int) (InstallModel, tea.Cmd) {
 	m.progressCh = ch
 
 	// Start install in background goroutine
-	go runInstallGoroutine(m, ch, journal.InstallID, startStep)
+	go runInstallGoroutine(m, ch, journal.InstallID, startStep, steps)
 
 	// Return poll cmd to read the first progress message
 	return m, m.pollProgressCh(ch)
@@ -638,7 +715,7 @@ func (m InstallModel) startInstall(startStep int) (InstallModel, tea.Cmd) {
 
 // runInstallGoroutine runs in a background goroutine and sends progress
 // messages through the channel as bootstrap executes each step.
-func runInstallGoroutine(m InstallModel, ch chan<- tea.Msg, installID string, startStep int) {
+func runInstallGoroutine(m InstallModel, ch chan<- tea.Msg, installID string, startStep int, steps []InstallStep) {
 	defer close(ch)
 
 	cfg := bootstrap.BootstrapConfig{
@@ -719,8 +796,8 @@ func runInstallGoroutine(m InstallModel, ch chan<- tea.Msg, installID string, st
 		journal.Status = "failed"
 		journal.Error = err.Error()
 		// Mark the failed step
-		for i, step := range installSteps {
-			if i < len(installSteps)-1 {
+		for i, step := range steps {
+			if i < len(steps)-1 {
 				_ = step // mark all before current as completed
 			}
 		}
@@ -754,20 +831,130 @@ func (m InstallModel) pollProgressCh(ch <-chan tea.Msg) tea.Cmd {
 	}
 }
 
+// runDetection starts the streaming detection phase with per-check timeout.
+func (m InstallModel) runDetection() tea.Cmd {
+	detectionLabels := []struct {
+		label string
+		fn    func() (string, string)
+	}{
+		{"System is Linux", checkOS},
+		{"Python 3.8+", checkPython},
+		{"git installed", checkBinary("git")},
+		{"curl installed", checkBinary("curl")},
+		{"unzip installed", checkBinary("unzip")},
+		{"zstd installed", checkBinary("zstd")},
+		{"Disk space (>0.5 GB)", checkDiskSpace},
+		{"Sudo access (NOPASSWD)", checkSudo},
+		{"GitHub API reachable", checkGitHubAPI},
+		{"MCU devices", checkMCU},
+		{"Ports (8081, 7125, 7126)", checkPorts},
+	}
+
+	m.detectionResults = make([]DetectionResult, len(detectionLabels))
+	for i, d := range detectionLabels {
+		m.detectionResults[i] = DetectionResult{Label: d.label, Status: "pending"}
+	}
+
+	ch := m.detectionCh
+	return func() tea.Msg {
+		// Send "running" for all checks immediately
+		for i, d := range detectionLabels {
+			ch <- detectionUpdateMsg{
+				index:  i,
+				result: DetectionResult{Label: d.label, Status: "running"},
+			}
+		}
+
+		// Shared final results array
+		finalResults := make([]DetectionResult, len(detectionLabels))
+		for i, d := range detectionLabels {
+			finalResults[i] = DetectionResult{Label: d.label, Status: "pending"}
+		}
+
+		var mu sync.Mutex
+		done := make(chan struct{}, len(detectionLabels))
+
+		for i, d := range detectionLabels {
+			go func(idx int, label string, fn func() (string, string)) {
+				// Run the check in a goroutine so we can timeout
+				resultCh := make(chan DetectionResult, 1)
+				go func() {
+					status, detail := fn()
+					resultCh <- DetectionResult{Label: label, Status: status, Detail: detail}
+				}()
+
+				var result DetectionResult
+				select {
+				case result = <-resultCh:
+				case <-time.After(detectionTimeout):
+					result = DetectionResult{Label: label, Status: "timedout", Detail: "timeout exceeded"}
+				}
+
+				ch <- detectionUpdateMsg{
+					index:  idx,
+					result: result,
+				}
+
+				mu.Lock()
+				finalResults[idx] = result
+				mu.Unlock()
+				done <- struct{}{}
+			}(i, d.label, d.fn)
+		}
+
+		// Wait for all checks to complete or timeout
+		for i := 0; i < len(detectionLabels); i++ {
+			<-done
+		}
+
+		return detectionCompleteMsg{results: finalResults}
+	}
+}
+
+// pollDetectionCh reads one detection message from the channel.
+func (m InstallModel) pollDetectionCh(ch <-chan tea.Msg) tea.Cmd {
+	return func() tea.Msg {
+		msg, ok := <-ch
+		if !ok {
+			return nil
+		}
+		return msg
+	}
+}
+
+// checkMCU checks for connected MCU devices.
+func checkMCU() (string, string) {
+	devices := scanMCUDevices()
+	if len(devices) == 0 {
+		return "failed", "no devices found"
+	}
+	return "passed", fmt.Sprintf("%d device(s) found", len(devices))
+}
+
+// checkPorts checks if default ports are available.
+func checkPorts() (string, string) {
+	freePort, err := instance.FindNextAvailablePort()
+	if err != nil {
+		return "failed", "cannot check ports"
+	}
+	if freePort > 0 {
+		return "passed", fmt.Sprintf("port %d available", freePort)
+	}
+	return "failed", "no free ports found"
+}
+
 // ── View ─────────────────────────────────────────────────────────
 
 func (m InstallModel) View() string {
 	switch m.screen {
-	case ScreenModeSelect:
-		return m.viewModeSelect()
-	case ScreenPreFlight:
-		return m.viewPreFlight()
-	case ScreenMCUSelect:
-		return m.viewMCUSelect()
-	case ScreenConfig:
-		return m.viewConfig()
-	case ScreenFirmwareCheck:
-		return m.viewFirmwareCheck()
+	case ScreenDetection:
+		return m.viewDetection()
+	case ScreenMCUPicker:
+		return m.viewMCUPicker()
+	case ScreenKlipperPicker:
+		return m.viewKlipperPicker()
+	case ScreenDecision:
+		return m.viewDecision()
 	case ScreenExecDashboard:
 		return m.viewExecDashboard()
 	case ScreenErrorRecovery:
