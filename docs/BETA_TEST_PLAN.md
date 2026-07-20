@@ -12,7 +12,7 @@
 
 - **Steps**:
   1. Create two instances: `e3cnc-tui init-config --instance mytest` and `e3cnc-tui init-config --instance mytest2`.
-  2. Verify each has its own directory under `~/e3cnc/instances/<name>/`.
+  2. Verify each has its own directory under `~/E3CNC/instances/<name>/`.
   3. Change a setting (e.g., `max_velocity`) in `mytest`'s `printer.cfg`.
   4. Confirm `mytest2`'s `printer.cfg` is unchanged.
   5. In Mainsail, switch between instances and check the **Machine** tab shows the correct `.cfg` files for each.
@@ -96,7 +96,7 @@
 ### 7. First‑Run Flow
 
 - **Steps**:
-  1. Start with a fresh E3CNC image (or a clean `~/e3cnc` directory).
+  1. Start with a fresh E3CNC image (or a clean `~/E3CNC` directory).
   2. Run `e3cnc-tui install` (if testing full install) or just `e3cnc-tui init-config`.
   3. Manually edit the generated `printer.cfg` to set at least:
      - MCU serial path
@@ -118,7 +118,7 @@
 | Area             | Check                                                                                           | Pass Criteria                                                                                 |
 | ---------------- | ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
 | **Performance**  | Page load time (first paint) on a RPi‑4‑class device                                            | < 3 seconds for core pages                                                                    |
-| **Logs**         | Review `~/e3cnc/cli.log` and `journal.json` after 10 min of idle                                | No repetitive warnings/errors; only expected startup/shutdown messages                        |
+| **Logs**         | Review `~/E3CNC/logs/installer.log` and `journal.json` after 10 min of idle                                | No repetitive warnings/errors; only expected startup/shutdown messages                        |
 | **Backup**       | Run `e3cnc-tui backup` → verify archive → restore to a test location                            | Backup contains `config/`, `scripts/`, `database/`; restore brings system back to exact state |
 | **Low‑RAM Mode** | Simulate a 1 GB RAM device by disabling the Vite dev server and using the pre‑built nightly ZIP | UI loads without OOM kills; interaction remains responsive                                    |
 

@@ -7,7 +7,7 @@ Some machines run multiple Klipper/Moonraker instances on one host. The `e3cnc-t
 Fresh installs using `./e3cnc-tui install --name <name>` create this layout:
 
 ```
-~/e3cnc/instances/
+~/E3CNC/instances/
 ├── default/
 │   ├── data/
 │   │   ├── config/
@@ -55,7 +55,7 @@ For KIAUH-style installs, E3CNC reads instance metadata from the printer data di
 ./e3cnc-tui migrate-instances
 ```
 
-This imports KIAUH instances into the `~/e3cnc/instances/` layout. It copies the port from `moonraker.conf` but generates a clean configuration from the bootstrap template — the original KIAUH files are never modified. Mainsail user preferences (dashboard layout, theme, webcam settings) are imported from the KIAUH Moonraker SQLite database.
+This imports KIAUH instances into the `~/E3CNC/instances/` layout. It copies the port from `moonraker.conf` but generates a clean configuration from the bootstrap template — the original KIAUH files are never modified. Mainsail user preferences (dashboard layout, theme, webcam settings) are imported from the KIAUH Moonraker SQLite database.
 
 ## Managing instances with the TUI
 
@@ -91,11 +91,11 @@ Multi-instance does **not** assume separate copies of:
 
 - `~/moonraker`
 - `~/klipper`
-- `~/e3cnc` (the repo)
+- `~/E3CNC` (the repo)
 
 Instead, the model is:
 
-- separate `~/e3cnc/instances/{name}/` directories
+- separate `~/E3CNC/instances/{name}/` directories
 - shared `~/moonraker`
 - shared `~/klipper`
 - shared repo (`~/E3CNC`)
@@ -109,7 +109,7 @@ After installing, configure each instance's MCU:
 # For the 'default' instance:
 ./e3cnc-tui detect-mcu
 ./e3cnc-tui init-config
-nano ~/e3cnc/instances/default/data/config/printer.cfg
+nano ~/E3CNC/instances/default/data/config/printer.cfg
 ./e3cnc-tui flash-mcu
 sudo systemctl start e3cnc-default-klipper
 ```

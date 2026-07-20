@@ -19,8 +19,9 @@ git clone https://github.com/E3CNC/E3CNC.git ~/E3CNC && cd ~/E3CNC
 sudo ./install.sh
 
 # Or with custom options:
-sudo ./install.sh --unattended          # no prompts
-sudo ./install.sh --dir /opt/e3cnc  # custom dir
+sudo ./install.sh --unattended          # no prompts, uses defaults (instance: default, controller: BTT-CB1)
+sudo ./install.sh --dir /opt/e3cnc      # custom installation directory
+sudo ./install.sh --test-ports          # check if ports are free without installing
 ```
 
 ## What's New — Go BubbleTea TUI

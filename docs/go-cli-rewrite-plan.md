@@ -60,7 +60,7 @@ The Instance struct is the foundation — everything references it.
 Deliverable:
 
 - `Instance` struct with Name, Ports, Paths, Services
-- `detect_instances()` — scan `~/e3cnc/instances/`
+- `detect_instances()` — scan `~/E3CNC/instances/`
 - `get_active_instance()` — read `~/.e3cnc-tui/state.json`
 - Machine profile parsing
 - Local IP detection
@@ -76,7 +76,7 @@ Self-contained file ops + HTTP — no Ansible, no system deps.
 
 Deliverable:
 
-- Release scanning (`~/e3cnc/releases/`)
+- Release scanning (`~/E3CNC/releases/`)
 - Release activation (atomic symlink swap)
 - Health checks (HTTP GET to Moonraker)
 - Download artifact from GitHub

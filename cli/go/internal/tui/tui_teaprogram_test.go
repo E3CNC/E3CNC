@@ -14,8 +14,10 @@ import (
 func newTestProgram(t *testing.T) (*tea.Program, *bytes.Buffer) {
 	t.Helper()
 	var buf bytes.Buffer
+	m := New("test-version")
+	m.instance.activeInstance = "" // reset local state so tests are deterministic
 	p := tea.NewProgram(
-		New("test-version"),
+		m,
 		tea.WithInput(nil),
 		tea.WithOutput(&buf),
 		tea.WithoutSignalHandler(),

@@ -152,6 +152,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "install":
 				m.state = StateInstallWizard
 				m.install = NewInstallModel()
+				// Pass the active instance from instance manager if one is selected
+				if m.instance.activeInstance != "" {
+					m.install.instanceName = m.instance.activeInstance
+					m.install.nameInput.SetValue(m.instance.activeInstance)
+					// Load existing instance config (ports, etc.)
+					m.install.loadExistingInstance(m.instance.activeInstance)
+					// Skip mode selection and go directly to pre-flight checks
+					// since user has already selected an existing instance
+					m.install.installMode = 1 // import existing
+					m.install.screen = ScreenPreFlight
+				}
 				return m, m.install.Init()
 			case "instances":
 				m.state = StateInstanceMgr

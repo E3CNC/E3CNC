@@ -13,6 +13,14 @@ import (
 // ── step implementations ──────────────────────────────────────────
 
 func installSystemPackages() error {
+	// Run apt-get update first to refresh package lists
+	updateCmd := exec.Command("sudo", "apt-get", "update")
+	updateCmd.Stdout = os.Stdout
+	updateCmd.Stderr = os.Stderr
+	if err := updateCmd.Run(); err != nil {
+		return fmt.Errorf("apt-get update: %w", err)
+	}
+
 	packages := []string{
 		"git", "curl", "unzip", "nginx", "supervisor",
 		"python3", "python3-pip", "python3-venv", "python3-dev",

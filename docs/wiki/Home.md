@@ -7,7 +7,7 @@ Welcome to the E3CNC wiki — a CNC-focused control stack built around Klipper, 
 ## Getting Started
 
 - **[Installation](Installation)** — full install guide (Go CLI)
-- **[Multi-Instance](Multi-Instance)** — setting up multiple instances (`~/e3cnc/instances/{name}/`)
+- **[Multi-Instance](Multi-Instance)** — setting up multiple instances (`~/E3CNC/instances/{name}/`)
 - **[Architecture](Architecture)** — system design, Go BubbleTea TUI, state flow
 - **[API Reference](API)** — CNC agent endpoint documentation
 - **[Moonraker MCP](Moonraker-MCP)** — MCP server tools, G-code reference, printer object queries, and AI agent integration
@@ -18,13 +18,13 @@ Welcome to the E3CNC wiki — a CNC-focused control stack built around Klipper, 
 ## Quick Start
 
 **Prerequisites:** Klipper + Moonraker installed, plus `git` and `python3`.
-The CLI auto-installs everything else (curl, unzip, zstd).
+The installer auto-installs everything else (curl, unzip, zstd).
 
 ```bash
 cd ~
-git clone https://github.com/E3CNC/E3CNC.git
-cd E3CNC
-./e3cnc-tui install
+git clone https://github.com/E3CNC/E3CNC.git ~/E3CNC
+cd ~/E3CNC
+sudo ./install.sh
 ```
 
 After install, configure your controller:

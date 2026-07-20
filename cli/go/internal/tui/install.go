@@ -487,6 +487,20 @@ func (m InstallModel) handleStepUpdate(msg stepUpdateMsg) (InstallModel, tea.Cmd
 	return m, nil
 }
 
+// loadExistingInstance loads an existing instance's configuration into the install model.
+// This allows the installer to update/reinstall to an existing instance.
+func (m *InstallModel) loadExistingInstance(name string) {
+	inst, err := instance.FromName(name)
+	if err != nil {
+		return
+	}
+	m.instanceName = inst.Name
+	m.moonrakerPort = inst.MoonrakerPort
+	m.webPort = inst.WebPort
+	// Update the name input to reflect the loaded instance
+	m.nameInput.SetValue(inst.Name)
+}
+
 func (m InstallModel) handleInstallComplete(msg installCompleteMsg) (InstallModel, tea.Cmd) {
 	m.progressCh = nil
 
