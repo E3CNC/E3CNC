@@ -59,7 +59,7 @@
 - [x] 7.2 Add test for import existing Klipper flow with simulated Klipper install
 - [x] 7.3 Add test for update wizard with version detection and changelog
 - [x] 7.4 Add test for update auto-rollback on critical health check failure
-- [ ] 7.5 Add test for install.sh --help and --version flags
+- [x] 7.5 Add test for install.sh --help and --version flags
 - [x] 7.6 Add test for inline error recovery (retry/skip/abort)
 
 ## 8. Cleanup
