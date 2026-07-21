@@ -13,6 +13,7 @@ const (
 	StateMainMenu AppState = iota
 	StateConfirm
 	StateInstallWizard
+	StateUpdateWizard
 	StateErrorRecovery
 	StateInstanceMgr
 	StateOutputView
@@ -24,6 +25,7 @@ type Model struct {
 	menu        MenuModel
 	confirm     ConfirmModel
 	install     InstallModel
+	update      UpdateModel
 	instance    InstanceModel
 	output      OutputViewModel
 	help        help.Model
@@ -78,6 +80,7 @@ func New(version string) Model {
 		state:    StateMainMenu,
 		menu:     NewMenuModel(version),
 		install:  NewInstallModel(),
+		update:   NewUpdateModel(),
 		instance: NewInstanceModel(),
 		help:     help.New(),
 		keys:     defaultKeys,
@@ -156,18 +159,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.instance.activeInstance != "" {
 					m.install.instanceName = m.instance.activeInstance
 					m.install.nameInput.SetValue(m.instance.activeInstance)
-					// Load existing instance config (ports, etc.)
 					m.install.loadExistingInstance(m.instance.activeInstance)
-					// Skip mode selection and go directly to pre-flight checks
-					// since user has already selected an existing instance
 					m.install.installMode = 1 // import existing
-					m.install.screen = ScreenPreFlight
+					m.install.modeCursor = 0
 				}
 				return m, m.install.Init()
 			case "instances":
 				m.state = StateInstanceMgr
 				m.instance = NewInstanceModel()
 				return m, m.instance.Init()
+			case "update":
+				m.state = StateUpdateWizard
+				m.update = NewUpdateModel()
+				return m, m.update.Init()
 			case "quit":
 				return m, tea.Quit
 			default:
@@ -194,6 +198,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.install.done {
 			m.state = StateMainMenu
 			m.install = NewInstallModel()
+		}
+		return m, cmd
+
+	case StateUpdateWizard:
+		newUpdate, cmd := m.update.Update(msg)
+		m.update = newUpdate.(UpdateModel)
+		if m.update.done {
+			m.state = StateMainMenu
+			m.update = NewUpdateModel()
 		}
 		return m, cmd
 
@@ -264,6 +277,8 @@ func (m Model) View() string {
 		return m.menu.View()
 	case StateInstallWizard:
 		return m.install.View()
+	case StateUpdateWizard:
+		return m.update.View()
 	case StateInstanceMgr:
 		return m.instance.View()
 	case StateOutputView:

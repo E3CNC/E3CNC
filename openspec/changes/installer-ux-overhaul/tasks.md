@@ -36,35 +36,35 @@
 
 ## 5. Merged Progress + Verification Screen (Screen 2)
 
-- [ ] 5.1 Refactor existing progress dashboard to render mode-specific step lists
-- [ ] 5.2 Add verification phase as final step group in progress pipeline
-- [ ] 5.3 Add inline error recovery overlay (retry/skip/abort on the same screen)
-- [ ] 5.4 Add final summary with instance URL and next steps
-- [ ] 5.5 Make the progress component reusable across install, import, and update flows
+- [x] 5.1 Refactor existing progress dashboard to render mode-specific step lists
+- [x] 5.2 Add verification phase as final step group in progress pipeline
+- [x] 5.3 Add inline error recovery overlay (retry/skip/abort on the same screen)
+- [x] 5.4 Add final summary with instance URL and next steps
+- [x] 5.5 Make the progress component reusable across install, import, and update flows
 
 ## 6. Update TUI Wizard
 
-- [ ] 6.1 Create update Bubble Tea model
-- [ ] 6.2 Implement version check (current vs latest GitHub release)
-- [ ] 6.3 Implement GitHub release notes fetch for changelog display
-- [ ] 6.4 Create update confirm screen with changelog and version diff
-- [ ] 6.5 Create update progress screen (download → extract → activate → health checks)
-- [ ] 6.6 Implement hybrid rollback: auto-rollback on critical failures, manual on minor
-- [ ] 6.7 Keep new release directory on disk after rollback (prune on next successful update)
-- [ ] 6.8 Add "Already up to date" handling
+- [x] 6.1 Create update Bubble Tea model
+- [x] 6.2 Implement version check (current vs latest GitHub release)
+- [x] 6.3 Implement GitHub release notes fetch for changelog display
+- [x] 6.4 Create update confirm screen with changelog and version diff
+- [x] 6.5 Create update progress screen (download → extract → activate → health checks)
+- [x] 6.6 Implement hybrid rollback: auto-rollback on critical failures, manual on minor
+- [x] 6.7 Keep new release directory on disk after rollback (prune on next successful update)
+- [x] 6.8 Add "Already up to date" handling
 
 ## 7. Integration Tests
 
-- [ ] 7.1 Add test for 3-screen wizard loading and transition
-- [ ] 7.2 Add test for import existing Klipper flow with simulated Klipper install
-- [ ] 7.3 Add test for update wizard with version detection and changelog
-- [ ] 7.4 Add test for update auto-rollback on critical health check failure
+- [x] 7.1 Add test for 3-screen wizard loading and transition
+- [x] 7.2 Add test for import existing Klipper flow with simulated Klipper install
+- [x] 7.3 Add test for update wizard with version detection and changelog
+- [x] 7.4 Add test for update auto-rollback on critical health check failure
 - [ ] 7.5 Add test for install.sh --help and --version flags
-- [ ] 7.6 Add test for inline error recovery (retry/skip/abort)
+- [x] 7.6 Add test for inline error recovery (retry/skip/abort)
 
 ## 8. Cleanup
 
-- [ ] 8.1 Remove unused screens from install.go (MCUSelect, Config, FirmwareCheck screens)
-- [ ] 8.2 Update main menu routing for new install wizard entry point
-- [ ] 8.3 Verify --unattended mode works with new flow (skip Screen 1, use defaults)
-- [ ] 8.4 Run existing test suite to confirm no regressions
+- [x] 8.1 Remove unused screens from install.go (MCUSelect, Config, FirmwareCheck screens)
+- [x] 8.2 Update main menu routing for new install wizard entry point
+- [x] 8.3 Verify --unattended mode works with new flow (skip Screen 1, use defaults)
+- [x] 8.4 Final regression test pass

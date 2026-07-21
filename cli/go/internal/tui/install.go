@@ -130,6 +130,7 @@ type InstallModel struct {
 	// Error recovery
 	failedStep     int
 	recoveryAction string // "retry", "skip", "abort"
+	showErrorOverlay bool
 
 	// Health check results
 	healthChecks []deploy.HealthCheck
@@ -370,13 +371,6 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.handleInstallComplete(msg)
 
 	case tea.KeyMsg:
-		// Global handler: esc, 'b', or 'q' goes back to main menu from any wizard screen
-		s := msg.String()
-		if s == "b" || s == "q" || s == "esc" {
-			return m, func() tea.Msg {
-				return backToMenuMsg{}
-			}
-		}
 		switch m.screen {
 		case ScreenMCUPicker:
 			switch msg.String() {
@@ -420,9 +414,6 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.selectedKlipper = &m.klipperInstalls[m.klipperCursor]
 				}
 				return m.startInstall(0)
-			case "b", "esc":
-				m.screen = ScreenDecision
-				m.selectedKlipper = nil
 			}
 
 		case ScreenDecision:
@@ -438,27 +429,21 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "enter", " ":
 				if m.modeCursor == 0 {
 					m.installMode = 1 // import existing
-					// Detect Klipper installations for the import flow
 					installs, err := bootstrap.DetectAllKlipperInstalls()
 					m.klipperInstalls = installs
 					m.klipperCursor = 0
 					if err != nil || len(installs) == 0 {
-						// No Klipper found — stay on decision screen with warning
-						// (the view will show the error)
 						return m, nil
 					}
 					if len(installs) == 1 {
-						// Auto-select the single install
 						m.selectedKlipper = &installs[0]
 						return m.startInstall(0)
 					}
-					// Multiple installs — show picker
 					m.screen = ScreenKlipperPicker
 					return m, nil
-				} else {
-					m.installMode = 2 // new instance
-					return m.startInstall(0)
 				}
+				m.installMode = 2 // new instance
+				return m.startInstall(0)
 			case "r":
 				m.screen = ScreenDetection
 				m.detectionResults = nil
@@ -471,45 +456,77 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "v":
 				m.verbose = !m.verbose
 			case "ctrl+c":
-				m.screen = ScreenErrorRecovery
-				m.failedStep = m.current
-				m.recoveryAction = "abort"
-			case "pgup":
-				m.logViewport, _ = m.logViewport.Update(msg)
-			case "pgdn":
-				m.logViewport, _ = m.logViewport.Update(msg)
-			}
-
-		case ScreenVerification:
-			if msg.String() == "enter" {
+				if m.showErrorOverlay {
+					m.showErrorOverlay = false
+					m.done = true
+				} else {
+					m.failedStep = m.current
+					m.recoveryAction = ""
+					m.showErrorOverlay = true
+				}
+			case "r":
+				if m.showErrorOverlay {
+					m.showErrorOverlay = false
+					return m.startInstall(m.failedStep)
+				}
+			case "s":
+				if m.showErrorOverlay {
+					m.showErrorOverlay = false
+					if m.failedStep < len(m.steps) {
+						m.steps[m.failedStep].Status = StepSkipped
+					}
+					return m.startInstall(m.failedStep + 1)
+				}
+			case "a":
+				if m.showErrorOverlay {
+					m.showErrorOverlay = false
+					m.done = true
+				}
+			case "q", "esc":
 				m.done = true
-			}
-			if key := msg.String(); key == "pgup" || key == "pgdn" {
-				m.logViewport, _ = m.logViewport.Update(msg)
 			}
 
 		case ScreenErrorRecovery:
 			switch msg.String() {
 			case "r":
-				// Retry: restart from the failed step
+				m.screen = ScreenExecDashboard
+				m.failedStep = m.current
 				return m.startInstall(m.failedStep)
 			case "s":
-				// Skip: mark current step as skipped and resume from next
+				m.screen = ScreenExecDashboard
 				if m.failedStep < len(m.steps) {
 					m.steps[m.failedStep].Status = StepSkipped
 				}
-				return m.startInstall(m.failedStep + 1)
+				m.current = m.failedStep + 1
 			case "a":
-				// Abort: rollback and return to main menu
-				cfg := bootstrap.BootstrapConfig{
-					InstanceName: m.instanceName,
-					Arch:         runtime.GOARCH,
-				}
-				bootstrap.Rollback(cfg)
 				m.done = true
 			}
 
+		case ScreenVerification:
+			switch msg.String() {
+			case "enter", "q", "esc":
+				m.done = true
+			}
+
+		default:
+			break
 		}
+
+		// Global back-navigation for screens with local handlers
+		if m.screen == ScreenMCUPicker || m.screen == ScreenDecision {
+			switch msg.String() {
+			case "b", "q", "esc":
+				m.screen = ScreenDetection
+				m.detectionResults = nil
+				m.detectionCh = make(chan tea.Msg, 50)
+				return m, m.runDetection()
+			}
+		}
+		if (m.screen == ScreenErrorRecovery || m.screen == ScreenKlipperPicker || m.screen == ScreenVerification) && (msg.String() == "b" || msg.String() == "q" || msg.String() == "esc") {
+			m.screen = ScreenDecision
+			return m, nil
+		}
+		return m, nil
 	}
 
 	return m, nil
@@ -582,8 +599,9 @@ func (m InstallModel) handleInstallComplete(msg installCompleteMsg) (InstallMode
 			}
 		}
 		if processed < len(m.steps) {
-			// Blocking error — show error recovery
-			m.screen = ScreenErrorRecovery
+			// Blocking error — show inline error overlay on the dashboard
+			m.showErrorOverlay = true
+			m.screen = ScreenExecDashboard
 			m.failedStep = m.current
 			m.err = msg.err
 			return m, nil
@@ -960,7 +978,7 @@ func (m InstallModel) View() string {
 	case ScreenErrorRecovery:
 		return m.viewErrorRecovery()
 	case ScreenVerification:
-		return m.viewExecDashboard()
+		return m.viewVerification()
 	default:
 		return "Unknown screen"
 	}

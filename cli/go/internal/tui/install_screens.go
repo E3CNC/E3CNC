@@ -309,11 +309,10 @@ func (m InstallModel) viewExecDashboard() string {
 	}
 
 	helpText := HelpStyle.Render("v: toggle verbose (on)  ·  Ctrl+C: cancel")
-	if m.screen == ScreenVerification {
-		helpText = HelpStyle.Render("Press Enter to return to menu")
-	}
 
-	showLog := m.verbose || m.screen == ScreenVerification
+	var result string
+
+	showLog := m.verbose
 	var logContent string
 	if showLog && len(m.logBuffer) > 0 {
 		vpView := m.logViewport.View()
@@ -344,16 +343,115 @@ func (m InstallModel) viewExecDashboard() string {
 	}
 
 	if logContent != "" {
-		return lipgloss.JoinVertical(lipgloss.Top,
+		result = lipgloss.JoinVertical(lipgloss.Top,
 			header,
 			stepsBody,
 			logContent,
 			"",
 			helpText,
 		)
+	} else {
+		result = header + stepsBody + "\n" + helpText
 	}
 
-	return header + stepsBody + "\n" + helpText
+	// Error overlay
+	if m.showErrorOverlay {
+		failedStep := m.steps[m.failedStep]
+		overlay := BoxStyle.Render(
+			FailStyle.Render(fmt.Sprintf("Step [%d/%d] — %s — FAILED", failedStep.Number, len(m.steps), failedStep.Label)) + "\n\n" +
+				DimStyle.Render("Error details:") + "\n" +
+				FailStyle.Render(fmt.Sprintf("  %s", m.err)) + "\n\n" +
+				WarnStyle.Render("  [r] Retry step  [s] Skip  [a] Abort and rollback"),
+		)
+		result = lipgloss.JoinVertical(lipgloss.Top,
+			result,
+			"",
+			overlay,
+		)
+	}
+
+	return result
+}
+
+// ── Verification Screen ──────────────────────────────────────────────
+
+func (m InstallModel) viewVerification() string {
+	var b strings.Builder
+
+	b.WriteString(BoxStyle.Render(
+		TitleStyle.Render("Installation Complete") + "\n" +
+			SubtitleStyle.Render(fmt.Sprintf("E3CNC instance: %s", m.instanceName)),
+	))
+	b.WriteString("\n\n")
+
+	// Summary of all steps
+	b.WriteString(DimStyle.Render("  Steps:"))
+	b.WriteString("\n")
+	totalOk := 0
+	for _, step := range m.steps {
+		symbol := ""
+		style := DimStyle
+		switch step.Status {
+		case StepCompleted:
+			symbol = "✓"
+			style = OkStyle
+			totalOk++
+		case StepFailed:
+			symbol = "✗"
+			style = FailStyle
+		case StepSkipped:
+			symbol = "○"
+			style = DimStyle
+		default:
+			symbol = "○"
+			style = DimStyle
+		}
+		b.WriteString(style.Render(fmt.Sprintf("    %s %s", symbol, step.Label)))
+		b.WriteString("\n")
+	}
+
+	b.WriteString("\n")
+
+	// Health check results
+	if len(m.healthChecks) > 0 {
+		b.WriteString(DimStyle.Render("  Health checks:"))
+		b.WriteString("\n")
+		for _, c := range m.healthChecks {
+			symbol := "✓"
+			style := OkStyle
+			if !c.Passed {
+				symbol = "✗"
+				style = FailStyle
+			}
+			line := fmt.Sprintf("    %s %s", symbol, c.Name)
+			if c.Detail != "" {
+				line += DimStyle.Render(fmt.Sprintf("  (%s)", c.Detail))
+			}
+			b.WriteString(style.Render(line))
+			b.WriteString("\n")
+		}
+		b.WriteString("\n")
+	}
+
+	// Instance URL and next steps
+	b.WriteString(BoxStyle.Render(
+		DimStyle.Render("  Next steps:") + "\n\n" +
+			InfoStyle.Render(fmt.Sprintf("    Web UI: http://%s.local:%d", m.mDNSHostname, m.webPort)) + "\n" +
+			InfoStyle.Render(fmt.Sprintf("    Admin:  http://%s.local:%d/admin", m.mDNSHostname, m.webPort)) + "\n\n" +
+			DimStyle.Render("    Use 'e3cnc-tui' to manage your instance") + "\n" +
+			DimStyle.Render("    Or visit the Web UI to configure MCU and macros"),
+	))
+
+	// Error summary if any
+	if m.err != nil {
+		b.WriteString("\n")
+		b.WriteString(WarnStyle.Render(fmt.Sprintf("  ⚠ %s", m.err)))
+		b.WriteString("\n")
+	}
+
+	b.WriteString("\n")
+	b.WriteString(HelpStyle.Render("Press Enter to return to menu"))
+	return b.String()
 }
 
 // ── Screen 6: Error Recovery ────────────────────────────────────────────
