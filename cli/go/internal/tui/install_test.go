@@ -44,15 +44,6 @@ func TestInstallInit(t *testing.T) {
 	}
 }
 
-func TestInstallInitReturnsMultipleCommands(t *testing.T) {
-	m := NewInstallModel()
-	cmds := m.Init()
-	if cmds == nil {
-		t.Fatalf("Init() should return a batch command")
-	}
-	_ = cmds
-}
-
 func TestInstallDecisionAdvanceNewInstance(t *testing.T) {
 	m := NewInstallModel()
 	m.screen = ScreenDecision
