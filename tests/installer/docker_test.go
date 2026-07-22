@@ -68,6 +68,7 @@ func TestMain(m *testing.M) {
 	os.MkdirAll(filepath.Dir(binaryPath), 0755)
 
 	buildCmd := exec.Command("go", "build", "-o", binaryPath, ".")
+	buildCmd.Env = append(os.Environ(), "GOOS=linux")
 	buildCmd.Dir = cliGoDir
 	buildCmd.Stdout = os.Stdout
 	buildCmd.Stderr = os.Stderr
@@ -79,9 +80,19 @@ func TestMain(m *testing.M) {
 
 	// 2. Build the Docker image
 	fmt.Println("\n═══ Building Docker test image ═══")
+
+	// Copy binary into build context so Docker can access it
+	localBin := filepath.Join(".", "e3cnc-tui-binary")
+	os.Remove(localBin)
+	if err := exec.Command("cp", binaryPath, localBin).Run(); err != nil {
+		fmt.Fprintf(os.Stderr, "FAIL: copying binary to build context: %v\n", err)
+		os.Exit(1)
+	}
+	defer os.Remove(localBin)
+
 	dockerBuild := exec.Command("docker", "build",
 		"-t", imageName,
-		"--build-arg", "E3CNC_BIN="+binaryPath,
+		"--build-arg", "E3CNC_BIN=e3cnc-tui-binary",
 		"-f", dockerfilePath,
 		".",
 	)
