@@ -348,8 +348,10 @@ Version is injected at build time via `-ldflags`:
 go build -ldflags="-s -w -X main.version=0.9.9" -trimpath -o e3cnc-tui ./cmd/e3cnc-tui/
 ```
 
-The canonical version source is `package.json`. `bump-version.sh` reads it
-and passes it to the Go linker automatically.
+The canonical version source is the **Git tag** (e.g. `v0.9.18`). CI resolves
+the tag once and strips the `v` prefix into a `NORMALIZED_VERSION` that flows
+into the Go ldflags and the frontend build consistently. The `bump-version.sh`
+script creates git tags that CI reads.
 **Note:** Go 1.26+ requires the variable to be **unexported** (lowercase `version`)
 for `-X` injection — the `main.go` variable is deliberately lowercase.
 

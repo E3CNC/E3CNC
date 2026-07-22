@@ -6,7 +6,7 @@
 - [x] 2.1 Remove `vite-plugin-package-version` from `devDependencies`
 - [x] 2.2 Update `src/plugins/build-release_info.ts` to use `VITE_APP_VERSION` or build-time env
 - [x] 2.3 Verify local frontend build still works without CI env
-- [ ] 3.1 Add manifest guard in CI checking normalized version without `v` prefix
-- [ ] 3.2 Update release notes to document version source of truth
+- [x] 3.1 Add manifest guard in CI checking normalized version without `v` prefix
+- [x] 3.2 Update release notes to document version source of truth
 - [ ] 4.1 Run `bun run build` and `go build ./...` locally
 - [ ] 4.2 Verify release workflow with manual dispatch test
