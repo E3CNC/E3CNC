@@ -1,5 +1,4 @@
 import vue from '@vitejs/plugin-vue'
-import version from 'vite-plugin-package-version'
 import { defineConfig } from 'vite'
 
 import Components from 'unplugin-vue-components/vite'
@@ -102,7 +101,6 @@ export default defineConfig({
         buildVersion(),
         buildReleaseInfo(),
         vue(),
-        version(),
         Components({
             dts: true,
             resolvers: [Vuetify3Resolver()],
