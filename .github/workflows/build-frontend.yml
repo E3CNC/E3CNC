@@ -46,8 +46,14 @@ jobs:
             VERSION="v$(node -p "require('./package.json').version")"
           fi
 
+          NORMALIZED_VERSION="${VERSION#v}"
+
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "NORMALIZED_VERSION=$NORMALIZED_VERSION" >> $GITHUB_OUTPUT
+          echo "SOURCE_OF_TRUTH=git_tag" >> $GITHUB_OUTPUT
           echo "Using release version: $VERSION"
+          echo "Normalized version: $NORMALIZED_VERSION"
+          echo "Source of truth: git tag"
 
       - name: Detect trigger type
         id: trigger
@@ -101,8 +107,7 @@ jobs:
 
       - name: Build Go TUI binary (linux/arm64)
         run: |
-          V="${{ steps.version.outputs.VERSION }}"
-          V="${V#v}"
+          V="${{ steps.version.outputs.NORMALIZED_VERSION }}"
           cd cli/go
           CGO_ENABLED=0 GOOS=linux GOARCH=arm64 \
             go build -ldflags="-s -w -X main.version=$V" \
@@ -112,8 +117,7 @@ jobs:
 
       - name: Build Go TUI binary (linux/amd64)
         run: |
-          V="${{ steps.version.outputs.VERSION }}"
-          V="${V#v}"
+          V="${{ steps.version.outputs.NORMALIZED_VERSION }}"
           cd cli/go
           CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
             go build -ldflags="-s -w -X main.version=$V" \
@@ -131,14 +135,12 @@ jobs:
           cd dist && zip -r ../E3CNC-${{ steps.version.outputs.VERSION }}.zip . && cd ..
 
       - name: Install zstd
-        if: steps.trigger.outputs.TYPE == 'release'
         run: sudo apt-get update -qq && sudo apt-get install -y -qq zstd
 
       - name: Build stack artifact
-        if: steps.trigger.outputs.TYPE == 'release'
         shell: bash
         run: |
-          VERSION='${{ steps.version.outputs.VERSION }}'
+          VERSION='${{ steps.version.outputs.NORMALIZED_VERSION }}'
           STACK_DIR="e3cnc-stack-${VERSION}"
           mkdir -p "${STACK_DIR}/vendor/moonraker" \
                    "${STACK_DIR}/vendor/klipper" \
@@ -221,7 +223,6 @@ jobs:
             || echo "  See the [CHANGELOG](https://github.com/E3CNC/E3CNC/blob/main/CHANGELOG.md) for details." >> release-notes.md
 
       - name: Guard — stack artifact must exist before publishing
-        if: steps.trigger.outputs.TYPE == 'release'
         shell: bash
         run: |
           VERSION='${{ steps.version.outputs.VERSION }}'
@@ -274,7 +275,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           DATE_TAG="nightly-main-$(date -u +%Y%m%d)"
-          ASSET="E3CNC-${{ steps.version.outputs.VERSION }}.zip"
+          VERSION='${{ steps.version.outputs.NORMALIZED_VERSION }}'
+          ASSET="E3CNC-${VERSION}.zip"
+          STACK_ARTIFACT="e3cnc-stack-${VERSION}.tar.zst"
+          STACK_CHECKSUM="e3cnc-stack-${VERSION}.tar.zst.sha256"
           BINARY_ARM64="bin/e3cnc-tui-arm64"
           BINARY_AMD64="bin/e3cnc-tui-amd64"
 
@@ -282,7 +286,7 @@ jobs:
 
           if gh release view "$DATE_TAG" >/dev/null 2>&1; then
             echo "Updating existing nightly: $DATE_TAG"
-            gh release upload "$DATE_TAG" "$ASSET" "$BINARY_ARM64" "$BINARY_AMD64" --clobber
+            gh release upload "$DATE_TAG" "$ASSET" "$STACK_ARTIFACT" "$STACK_CHECKSUM" "$BINARY_ARM64" "$BINARY_AMD64" --clobber
             gh release edit "$DATE_TAG" \
               --title "$DATE_TAG (${{ steps.commit.outputs.SHA_SHORT }})" \
               --notes "Nightly build from main branch — commit ${{ github.sha }}" \
@@ -295,6 +299,8 @@ jobs:
               --prerelease \
               --target main \
               "$ASSET" \
+              "$STACK_ARTIFACT" \
+              "$STACK_CHECKSUM" \
               "$BINARY_ARM64" \
               "$BINARY_AMD64"
           fi
