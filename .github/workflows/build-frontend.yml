@@ -209,6 +209,32 @@ jobs:
           path: dist/
           retention-days: 30
 
+      - name: Validate manifest version (no `v` prefix guard)
+        shell: bash
+        run: |
+          STACK_DIR=$(ls -d e3cnc-stack-* 2>/dev/null | head -1)
+          if [[ -z "$STACK_DIR" ]]; then
+            echo "No stack artifact directory found, skipping manifest validation"
+            exit 0
+          fi
+          MANIFEST="${STACK_DIR}/manifest.json"
+          if [[ ! -f "$MANIFEST" ]]; then
+            echo "Warning: manifest.json not found in $STACK_DIR"
+            exit 0
+          fi
+          VERSION=$(jq -r '.e3cnc_version // empty' "$MANIFEST" 2>/dev/null)
+          if [[ -z "$VERSION" ]]; then
+            echo "Warning: e3cnc_version not found in manifest"
+            exit 0
+          fi
+          if [[ "$VERSION" == v* ]]; then
+            echo "ERROR: manifest.json e3cnc_version contains 'v' prefix: '$VERSION'"
+            echo "The version in the manifest must be normalized (no leading 'v')."
+            echo "The version is derived from the raw tag; your step should strip the 'v' before writing."
+            exit 1
+          fi
+          echo "Manifest version validated: $VERSION (no 'v' prefix)"
+
       - name: Get short commit SHA
         id: commit
         run: echo "SHA_SHORT=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
