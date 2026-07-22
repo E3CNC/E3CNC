@@ -15,7 +15,7 @@ import { gcodeviewer } from '@/store/gcodeviewer'
 
 export const getDefaultState = (): RootState => {
     return {
-        packageVersion: (import.meta.env.PACKAGE_VERSION as string) || '0.0.0',
+        packageVersion: (import.meta.env.VITE_APP_VERSION ?? import.meta.env.PACKAGE_VERSION ?? '0.0.0') as string,
         debugMode: (import.meta.env.VUE_APP_DEBUG_MODE as boolean) || false,
         naviDrawer: null,
         instancesDB: 'moonraker',
