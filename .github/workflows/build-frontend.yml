@@ -248,6 +248,21 @@ jobs:
           python3 scripts/build/_get_changelog_entry.py "$VERSION" >> release-notes.md 2>/dev/null \
             || echo "  See the [CHANGELOG](https://github.com/E3CNC/E3CNC/blob/main/CHANGELOG.md) for details." >> release-notes.md
 
+      - name: Auto-update CHANGELOG (git-cliff)
+        if: steps.trigger.outputs.TYPE == 'release'
+        shell: bash
+        run: |
+          git config user.name "E3CNC CI"
+          git config user.email "ci@e3cnc.local"
+          git-cliff --bump --output CHANGELOG.md
+          git add CHANGELOG.md
+          if git diff --cached --quiet; then
+            echo "No changelog changes to commit."
+          else
+            git commit -m "chore: update CHANGELOG for $(git describe --tags --exact-match HEAD)"
+            git push
+          fi
+
       - name: Guard — stack artifact must exist before publishing
         shell: bash
         run: |
