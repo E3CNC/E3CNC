@@ -252,9 +252,13 @@ jobs:
         if: steps.trigger.outputs.TYPE == 'release'
         shell: bash
         run: |
+          # Install git-cliff — prefer cargo, fall back to pre-built binary
+          cargo install git-cliff -q 2>/dev/null || \
+            (curl -fsSL https://github.com/orhun/git-cliff/releases/latest/download/git-cliff-x86_64-unknown-linux-gnu.tar.gz | tar xz && chmod +x git-cliff)
+          CLIFF=$(command -v git-cliff || echo "./git-cliff")
           git config user.name "E3CNC CI"
           git config user.email "ci@e3cnc.local"
-          git-cliff --bump --output CHANGELOG.md
+          $CLIFF --bump --output CHANGELOG.md
           git add CHANGELOG.md
           if git diff --cached --quiet; then
             echo "No changelog changes to commit."
