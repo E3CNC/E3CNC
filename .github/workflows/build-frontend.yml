@@ -132,7 +132,7 @@ jobs:
       - name: Create dist archive
         run: |
           cp ./remote/* ./dist/ 2>/dev/null || true
-          cd dist && zip -r ../E3CNC-${{ steps.version.outputs.VERSION }}.zip . && cd ..
+          cd dist && zip -r ../E3CNC-${{ steps.version.outputs.NORMALIZED_VERSION }}.zip . && cd ..
 
       - name: Install zstd
         run: sudo apt-get update -qq && sudo apt-get install -y -qq zstd
@@ -251,7 +251,7 @@ jobs:
       - name: Guard — stack artifact must exist before publishing
         shell: bash
         run: |
-          VERSION='${{ steps.version.outputs.VERSION }}'
+          VERSION='${{ steps.version.outputs.NORMALIZED_VERSION }}'
           STACK_ARTIFACT="e3cnc-stack-${VERSION}.tar.zst"
           if [[ ! -f "$STACK_ARTIFACT" ]]; then
             echo "ERROR: Stack artifact not found: $STACK_ARTIFACT"
@@ -267,7 +267,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION='${{ steps.version.outputs.VERSION }}'
+          TAG='${{ steps.version.outputs.VERSION }}'
+          VERSION='${{ steps.version.outputs.NORMALIZED_VERSION }}'
           ASSET="E3CNC-${VERSION}.zip"
           STACK_ARTIFACT="e3cnc-stack-${VERSION}.tar.zst"
           STACK_CHECKSUM="e3cnc-stack-${VERSION}.tar.zst.sha256"
@@ -275,18 +276,18 @@ jobs:
           BINARY_AMD64="bin/e3cnc-tui-amd64"
 
           RELEASE_ARGS=(
-            --title "${VERSION} (${{ steps.commit.outputs.SHA_SHORT }})"
+            --title "${TAG} (${{ steps.commit.outputs.SHA_SHORT }})"
             --notes-file release-notes.md
             --target main
           )
 
-          if gh release view "$VERSION" >/dev/null 2>&1; then
-            echo "Updating existing release: $VERSION"
-            gh release upload "$VERSION" "$ASSET" "$STACK_ARTIFACT" "$STACK_CHECKSUM" "$BINARY_ARM64" "$BINARY_AMD64" --clobber
-            gh release edit "$VERSION" "${RELEASE_ARGS[@]}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Updating existing release: $TAG"
+            gh release upload "$TAG" "$ASSET" "$STACK_ARTIFACT" "$STACK_CHECKSUM" "$BINARY_ARM64" "$BINARY_AMD64" --clobber
+            gh release edit "$TAG" "${RELEASE_ARGS[@]}"
           else
-            echo "Creating release: $VERSION"
-            gh release create "$VERSION" \
+            echo "Creating release: $TAG"
+            gh release create "$TAG" \
               "${RELEASE_ARGS[@]}" \
               "$ASSET" \
               "$STACK_ARTIFACT" \
