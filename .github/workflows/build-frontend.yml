@@ -252,19 +252,21 @@ jobs:
         if: steps.trigger.outputs.TYPE == 'release'
         shell: bash
         run: |
+          # Checkout main branch (workflow checks out tag ref, detached HEAD)
+          git checkout main
           # Install git-cliff — prefer cargo, fall back to pre-built binary
           cargo install git-cliff -q 2>/dev/null || \
             (curl -fsSL https://github.com/orhun/git-cliff/releases/latest/download/git-cliff-x86_64-unknown-linux-gnu.tar.gz | tar xz && chmod +x git-cliff)
           CLIFF=$(command -v git-cliff || echo "./git-cliff")
           git config user.name "E3CNC CI"
           git config user.email "ci@e3cnc.local"
-          $CLIFF --bump --output CHANGELOG.md
-          git add CHANGELOG.md
-          if git diff --cached --quiet; then
-            echo "No changelog changes to commit."
-          else
+          # Prepend unreleased commits as new version section
+          $CLIFF --unreleased --tag "$(git describe --tags --exact-match HEAD)" --prepend CHANGELOG.md 2>/dev/null || \
+            echo "No new changelog entries to add (may have been seeded already)."
+          if ! git diff --cached --quiet 2>/dev/null && git ls-files --deleted --others CHANGELOG.md 2>/dev/null | grep -q .; then
+            git add CHANGELOG.md
             git commit -m "chore: update CHANGELOG for $(git describe --tags --exact-match HEAD)"
-            git push
+            git push origin main
           fi
 
       - name: Guard — stack artifact must exist before publishing
