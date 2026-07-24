@@ -43,7 +43,13 @@ jobs:
           elif [[ -n "$HEAD_TAG" ]]; then
             VERSION="$HEAD_TAG"
           else
-            VERSION="v$(node -p "require('./package.json').version")"
+            # Nightly: use git describe for meaningful version, fall back to date+SHA
+            DESCRIBE=$(git describe --tags --always 2>/dev/null || true)
+            if [[ -n "$DESCRIBE" ]]; then
+              VERSION="${DESCRIBE}"
+            else
+              VERSION="nightly-$(date -u +%Y%m%d)-$(git rev-parse --short HEAD)"
+            fi
           fi
 
           NORMALIZED_VERSION="${VERSION#v}"
