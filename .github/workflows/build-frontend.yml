@@ -131,6 +131,16 @@ jobs:
           echo "Go TUI binary built for linux/amd64:"
           ls -lh ../../bin/e3cnc-tui-amd64
 
+      - name: Generate binary checksums
+        run: |
+          cd bin
+          for f in e3cnc-tui-arm64 e3cnc-tui-amd64; do
+            if [ -f "$f" ]; then
+              sha256sum "$f" > "$f.sha256"
+              echo "Checksum: $f.sha256 ($(cat "$f.sha256"))"
+            fi
+          done
+
       - name: Write version.json into dist
         run: |
           echo "{\"buildTime\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"commit\":\"${{ github.sha }}\"}" > dist/version.json
@@ -310,7 +320,7 @@ jobs:
 
           if gh release view "$TAG" >/dev/null 2>&1; then
             echo "Updating existing release: $TAG"
-            gh release upload "$TAG" "$ASSET" "$STACK_ARTIFACT" "$STACK_CHECKSUM" "$BINARY_ARM64" "$BINARY_AMD64" --clobber
+            gh release upload "$TAG" "$ASSET" "$STACK_ARTIFACT" "$STACK_CHECKSUM" "$BINARY_ARM64" "$BINARY_ARM64.sha256" "$BINARY_AMD64" "$BINARY_AMD64.sha256" --clobber
             gh release edit "$TAG" "${RELEASE_ARGS[@]}"
           else
             echo "Creating release: $TAG"
@@ -320,7 +330,9 @@ jobs:
               "$STACK_ARTIFACT" \
               "$STACK_CHECKSUM" \
               "$BINARY_ARM64" \
-              "$BINARY_AMD64"
+              "$BINARY_ARM64.sha256" \
+              "$BINARY_AMD64" \
+              "$BINARY_AMD64.sha256"
           fi
 
       - name: Publish nightly pre-release (branch push)
@@ -340,7 +352,7 @@ jobs:
 
           if gh release view "$DATE_TAG" >/dev/null 2>&1; then
             echo "Updating existing nightly: $DATE_TAG"
-            gh release upload "$DATE_TAG" "$ASSET" "$STACK_ARTIFACT" "$STACK_CHECKSUM" "$BINARY_ARM64" "$BINARY_AMD64" --clobber
+            gh release upload "$DATE_TAG" "$ASSET" "$STACK_ARTIFACT" "$STACK_CHECKSUM" "$BINARY_ARM64" "$BINARY_ARM64.sha256" "$BINARY_AMD64" "$BINARY_AMD64.sha256" --clobber
             gh release edit "$DATE_TAG" \
               --title "$DATE_TAG (${{ steps.commit.outputs.SHA_SHORT }})" \
               --notes "Nightly build from main branch — commit ${{ github.sha }}" \
@@ -356,5 +368,7 @@ jobs:
               "$STACK_ARTIFACT" \
               "$STACK_CHECKSUM" \
               "$BINARY_ARM64" \
-              "$BINARY_AMD64"
+              "$BINARY_ARM64.sha256" \
+              "$BINARY_AMD64" \
+              "$BINARY_AMD64.sha256"
           fi
