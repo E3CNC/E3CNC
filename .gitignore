@@ -46,3 +46,6 @@ public/img/themes/sidebarLogo-ndot57*.svg
 .coverage
 MagicMock/
 coverage_html_report/
+
+# Runtime test artifact (copied by docker_test.go, removed after run)
+tests/installer/e3cnc-tui-binary
