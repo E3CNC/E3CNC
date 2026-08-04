@@ -2,6 +2,7 @@
 
 All notable changes to E3CNC are documented here.
 
+## [0.9.20] - 2026-08-04
 ## [0.9.18-merged.1] - 2026-07-23
 
 ### 🐛 Bug Fixes
