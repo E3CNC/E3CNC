@@ -12,20 +12,20 @@ Single static Go binary with two modes:
                   e3cnc-tui (Go static binary)
                   │
                   ├── Interactive mode (TTY present, no args)
-                  │   ├── Main menu (24 commands, categorized, keyboard nav)
-                  │   ├── Install wizard (6 screens, 9 phases, goroutine-streamed)
+                  │   ├── Main menu (25 commands, categorized, keyboard nav)
+                  │   ├── Install wizard (7 screens, 9 phases, goroutine-streamed)
                   │   ├── Instance manager (list, switch, create, delete)
                   │   └── Streaming output + spinner + cancellation
                   │
                   └── CLI mode (args provided or --yes flag)
                       └── commands.RunDispatch(cmd, jsonOut, args)
-                          └── All 24 command handlers run in-process
+                          └── All 25 command handlers run in-process
 ```
 
 **Key decisions:**
 
 - All command handlers run as direct Go function calls — no subprocess overhead
-- `commands.json` at repo root is the single source of truth for all 24 commands
+- `cli/commands.json` is the single source of truth for all 25 commands
 - The binary applies its own `lipgloss` styling in TUI mode; CLI mode is plain text
 - `--json` flag on every command for structured output (used by Moonraker CNC agent)
 
@@ -36,7 +36,8 @@ Single static Go binary with two modes:
 | `cli/go/cmd/e3cnc-tui/main.go` | Entry point (version, dispatch, signal handling)               |
 | `cli/go/internal/command.go`   | Commands manifest loader (`commands.json`)                     |
 | `cli/go/internal/config.go`    | State persistence (`~/.e3cnc-tui/state.json`, install journal) |
-| `cli/go/internal/commands/`    | All 24 command handlers in Go                                  |
+| `cli/go/internal/domain/`     | Domain types and shared validation                                |
+| `cli/go/internal/commands/`    | All 25 command handlers in Go                                  |
 | `cli/go/internal/deploy/`      | Release management, health checks, backup/restore              |
 | `cli/go/internal/instance/`    | Instance model, detection, path resolution                     |
 | `cli/go/internal/bootstrap/`   | Fresh-install provisioning (replaces Ansible)                  |
@@ -104,6 +105,6 @@ Deploy operations are forwarded to `e3cnc-tui` via subprocess with `--json` outp
 - Spindle/coolant state is visible during job execution
 - Agent owns only what Klipper doesn't model
 - `e3cnc-tui` applies its own lipgloss styling in TUI mode; plain text in CLI mode
-- `commands.json` is the single source of truth for all command definitions
-- Version is canonical in `package.json` and injected into the Go binary at build time via `-ldflags`
+- `cli/commands.json` is the single source of truth for all command definitions
+- Version is baked into the Go binary at build time via `-ldflags` (package.json for tagged releases, `git describe` for nightly CI)
 - The Go binary is a single static artifact — no runtime dependencies, no Python, no Ansible

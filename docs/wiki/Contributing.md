@@ -29,7 +29,7 @@ CGO_ENABLED=0 go build -o e3cnc-tui ./cmd/e3cnc-tui/
 | `vendor/moonraker/`             | Vendored Moonraker with CNC agent + MCP server        |
 | `vendor/klipper/klippy/extras/` | Klipper extra plugins (WCS)                           |
 | `macros/`                       | CNC G-code macros                                     |
-| `commands.json`                 | Command manifest for the TUI                          |
+| `cli/commands.json`            | Command manifest for the TUI                          |
 | `scripts/`                      | Deploy and utility scripts                            |
 | `docs/`                         | Landing page and documentation                        |
 | `docs/wiki/`                    | Updated wiki page drafts                              |
@@ -47,7 +47,7 @@ CGO_ENABLED=0 go build -o e3cnc-tui ./cmd/e3cnc-tui/
 - Version is injected at build time: `-ldflags="-s -w -X main.version=<ver>"`
 - Go 1.26+ requires **unexported** variables for `-X` injection (`version`, not `Version`)
 - TUI models follow the standard BubbleTea pattern: `Init()`, `Update(msg) (Model, Cmd)`, `View() string`
-- All commands are defined in `commands.json` at the repo root
+- All commands are defined in `cli/commands.json`
 
 ## Pull Requests
 

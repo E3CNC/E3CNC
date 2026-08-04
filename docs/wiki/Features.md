@@ -24,15 +24,15 @@
 
 | Feature                     | Description                                                                                                                                                                          |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Pure Go Binary**          | Single static binary (~3.8 MB, `CGO_ENABLED=0`). Zero runtime dependencies — no Python, no Ansible                                                                                   |
+| **Pure Go Binary**          | Single static binary (~7.5 MB, `CGO_ENABLED=0`). Zero runtime dependencies — no Python, no Ansible                                                                                   |
 | **BubbleTea TUI**           | Keyboard-driven terminal UI with install wizard, instance manager, real-time streaming, and cancellation                                                                             |
-| **Install Wizard**          | 6-screen guided install: pre-flight checks (9), instance config, 9-step execution dashboard, error recovery (retry/skip/abort), rollback, verification (7 health checks), next steps |
+| **Install Wizard**          | 7-screen guided install: detection (9 pre-flight checks), MCU picker, Klipper picker, instance config, 9-step execution dashboard, error recovery (retry/skip/abort), rollback, verification (7 health checks) + next steps |
 | **Instance Manager**        | List, switch active, create, delete instances with live status indicators. Persisted to `~/.e3cnc-tui/state.json`                                                                    |
 | **Streaming Output**        | Long-running commands show real-time line-by-line output with spinner animation from Go goroutines                                                                                   |
 | **Cancellation**            | Ctrl+C cleanly cancels, returns to menu in <2 seconds                                                                                                                                |
 | **Non-Interactive Mode**    | `--yes` flag collapses TUI to CLI mode for scripts and SSH; `--json` flag for structured output                                                                                      |
 | **All Commands In-Process** | Every command from `status` to `update` to `install` runs as a direct Go function call — no subprocess overhead                                                                      |
-| **Cross-compiled**          | ~3.8 MB, `CGO_ENABLED=0`, supports linux/arm64, linux/amd64, darwin/amd64                                                                                                            |
+| **Cross-compiled**          | ~7.5 MB, `CGO_ENABLED=0`, supports linux/arm64, linux/amd64, darwin/amd64                                                                                                            |
 
 ## Deployment & Operations
 
@@ -72,4 +72,4 @@
 | **Semver Releases**      | Version tags on `main` trigger GitHub releases                                                            |
 | **Nightly Pre-Releases** | Every push to `main` creates/updates a `nightly-main-YYYYMMDD` pre-release                                |
 | **Stack Artifact**       | `e3cnc-stack-v<ver>.tar.zst` containing frontend, Moonraker, Klipper extras, macros, TUI binary, manifest |
-| **CI**                   | Go tests (~140) + frontend build on every push/PR                                                         |
+| **CI**                   | Go tests (~200) + frontend build on every push/PR                                                                       |

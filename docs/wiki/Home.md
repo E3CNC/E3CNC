@@ -9,9 +9,6 @@ Welcome to the E3CNC wiki — a CNC-focused control stack built around Klipper, 
 - **[Installation](Installation)** — full install guide (Go CLI)
 - **[Multi-Instance](Multi-Instance)** — setting up multiple instances (`~/E3CNC/instances/{name}/`)
 - **[Architecture](Architecture)** — system design, Go BubbleTea TUI, state flow
-- **[API Reference](API)** — CNC agent endpoint documentation
-- **[Moonraker MCP](Moonraker-MCP)** — MCP server tools, G-code reference, printer object queries, and AI agent integration
-- **[Design System](Design-System)** — token-based design system plan
 - **[Version history](Changelog)** — release notes and version changes
 - **[Contributing](Contributing)** — how to contribute
 
@@ -39,7 +36,7 @@ See the [Installation](Installation) page for details.
 
 ## CLI Tool — `e3cnc-tui`
 
-A single **Go static binary** (`CGO_ENABLED=0`, ~3.8 MB) handling all operations:
+A single **Go static binary** (`CGO_ENABLED=0`, ~7.5 MB) handling all operations:
 
 | Mode                | How                         | Description                                                                 |
 | ------------------- | --------------------------- | --------------------------------------------------------------------------- |
@@ -51,7 +48,7 @@ Run `./e3cnc-tui --help` for all available commands.
 
 ### Interactive TUI Features
 
-- **Install wizard** — 6-screen guided install: pre-flight checks, instance config, 9-step progress tracking, error recovery (retry/skip/abort), health verification, next steps guide
+- **Install wizard** — 7-screen guided install: detection (9 pre-flight checks), MCU picker, Klipper picker, instance config, 9-step execution dashboard, error recovery (retry/skip/abort), verification (7 health checks) + next steps
 - **Instance manager** — list instances with live status, switch active, create new, delete with confirmation
 - **Real-time streaming** — long-running commands show spinner + line-by-line output
 - **Cancellation** — Ctrl+C cleanly cancels and returns to menu in <2 seconds
@@ -61,5 +58,5 @@ Run `./e3cnc-tui --help` for all available commands.
 
 ```bash
 ./e3cnc-tui --version
-e3cnc-tui v0.9.9
+e3cnc-tui v0.9.19
 ```

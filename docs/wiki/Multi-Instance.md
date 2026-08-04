@@ -99,7 +99,7 @@ Instead, the model is:
 - shared `~/moonraker`
 - shared `~/klipper`
 - shared repo (`~/E3CNC`)
-- separate systemd services (`e3cnc-{name}-moonraker`, `e3cnc-{name}-klipper`)
+- separate supervisor services (`e3cnc-{name}-moonraker`, `e3cnc-{name}-klipper`)
 
 ## MCU setup per instance
 
@@ -111,5 +111,5 @@ After installing, configure each instance's MCU:
 ./e3cnc-tui init-config
 nano ~/E3CNC/instances/default/data/config/printer.cfg
 ./e3cnc-tui flash-mcu
-sudo systemctl start e3cnc-default-klipper
+sudo supervisorctl start e3cnc-default-klipper
 ```

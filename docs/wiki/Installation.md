@@ -28,20 +28,13 @@ git clone https://github.com/E3CNC/E3CNC.git ~/E3CNC && cd ~/E3CNC
 sudo ./install.sh
 ```
 
-The installer walks through **12 steps** with a live progress bar and animated spinners:
+The bootstrap script is intentionally thin — it validates the platform, downloads `e3cnc-tui`, verifies its SHA256 checksum, installs it to `/usr/local/bin`, then hands off to the Go binary:
 
-1. **Migrate old data** — migrates from `~/e3cnc` (lowercase, legacy) to `~/E3CNC` if found
-2. **Backup existing** — timestamps a full backup of any existing install
-3. **Auto-detect free ports** — checks 8081, 7125, 7126 and auto-assigns alternatives if busy
-4. **Install dependencies** — detects your package manager (apt/dnf/yum/pacman/zypper) and installs git, curl, unzip, zstd, supervisor, python3-pip, iproute2
-5. **Create directory structure** — `~/E3CNC/{releases,instances,backups,logs}`
-6. **Download binary** — fetches latest `e3cnc-tui` from GitHub releases for your architecture
-7. **Verify binary** — checks it's executable and responds to `--version`
-8. **Verify capabilities** — confirms `install` and `status` commands are available
-9. **Configure supervisor** — sets up supervisor (legacy, now managed by TUI)
-10. **Start services** — launches Moonraker and admin UI
-11. **Configure instance** — prompts for instance name and controller type
-12. **Initialize instance** — runs `e3cnc-tui install` for guided configuration
+1. **Pre-flight** — architecture detection (arm64/amd64) and disk space check
+2. **Download binary** — fetches the latest `e3cnc-tui` release for your architecture
+3. **Verify checksum** — requires a matching `.sha256` file; aborts if missing or mismatched
+4. **Install binary** — installs to `/usr/local/bin/e3cnc-tui`
+5. **Hand off** — launches the Go TUI install wizard (`e3cnc-tui install`)
 
 ### Installer options
 
@@ -55,18 +48,18 @@ sudo ./install.sh --help                 # show all options
 
 | Option          | Description                              |
 | --------------- | ---------------------------------------- |
-| `--unattended`  | Run without prompts (instance: "default", controller: "BTT-CB1") |
-| `--dir <path>`  | Install to a custom directory instead of `~/E3CNC` |
+| `--unattended`  | Run without prompts (passes `--yes` to the Go wizard) |
+| `--dir <path>`  | Accepted by the script, but the Go wizard currently installs to `~/E3CNC` regardless |
 | `--test-ports`  | Quick check: are ports 8081, 7125, 7126 free? Exits after test |
 
 ### Environment variables
 
 | Variable               | Default      | Description                                     |
 | ---------------------- | ------------ | ----------------------------------------------- |
-| `E3CNC_DIR`            | `$HOME/E3CNC` | Override installation directory                 |
+| `E3CNC_DIR`            | `$HOME/E3CNC` | Accepted by `install.sh`; the Go wizard currently uses `~/E3CNC` |
 | `E3CNC_ADMIN_PORT`     | `8081`       | Admin UI port (auto-detects fallback if busy)   |
 | `E3CNC_MOONRAKER_PORT` | `7125`       | Moonraker API port (auto-detects fallback)      |
-| `E3CNC_KLIPPER_PORT`   | `7126`       | Klipper API port (auto-detects fallback)        |
+| `E3CNC_WEB_PORT`       | `80`         | Web UI port (used by nginx)                     |
 
 ### Port auto-detection
 
@@ -80,24 +73,21 @@ This shows which ports are free and simulates the auto-detection logic without i
 
 ### The install UI
 
-The bash installer features:
+The bash installer is a minimal bootstrap with a clear progress flow:
 
-- **Animated progress bar** — `[████████████░░░░░░░░░░] 50%` across 12 steps
-- **Green theme** — green headers, checkmarks, and borders
-- **Spinner animation** — rotating Braille spinner while long commands run
-- **Success box** — green-bordered summary with ports and next steps
-- **Detailed logging** — everything goes to `~/E3CNC/logs/installer.log`
+- **Step logging** — colored step markers (`▸`) and status lines
+- **Checksum verification** — aborts if the release `.sha256` is missing or mismatched
+- **Detailed logging** — everything goes to stdout/stderr; the Go wizard writes the install journal to `~/.e3cnc-tui/`
 
-### What the TUI install wizard does
+Once it hands off, the **Go TUI install wizard** provides the full interactive UI (animated spinners, progress bars, green theme):
 
-After the bootstrap finishes and downloads `e3cnc-tui`, it launches the Go TUI install wizard which adds 6 more screens:
-
-1. **Pre-flight dashboard** — validates 9 checks (OS, Python, git, curl, unzip, zstd, disk space, GitHub API, sudo access). All must pass or it hard-blocks.
-2. **Instance configuration** — name, Moonraker port, web port, mDNS hostname, start services toggle
-3. **Execution dashboard** — real-time progress across all 9 install phases with timing and status indicators
-4. **Error recovery** — if a step fails, offers retry, skip (optional steps), or abort with rollback
-5. **Verification dashboard** — 7 health checks (Moonraker API, Moonraker service, Klippy, CNC agent, frontend, journal, Klipper service)
-6. **Next steps** — guided path: detect MCU → generate config → flash firmware → edit printer.cfg → restart Klipper
+1. **Detection** — streams system checks live (9 pre-flight checks: Linux, Python 3.8+, git, curl, unzip, zstd, disk space >0.5 GB, sudo NOPASSWD, GitHub API reachable)
+2. **MCU picker** — shows detected controller devices when more than 3 are found
+3. **Klipper picker** — for import mode, picks an existing Klipper install
+4. **Instance configuration** — name, Moonraker port, web port, mDNS hostname, start services toggle
+5. **Execution dashboard** — real-time progress across all 9 install phases with timing and status indicators
+6. **Error recovery** — if a step fails, offers retry, skip (optional steps), or abort with rollback
+7. **Verification** — 7 health checks (Moonraker API, Moonraker service, Klippy, CNC agent, frontend, journal, Klipper service) plus next steps
 
 For non-interactive TUI installs:
 
@@ -143,8 +133,8 @@ nano ~/E3CNC/instances/default/data/config/printer.cfg
 # 5. Build and flash Klipper firmware
 e3cnc-tui flash-mcu
 
-# 6. Start Klippy
-sudo systemctl start e3cnc-default-klipper
+# 6. Start Klippy (services are supervisor-managed)
+sudo supervisorctl start e3cnc-default-klipper
 
 # 7. Verify everything is healthy
 e3cnc-tui status
