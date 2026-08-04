@@ -8,5 +8,5 @@
 - [x] 2.3 Verify local frontend build still works without CI env
 - [x] 3.1 Add manifest guard in CI checking normalized version without `v` prefix
 - [x] 3.2 Update release notes to document version source of truth
-- [ ] 4.1 Run `bun run build` and `go build ./...` locally
-- [ ] 4.2 Verify release workflow with manual dispatch test
+- [x] 4.1 Run `bun run build` and `go build ./...` locally
+- [x] 4.2 Verify release workflow with manual dispatch test

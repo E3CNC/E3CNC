@@ -57,4 +57,4 @@
 - [x] 6.4 Run all existing tests (typecheck, lint, unit tests)
 - [x] 6.5 Run Docker integration tests
 - [x] 6.6 Manual smoke test on a real machine
-- [ ] 6.7 Commit and push all changes
+- [x] 6.7 Commit and push all changes
