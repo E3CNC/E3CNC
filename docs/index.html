@@ -426,13 +426,13 @@
                     <div class="entry">
                         <span class="tag tag-feat">feat</span>
                         <span class="desc">
-                            <strong>e3cnc-cli unified CLI tool</strong>
+                            <strong>e3cnc-tui unified CLI tool</strong>
                             — Zero-dependency CLI with interactive menu, direct commands, bash tab completion, SSH
                             validation, confirmation prompts for destructive operations, and multi-instance detection
                             for machines with multiple Klipper/Moonraker setups. Run
-                            <code>./e3cnc-cli</code>
+                            <code>./e3cnc-tui</code>
                             for the interactive menu or
-                            <code>./e3cnc-cli install</code>
+                            <code>./e3cnc-tui install</code>
                             for direct install.
                         </span>
                     </div>
@@ -751,18 +751,18 @@
                 <p class="install-intro">
                     <strong>Recommended:</strong>
                     Use the
-                    <code>e3cnc-cli</code>
+                    <code>e3cnc-tui</code>
                     tool for a unified interactive setup. It handles everything — agent vendoring, frontend build,
                     plugin deployment, and service restarts — in a single command.
                 </p>
 
                 <pre class="install-config"><code>git clone https://github.com/E3CNC/E3CNC.git ~/E3CNC
 cd ~/E3CNC
-./e3cnc-cli install</code></pre>
+./e3cnc-tui install</code></pre>
 
                 <p class="install-note">
                     Run
-                    <code>./e3cnc-cli</code>
+                    <code>./e3cnc-tui</code>
                     with no arguments for an interactive menu that loops after each command. Use
                     <code>[W]</code>
                     to switch between multiple Klipper/Moonraker instances on the same machine. Tab completion available
@@ -779,21 +779,21 @@ cd ~/E3CNC
                     E3CNC no longer relies on Moonraker's
                     <code>[update_manager]</code>
                     integration for full-stack updates. Use
-                    <code>./e3cnc-cli update</code>
+                    <code>./e3cnc-tui update</code>
                     or the in-app
                     <strong>Update</strong>
                     action instead.
                 </p>
 
                 <pre class="install-config"><code># Preview changes safely
-./e3cnc-cli update --dry-run
+./e3cnc-tui update --dry-run
 
 # Apply the latest release
-./e3cnc-cli update</code></pre>
+./e3cnc-tui update</code></pre>
 
                 <p class="install-note">
                     Run
-                    <code>./e3cnc-cli update</code>
+                    <code>./e3cnc-tui update</code>
                     on the host for the full stack redeploy instead of relying on the update manager's post-update hook.
                 </p>
 

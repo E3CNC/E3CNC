@@ -272,13 +272,13 @@ CI should run `pip download` to vendor all transitive dependencies into the arti
 The safe update path should become one command:
 
 ```bash
-./e3cnc-cli update
+./e3cnc-tui update
 ```
 
 or, if renamed later:
 
 ```bash
-./e3cnc-cli deploy-stack
+./e3cnc-tui deploy-stack
 ```
 
 This command is the **authoritative full-stack deploy path**.
@@ -497,7 +497,7 @@ And it must not implicitly:
 Per-instance apply:
 
 ```bash
-./e3cnc-cli --instance test1 update
+./e3cnc-tui --instance test1 update
 ```
 
 This should:
@@ -509,7 +509,7 @@ This should:
 All-instances apply:
 
 ```bash
-./e3cnc-cli update --all-instances
+./e3cnc-tui update --all-instances
 ```
 
 This should:
@@ -540,10 +540,10 @@ Old releases accumulate in `~/e3cnc/releases/`. The CLI should manage this with 
 ### CLI commands
 
 ```bash
-./e3cnc-cli releases                        # list all with size + age
-./e3cnc-cli prune-releases                  # prune old releases (default: keep 3)
-./e3cnc-cli prune-releases --keep 5         # custom retention
-./e3cnc-cli prune-releases --dry-run        # show what would be pruned
+./e3cnc-tui releases                        # list all with size + age
+./e3cnc-tui prune-releases                  # prune old releases (default: keep 3)
+./e3cnc-tui prune-releases --keep 5         # custom retention
+./e3cnc-tui prune-releases --dry-run        # show what would be pruned
 ```
 
 ### GC timing
@@ -713,7 +713,7 @@ This is especially important in **parallel mode**, where stock Moonraker/Mainsai
 The primary full-stack updater is:
 
 ```bash
-./e3cnc-cli update
+./e3cnc-tui update
 ```
 
 ### Update Manager for visibility only
@@ -722,7 +722,7 @@ E3CNC may still register an `[update_manager E3CNC]` entry in `moonraker.conf`, 
 
 - It reports the current E3CNC version (read from the deployment journal)
 - It **does not** run `git pull` or invoke `post_update_script`
-- Instead, it displays a message: "Use `./e3cnc-cli update` to update E3CNC"
+- Instead, it displays a message: "Use `./e3cnc-tui update` to update E3CNC"
 - In parallel mode, this entry belongs to the E3CNC Moonraker instance, not the stock one
 - The update manager's `origin` points to `https://github.com/E3CNC/E3CNC.git`
 
@@ -831,9 +831,9 @@ This makes rollback deterministic and machine-readable. The journal is read and 
 Recommended commands:
 
 ```bash
-./e3cnc-cli releases
-./e3cnc-cli rollback --previous
-./e3cnc-cli rollback v0.9.0
+./e3cnc-tui releases
+./e3cnc-tui rollback --previous
+./e3cnc-tui rollback v0.9.0
 ```
 
 ### `releases`
@@ -937,7 +937,7 @@ Existing installations have files scattered across `~/moonraker/`, `~/mainsail/`
 ### Unified migration command
 
 ```bash
-./e3cnc-cli migrate-layout
+./e3cnc-tui migrate-layout
 ```
 
 This should:
@@ -963,7 +963,7 @@ During migration, the old files (`~/moonraker/moonraker/components/cnc_agent/`, 
 ### Bootstrap install (clean host)
 
 ```bash
-./e3cnc-cli install --mode parallel
+./e3cnc-tui install --mode parallel
 ```
 
 For a clean host without E3CNC, this command:
@@ -988,13 +988,13 @@ For a clean host without E3CNC, this command:
 The installer/CLI should default to:
 
 ```bash
-./e3cnc-cli install --mode parallel
+./e3cnc-tui install --mode parallel
 ```
 
 and require an explicit choice for replace behavior, for example:
 
 ```bash
-./e3cnc-cli install --mode replace
+./e3cnc-tui install --mode replace
 ```
 
 The migration work should preserve this policy throughout the redesign.
@@ -1142,8 +1142,8 @@ Give existing installs a way to adopt the new layout and repo name.
 
 ### Work
 
-- implement `e3cnc-cli migrate-layout` (handles repo rename + layout migration)
-- implement bootstrap `e3cnc-cli install` for clean hosts
+- implement `e3cnc-tui migrate-layout` (handles repo rename + layout migration)
+- implement bootstrap `e3cnc-tui install` for clean hosts
 - handle `[update_manager E3CNC_UI]` → `[update_manager E3CNC]` rewrite
 - handle coexistence: old files get overwritten by new release symlinks
 - disable old Ansible-based update path after migration
@@ -1188,7 +1188,7 @@ Make the update flow reliable even under adverse conditions.
 - implement all 7 health checks defined in §5.4
 - implement automatic rollback on health-check failure
 - implement idempotent activation (recoverable after power loss)
-- add `e3cnc-cli repair` for broken-state recovery
+- add `e3cnc-tui repair` for broken-state recovery
 - implement pre-flight checks (Python, Klipper, disk space, compatibility)
 
 ### Exit criteria
@@ -1198,7 +1198,7 @@ Make the update flow reliable even under adverse conditions.
 
 ---
 
-## Phase 8 — Rewrite `e3cnc-cli update` as the stack apply tool
+## Phase 8 — Rewrite `e3cnc-tui update` as the stack apply tool
 
 ### Objective
 
@@ -1238,7 +1238,7 @@ Retire the old multi-copy mental model.
 - remove Ansible macros copy role
 - remove ad-hoc multi-destination copy logic across deploy roles
 - narrow remaining Ansible roles to activation-oriented logic only
-- update `build-scripts/post_update.sh` to call `./e3cnc-cli update` instead of `ansible-playbook`
+- update `build-scripts/post_update.sh` to call `./e3cnc-tui update` instead of `ansible-playbook`
 
 ### Exit criteria
 

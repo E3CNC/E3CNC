@@ -1,7 +1,7 @@
 // Package instance provides the E3CNC instance model and filesystem helpers.
 //
 // An Instance represents a single Klipper/Moonraker deployment. Each instance
-// has its own directory under ~/e3cnc/instances/{name}/ with data, config,
+// has its own directory under ~/E3CNC/instances/{name}/ with data, config,
 // and frontend directories.
 //
 // This is the foundation for the entire CLI — every command operates on an
@@ -46,17 +46,17 @@ func E3CNCHome() string {
 	return filepath.Join(home, "E3CNC")
 }
 
-// InstancesDir returns ~/e3cnc/instances.
+// InstancesDir returns ~/E3CNC/instances.
 func InstancesDir() string {
 	return filepath.Join(E3CNCHome(), "instances")
 }
 
-// ReleasesDir returns ~/e3cnc/releases.
+// ReleasesDir returns ~/E3CNC/releases.
 func ReleasesDir() string {
 	return filepath.Join(E3CNCHome(), "releases")
 }
 
-// CurrentLink returns ~/e3cnc/current.
+// CurrentLink returns ~/E3CNC/current.
 func CurrentLink() string {
 	return filepath.Join(E3CNCHome(), "current")
 }
@@ -71,9 +71,9 @@ func StateDir() string {
 //
 // Paths are deterministic:
 //
-//	~/e3cnc/instances/{name}/data/config/
-//	~/e3cnc/instances/{name}/data/logs/
-//	~/e3cnc/instances/{name}/frontend/
+//	~/E3CNC/instances/{name}/data/config/
+//	~/E3CNC/instances/{name}/data/logs/
+//	~/E3CNC/instances/{name}/frontend/
 func FromName(name string) (*Instance, error) {
 	base := filepath.Join(InstancesDir(), name)
 	data := filepath.Join(base, "data")
@@ -131,7 +131,7 @@ func FromName(name string) (*Instance, error) {
 	}, nil
 }
 
-// DetectInstances scans for instances — new layout (~/e3cnc/instances/*) first.
+// DetectInstances scans for instances — new layout (~/E3CNC/instances/*) first.
 func DetectInstances() ([]*Instance, error) {
 	var instances []*Instance
 

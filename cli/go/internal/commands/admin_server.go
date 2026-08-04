@@ -215,7 +215,7 @@ func corsMW(next http.HandlerFunc) http.HandlerFunc {
 // findAdminFrontend locates the admin frontend directory.
 // Checks: E3CNC_ADMIN_FRONTEND env var, then admin/dist relative to
 // the binary's location (handles both development and release layouts),
-// then ~/e3cnc/admin/frontend (production install).
+// then ~/E3CNC/admin/frontend (production install).
 func findAdminFrontend() string {
 	// 1. Environment override
 	if env := os.Getenv("E3CNC_ADMIN_FRONTEND"); env != "" {

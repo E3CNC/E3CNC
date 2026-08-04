@@ -408,9 +408,19 @@ func (m UpdateModel) performUpdate() (UpdateModel, tea.Cmd) {
 	}
 	if critical > 0 {
 		if previous != "" {
-			_ = deploy.ActivateRelease(previous)
+			target := filepath.Join(instance.ReleasesDir(), previous)
+			if _, err := os.Stat(target); err == nil {
+				if rbErr := deploy.ActivateRelease(previous); rbErr != nil {
+					m.err = fmt.Errorf("update failed and rollback failed: update=%w, rollback=%w", m.err, rbErr)
+				} else {
+					m.rolledBack = true
+					inst, _ := instance.FromName("default")
+					m.checks = deploy.RunHealthChecks(inst)
+				}
+			} else {
+				m.err = fmt.Errorf("update failed and previous release %q missing: %w", previous, m.err)
+			}
 		}
-		m.rolledBack = true
 	}
 	m.step = 4
 	m.screen = UpdateScreenResult
