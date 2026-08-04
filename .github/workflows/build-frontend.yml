@@ -279,8 +279,14 @@ jobs:
           # Prepend unreleased commits as new version section
           $CLIFF --unreleased --tag "$(git describe --tags --exact-match HEAD)" --prepend CHANGELOG.md 2>/dev/null || \
             echo "No new changelog entries to add (may have been seeded already)."
-          if ! git diff --cached --quiet 2>/dev/null && git ls-files --deleted --others CHANGELOG.md 2>/dev/null | grep -q .; then
-            git add CHANGELOG.md
+          # Stage first, then check the staged diff. git-cliff --prepend only
+          # touches the working tree, so checking `git diff --cached` before
+          # `git add` (or checking unstaged diff of a tracked file) is always
+          # empty and the commit silently never happens.
+          git add CHANGELOG.md
+          if git diff --cached --quiet; then
+            echo "No changelog changes to commit."
+          else
             git commit -m "chore: update CHANGELOG for $(git describe --tags --exact-match HEAD)"
             git push origin main
           fi
