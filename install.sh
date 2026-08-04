@@ -50,6 +50,29 @@ usage() {
     exit 0
 }
 
+# install_binary installs the downloaded temp file as the e3cnc-tui binary.
+# Guards against a stale *directory* at the destination (leftover from an
+# older or partial install): `mv` would otherwise move the file *inside* the
+# directory, leaving the path as a directory and breaking the handoff with
+# "Is a directory" (exit 126). Returns 0 on success, 1 on failure.
+install_binary() {
+    local src="$1" dst="$2"
+
+    if [[ -d "$dst" ]]; then
+        log_warn "Removing stale directory at ${dst} (leftover from a previous install)"
+        rm -rf "$dst"
+    fi
+
+    chmod +x "$src" && mv -f "$src" "$dst"
+
+    # Verify the installed path is a regular executable file.
+    if [[ -f "$dst" && -x "$dst" && ! -d "$dst" ]]; then
+        return 0
+    fi
+    log_error "Binary install failed: ${dst} is not an executable file"
+    return 1
+}
+
 main() {
     local UNATTENDED=false TEST_PORTS=false CUSTOM_DIR=""
 
@@ -111,7 +134,10 @@ main() {
     rm -f "$checksum_file"
 
     # ── Install binary ─────────────────────────────────────────────
-    chmod +x "$temp_file" && mv "$temp_file" "$binary_path"
+    if ! install_binary "$temp_file" "$binary_path"; then
+        rm -f "$temp_file"
+        exit 1
+    fi
     log_info "Installed ${BINARY_NAME} to ${binary_path}"
 
     # ── --test-ports: delegate to Go binary ─────────────────────────
@@ -131,4 +157,7 @@ main() {
     fi
 }
 
-main "$@"
+# Only run main when executed directly (not when sourced by tests).
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    main "$@"
+fi

@@ -109,6 +109,41 @@ cp /usr/local/bin/e3cnc-tui "$SAND/releases/e3cnc-tui"
 chmod +x "$SAND/releases/e3cnc-tui"
 "$SAND/releases/e3cnc-tui" --version 2>&1 | grep -q "v" && pass "Binary runs from sandbox" || fail "Binary failed in sandbox"
 
+# ─── Test 8: Stale Directory at Binary Path (regression) ─
+# Regression test for: "./install.sh: /usr/local/bin/e3cnc-tui: Is a directory"
+# (exit 126). A leftover directory at the destination used to make `mv`
+# move the binary *inside* the directory, leaving the path as a directory
+# and breaking the install handoff.
+echo ""
+echo -e "${BOLD}[8] Stale Directory at Binary Path${NC}"
+if [[ -n "${INSTALL_SH:-}" ]]; then
+    # Source install.sh so we can call install_binary() directly (guarded
+    # by the BASH_SOURCE check so main() does not run).
+    # shellcheck disable=SC1090
+    source "$INSTALL_SH" 2>/dev/null
+
+    STALE_DIR="/usr/local/bin/e3cnc-tui-stale-dir-test"
+    rm -rf "$STALE_DIR"
+    mkdir -p "$STALE_DIR"   # simulate the stale directory bug (dst IS the dir)
+
+    if command -v install_binary >/dev/null 2>&1; then
+        if install_binary /usr/local/bin/e3cnc-tui "$STALE_DIR" 2>/dev/null; then
+            if [[ -x "$STALE_DIR" && ! -d "$STALE_DIR" ]]; then
+                pass "install_binary replaced stale directory with executable"
+            else
+                fail "install_binary produced a non-executable result at $STALE_DIR"
+            fi
+        else
+            fail "install_binary failed when destination was a directory"
+        fi
+    else
+        fail "install_binary function not found in install.sh"
+    fi
+    rm -rf "$STALE_DIR"
+else
+    skip "install.sh not found — skipping stale-directory regression test"
+fi
+
 # ─── Summary ──────────────────────────────────────────────
 echo ""
 echo -e "${BOLD}════════════════════════════════════════${NC}"
