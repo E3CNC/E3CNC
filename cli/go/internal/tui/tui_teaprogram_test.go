@@ -118,6 +118,10 @@ func TestTeaProgram_SelectInstallWizard(t *testing.T) {
 	p, buf := newTestProgram(t)
 	output := runTestProgram(t, p, buf, func() {
 		p.Send(tea.KeyMsg{Type: tea.KeyEnter})
+		// Give the wizard a moment to render before escaping back,
+		// otherwise on a loaded runner the wizard frame is never
+		// captured and the test flakes.
+		time.Sleep(200 * time.Millisecond)
 		p.Send(tea.KeyMsg{Type: tea.KeyEscape})
 		p.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("q")})
 	})
