@@ -37,7 +37,6 @@ Single static binary — no runtime dependencies. Two entry points:
 - **Python CLI removed** — archived; all operations run in-process
 - **Single static binary** — CGO_ENABLED=0, ships as `e3cnc-tui`
 - **Stack artifact** — release `.tar.zst` bundles frontend + vendor + binary
-- **Nightly CI** — every push to `main` publishes a nightly pre-release
 
 ### Vue 3 Migration Status
 
@@ -51,5 +50,5 @@ All routes verified working on Vue 3.5 + Vuetify 3 + pure `<script setup>`:
 | Workflow                    | Trigger                         | What it does                                        |
 | --------------------------- | ------------------------------- | --------------------------------------------------- |
 | `ci.yml`                    | Push/PR to `main`               | Go tests + build                                    |
-| `build-frontend.yml`        | Tag push / main push / manual   | Build frontend + Go binary, create release artifact |
+| `build-frontend.yml`        | Tag push / manual              | Build frontend + Go binary, create release artifact |
 | `publish-moonraker-mcp.yml` | `moonraker-mcp-v*` tag / manual | Publish MCP server to PyPI                          |

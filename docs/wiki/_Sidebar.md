@@ -1,0 +1,10 @@
+* [Home](Home)
+* [Installation](Installation) — one-command installer
+* [Features](Features)
+* [Architecture](Architecture)
+* [API Reference](API)
+* [Moonraker MCP](Moonraker-MCP)
+* [Multi-Instance](Multi-Instance)
+* [Design System](Design-System)
+* [Changelog](Changelog)
+* [Contributing](Contributing)

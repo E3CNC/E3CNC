@@ -87,7 +87,7 @@ func createDirectories(cfg BootstrapConfig) error {
 }
 
 func copyVendoredComponents(cfg BootstrapConfig) error {
-	home, _ := os.UserHomeDir()
+	home := effectiveHome()
 	currentTarget, err := os.Readlink(instance.CurrentLink())
 	if err != nil {
 		return fmt.Errorf("no current release: %w", err)

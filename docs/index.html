@@ -341,7 +341,7 @@
                         <h3>E3CNC UI Theme</h3>
                         <p>
                             Default green (#00FF00) branding theme with custom logo. Persisted to Moonraker database
-                            after every update via Ansible.
+                            via the Vue store — the frontend saves and restores preferences automatically.
                         </p>
                     </div>
                     <div class="feature">
@@ -422,324 +422,21 @@
 
             <section>
                 <h2>Recent Changes</h2>
+                <p class="install-intro">
+                    The full changelog is maintained at
+                    <a href="https://github.com/E3CNC/E3CNC/blob/main/CHANGELOG.md" style="color: var(--accent)">CHANGELOG.md</a>
+                    — auto-generated from conventional commit history.
+                </p>
                 <div class="changelog-list">
                     <div class="entry">
-                        <span class="tag tag-feat">feat</span>
+                        <span class="tag tag-feat">v0.10.0</span>
                         <span class="desc">
-                            <strong>e3cnc-tui unified CLI tool</strong>
-                            — Zero-dependency CLI with interactive menu, direct commands, bash tab completion, SSH
-                            validation, confirmation prompts for destructive operations, and multi-instance detection
-                            for machines with multiple Klipper/Moonraker setups. Run
-                            <code>./e3cnc-tui</code>
-                            for the interactive menu or
-                            <code>./e3cnc-tui install</code>
-                            for direct install.
-                        </span>
-                    </div>
-                    <div class="entry">
-                        <span class="tag tag-feat">feat</span>
-                        <span class="desc">
-                            <strong>Ndot57 theme</strong>
-                            — New theme with Ndot 57 Aligned display font, configurable letter-spacing, and cyan accent
-                            colours. Theme interface extended with
-                            <code>fontFamily</code>
-                            and
-                            <code>letterSpacing</code>
-                            properties.
-                        </span>
-                    </div>
-                    <div class="entry">
-                        <span class="tag tag-feat">feat</span>
-                        <span class="desc">
-                            <strong>Font inheritance system</strong>
-                            — All font-family and letter-spacing declarations removed from individual components.
-                            Everything inherits from root via
-                            <code>--font-family</code>
-                            and
-                            <code>--letter-spacing</code>
-                            CSS custom properties, controlled by the active theme. Vuetify typography classes (
-                            <code>.text-caption</code>
-                            ,
-                            <code>.v-card-title</code>
-                            , etc.) also respect theme fonts.
-                        </span>
-                    </div>
-                    <div class="entry">
-                        <span class="tag tag-chore">chore</span>
-                        <span class="desc">
-                            <strong>Rem units</strong>
-                            — All
-                            <code>font-size</code>
-                            values converted from px and em to rem across 25+ components for consistent scaling with
-                            root font size.
-                        </span>
-                    </div>
-                    <div class="entry">
-                        <span class="tag tag-fix">fix</span>
-                        <span class="desc">
-                            <strong>DRO formatting</strong>
-                            — Axis values now display 2 decimal places with trailing zeros stripped (e.g.
-                            <code>1.00</code>
-                            →
-                            <code>1</code>
-                            ,
-                            <code>1.50</code>
-                            →
-                            <code>1.5</code>
-                            ). Consistent between topbar DRO and dashboard DRO panel.
-                        </span>
-                    </div>
-                    <div class="entry">
-                        <span class="tag tag-feat">feat</span>
-                        <span class="desc">
-                            <strong>E3CNC UI default theme</strong>
-                            — Green #00FF00 branding set as default, persisted to Moonraker DB after every update.
-                            Topbar, page title, and printer name default to "E3CNC UI".
-                        </span>
-                    </div>
-                    <div class="entry">
-                        <span class="tag tag-feat">feat</span>
-                        <span class="desc">
-                            <strong>Home confirmation dialog</strong>
-                            — Clicking on the WCS preview when the machine isn't homed shows a dialog asking to home
-                            first (Enter to confirm, Esc to cancel).
-                        </span>
-                    </div>
-                    <div class="entry">
-                        <span class="tag tag-feat">feat</span>
-                        <span class="desc">
-                            <strong>Smooth tool dot animation</strong>
-                            — The tool position dot on the WCS preview now smoothly animates along the expected path
-                            when a move command is sent.
-                        </span>
-                    </div>
-                    <div class="entry">
-                        <span class="tag tag-feat">feat</span>
-                        <span class="desc">
-                            <strong>Moonraker DB reset script</strong>
-                            — New
-                            <code>scripts/reset_mainsail_db.sh</code>
-                            for testing the first-time setup flow.
-                        </span>
-                    </div>
-                    <div class="entry">
-                        <span class="tag tag-fix">fix</span>
-                        <span class="desc">
-                            <strong>WCS preview G-code fix</strong>
-                            — Fixed
-                            <code>\\n</code>
-                            →
-                            <code>\n</code>
-                            bug in
-                            <code>onSvgClick</code>
-                            that caused move commands to be silently ignored by Moonraker.
-                        </span>
-                    </div>
-                    <div class="entry">
-                        <span class="tag tag-fix">fix</span>
-                        <span class="desc">
-                            <strong>Update dialog not opening</strong>
-                            — Vuetify 3 migration leftover:
-                            <code>:value</code>
-                            on
-                            <code>v-dialog</code>
-                            changed to
-                            <code>:model-value</code>
-                            . Fixed in 4 dialogs. Added error toasts when update RPC calls fail.
-                        </span>
-                    </div>
-                    <div class="entry">
-                        <span class="tag tag-fix">fix</span>
-                        <span class="desc">
-                            <strong>First-time setup flow</strong>
-                            — Auto-detected and manually added printers now connect directly without farm registration.
-                            Add Printer dialog now connects immediately after saving.
-                        </span>
-                    </div>
-                    <div class="entry">
-                        <span class="tag tag-fix">fix</span>
-                        <span class="desc">
-                            <strong>Ansible deployment</strong>
-                            — Bun dependency removed. Frontend role now delegates to
-                            <code>download_frontend.sh</code>
-                            (nightly release). PATH fixed in
-                            <code>post_update.sh</code>
-                            and
-                            <code>download_frontend.sh</code>
-                            . Ansible roles_path fixed.
-                        </span>
-                    </div>
-                    <div class="entry">
-                        <span class="tag tag-chore">chore</span>
-                        <span class="desc">
-                            <strong>CI/CD</strong>
-                            — Nightly releases changed to manual trigger via
-                            <code>workflow_dispatch</code>
-                            (no longer automatic on push to main). Unit tests removed from CI.
-                        </span>
-                    </div>
-                    <div class="entry">
-                        <span class="tag tag-feat">feat</span>
-                        <span class="desc">
-                            <strong>Scroll-to-top button</strong>
-                            — Floating primary button with fade transition appears in bottom-right corner after
-                            scrolling 300px.
-                        </span>
-                    </div>
-                    <div class="entry">
-                        <span class="tag tag-fix">fix</span>
-                        <span class="desc">
-                            <strong>Macro button contrast</strong>
-                            — Left border separator, default opacity 0.7, full opacity on hover or when parameters
-                            dialog is open.
-                        </span>
-                    </div>
-                    <div class="entry">
-                        <span class="tag tag-fix">fix</span>
-                        <span class="desc">
-                            <strong>Cursor tooltip background</strong>
-                            — WCS preview coordinate tooltip now has solid black background (#000) with white text for
-                            better readability.
-                        </span>
-                    </div>
-                    <div class="entry">
-                        <span class="tag tag-fix">fix</span>
-                        <span class="desc">
-                            <strong>Color picker Vuetify 3 compat</strong>
-                            — Fixed
-                            <code>@update:color</code>
-                            →
-                            <code>@update:model-value</code>
-                            in 5 files. Fixed context menu positioning (
-                            <code>offset-y</code>
-                            →
-                            <code>:target</code>
-                            ).
-                        </span>
-                    </div>
-                    <div class="entry">
-                        <span class="tag tag-docs">docs</span>
-                        <span class="desc">
-                            Updated
-                            <strong>AGENTS.md</strong>
-                            with Playwright MCP headed browser, tmux + ssh cnc, and browser validation instructions.
-                        </span>
-                    </div>
-                    <div class="entry">
-                        <span class="tag tag-fix">fix</span>
-                        <span class="desc">
-                            <strong>Logo rendering</strong>
-                            — E3CNC UI SVG logo now uses single-line
-                            <code>href</code>
-                            data URI instead of multiline
-                            <code>xlink:href</code>
-                            . Fixed blank logo across all browsers.
-                        </span>
-                    </div>
-                    <div class="entry">
-                        <span class="tag tag-feat">feat</span>
-                        <span class="desc">
-                            <strong>CNC-safe macros</strong>
-                            —
-                            <code>PAUSE</code>
-                            /
-                            <code>RESUME</code>
-                            /
-                            <code>CANCEL_PRINT</code>
-                            with
-                            <code>rename_existing: BASE_*</code>
-                            . M3-M9 overridden as no-ops (no spindle wired).
-                            <code>FINISH_JOB</code>
-                            : Z25, X0 Y0, no M84.
-                            <code>CANCEL_PRINT</code>
-                            keeps WCS semantics.
-                        </span>
-                    </div>
-                    <div class="entry">
-                        <span class="tag tag-feat">feat</span>
-                        <span class="desc">
-                            <strong>G-code viewer with WCS metadata</strong>
-                            — Stock/toolpath anchored to machine Z0. Live toolhead uses full WCS coordinates. Parses
-                            <code>CAM WCS Origin</code>
-                            comments from Fusion 360 posts.
-                        </span>
-                    </div>
-                    <div class="entry">
-                        <span class="tag tag-feat">feat</span>
-                        <span class="desc">
-                            <strong>Job start WCS selection</strong>
-                            — Pre-start dialog asks which WCS coordinates to use. Shows all G54-G59 slots. G-code WCS
-                            preselected by default.
-                        </span>
-                    </div>
-                    <div class="entry">
-                        <span class="tag tag-feat">feat</span>
-                        <span class="desc">
-                            <strong>Jog panel enhancements</strong>
-                            — XY/Z jog buttons with primary hover bg, gray outline for contrast. Disable Steppers turns
-                            primary when any axis homed. Keyboard nav persistent toast with reactive jog step display.
-                        </span>
-                    </div>
-                    <div class="entry">
-                        <span class="tag tag-feat">feat</span>
-                        <span class="desc">
-                            <strong>WCS panel SET ALL</strong>
-                            — New button resets X, Y, Z together with the same confirmation flow.
-                        </span>
-                    </div>
-                    <div class="entry">
-                        <span class="tag tag-feat">feat</span>
-                        <span class="desc">
-                            <strong>Semver release alignment</strong>
-                            — Releases use semver git tags on
-                            <code>main</code>
-                            . Version badges and GitHub releases now show proper semver (v0.5.0). Update manager
-                            switched to
-                            <code>primary_branch: main</code>
-                            .
-                        </span>
-                    </div>
-                    <div class="entry">
-                        <span class="tag tag-feat">feat</span>
-                        <span class="desc">
-                            <strong>Post processor metadata</strong>
-                            — Fusion 360 post renamed to
-                            <code>E3CNC_Fusion360.cps</code>
-                            . Emits
-                            <code>CAM WCS Origin:</code>
-                            comments derived from stock bounds.
-                        </span>
-                    </div>
-                    <div class="entry">
-                        <span class="tag tag-feat">feat</span>
-                        <span class="desc">
-                            <strong>Feedrate override slider</strong>
-                            — Jog panel slider sends
-                            <code>M220 S&lt;percent&gt;</code>
-                            to adjust machine speed in real time. Range 10-300%, 1s debounce, always enabled.
-                        </span>
-                    </div>
-                    <div class="entry">
-                        <span class="tag tag-feat">feat</span>
-                        <span class="desc">
-                            <strong>Z Feed slider</strong>
-                            — Native range input below Z Feed field, matching XY Feed slider. Both sliders use dynamic
-                            min/max from toolhead, step 50.
-                        </span>
-                    </div>
-                    <div class="entry">
-                        <span class="tag tag-fix">fix</span>
-                        <span class="desc">
-                            <strong>Slider snap alignment</strong>
-                            — Feed slider min changed from 1 to 0 so values snap to round multiples of 50 instead of
-                            offset-by-1 values.
-                        </span>
-                    </div>
-                    <div class="entry">
-                        <span class="tag tag-feat">feat</span>
-                        <span class="desc">
-                            <strong>Larger slider thumb</strong>
-                            — Range input thumb doubled to 32×32 with thicker border.
+                            <strong>Multi-distro package manager, consolidated install log</strong>
+                            — The installer now auto-detects 6 distro families (Debian, Fedora, Arch, openSUSE, Alpine, RHEL).
+                            Install logs are consolidated to <code>~/E3CNC/logs/install.log</code> for easier debugging.
+                            See the
+                            <a href="https://github.com/E3CNC/E3CNC/releases" style="color: var(--accent)">releases page</a>
+                            for the full changelog.
                         </span>
                     </div>
                 </div>
@@ -765,10 +462,7 @@ cd ~/E3CNC
                     <code>./e3cnc-tui</code>
                     with no arguments for an interactive menu that loops after each command. Use
                     <code>[W]</code>
-                    to switch between multiple Klipper/Moonraker instances on the same machine. Tab completion available
-                    via
-                    <code>source ~/E3CNC/build-scripts/e3cnc-completion.sh</code>
-                    . See the
+                    to switch between multiple Klipper/Moonraker instances on the same machine. See the
                     <a href="https://github.com/E3CNC/E3CNC/wiki/Installation">wiki</a>
                     for details and other install methods.
                 </p>
@@ -802,10 +496,9 @@ cd ~/E3CNC
                     <code>~/E3CNC</code>
                     with an absolute path if needed (e.g.
                     <code>/home/pi/E3CNC</code>
-                    ). The script auto-installs Ansible, creates a backup before every update, and preserves the 3 most
-                    recent backups. See the
-                    <a href="https://github.com/E3CNC/E3CNC/wiki/Installation-Update-Manager">wiki</a>
-                    for details.
+                    ). The
+                    <code>e3cnc-tui update</code>
+                    command handles backups before every update and preserves the 3 most recent automatically.
                 </p>
             </section>
 
@@ -822,10 +515,6 @@ cd ~/E3CNC
                     </a>
                     <a href="https://github.com/E3CNC/E3CNC/wiki/Installation">
                         Installation Guide
-                        <span class="arrow"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
-                    </a>
-                    <a href="https://github.com/E3CNC/E3CNC/wiki/Installation-Update-Manager">
-                        Update Workflow Changes
                         <span class="arrow"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
                     </a>
                     <a href="https://github.com/E3CNC/E3CNC/releases">

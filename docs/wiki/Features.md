@@ -69,7 +69,6 @@
 
 | Feature                  | Description                                                                                               |
 | ------------------------ | --------------------------------------------------------------------------------------------------------- |
-| **Semver Releases**      | Version tags on `main` trigger GitHub releases                                                            |
-| **Nightly Pre-Releases** | Every push to `main` creates/updates a `nightly-main-YYYYMMDD` pre-release                                |
+| **Semver Releases**      | Version tags on `main` trigger GitHub releases                                       |
 | **Stack Artifact**       | `e3cnc-stack-v<ver>.tar.zst` containing frontend, Moonraker, Klipper extras, macros, TUI binary, manifest |
 | **CI**                   | Go tests (~200) + frontend build on every push/PR                                                                       |

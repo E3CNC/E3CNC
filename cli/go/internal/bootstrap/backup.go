@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -164,9 +165,23 @@ func defaultE3CNCHome() string {
 	if testE3CNCHome != "" {
 		return testE3CNCHome
 	}
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return filepath.Join("/home", os.Getenv("USER"), "E3CNC")
+	// E3CNC_DIR env var takes highest priority
+	if dir := os.Getenv("E3CNC_DIR"); dir != "" {
+		return dir
+	}
+	// When running under sudo, use the original user's home
+	home := os.Getenv("HOME")
+	if sudoUser := os.Getenv("SUDO_USER"); sudoUser != "" {
+		if home == "" || strings.Contains(home, "/root") {
+			home = filepath.Join("/home", sudoUser)
+		}
+	}
+	if home == "" {
+		var err error
+		home, err = os.UserHomeDir()
+		if err != nil {
+			return filepath.Join("/home", os.Getenv("USER"), "E3CNC")
+		}
 	}
 	return filepath.Join(home, "E3CNC")
 }
@@ -174,4 +189,23 @@ func defaultE3CNCHome() string {
 // e3cncHome returns the path to the E3CNC home directory.
 func e3cncHome() string {
 	return E3CNCHome()
+}
+
+// effectiveHome returns the real user's home directory, accounting for sudo.
+// Unlike E3CNCHome, this returns just the home directory (not ~/E3CNC).
+// Used when we need paths like ~/moonraker or ~/klipper rather than ~/E3CNC/....
+func effectiveHome() string {
+	if dir := os.Getenv("HOME"); dir != "" {
+		if sudoUser := os.Getenv("SUDO_USER"); sudoUser != "" {
+			if strings.Contains(dir, "/root") {
+				return filepath.Join("/home", sudoUser)
+			}
+		}
+		return dir
+	}
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "/home/" + os.Getenv("USER")
+	}
+	return home
 }

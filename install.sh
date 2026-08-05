@@ -20,7 +20,18 @@ detect_architecture() {
     case "$arch" in
         aarch64|arm64) echo "arm64" ;;
         x86_64|amd64)  echo "amd64" ;;
-        *) log_error "Unsupported architecture: ${arch}. Supported architectures: arm64, amd64"; exit 1 ;;
+        armv6l|armv7l)
+            log_error "Unsupported architecture: ${arch}. E3CNC builds 64-bit binaries (arm64/amd64) only."
+            echo ""
+            echo "  Your ${arch} system (e.g. Raspberry Pi Zero, Pi 1) cannot run arm64 binaries."
+            echo ""
+            echo "  Options:"
+            echo "    1. Install a 64-bit OS (Raspberry Pi OS 64-bit, Ubuntu Server, etc.)"
+            echo "       — the Pi's CPU supports it; the default OS is often 32-bit."
+            echo "    2. Build from source: cd cli/go && CGO_ENABLED=0 GOARCH=arm GOARM=6 go build -o e3cnc-tui ./cmd/e3cnc-tui/"
+            echo "       — requires Go toolchain on the target machine."
+            exit 1 ;;
+        *) log_error "Unsupported architecture: ${arch}. Supported architectures: arm64, amd64. If you have a 32-bit ARM system (armv6l/armv7l), see the error above for workarounds."; exit 1 ;;
     esac
 }
 

@@ -106,5 +106,5 @@ Deploy operations are forwarded to `e3cnc-tui` via subprocess with `--json` outp
 - Agent owns only what Klipper doesn't model
 - `e3cnc-tui` applies its own lipgloss styling in TUI mode; plain text in CLI mode
 - `cli/commands.json` is the single source of truth for all command definitions
-- Version is baked into the Go binary at build time via `-ldflags` (package.json for tagged releases, `git describe` for nightly CI)
+- Version is baked into the Go binary at build time via `-ldflags` (package.json for tagged releases, `git describe` for CI builds)
 - The Go binary is a single static artifact — no runtime dependencies, no Python, no Ansible

@@ -63,7 +63,18 @@ func CurrentLink() string {
 
 // StateDir returns ~/.e3cnc-tui.
 func StateDir() string {
-	home, _ := os.UserHomeDir()
+	home := os.Getenv("HOME")
+	if home == "" || (os.Getenv("SUDO_USER") != "" && strings.Contains(home, "/root")) {
+		if sudoUser := os.Getenv("SUDO_USER"); sudoUser != "" {
+			home = filepath.Join("/home", sudoUser)
+		} else {
+			var err error
+			home, err = os.UserHomeDir()
+			if err != nil {
+				home = "/root"
+			}
+		}
+	}
 	return filepath.Join(home, ".e3cnc-tui")
 }
 
