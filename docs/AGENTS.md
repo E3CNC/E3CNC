@@ -27,7 +27,7 @@ Single static binary — no runtime dependencies. Two entry points:
 | `internal/commands/`  | Go-native implementations of all 24 CLI commands                      | ✅ 10+ tests      |
 | `internal/deploy/`    | Release management, health checks (7 checks), backup/restore          | ✅ 15+ tests      |
 | `internal/instance/`  | Instance model, filesystem detection, port allocation                 | ✅ 10+ tests      |
-| `internal/bootstrap/` | Fresh-install provisioning (replaces Ansible), uninstall, rollback    | ✅ 4 tests        |
+| `internal/bootstrap/` | Fresh-install provisioning (replaces Ansible), uninstall, rollback    | ✅ 40+ tests      |
 | `internal/config.go`  | Persistent state (`state.json`, install journal)                      | ✅ existing tests |
 | `internal/command.go` | Command manifest types and lookup                                     | ✅ existing tests |
 

@@ -61,27 +61,40 @@ func Bootstrap(cfg BootstrapConfig) error {
 		cfg.InstanceName = "default"
 	}
 
+	// Consolidated install log — captures every step, package-manager output,
+	// and the final error in one file for easy sharing/support. The log is
+	// opened by the caller (TUI goroutine / CLI install) so its lifecycle
+	// spans the whole install; Bootstrap only writes to it.
+	InstallLogf("Bootstrap start: instance=%s arch=%s", cfg.InstanceName, cfg.Arch)
+
 	// ── Pre-install steps ──────────────────────────────────────
 
 	// Migrate from legacy ~/e3cnc to ~/E3CNC
 	fmt.Println("  Checking for legacy installation...")
+	InstallLogf("Checking for legacy installation...")
 	if err := MigrateOldDir(); err != nil {
 		// Non-blocking: migration failure shouldn't stop a fresh install
 		fmt.Fprintf(os.Stderr, "  Warning: migration skipped: %v\n", err)
+		InstallLogf("Warning: migration skipped: %v", err)
 	} else {
 		fmt.Println("  ✓ Migration check complete")
+		InstallLogf("✓ Migration check complete")
 	}
 
 	// Create pre-install backup
 	fmt.Println("  Creating pre-install backup...")
+	InstallLogf("Creating pre-install backup...")
 	backupPath, err := BackupExisting()
 	if err != nil {
 		// Non-blocking: backup failure shouldn't stop the install
 		fmt.Fprintf(os.Stderr, "  Warning: backup failed: %v\n", err)
+		InstallLogf("Warning: backup failed: %v", err)
 	} else if backupPath != "" {
 		fmt.Printf("  ✓ Backup created: %s\n", filepath.Base(backupPath))
+		InstallLogf("✓ Backup created: %s", filepath.Base(backupPath))
 	} else {
 		fmt.Println("  ✓ Nothing to back up")
+		InstallLogf("✓ Nothing to back up")
 	}
 
 	// Auto-detect ports if not explicitly set
@@ -116,7 +129,7 @@ func Bootstrap(cfg BootstrapConfig) error {
 	}
 
 	stepFns := []StepFn{
-		{"Install system packages", false, func(cfg BootstrapConfig) error { return installSystemPackages() }},
+		{"Install system packages", true, func(cfg BootstrapConfig) error { return installSystemPackages() }},
 		{"Configure sudoers", false, func(cfg BootstrapConfig) error { return setupSudoers() }},
 		{"Create directories", true, func(cfg BootstrapConfig) error { return createDirectories(cfg) }},
 		{"Vendor Moonraker and Klipper", true, func(cfg BootstrapConfig) error { return copyVendoredComponents(cfg) }},
@@ -138,10 +151,12 @@ func Bootstrap(cfg BootstrapConfig) error {
 			continue
 		}
 		fmt.Fprintf(cfg.Out(), "  [%d/%d] %s...\n", i+1, len(stepFns), step.name)
+		InstallLogf("[%d/%d] %s...", i+1, len(stepFns), step.name)
 		report(i, "running", nil)
 		if err := step.fn(cfg); err != nil {
 			report(i, "failed", err)
 			errMsg := fmt.Errorf("step %d (%s): %w", i+1, step.name, err)
+			InstallLogf("✗ step %d (%s) FAILED: %v", i+1, step.name, err)
 			if step.blocking {
 				return errMsg
 			}
@@ -150,6 +165,7 @@ func Bootstrap(cfg BootstrapConfig) error {
 		}
 		report(i, "completed", nil)
 		fmt.Printf("  ✓ %s\n", step.name)
+		InstallLogf("✓ %s", step.name)
 	}
 
 	if len(stepErrors) > 0 {

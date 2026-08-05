@@ -4,17 +4,30 @@ E3CNC UI is a maintained fork of Mainsail extended with CNC-native dashboard pan
 
 ## Prerequisites
 
-**Klipper** and **Moonraker** must already be installed and running on a Linux host (Debian/Ubuntu/Raspberry Pi OS).
+**Klipper** and **Moonraker** must already be installed and running on a Linux host.
+
+Supported distributions and their package managers:
+
+| Distribution              | Package manager | Notes                                        |
+| ------------------------- | --------------- | -------------------------------------------- |
+| Debian / Ubuntu / Raspberry Pi OS | `apt-get` | Primary target; fully tested                 |
+| Fedora / RHEL / Rocky     | `dnf`           | Uses `--allowerasing` to resolve conflicts   |
+| CentOS 7 / legacy RHEL    | `yum`           | Fallback for systems without `dnf`           |
+| Arch Linux                | `pacman`        | Uses `base-devel` for build toolchain        |
+| openSUSE / SLES           | `zypper`        |                                              |
+| Alpine Linux              | `apk`           | Tested on musl via static binary             |
+
+The installer auto-detects the package manager at runtime — no manual selection needed. Core system packages (`git`, `curl`, `unzip`, `zstd`, `nginx`, `supervisor`, `python3`, `python3-pip`, `python3-venv`, build tools, `avahi-utils`) are installed with distro-native names and flags. Packages that are already present are skipped.
 
 The installer is a bash bootstrap script that downloads a single Go static binary — the only things needed on the target machine are:
 
-| Dependency | Why                                         | Install                     |
-| ---------- | ------------------------------------------- | --------------------------- |
-| `git`      | Clone the repo                              | `sudo apt install git`      |
-| `python3`  | Moonraker/Klipper runtime (not for the CLI) | `sudo apt install python3`  |
-| `curl`     | Download release artifacts                  | Auto-installed by bootstrap |
-| `unzip`    | Extract artifacts                           | Auto-installed by bootstrap |
-| `zstd`     | Extract compressed stack artifacts          | Auto-installed by bootstrap |
+| Dependency | Why                                         | Install                                  |
+| ---------- | ------------------------------------------- | ---------------------------------------- |
+| `git`      | Clone the repo                              | Auto-installed by bootstrap              |
+| `python3`  | Moonraker/Klipper runtime (not for the CLI) | Auto-installed by bootstrap              |
+| `curl`     | Download release artifacts                  | Auto-installed by bootstrap              |
+| `unzip`    | Extract artifacts                           | Auto-installed by bootstrap              |
+| `zstd`     | Extract compressed stack artifacts          | Auto-installed by bootstrap              |
 
 > **No Go, no Node, no Bun** — everything runs as a pre-built static binary.
 
@@ -96,6 +109,24 @@ e3cnc-tui install --yes           # unattended (basic)
 e3cnc-tui install --yes --name cnc_2  # unattended with instance name
 e3cnc-tui install --check         # dry-run only
 ```
+
+## Install logs
+
+If something goes wrong during installation, a **single consolidated log** captures everything: the TUI wizard output, package-manager output (apt/dnf/pacman/zypper/apk), every step, and the final error.
+
+| File | Location |
+| ---- | -------- |
+| **Consolidated install log** | `~/E3CNC/logs/install.log` |
+
+The log is append-mode with a `=== E3CNC install attempt <timestamp> ===` header per run, so history survives retries. On failure the log ends with:
+
+```
+[11:21:22] ✗ step 4 (Vendor Moonraker and Klipper) FAILED: no current release: readlink /home/user/E3CNC/current: no such file or directory
+[11:21:22] === INSTALL FAILED: step 4 (Vendor Moonraker and Klipper): no current release: ... ===
+[11:21:22] Full install log: /home/user/E3CNC/logs/install.log
+```
+
+**When sharing logs for support**, send `~/E3CNC/logs/install.log` — it contains the failing step, the package-manager error output, and the environment context. The structured journal at `~/.e3cnc-tui/install-journal.json` has the machine-readable status/error pair.
 
 ## Instance layout
 

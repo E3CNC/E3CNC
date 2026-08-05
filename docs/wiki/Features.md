@@ -38,7 +38,7 @@
 
 | Feature                  | Description                                                                                                |
 | ------------------------ | ---------------------------------------------------------------------------------------------------------- |
-| **Bootstrap in Go**      | Fresh-install provisioning replaces Ansible with Go functions (apt, pip, venv, systemd, git clone)         |
+| **Bootstrap in Go**      | Fresh-install provisioning replaces Ansible with Go functions (multi-distro package manager: apt/dnf/yum/pacman/zypper/apk, pip, venv, supervisor, git clone) |
 | **Single-Deploy Layout** | `~/E3CNC/releases/<version>/` with `current` symlink. Atomic activation via `current.new` → rename         |
 | **Health Checks**        | 7 checks after every install/update: Moonraker API, service, Klippy, CNC agent, frontend, journal, Klipper |
 | **Auto-Rollback**        | If critical health checks fail after update, automatically reverts to previous release                     |

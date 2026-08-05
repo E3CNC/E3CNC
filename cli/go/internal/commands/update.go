@@ -181,10 +181,22 @@ func cmdInstall(jsonOut bool, args []string) bool {
 		fmt.Println(`{"status":"starting","phase":"bootstrap"}`)
 	}
 
+	// Consolidated install log — captures the CLI install output too.
+	// Bootstrap() and the package managers write to it directly.
+	if err := bootstrap.OpenInstallLog(); err != nil {
+		fmt.Fprintf(os.Stderr, "  Warning: cannot open install log: %v\n", err)
+	}
+
 	if err := bootstrap.Bootstrap(cfg); err != nil {
 		fmt.Fprintf(os.Stderr, "  ❌ Install failed: %v\n", err)
+		bootstrap.InstallLogf("=== INSTALL FAILED: %v ===", err)
+		bootstrap.InstallLogf("Full install log: %s", bootstrap.InstallLogPath())
+		bootstrap.CloseInstallLog()
 		return true
 	}
+
+	bootstrap.InstallLogf("=== INSTALL COMPLETED ===")
+	bootstrap.CloseInstallLog()
 
 	fmt.Println("\n  ✅ Installation complete!")
 

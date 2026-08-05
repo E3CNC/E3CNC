@@ -12,27 +12,31 @@ import (
 
 // ── step implementations ──────────────────────────────────────────
 
+// installSystemPackages detects the installed package manager, resolves
+// generic package names to distro-specific equivalents, and installs them.
+// The list of required packages comes from AllPackages() in pkgdb.go.
+//
+// Supported distributions and their package managers:
+//   • Debian/Ubuntu     → apt-get (deb)
+//   • Fedora/RHEL/Rocky → dnf    (fedora/rhel8+)
+//   • Legacy RHEL/CentOS → yum   (rhel8+ fallback)
+//   • Arch Linux        → pacman (arch)
+//   • openSUSE/SLES     → zypper (opensuse)
+//   • Alpine Linux      → apk    (alpine)
 func installSystemPackages() error {
-	// Run apt-get update first to refresh package lists
-	updateCmd := exec.Command("sudo", "apt-get", "update")
-	updateCmd.Stdout = os.Stdout
-	updateCmd.Stderr = os.Stderr
-	if err := updateCmd.Run(); err != nil {
-		return fmt.Errorf("apt-get update: %w", err)
+	label, pm, err := DetectPackageManager()
+	if err != nil {
+		return fmt.Errorf("detect package manager: %w", err)
 	}
+	fmt.Printf("  Detected package manager: %s\n", label)
 
-	packages := []string{
-		"git", "curl", "unzip", "zstd", "nginx", "supervisor",
-		"python3", "python3-pip", "python3-venv", "python3-dev",
-		"build-essential", "libffi-dev", "libssl-dev", "avahi-utils",
+	packages := AllPackages()
+	msgs, err := pm.Install(packages)
+	if err != nil {
+		return fmt.Errorf("install packages: %w", err)
 	}
-	args := append([]string{"-y"}, packages...)
-	aptCmd := append([]string{"apt-get", "install"}, args...)
-	cmd := exec.Command("sudo", aptCmd...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("apt-get install: %w", err)
+	for _, msg := range msgs {
+		fmt.Println("  ", msg)
 	}
 	return nil
 }

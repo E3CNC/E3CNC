@@ -766,7 +766,12 @@ func runInstallGoroutine(m InstallModel, ch chan<- tea.Msg, installID string, st
 		},
 	}
 
-	// Redirect stdout/stderr to capture real command output
+	// Redirect stdout/stderr to capture real command output.
+	// Open the consolidated install log first so scanner output can be teed
+	// to it (keeps the full wizard output in ~/E3CNC/logs/install.log).
+	if err := bootstrap.OpenInstallLog(); err != nil {
+		fmt.Fprintf(os.Stderr, "  Warning: cannot open install log: %v\n", err)
+	}
 	r, w, _ := os.Pipe()
 	oldStdout := os.Stdout
 	oldStderr := os.Stderr
@@ -782,6 +787,7 @@ func runInstallGoroutine(m InstallModel, ch chan<- tea.Msg, installID string, st
 		flush := func() {
 			if len(batch) > 0 {
 				ch <- stepOutputMsg{line: strings.Join(batch, "\n")}
+				bootstrap.InstallLogf("%s", strings.Join(batch, "\n"))
 				batch = batch[:0]
 			}
 		}
@@ -813,15 +819,20 @@ func runInstallGoroutine(m InstallModel, ch chan<- tea.Msg, installID string, st
 	if err != nil {
 		journal.Status = "failed"
 		journal.Error = err.Error()
+		bootstrap.InstallLogf("=== INSTALL FAILED: %v ===", err)
+		bootstrap.InstallLogf("Full install log: %s", bootstrap.InstallLogPath())
 		// Mark the failed step
 		for i, step := range steps {
 			if i < len(steps)-1 {
 				_ = step // mark all before current as completed
 			}
 		}
+	} else {
+		bootstrap.InstallLogf("=== INSTALL COMPLETED ===")
 	}
 
 	internal.WriteInstallJournal(journal)
+	bootstrap.CloseInstallLog()
 
 	if err != nil {
 		ch <- installCompleteMsg{err: err}
