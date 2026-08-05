@@ -189,6 +189,7 @@ func cmdInstall(jsonOut bool, args []string) bool {
 
 	if err := bootstrap.Bootstrap(cfg); err != nil {
 		fmt.Fprintf(os.Stderr, "  ❌ Install failed: %v\n", err)
+		fmt.Fprintf(os.Stderr, "\n  📋 Share this file for support:\n  %s\n", bootstrap.InstallLogPath())
 		bootstrap.InstallLogf("=== INSTALL FAILED: %v ===", err)
 		bootstrap.InstallLogf("Full install log: %s", bootstrap.InstallLogPath())
 		bootstrap.CloseInstallLog()

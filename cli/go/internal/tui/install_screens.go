@@ -9,6 +9,8 @@ import (
 
 	"github.com/charmbracelet/bubbles/progress"
 	"github.com/charmbracelet/lipgloss"
+
+	"github.com/E3CNC/e3cnc/cli/go/internal/bootstrap"
 )
 
 // ── Screen 1: Detection (streaming system checks) ─────────────────
@@ -361,6 +363,8 @@ func (m InstallModel) viewExecDashboard() string {
 			FailStyle.Render(fmt.Sprintf("Step [%d/%d] — %s — FAILED", failedStep.Number, len(m.steps), failedStep.Label)) + "\n\n" +
 				DimStyle.Render("Error details:") + "\n" +
 				FailStyle.Render(fmt.Sprintf("  %s", m.err)) + "\n\n" +
+				InfoStyle.Render("Share this file for support:") + "\n" +
+				DimStyle.Render(fmt.Sprintf("  %s", bootstrap.InstallLogPath())) + "\n\n" +
 				WarnStyle.Render("  [r] Retry step  [s] Skip  [a] Abort and rollback"),
 		)
 		result = lipgloss.JoinVertical(lipgloss.Top,
@@ -483,6 +487,8 @@ func (m InstallModel) viewErrorRecovery() string {
 		))
 	}
 	b.WriteString("\n\n")
+	b.WriteString(InfoStyle.Render("Share this file for support:") + "\n")
+	b.WriteString(DimStyle.Render("  "+bootstrap.InstallLogPath()) + "\n\n")
 
 	b.WriteString("[r] Retry step\n")
 	b.WriteString("[s] Skip (not recommended)\n")
