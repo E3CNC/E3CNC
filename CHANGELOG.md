@@ -3,12 +3,20 @@
 All notable changes to E3CNC are documented here.
 
 ## [0.10.0] - 2026-08-05
-# Changelog
-## v0.10.0 (2026-08-05)
-- _No changelog entry yet. Describe changes here before releasing._
 
+### 🚀 Features
 
-All notable changes to E3CNC are documented here.
+- Multi-distro package manager — installer auto-detects apt/dnf/yum/pacman/zypper/apk, installs core packages with distro-native names and flags (Fedora/RHEL/Rocky, Arch, openSUSE, Alpine supported); package install is now a blocking step
+- Consolidated install log at `~/E3CNC/logs/install.log` — captures TUI wizard output, package-manager stderr, every step, and the final error in one file
+
+### 🐛 Bug Fixes
+
+- Show install log path on failure (TUI overlay, error recovery screen, CLI output) so users know what to share for support
+- Package-manager stderr no longer discarded — real error output lands in the install log
+
+### 🧪 Tests
+
+- 16 new unit tests for package manager detection/resolution + Docker integration matrix across all 6 distro families (`tests/installer/test-pkgmgr-docker.sh`)
 
 ## [0.9.20] - 2026-08-04
 ## [0.9.18-merged.1] - 2026-07-23
