@@ -162,6 +162,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.install.loadExistingInstance(m.instance.activeInstance)
 					m.install.installMode = 1 // import existing
 					m.install.modeCursor = 0
+					// Skip detection screens — go directly to import dashboard
+					m.install.screen = ScreenExecDashboard
+					// Start with the import pipeline immediately
+					installModel, cmd := m.install.startInstall(0)
+					m.install = installModel
+					return m, cmd
 				}
 				return m, m.install.Init()
 			case "instances":

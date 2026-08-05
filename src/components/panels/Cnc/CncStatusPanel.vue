@@ -136,12 +136,12 @@ const feedOverride = computed(() => {
 
 const requestedFeed = computed(() => {
     const speed = store.state.printer.gcode_move?.speed ?? 0
-    return `${(speed / 60).toFixed(1)} mm/s`
+    return `${Math.round(speed)} mm/min`
 })
 
 const maxVelocity = computed(() => {
     const max = store.state.printer.toolhead?.max_velocity ?? 0
-    return `${Number(max).toFixed(1)} mm/s`
+    return `${Math.round(max)} mm/min`
 })
 
 const hostLoad = computed(() => {

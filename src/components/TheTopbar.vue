@@ -188,7 +188,7 @@ const zAxisHomed = computed((): boolean => homedAxes.value.includes('z'))
 
 const liveVelocity = computed(() => {
     const v = store.state.printer?.motion_report?.live_velocity ?? 0
-    return `${parseFloat(Number(v).toFixed(2))} mm/s`
+    return `${Math.round(v * 60)} mm/min`
 })
 
 const coordinateModeLabel = computed(() => {
