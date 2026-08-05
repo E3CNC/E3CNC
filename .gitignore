@@ -49,3 +49,6 @@ coverage_html_report/
 
 # Runtime test artifact (copied by docker_test.go, removed after run)
 tests/installer/e3cnc-tui-binary
+
+# Go build artifacts (cli/go/ is the Go module; build output goes to cli/go/bin/)
+cli/go/bin/
