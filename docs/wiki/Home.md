@@ -14,8 +14,7 @@ Welcome to the E3CNC wiki — a CNC-focused control stack built around Klipper, 
 
 ## Quick Start
 
-**Prerequisites:** Klipper + Moonraker installed, plus `git` and `python3`.
-The installer auto-installs everything else (curl, unzip, zstd).
+**Prerequisites:** Klipper + Moonraker installed on a supported Linux distribution (Debian/Ubuntu, Fedora/RHEL/Rocky, Arch, openSUSE, or Alpine). The installer auto-detects the package manager and installs everything else (git, curl, unzip, zstd, nginx, supervisor, python3, build tools, avahi-utils).
 
 ```bash
 cd ~
@@ -36,7 +35,7 @@ See the [Installation](Installation) page for details.
 
 ## CLI Tool — `e3cnc-tui`
 
-A single **Go static binary** (`CGO_ENABLED=0`, ~7.5 MB) handling all operations:
+A single **Go static binary** (`CGO_ENABLED=0`, ~7.8 MB) handling all operations:
 
 | Mode                | How                         | Description                                                                 |
 | ------------------- | --------------------------- | --------------------------------------------------------------------------- |
@@ -58,5 +57,5 @@ Run `./e3cnc-tui --help` for all available commands.
 
 ```bash
 ./e3cnc-tui --version
-e3cnc-tui v0.9.19
+e3cnc-tui v0.10.0
 ```

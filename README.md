@@ -19,7 +19,7 @@ git clone https://github.com/E3CNC/E3CNC.git ~/E3CNC && cd ~/E3CNC
 sudo ./install.sh
 
 # Or with custom options:
-sudo ./install.sh --unattended          # no prompts, uses defaults (instance: default, controller: BTT-CB1)
+sudo ./install.sh --unattended          # no prompts, uses defaults (instance: default)
 sudo ./install.sh --dir /opt/e3cnc      # custom installation directory
 sudo ./install.sh --test-ports          # check if ports are free without installing
 ```
@@ -30,13 +30,13 @@ The CLI is now a **single static Go binary** — zero runtime dependencies. Run 
 
 | Feature                  | Description                                                                                                                   |
 | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
-| **Install wizard**       | 6-screen guided install: pre-flight checks, instance config, 9-step progress, error recovery, health verification, next steps |
+| **Install wizard**       | 7-screen guided install: pre-flight checks, MCU picker, Klipper picker, instance config, 9-step progress, error recovery, health verification |
 | **Instance manager**     | List, switch, create, and delete instances with live status indicators                                                        |
 | **Real-time streaming**  | Long-running commands show spinner + line-by-line output                                                                      |
 | **Cancellation**         | Ctrl+C cleanly cancels running commands, returns to menu in <2s                                                               |
 | **Non-interactive mode** | `--json` flag outputs structured data — works in scripts and over SSH                                                         |
 
-The Go binary is included in every release at `bin/e3cnc-tui` (linux/arm64, ~3.8 MB, CGO_ENABLED=0).
+The Go binary is included in every release at `bin/e3cnc-tui` (linux/arm64, ~7.8 MB, CGO_ENABLED=0).
 
 ## Quick Start
 
@@ -56,7 +56,7 @@ The Go binary is included in every release at `bin/e3cnc-tui` (linux/arm64, ~3.8
 
 | Layer         | Technology                       | Location  |
 | ------------- | -------------------------------- | --------- |
-| **CLI / TUI** | Go 1.26+ / BubbleTea             | `cli/go/` |
+| **CLI / TUI** | Go 1.22+ / BubbleTea             | `cli/go/` |
 | **Frontend**  | Vue 3.5 + Vuetify 3 + TypeScript | `src/`    |
 | **Services**  | Vendored Moonraker + Klipper     | `vendor/` |
 

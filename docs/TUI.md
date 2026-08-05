@@ -13,12 +13,12 @@ commands natively in Go — no Python runtime, no subprocess overhead.
 
 ```
 ┌──────────────────────────────────────┐
-│  e3cnc-tui (Go static binary)        │  ← ~3.8 MB, zero runtime deps
+│  e3cnc-tui (Go static binary)        │  ← ~7.8 MB, zero runtime deps
 │  (cli/go/)                           │
 │                                      │
 │  ┌────────────────────────────┐      │
 │  │  Interactive TUI (TTY)     │      │
-│  │  • Main menu (24 commands) │      │
+│  │  • Main menu (25 commands) │      │
 │  │  • Install wizard          │      │
 │  │  • Instance manager        │      │
 │  │  • Streaming output        │      │
@@ -56,14 +56,14 @@ e3cnc-tui (main.go)
 │
 ├── tui/                    ← BubbleTea models
 │   ├── model.go            Root state machine
-│   ├── menu.go             Main menu (24 items)
-│   ├── install.go          Install wizard (6 screens, 9 phases)
+│   ├── menu.go             Main menu (25 items)
+│   ├── install.go          Install wizard (7 screens, 9 phases)
 │   ├── instance.go         Instance manager (list/create/delete)
 │   ├── styles.go           Lipgloss theme (green/cyan)
 │   └── model_test.go et al ← 90+ unit tests
 │
 ├── commands/                ← All business logic
-│   ├── dispatch.go          RunDispatch() — 24 command handlers
+│   ├── dispatch.go          RunDispatch() — 25 command handlers
 │   └── dispatch_test.go     Tests
 │
 ├── deploy/                  ← Release operations
@@ -126,9 +126,9 @@ Rollback) are highlighted in **red** when selected.
 
 ## Install Wizard
 
-The TUI's most powerful feature — a 6-screen guided installation wizard:
+The TUI's most powerful feature — a 7-screen guided installation wizard:
 
-### Screen 1 — Pre-Flight Dashboard
+### Screen 1 — Detection (Pre-Flight Dashboard)
 
 Validates the environment before any destructive operations:
 
@@ -147,7 +147,17 @@ Validates the environment before any destructive operations:
 **All checks must pass** before installation starts. This is a hard block —
 the installer will not proceed with a failing environment.
 
-### Screen 2 — Instance Configuration
+### Screen 2 — MCU Picker
+
+Shows detected controller devices when more than 3 are found. The user picks
+which MCU to target (or continues with auto-detected defaults).
+
+### Screen 3 — Klipper Picker (import mode)
+
+When importing an existing Klipper installation, lists detected Klipper
+installs (common paths, systemd services, printer.cfg scan) for selection.
+
+### Screen 4 — Instance Configuration
 
 | Field          | Default                | Validation                                |
 | -------------- | ---------------------- | ----------------------------------------- |
@@ -157,17 +167,17 @@ the installer will not proceed with a failing environment.
 | mDNS hostname  | `e3cnc`                | DNS-safe                                  |
 | Start services | Yes                    | Toggle                                    |
 
-### Screen 3 — Execution Dashboard
+### Screen 5 — Execution Dashboard
 
 Shows real-time progress across all 9 installation phases via goroutine-streamed
 progress from `bootstrap.Bootstrap()`:
 
 ```
 [1/9]  Install system packages ............. ✓ 8s
-[2/9]  Create virtual environments ......... ✓ 14s
-[3/9]  Install Python dependencies ........ ✓ 34s
-[4/9]  Configure Moonraker ................ ✓ 3s
-[5/9]  Download release .................. ◌ 12s
+[2/9]  Create directories ................... ✓ 1s
+[3/9]  Vendor Moonraker and Klipper ......... ✓ 14s
+[4/9]  Create virtualenvs ................... ✓ 34s
+[5/9]  Generate config files ................ ✓ 3s
 ...
 ```
 
@@ -177,7 +187,7 @@ progress from `bootstrap.Bootstrap()`:
 | `Ctrl+C` | Cancel (shows error recovery) |
 | `↑`/`↓`  | Scroll through steps          |
 
-### Screen 4 — Error Recovery
+### Screen 6 — Error Recovery
 
 When a step fails, shows the error with actionable recovery options:
 
@@ -189,33 +199,25 @@ When a step fails, shows the error with actionable recovery options:
 
 Rollback (`a`) calls `bootstrap.Rollback(cfg)` to stop services, remove
 instance dirs, service files, and nginx configs — safe to retry fresh.
+The consolidated install log path is shown here for support sharing.
 
-### Screen 5 — Verification Dashboard
+### Screen 7 — Verification Dashboard
 
 Post-install health checks (7 checks via `deploy.RunHealthChecks()`):
 
 | Check               | Source                     |
 | ------------------- | -------------------------- |
 | Moonraker API       | HTTP 200 to `/server/info` |
-| Moonraker service   | `systemctl is-active`      |
+| Moonraker service   | `supervisorctl status`     |
 | Klippy              | Socket check               |
 | cnc_agent           | Moonraker component list   |
 | Frontend            | HTTP check on web port     |
 | Journal consistency | Validate install journal   |
-| Klipper service     | `systemctl is-active`      |
+| Klipper service     | `supervisorctl status`     |
 
 Checks are color-coded: ✓ green (pass), ⚠ yellow (expected issue with
-guidance), ✗ red (critical — must fix).
-
-### Screen 6 — Next Steps
-
-5 guided steps from "installed" to "running CNC":
-
-1. Detect MCU: `e3cnc-tui detect-mcu`
-2. Generate printer.cfg: `e3cnc-tui init-config`
-3. Flash firmware: `e3cnc-tui flash-mcu`
-4. Edit printer.cfg (search for `!!! ADJUST`)
-5. Restart Klipper: `e3cnc-tui restart`
+guidance), ✗ red (critical — must fix). After checks pass, next steps are
+shown (detect-mcu, init-config, flash-mcu, edit printer.cfg, restart).
 
 ## Instance Manager
 
@@ -320,10 +322,8 @@ make verify
 
 | Target           | Binary                       | Size    |
 | ---------------- | ---------------------------- | ------- |
-| Current platform | `bin/e3cnc-tui`              | ~3.7 MB |
-| Linux ARM64      | `bin/e3cnc-tui-linux-arm64`  | ~3.8 MB |
-| Linux AMD64      | `bin/e3cnc-tui-linux-amd64`  | ~3.8 MB |
-| macOS AMD64      | `bin/e3cnc-tui-darwin-amd64` | ~3.9 MB |
+| Linux ARM64      | `bin/e3cnc-tui-arm64`        | ~7.8 MB |
+| Linux AMD64      | `bin/e3cnc-tui-amd64`        | ~8.3 MB |
 
 All builds use `CGO_ENABLED=0` with `-ldflags="-s -w -X main.version=<ver>"`.
 
@@ -345,10 +345,10 @@ go test ./internal/tui/... -v -count=1
 Version is injected at build time via `-ldflags`:
 
 ```bash
-go build -ldflags="-s -w -X main.version=0.9.9" -trimpath -o e3cnc-tui ./cmd/e3cnc-tui/
+go build -ldflags="-s -w -X main.version=0.10.0" -trimpath -o e3cnc-tui ./cmd/e3cnc-tui/
 ```
 
-The canonical version source is the **Git tag** (e.g. `v0.9.18`). CI resolves
+The canonical version source is the **Git tag** (e.g. `v0.10.0`). CI resolves
 the tag once and strips the `v` prefix into a `NORMALIZED_VERSION` that flows
 into the Go ldflags and the frontend build consistently. The `bump-version.sh`
 script creates git tags that CI reads.
@@ -359,7 +359,7 @@ for `-X` injection — the `main.go` variable is deliberately lowercase.
 
 - **Go tests run** on every push/PR via `ci.yml` (`test-go` job)
 - **Go binary built** in `build-frontend.yml` for release workflows
-- **Stack artifact** includes `bin/e3cnc-tui` (linux/arm64, ~3.8 MB)
+- **Stack artifact** includes `bin/e3cnc-tui` (linux/arm64, ~7.8 MB)
 
 ## Key Design Decisions
 
@@ -367,7 +367,7 @@ for `-X` injection — the `main.go` variable is deliberately lowercase.
 | ------------------------------ | -------------------------------------- | --------------------------------------------------------------------- |
 | Language                       | Pure Go                                | Single static binary, zero runtime deps, instant startup              |
 | TUI framework                  | BubbleTea                              | Native Go TUI framework, no Python bridge needed                      |
-| Command contract               | `commands.json` manifest               | Single source of truth for all 24 command definitions                 |
+| Command contract               | `commands.json` manifest               | Single source of truth for all 25 command definitions                 |
 | Execution model                | In-process Go functions                | Every command runs as a direct function call — no subprocess overhead |
 | State persistence              | JSON file at `~/.e3cnc-tui/state.json` | Simple, human-readable, no DB dep                                     |
 | Cross-compile                  | `CGO_ENABLED=0` + strip-only           | UPX unreliable on ARM64 Go binaries                                   |

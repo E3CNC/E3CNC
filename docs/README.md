@@ -39,7 +39,7 @@ git clone https://github.com/E3CNC/E3CNC.git ~/E3CNC && cd ~/E3CNC
 - **State Persistence** — panel positions, editor files, dashboard scroll, grid settings survive reloads
 - **E3CNC Theme** — green #00FF00 branding with custom SVG logo, persisted to Moonraker DB
 - **In-App Stack Updates** — update, rollback, and release info via Moonraker CNC-agent endpoints
-- **Go BubbleTea TUI** — single static binary, keyboard-driven terminal UI with install wizard (6 screens), instance manager, real-time streaming, and cancellation
+- **Go BubbleTea TUI** — single static binary, keyboard-driven terminal UI with install wizard (7 screens), instance manager, real-time streaming, and cancellation
 - **Semver Releases** — version tags on `main` and GitHub releases
 
 ## Quick Start
@@ -50,7 +50,7 @@ git clone https://github.com/E3CNC/E3CNC.git ~/E3CNC && cd ~/E3CNC
 | **Update from UI**    | E3CNC top-corner menu → Update                            |
 | **Interactive TUI**   | `./e3cnc-tui`                                             |
 | **Instance manager**  | Select "Instances" in the TUI, or `./e3cnc-tui instances` |
-| **Install wizard**    | `./e3cnc-tui install` (6-screen guided TUI wizard)        |
+| **Install wizard**    | `./e3cnc-tui install` (7-screen guided TUI wizard)        |
 | **Detect MCU**        | `./e3cnc-tui detect-mcu`                                  |
 | **Flash firmware**    | `./e3cnc-tui flash-mcu`                                   |
 | **Generate config**   | `./e3cnc-tui init-config`                                 |
@@ -69,7 +69,6 @@ git clone https://github.com/E3CNC/E3CNC.git ~/E3CNC && cd ~/E3CNC
 - [TUI (BubbleTea Terminal UI)](docs/TUI.md)
 - [Installation](https://github.com/E3CNC/E3CNC/wiki/Installation)
 - [Architecture](https://github.com/E3CNC/E3CNC/wiki/Architecture)
-- [API Reference](https://github.com/E3CNC/E3CNC/wiki/API)
 - [Features](https://github.com/E3CNC/E3CNC/wiki/Features)
 - [Changelog](https://github.com/E3CNC/E3CNC/wiki/Changelog)
 - [Contributing](https://github.com/E3CNC/E3CNC/wiki/Contributing)
@@ -84,7 +83,7 @@ git clone https://github.com/E3CNC/E3CNC.git ~/E3CNC && cd ~/E3CNC
 | `vendor/klipper/klippy/extras/` | Klipper WCS plugin (`work_coordinate_systems.py`)           |
 | `vendor/moonraker/`             | Vendored Moonraker with cnc_agent, cnc_metadata, MCP server |
 | `post_processors/`              | Fusion 360 CAM post processors                              |
-| `commands.json`                 | Command manifest for the TUI (at repo root)                 |
+| `cli/commands.json`             | Command manifest for the TUI (25 commands)                  |
 | `scripts/`                      | Utility scripts (install, deploy, build)                    |
 | `.github/workflows/ci.yml`      | CI: Go tests + frontend build on every push/PR              |
 

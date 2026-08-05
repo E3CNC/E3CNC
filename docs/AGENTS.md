@@ -2,13 +2,13 @@
 
 This file documents the current state and capabilities of this project.
 
-## Current Architecture (v0.9.9)
+## Current Architecture (v0.10.0)
 
 E3CNC is a CNC machine management platform with three layers:
 
 | Layer         | Technology                                     | Location  |
 | ------------- | ---------------------------------------------- | --------- |
-| **CLI / TUI** | Go 1.23 + BubbleTea                            | `cli/go/` |
+| **CLI / TUI** | Go 1.22+ / BubbleTea                            | `cli/go/` |
 | **Frontend**  | Vue 3.5 + Vuetify 3 + TypeScript               | `src/`    |
 | **Services**  | Vendored Moonraker (Python) + Klipper (Python) | `vendor/` |
 
@@ -24,10 +24,10 @@ Single static binary — no runtime dependencies. Two entry points:
 | Package               | Purpose                                                               | Test Coverage     |
 | --------------------- | --------------------------------------------------------------------- | ----------------- |
 | `internal/tui/`       | BubbleTea models: menu, install wizard, instance manager, output view | ✅ 90+ tests      |
-| `internal/commands/`  | Go-native implementations of all 24 CLI commands                      | ✅ 10+ tests      |
+| `internal/commands/`  | Go-native implementations of all 25 CLI commands                      | ✅ 10+ tests      |
 | `internal/deploy/`    | Release management, health checks (7 checks), backup/restore          | ✅ 15+ tests      |
 | `internal/instance/`  | Instance model, filesystem detection, port allocation                 | ✅ 10+ tests      |
-| `internal/bootstrap/` | Fresh-install provisioning (replaces Ansible), uninstall, rollback    | ✅ 40+ tests      |
+| `internal/bootstrap/` | Fresh-install provisioning (multi-distro package manager, uninstall, rollback) | ✅ 60+ tests      |
 | `internal/config.go`  | Persistent state (`state.json`, install journal)                      | ✅ existing tests |
 | `internal/command.go` | Command manifest types and lookup                                     | ✅ existing tests |
 
