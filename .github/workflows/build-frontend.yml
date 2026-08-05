@@ -4,12 +4,10 @@ name: Create Release
   push:
     tags:
       - 'v*'
-    branches:
-      - main
   workflow_dispatch:
     inputs:
       version_tag:
-        description: 'Optional semver tag for the release (e.g. v0.4.2). If empty, uses a semver tag on HEAD, then falls back to package.json.'
+        description: 'Optional semver tag for the release (e.g. v0.4.2). If empty, uses the semver tag on HEAD; fails if HEAD is not tagged.'
         required: false
         type: string
 
@@ -43,13 +41,8 @@ jobs:
           elif [[ -n "$HEAD_TAG" ]]; then
             VERSION="$HEAD_TAG"
           else
-            # Nightly: use git describe for meaningful version, fall back to date+SHA
-            DESCRIBE=$(git describe --tags --always 2>/dev/null || true)
-            if [[ -n "$DESCRIBE" ]]; then
-              VERSION="${DESCRIBE}"
-            else
-              VERSION="nightly-$(date -u +%Y%m%d)-$(git rev-parse --short HEAD)"
-            fi
+            echo "Error: no version tag found (HEAD is not a tag, and no version_tag input provided)"
+            exit 1
           fi
 
           NORMALIZED_VERSION="${VERSION#v}"
@@ -67,7 +60,7 @@ jobs:
         run: |
           REF='${{ github.ref }}'
           EVENT='${{ github.event_name }}'
-          # Tag push → release
+          # This workflow only runs on tag pushes or manual dispatch — always a full release
           if [[ "$REF" == refs/tags/* ]]; then
             echo "TYPE=release" >> $GITHUB_OUTPUT
             echo "Trigger: tag push (${REF#refs/tags/}) → full release"
@@ -75,8 +68,8 @@ jobs:
             echo "TYPE=release" >> $GITHUB_OUTPUT
             echo "Trigger: manual dispatch → full release"
           else
-            echo "TYPE=nightly" >> $GITHUB_OUTPUT
-            echo "Trigger: branch push → nightly pre-release"
+            echo "TYPE=release" >> $GITHUB_OUTPUT
+            echo "Trigger: unexpected event ($EVENT) → treat as release"
           fi
 
       - name: Validate release version
@@ -332,44 +325,6 @@ jobs:
             echo "Creating release: $TAG"
             gh release create "$TAG" \
               "${RELEASE_ARGS[@]}" \
-              "$ASSET" \
-              "$STACK_ARTIFACT" \
-              "$STACK_CHECKSUM" \
-              "$BINARY_ARM64" \
-              "$BINARY_ARM64.sha256" \
-              "$BINARY_AMD64" \
-              "$BINARY_AMD64.sha256"
-          fi
-
-      - name: Publish nightly pre-release (branch push)
-        if: steps.trigger.outputs.TYPE == 'nightly'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          DATE_TAG="nightly-main-$(date -u +%Y%m%d)"
-          VERSION='${{ steps.version.outputs.NORMALIZED_VERSION }}'
-          ASSET="E3CNC-${VERSION}.zip"
-          STACK_ARTIFACT="e3cnc-stack-${VERSION}.tar.zst"
-          STACK_CHECKSUM="e3cnc-stack-${VERSION}.tar.zst.sha256"
-          BINARY_ARM64="bin/e3cnc-tui-arm64"
-          BINARY_AMD64="bin/e3cnc-tui-amd64"
-
-          echo "Publishing nightly: $DATE_TAG"
-
-          if gh release view "$DATE_TAG" >/dev/null 2>&1; then
-            echo "Updating existing nightly: $DATE_TAG"
-            gh release upload "$DATE_TAG" "$ASSET" "$STACK_ARTIFACT" "$STACK_CHECKSUM" "$BINARY_ARM64" "$BINARY_ARM64.sha256" "$BINARY_AMD64" "$BINARY_AMD64.sha256" --clobber
-            gh release edit "$DATE_TAG" \
-              --title "$DATE_TAG (${{ steps.commit.outputs.SHA_SHORT }})" \
-              --notes "Nightly build from main branch — commit ${{ github.sha }}" \
-              --prerelease
-          else
-            echo "Creating nightly: $DATE_TAG"
-            gh release create "$DATE_TAG" \
-              --title "$DATE_TAG (${{ steps.commit.outputs.SHA_SHORT }})" \
-              --notes "Nightly build from main branch — commit ${{ github.sha }}" \
-              --prerelease \
-              --target main \
               "$ASSET" \
               "$STACK_ARTIFACT" \
               "$STACK_CHECKSUM" \
