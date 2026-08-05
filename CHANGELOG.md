@@ -5,7 +5,22 @@ All notable changes to E3CNC are documented here.
 ## [0.10.1] - 2026-08-05
 # Changelog
 ## v0.10.1 (2026-08-05)
-- _No changelog entry yet. Describe changes here before releasing._
+
+### 🐛 Bug Fixes
+
+- *(install)* armv6l/armv7l detection with helpful error message for Pi Zero (#32)
+- *(install)* `defaultE3CNCHome()` now checks `E3CNC_DIR` env var and `SUDO_USER` — fixes path issues under sudo (#33)
+- *(install)* `copyVendoredComponents()` uses `effectiveHome()` instead of `os.UserHomeDir()` (#33)
+- *(install)* `StateDir()` SUDO_USER-aware home detection (#33)
+- *(install)* Install wizard skips detection/decision screens when launched with existing instance selected (#30)
+- *(ui)* Feedrate display changed from mm/s to mm/min in CNC status panel and topbar DRO (#25)
+
+### 📖 Documentation
+
+- Landing page: removed stale Ansible references, broken build-scripts link, dead wiki links
+- AGENTS.md: fixed CI claims (no nightly, no main-push trigger)
+- Wiki: synced to v0.10.0 (live wiki was stale at v0.9.17)
+- `scripts/sync-wiki.sh`: repeatable wiki sync script
 
 
 All notable changes to E3CNC are documented here.
