@@ -1,0 +1,7 @@
+services:
+  moonraker-mock:
+    build: ./moonraker-mock
+    container_name: e3cnc-moonraker-mock
+    ports:
+      - "7125:7125"
+    restart: unless-stopped
