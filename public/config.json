@@ -1,9 +1,9 @@
 {
     "defaultLocale": "en",
     "defaultMode": "dark",
-    "defaultTheme": "mainsail",
-    "hostname": null,
-    "port": null,
+    "defaultTheme": "e3cnc",
+    "hostname": "127.0.0.1",
+    "port": 7125,
     "path": null,
     "instancesDB": "moonraker",
     "instances": []

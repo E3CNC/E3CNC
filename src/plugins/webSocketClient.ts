@@ -95,6 +95,7 @@ export class WebSocketClient {
         })
 
         this.instance?.close()
+        this.wasCleanClose = false
         this.instance = new WebSocket(this.url)
 
         this.instance.onopen = () => {

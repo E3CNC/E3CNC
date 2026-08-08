@@ -1,0 +1,24 @@
+# test/install/Dockerfile.ubuntu
+# Ubuntu 22.04 (amd64/arm64)
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV E3CNC_DIR=/root/E3CNC
+
+RUN apt-get update && apt-get install -y \
+    bash \
+    curl \
+    git \
+    sudo \
+    jq \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /root/E3CNC
+
+# Copy the repo (install.sh + e3cnc-tui binary)
+COPY . /root/E3CNC/
+
+RUN chmod +x /root/E3CNC/install.sh
+
+# Run install.sh in unattended mode
+CMD ["bash", "-c", "cd /root/E3CNC && sudo ./install.sh --unattended 2>&1 | tee /tmp/install.log; echo INSTALL_EXIT_CODE=$?"]
