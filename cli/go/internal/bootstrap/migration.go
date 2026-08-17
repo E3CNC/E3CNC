@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/E3CNC/e3cnc/cli/go/internal/instance"
 )
 
 // MigrateOldDir migrates data from the legacy lowercase ~/e3cnc directory
@@ -14,10 +16,7 @@ import (
 //  2. Both exist → merge (non-destructive, skip existing)
 //  3. Only new dir exists → no-op
 func MigrateOldDir() error {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return fmt.Errorf("cannot determine home directory: %w", err)
-	}
+	home := instance.UserHomeDir()
 
 	oldDir := filepath.Join(home, "e3cnc")
 	newDir := E3CNCHome()

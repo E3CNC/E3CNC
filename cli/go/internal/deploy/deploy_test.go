@@ -1,6 +1,7 @@
 package deploy
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/E3CNC/e3cnc/cli/go/internal/instance"
+	"github.com/E3CNC/e3cnc/cli/go/internal/rootrun"
 )
 
 // mockHTTPClient wraps a test server to implement HTTPClient interface.
@@ -90,6 +92,58 @@ func TestHealthCheckService_Known(t *testing.T) {
 	// checkService now runs 'sudo supervisorctl status' — skip if not on a real system
 	check := checkService("e3cnc-default-moonraker")
 	_ = check // no crash is a good sign
+}
+
+func TestHealthCheckService_SudoDenied(t *testing.T) {
+	origExec := rootrun.Exec
+	defer func() { rootrun.Exec = origExec }()
+	// Sudo -n fails because a password is required.
+	rootrun.Exec = func(name string, args ...string) ([]byte, error) {
+		return []byte("sudo: a password is required"), fmt.Errorf("exit status 1")
+	}
+
+	check := checkService("e3cnc-default-moonraker")
+	if check.Passed {
+		t.Error("expected failed health check when sudo is denied")
+	}
+	if !strings.Contains(check.Detail, "permission") {
+		t.Errorf("expected permission-denied detail, got: %q", check.Detail)
+	}
+	if strings.Contains(check.Detail, "not found") {
+		t.Errorf("permission failure should not be reported as 'not found': %q", check.Detail)
+	}
+}
+
+func TestHealthCheckService_NotFound(t *testing.T) {
+	origExec := rootrun.Exec
+	defer func() { rootrun.Exec = origExec }()
+	// supervisorctl runs but the service is absent (exit 1, no sudo message).
+	rootrun.Exec = func(name string, args ...string) ([]byte, error) {
+		return []byte(""), fmt.Errorf("exit status 1")
+	}
+
+	check := checkService("nonexistent-service")
+	if check.Passed {
+		t.Error("expected failed health check for absent service")
+	}
+	if !strings.Contains(check.Detail, "not found") {
+		t.Errorf("expected not-found detail, got: %q", check.Detail)
+	}
+}
+
+func TestHealthCheckService_Running(t *testing.T) {
+	origExec := rootrun.Exec
+	defer func() { rootrun.Exec = origExec }()
+
+	rootrun.Exec = func(name string, args ...string) ([]byte, error) {
+		t.Logf("exec: %s %v", name, args)
+		return []byte("e3cnc-default-moonraker   RUNNING   pid 1234, uptime 0:00:10"), nil
+	}
+
+	check := checkService("e3cnc-default-moonraker")
+	if !check.Passed {
+		t.Errorf("expected passed health check for running service, got: %v", check)
+	}
 }
 
 func TestHealthCheckFrontend_Exists(t *testing.T) {

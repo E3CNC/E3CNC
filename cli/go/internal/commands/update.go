@@ -11,6 +11,7 @@ import (
 	"github.com/E3CNC/e3cnc/cli/go/internal/bootstrap"
 	"github.com/E3CNC/e3cnc/cli/go/internal/deploy"
 	"github.com/E3CNC/e3cnc/cli/go/internal/instance"
+	"github.com/E3CNC/e3cnc/cli/go/internal/rootrun"
 )
 
 // ── update ────────────────────────────────────────────────────────
@@ -103,6 +104,15 @@ func cmdUpdate(jsonOut bool, args []string) bool {
 // ── install ───────────────────────────────────────────────────────
 
 func cmdInstall(jsonOut bool, args []string) bool {
+	// Only auxiliary sub-modes (port detect / migrate / backup) may run as
+	// non-root. A real install must be run as root so bootstrap steps can
+	// provision services without interactive sudo prompts.
+	if !rootrun.IsRoot() && !installIsAuxiliaryMode(args) {
+		fmt.Fprintln(os.Stderr, "  Installation must be run as root.")
+		fmt.Fprintln(os.Stderr, "  Run via: sudo ./install.sh   (or: sudo e3cnc-tui install)")
+		return true
+	}
+
 	cfg := bootstrap.BootstrapConfig{
 		StartServices: true,
 		Arch:          runtime.GOARCH,
@@ -214,6 +224,19 @@ func cmdInstall(jsonOut bool, args []string) bool {
 		}
 	}
 	return true
+}
+
+// installIsAuxiliaryMode reports whether the install command was invoked with
+// a read-only helper flag (port detect / migrate / backup only) that doesn't
+// require root privileges.
+func installIsAuxiliaryMode(args []string) bool {
+	for _, a := range args {
+		switch a {
+		case "--port-detect", "--port-detect-only", "--migrate-only", "--backup-only", "--help", "-h":
+			return true
+		}
+	}
+	return false
 }
 
 // ── deploy ───────────────────────────────────────────────────────

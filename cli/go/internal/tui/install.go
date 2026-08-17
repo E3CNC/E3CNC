@@ -19,7 +19,13 @@ import (
 	"github.com/E3CNC/e3cnc/cli/go/internal/bootstrap"
 	"github.com/E3CNC/e3cnc/cli/go/internal/deploy"
 	"github.com/E3CNC/e3cnc/cli/go/internal/instance"
+	"github.com/E3CNC/e3cnc/cli/go/internal/rootrun"
 )
+
+// installRootCheck reports whether the install may proceed (root required).
+// Overridable in tests to exercise the install wizard without a real root
+// process.
+var installRootCheck = rootrun.IsRoot
 
 // detectionTimeout is the maximum time to wait for a single detection check
 // before it is marked as timed out and the detection phase continues.
@@ -679,6 +685,15 @@ func (m InstallModel) appendSummaryToLog() InstallModel {
 // real-time progress streaming through a channel.
 // startStep is the step index to start from (0 = beginning).
 func (m InstallModel) startInstall(startStep int) (InstallModel, tea.Cmd) {
+	// Install must run as root so bootstrap can provision services without
+	// interactive sudo prompts. Non-root users are directed to the canonical
+	// entry (sudo ./install.sh) instead of starting the install.
+	if !installRootCheck() {
+		m.screen = ScreenErrorRecovery
+		m.err = fmt.Errorf("installation must be run as root — please run via: sudo ./install.sh")
+		return m, nil
+	}
+
 	// Select the correct step list based on install mode
 	steps := freshInstallSteps
 	if m.installMode == 1 {

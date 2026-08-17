@@ -23,6 +23,13 @@ RUN apt-get update && apt-get install -y \
     procps \
     net-tools \
     jq \
+    nginx \
+    supervisor \
+    python3-dev \
+    build-essential \
+    libffi-dev \
+    libssl-dev \
+    avahi-utils \
     && rm -rf /var/lib/apt/lists/*
 
 # Create a non-root user that mimics the real biqu user on the CNC board.

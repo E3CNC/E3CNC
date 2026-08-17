@@ -40,10 +40,35 @@ type Instance struct {
 	IsRunning        bool
 }
 
-// E3CNCHome returns ~/E3CNC.
+// E3CNCDirEnv is the environment variable for overriding the E3CNC home directory.
+const E3CNCDirEnv = "E3CNC_DIR"
+
+// UserHomeDir returns the real user's home directory, accounting for sudo.
+// When running under sudo (SUDO_USER is set and HOME points to /root), it
+// returns /home/<SUDO_USER>. Otherwise it returns os.UserHomeDir().
+func UserHomeDir() string {
+	home := os.Getenv("HOME")
+	if home == "" || (os.Getenv("SUDO_USER") != "" && strings.Contains(home, "/root")) {
+		if sudoUser := os.Getenv("SUDO_USER"); sudoUser != "" {
+			home = filepath.Join("/home", sudoUser)
+		} else {
+			var err error
+			home, err = os.UserHomeDir()
+			if err != nil {
+				home = "/root"
+			}
+		}
+	}
+	return home
+}
+
+// E3CNCHome returns the E3CNC home directory.
+// Priority: $E3CNC_DIR env var > sudo-aware user home > os.UserHomeDir().
 func E3CNCHome() string {
-	home, _ := os.UserHomeDir()
-	return filepath.Join(home, "E3CNC")
+	if dir := os.Getenv(E3CNCDirEnv); dir != "" {
+		return dir
+	}
+	return filepath.Join(UserHomeDir(), "E3CNC")
 }
 
 // InstancesDir returns ~/E3CNC/instances.
@@ -63,19 +88,7 @@ func CurrentLink() string {
 
 // StateDir returns ~/.e3cnc-tui.
 func StateDir() string {
-	home := os.Getenv("HOME")
-	if home == "" || (os.Getenv("SUDO_USER") != "" && strings.Contains(home, "/root")) {
-		if sudoUser := os.Getenv("SUDO_USER"); sudoUser != "" {
-			home = filepath.Join("/home", sudoUser)
-		} else {
-			var err error
-			home, err = os.UserHomeDir()
-			if err != nil {
-				home = "/root"
-			}
-		}
-	}
-	return filepath.Join(home, ".e3cnc-tui")
+	return filepath.Join(UserHomeDir(), ".e3cnc-tui")
 }
 
 // FromName creates an Instance from a name using the new directory layout.
@@ -202,7 +215,7 @@ func GetActiveInstance() (*Instance, error) {
 // scanKIAUHInstances scans for legacy KIAUH layout instances.
 func scanKIAUHInstances() ([]*Instance, error) {
 	var instances []*Instance
-	home, _ := os.UserHomeDir()
+	home := UserHomeDir()
 	seen := make(map[string]bool)
 
 	patterns := []string{"printer_data", "printer_data_*", "printer_*_data"}

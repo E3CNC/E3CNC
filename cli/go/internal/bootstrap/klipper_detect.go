@@ -6,6 +6,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/E3CNC/e3cnc/cli/go/internal/instance"
 )
 
 // DetectedKlipper holds information about an existing Klipper installation found on the system.
@@ -24,7 +26,7 @@ type DetectedKlipper struct {
 // commonKlipperPaths returns likely locations for Klipper installations,
 // ordered by probability (most common first).
 func commonKlipperPaths() []string {
-	home, _ := os.UserHomeDir()
+	home := instance.UserHomeDir()
 	paths := []string{
 		filepath.Join(home, "klipper"),
 		filepath.Join(home, "printer_data"),
@@ -50,7 +52,7 @@ func commonKlipperPaths() []string {
 // commonConfigPaths returns likely locations for printer.cfg relative to
 // a Klipper installation directory or user home.
 func commonConfigPaths(baseDir string) []string {
-	home, _ := os.UserHomeDir()
+	home := instance.UserHomeDir()
 	paths := []string{
 		filepath.Join(baseDir, "printer.cfg"),
 		filepath.Join(baseDir, "config", "printer.cfg"),
@@ -96,7 +98,7 @@ func DetectAllKlipperInstalls() ([]DetectedKlipper, error) {
 	}
 
 	// Phase 2: Check for standalone printer.cfg files (not in a klipper dir)
-	home, _ := os.UserHomeDir()
+	home := instance.UserHomeDir()
 	standaloneCfgPaths := []string{
 		filepath.Join(home, "printer.cfg"),
 		filepath.Join(home, "printer_data", "config", "printer.cfg"),
@@ -163,7 +165,7 @@ func probeKlipperDir(path string, seenPaths map[string]bool) *DetectedKlipper {
 		filepath.Join(filepath.Dir(path), "moonraker"),
 		filepath.Join(path, "moonraker"),
 	}
-	home, _ := os.UserHomeDir()
+	home := instance.UserHomeDir()
 	moonrakerCandidates = append(moonrakerCandidates,
 		filepath.Join(home, "moonraker"),
 		filepath.Join(home, "printer_data", "moonraker"),
@@ -265,7 +267,7 @@ func detectKlipperSystemdService() string {
 			return name
 		}
 		// Also check user service directory
-		home, _ := os.UserHomeDir()
+		home := instance.UserHomeDir()
 		userUnitPath := filepath.Join(home, ".config", "systemd", "user", name)
 		if _, err := os.Stat(userUnitPath); err == nil {
 			return name

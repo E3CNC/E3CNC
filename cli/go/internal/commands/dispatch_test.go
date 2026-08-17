@@ -6,7 +6,22 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/E3CNC/e3cnc/cli/go/internal/rootrun"
 )
+
+// stubPrivilegedExec replaces the shared root execution boundary with a
+// no-op stub so dispatch tests verify command routing without executing any
+// real privileged commands (which would hang or fail in non-root CI).
+func stubPrivilegedExec(t *testing.T) {
+	t.Helper()
+	origExec := rootrun.Exec
+	rootrun.Exec = func(name string, args ...string) ([]byte, error) {
+		t.Logf("[stub] exec %s %v", name, args)
+		return nil, nil
+	}
+	t.Cleanup(func() { rootrun.Exec = origExec })
+}
 
 func TestRunDispatch_Status(t *testing.T) {
 	// RunDispatch for "status" should return true (handled)
@@ -17,6 +32,8 @@ func TestRunDispatch_Status(t *testing.T) {
 }
 
 func TestRunDispatch_AllCommands(t *testing.T) {
+	stubPrivilegedExec(t)
+
 	commands := []struct {
 		name    string
 		args    []string

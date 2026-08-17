@@ -1,11 +1,20 @@
 package tui
 
 import (
+	"os"
 	"testing"
 
 	"github.com/E3CNC/e3cnc/cli/go/internal/bootstrap"
 	tea "github.com/charmbracelet/bubbletea"
 )
+
+// TestMain forces the install root gate open so unit tests can drive the
+// install wizard screens without a real root process. Real-install root
+// enforcement is still covered by non-test code paths and the commands tests.
+func TestMain(m *testing.M) {
+	installRootCheck = func() bool { return true }
+	os.Exit(m.Run())
+}
 
 func TestNewInstallModelDefaults(t *testing.T) {
 	m := NewInstallModel()

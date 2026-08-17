@@ -12,13 +12,13 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
 	"time"
 
 	"github.com/E3CNC/e3cnc/cli/go/internal/instance"
+	"github.com/E3CNC/e3cnc/cli/go/internal/rootrun"
 	"github.com/klauspost/compress/zstd"
 )
 
@@ -366,16 +366,32 @@ func checkService(serviceName string) HealthCheck {
 		return HealthCheck{Name: "Service", Passed: false, Detail: "no service name"}
 	}
 
-	// Check supervisor status
-	out, err := exec.Command("sudo", "supervisorctl", "status", serviceName).Output()
-	if err != nil {
+	// Check supervisor status via the non-interactive root boundary.
+	out, cmdErr := rootrun.RunAsRoot("supervisorctl", "status", serviceName)
+	status := strings.TrimSpace(string(out))
+
+	// A sudo/permission failure (e.g. sudo -n needs a password, or the
+	// program isn't permitted) is distinct from the service being absent.
+	if cmdErr != nil {
+		if strings.Contains(strings.ToLower(status), "sudo") || isSudoDenied(status) {
+			return HealthCheck{Name: serviceName, Passed: false, Detail: "permission denied / sudo unavailable"}
+		}
 		return HealthCheck{Name: serviceName, Passed: false, Detail: "not found"}
 	}
-	status := strings.TrimSpace(string(out))
 	if strings.Contains(status, "RUNNING") {
 		return HealthCheck{Name: serviceName, Passed: true, Detail: "running"}
 	}
 	return HealthCheck{Name: serviceName, Passed: false, Detail: status}
+}
+
+// isSudoDenied reports whether the combined output indicates sudo refused the
+// command (missing NOPASSWD or a password prompt that could not be answered).
+func isSudoDenied(out string) bool {
+	low := strings.ToLower(out)
+	return strings.Contains(low, "permission") ||
+		strings.Contains(low, "not permitted") ||
+		strings.Contains(low, "incorrect password") ||
+		strings.Contains(low, "a password is required")
 }
 
 func checkKlippy(inst *instance.Instance) HealthCheck {

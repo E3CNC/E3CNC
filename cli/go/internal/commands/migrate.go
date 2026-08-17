@@ -25,7 +25,7 @@ func cmdMigrate(jsonOut bool, args []string) bool {
 	}
 
 	// Check for old layout
-	home, _ := os.UserHomeDir()
+	home := instance.UserHomeDir()
 	oldLayouts := []string{
 		filepath.Join(home, "printer_data"),
 		filepath.Join(home, "moonraker"),
@@ -90,7 +90,7 @@ func cmdMigrateInstances(jsonOut bool, args []string) bool {
 
 func cmdImportInstance(jsonOut bool, args []string) bool {
 	// Scan for KIAUH-style instances
-	home, _ := os.UserHomeDir()
+	home := instance.UserHomeDir()
 	instances, _ := filepath.Glob(filepath.Join(home, "printer_*_data"))
 
 	if len(instances) == 0 {

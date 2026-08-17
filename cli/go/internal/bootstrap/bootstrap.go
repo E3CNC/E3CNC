@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 
 	"github.com/E3CNC/e3cnc/cli/go/internal/instance"
+	"github.com/E3CNC/e3cnc/cli/go/internal/rootrun"
 )
 
 // BootstrapConfig holds all parameters for a fresh install bootstrap.
@@ -119,6 +120,14 @@ func Bootstrap(cfg BootstrapConfig) error {
 		report = func(int, string, error) {} // no-op fallback
 	}
 
+	// The "Vendor Moonraker and Klipper" step copies vendored components out
+	// of the current release (~/E3CNC/current). On a fresh install no release
+	// has been downloaded yet, so obtain one before running the steps.
+	if err := ensureCurrentRelease(); err != nil {
+		InstallLogf("✗ obtain current release FAILED: %v", err)
+		return err
+	}
+
 	// Run each step
 	// StepFn defines a bootstrap step with its name, function, and whether
 	// failure blocks the rest of the installation.
@@ -214,10 +223,10 @@ func Uninstall(inst *instance.Instance) error {
 	fmt.Println("  Uninstalling E3CNC...")
 
 	// Stop E3CNC services via supervisor
-	exec.Command("sudo", "supervisorctl", "stop", fmt.Sprintf("e3cnc-%s-*", inst.Name)).Run()
-	exec.Command("sudo", "rm", "-f", fmt.Sprintf("/etc/supervisor/conf.d/e3cnc-%s-*.conf", inst.Name)).Run()
-	exec.Command("sudo", "supervisorctl", "reread").Run()
-	exec.Command("sudo", "supervisorctl", "update").Run()
+	rootrun.RunAsRoot("supervisorctl", "stop", fmt.Sprintf("e3cnc-%s-*", inst.Name))
+	rootrun.RunAsRoot("rm", "-f", fmt.Sprintf("/etc/supervisor/conf.d/e3cnc-%s-*.conf", inst.Name))
+	rootrun.RunAsRoot("supervisorctl", "reread")
+	rootrun.RunAsRoot("supervisorctl", "update")
 
 	// Remove instance directory
 	instPath := filepath.Join(instance.InstancesDir(), inst.Name)
@@ -242,12 +251,12 @@ func Rollback(cfg BootstrapConfig) {
 	inst := filepath.Join(instance.InstancesDir(), cfg.InstanceName)
 
 	// Stop E3CNC services via supervisor
-	exec.Command("sudo", "supervisorctl", "stop", fmt.Sprintf("e3cnc-%s-*", cfg.InstanceName)).Run()
+	rootrun.RunAsRoot("supervisorctl", "stop", fmt.Sprintf("e3cnc-%s-*", cfg.InstanceName))
 
 	// Remove supervisor configs
-	exec.Command("sudo", "rm", "-f", fmt.Sprintf("/etc/supervisor/conf.d/e3cnc-%s-*.conf", cfg.InstanceName)).Run()
-	exec.Command("sudo", "supervisorctl", "reread").Run()
-	exec.Command("sudo", "supervisorctl", "update").Run()
+	rootrun.RunAsRoot("rm", "-f", fmt.Sprintf("/etc/supervisor/conf.d/e3cnc-%s-*.conf", cfg.InstanceName))
+	rootrun.RunAsRoot("supervisorctl", "reread")
+	rootrun.RunAsRoot("supervisorctl", "update")
 
 	// Remove nginx site
 	exec.Command("rm", "-f", fmt.Sprintf("/etc/nginx/sites-enabled/e3cnc-%s", cfg.InstanceName)).Run()

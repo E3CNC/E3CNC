@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
+
+	"github.com/E3CNC/e3cnc/cli/go/internal/rootrun"
 )
 
 // PackageManager defines the interface that every distribution-specific
@@ -68,13 +70,10 @@ func commandExists(name string) bool {
 
 // ── Common helpers ──────────────────────────────────────────────────
 
-// runSudo executes a command as root, writing output to the consolidated
-// install log so failures are captured for diagnosis.
+// runSudo executes a command as root, non-interactively, writing output to the
+// consolidated install log so failures are captured for diagnosis.
 func runSudo(args ...string) error {
-	cmd := exec.Command("sudo", args...)
-	cmd.Stdout = InstallLogWriter()
-	cmd.Stderr = InstallLogWriter()
-	return cmd.Run()
+	return rootrun.RunAsRootStream(InstallLogWriter(), InstallLogWriter(), args...)
 }
 
 // ── Deb (Debian / Ubuntu) ──────────────────────────────────────────
@@ -108,10 +107,8 @@ func (a *AptManager) Install(names []string) ([]string, error) {
 	msgs := make([]string, 0, len(packages))
 	msgs = append(msgs, fmt.Sprintf("Installing %d package(s): %v", len(packages), packages))
 
-	cmd := exec.Command("sudo", append([]string{"apt-get", "install", "-y"}, packages...)...)
-	cmd.Stdout = InstallLogWriter()
-	cmd.Stderr = InstallLogWriter()
-	if err := cmd.Run(); err != nil {
+	if err := rootrun.RunAsRootStream(InstallLogWriter(), InstallLogWriter(),
+		append([]string{"apt-get", "install", "-y"}, packages...)...); err != nil {
 		return msgs, fmt.Errorf("apt-get install: %w", err)
 	}
 	msgs = append(msgs, "Installation complete")
@@ -135,9 +132,8 @@ type DnfManager struct{}
 var _ PackageManager = (*DnfManager)(nil)
 
 func (d *DnfManager) Update() error {
-	cmd := exec.Command("sudo", "dnf", "check-update")
 	// check-update returns exit 100 if updates available or nothing to do — both OK
-	_ = cmd.Run() // non-fatal: see spec requirement "non-fatal"
+	_ = rootrun.RunAsRootStream(InstallLogWriter(), InstallLogWriter(), "dnf", "check-update") // non-fatal
 	return nil
 }
 
@@ -160,12 +156,8 @@ func (d *DnfManager) Install(names []string) ([]string, error) {
 	msgs := make([]string, 0, len(packages)+1)
 	msgs = append(msgs, fmt.Sprintf("Installing %d package(s): %v", len(packages), packages))
 
-	cmd := exec.Command("sudo", append([]string{
-		"dnf", "install", "-y", "--assumeyes", "--allowerasing",
-	}, packages...)...)
-	cmd.Stdout = InstallLogWriter()
-	cmd.Stderr = InstallLogWriter()
-	if err := cmd.Run(); err != nil {
+	if err := rootrun.RunAsRootStream(InstallLogWriter(), InstallLogWriter(),
+		append([]string{"dnf", "install", "-y", "--assumeyes", "--allowerasing"}, packages...)...); err != nil {
 		return msgs, fmt.Errorf("dnf install: %w", err)
 	}
 	msgs = append(msgs, "Installation complete")
@@ -185,8 +177,7 @@ var _ PackageManager = (*YumManager)(nil)
 
 func (y *YumManager) Update() error {
 	// yum makesinfo is equivalent to dnf check-update but less noisy
-	cmd := exec.Command("sudo", "yum", "check-update")
-	_ = cmd.Run() // non-fatal
+	_ = rootrun.RunAsRootStream(InstallLogWriter(), InstallLogWriter(), "yum", "check-update") // non-fatal
 	return nil
 }
 
@@ -209,12 +200,8 @@ func (y *YumManager) Install(names []string) ([]string, error) {
 	msgs := make([]string, 0, len(packages)+1)
 	msgs = append(msgs, fmt.Sprintf("Installing %d package(s): %v", len(packages), packages))
 
-	cmd := exec.Command("sudo", append([]string{
-		"yum", "install", "-y", "--assumeyes",
-	}, packages...)...)
-	cmd.Stdout = InstallLogWriter()
-	cmd.Stderr = InstallLogWriter()
-	if err := cmd.Run(); err != nil {
+	if err := rootrun.RunAsRootStream(InstallLogWriter(), InstallLogWriter(),
+		append([]string{"yum", "install", "-y", "--assumeyes"}, packages...)...); err != nil {
 		return msgs, fmt.Errorf("yum install: %w", err)
 	}
 	msgs = append(msgs, "Installation complete")
@@ -259,12 +246,8 @@ func (p *PacmanManager) Install(names []string) ([]string, error) {
 	msgs := make([]string, 0, len(packages)+1)
 	msgs = append(msgs, fmt.Sprintf("Installing %d package(s): %v", len(packages), packages))
 
-	cmd := exec.Command("sudo", append([]string{
-		"pacman", "-S", "--noconfirm", "--needed", "--overwrite", "*",
-	}, packages...)...)
-	cmd.Stdout = InstallLogWriter()
-	cmd.Stderr = InstallLogWriter()
-	if err := cmd.Run(); err != nil {
+	if err := rootrun.RunAsRootStream(InstallLogWriter(), InstallLogWriter(),
+		append([]string{"pacman", "-S", "--noconfirm", "--needed", "--overwrite", "*"}, packages...)...); err != nil {
 		return msgs, fmt.Errorf("pacman install: %w", err)
 	}
 	msgs = append(msgs, "Installation complete")
@@ -305,12 +288,8 @@ func (z *ZypperManager) Install(names []string) ([]string, error) {
 	msgs := make([]string, 0, len(packages)+1)
 	msgs = append(msgs, fmt.Sprintf("Installing %d package(s): %v", len(packages), packages))
 
-	cmd := exec.Command("sudo", append([]string{
-		"zypper", "install", "-y",
-	}, packages...)...)
-	cmd.Stdout = InstallLogWriter()
-	cmd.Stderr = InstallLogWriter()
-	if err := cmd.Run(); err != nil {
+	if err := rootrun.RunAsRootStream(InstallLogWriter(), InstallLogWriter(),
+		append([]string{"zypper", "install", "-y"}, packages...)...); err != nil {
 		return msgs, fmt.Errorf("zypper install: %w", err)
 	}
 	msgs = append(msgs, "Installation complete")
@@ -356,12 +335,8 @@ func (a *ApkManager) Install(names []string) ([]string, error) {
 	msgs := make([]string, 0, len(packages)+1)
 	msgs = append(msgs, fmt.Sprintf("Installing %d package(s): %v", len(packages), packages))
 
-	cmd := exec.Command("sudo", append([]string{
-		"apk", "add", "--no-cache", "--no-scripts",
-	}, packages...)...)
-	cmd.Stdout = InstallLogWriter()
-	cmd.Stderr = InstallLogWriter()
-	if err := cmd.Run(); err != nil {
+	if err := rootrun.RunAsRootStream(InstallLogWriter(), InstallLogWriter(),
+		append([]string{"apk", "add", "--no-cache", "--no-scripts"}, packages...)...); err != nil {
 		return msgs, fmt.Errorf("apk add: %w", err)
 	}
 	msgs = append(msgs, "Installation complete")

@@ -3,12 +3,12 @@ package bootstrap
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/E3CNC/e3cnc/cli/go/internal/instance"
+	"github.com/E3CNC/e3cnc/cli/go/internal/rootrun"
 )
 
 // BackedUpFile tracks a single file that was backed up before modification.
@@ -127,16 +127,16 @@ func ImportRollback(cfg BootstrapConfig, backup *ImportBackup) {
 	inst := filepath.Join(instance.InstancesDir(), cfg.InstanceName)
 
 	// Stop E3CNC services via supervisor
-	exec.Command("sudo", "supervisorctl", "stop", fmt.Sprintf("e3cnc-%s-*", cfg.InstanceName)).Run()
+	rootrun.RunAsRoot("supervisorctl", "stop", fmt.Sprintf("e3cnc-%s-*", cfg.InstanceName))
 
 	// Remove supervisor configs
-	exec.Command("sudo", "rm", "-f", fmt.Sprintf("/etc/supervisor/conf.d/e3cnc-%s-*.conf", cfg.InstanceName)).Run()
-	exec.Command("sudo", "supervisorctl", "reread").Run()
-	exec.Command("sudo", "supervisorctl", "update").Run()
+	rootrun.RunAsRoot("rm", "-f", fmt.Sprintf("/etc/supervisor/conf.d/e3cnc-%s-*.conf", cfg.InstanceName))
+	rootrun.RunAsRoot("supervisorctl", "reread")
+	rootrun.RunAsRoot("supervisorctl", "update")
 
 	// Remove nginx site
-	exec.Command("rm", "-f", fmt.Sprintf("/etc/nginx/sites-enabled/e3cnc-%s", cfg.InstanceName)).Run()
-	exec.Command("rm", "-f", fmt.Sprintf("/etc/nginx/sites-available/e3cnc-%s", cfg.InstanceName)).Run()
+	rootrun.RunAsRoot("rm", "-f", fmt.Sprintf("/etc/nginx/sites-enabled/e3cnc-%s", cfg.InstanceName))
+	rootrun.RunAsRoot("rm", "-f", fmt.Sprintf("/etc/nginx/sites-available/e3cnc-%s", cfg.InstanceName))
 
 	// Restore backup files (e.g., original nginx or Moonraker configs that were modified)
 	if backup != nil {

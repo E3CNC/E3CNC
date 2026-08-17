@@ -2,13 +2,14 @@ package tui
 
 import (
 	"fmt"
-	"os"
 	"os/exec"
 	"runtime"
 	"strings"
 	"syscall"
 
 	tea "github.com/charmbracelet/bubbletea"
+
+	"github.com/E3CNC/e3cnc/cli/go/internal/instance"
 )
 
 // ── Pre-flight checks ───────────────────────────────────────────
@@ -62,7 +63,7 @@ func checkBinary(name string) func() (string, string) {
 
 func checkDiskSpace() (string, string) {
 	var stat syscall.Statfs_t
-	home, _ := os.UserHomeDir()
+	home := instance.UserHomeDir()
 	err := syscall.Statfs(home, &stat)
 	if err != nil {
 		return "failed", "cannot check disk space"

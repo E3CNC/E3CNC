@@ -2,6 +2,22 @@
 
 All notable changes to E3CNC are documented here.
 
+## [Unreleased]
+
+### 🐛 Bug Fixes
+
+- *(sudo)* Introduced a shared, non-interactive root-execution boundary (`rootrun.RunAsRoot`) used by all privileged operations across install, package management, health checks, and service restart. It runs directly as root, or via `sudo -n` (fail-fast, never prompts).
+- *(sudo)* `e3cnc-tui install` now requires root: non-root invocations are blocked with a clean "run via: sudo ./install.sh" message instead of reaching an interactive sudo prompt. The `sudo ./install.sh → e3cnc-tui install` root hand-off is unaffected.
+- *(sudo)* `e3cnc-tui restart` now runs service restart commands through the root boundary (previously it shelled them via `bash -c` with no sudo, silently doing nothing for a normal user).
+- *(sudo)* Health checks now distinguish a sudo/permission failure from a missing service, and never block on a password prompt.
+- *(tests)* `TestRunDispatch_AllCommands` no longer executes real privileged commands (it injects a stub executor), fixing the ~369s `go test ./...` hang on a sudo password prompt.
+
+- *(install)* Ensure a current release is acquired (`ensureCurrentRelease`) before the "Vendor Moonraker and Klipper" step so a fresh install no longer fails on a missing `~/E3CNC/current`.
+- *(install)* The "Start services" step now fails loudly when `systemctl`/`supervisorctl` commands error, and verifies the instance's Moonraker and Klipper services are actually running (via `supervisorctl status`) instead of silently reporting success.
+- *(install)* Supervisor config write failures in `installServices` and `nginx -t` / `nginx -s reload` failures in `setupNginx` now propagate as errors instead of being silently ignored.
+- *(install)* The "Start services" step now starts the supervisor daemon directly (`supervisord`) in containers without systemd, while keeping the `systemctl` path on real hardware — enabling the full install/service-start flow to run inside the Docker integration tests.
+- *(tests)* Installer integration test container now installs `supervisor` and `nginx`, and a new end-to-end test (`TestServicesEndToEnd`) verifies supervisor configs, nginx config (`nginx -t`), and both services report `RUNNING` after a full install.
+
 ## [0.10.1] - 2026-08-05
 # Changelog
 ## v0.10.1 (2026-08-05)

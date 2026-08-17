@@ -3,10 +3,10 @@ package commands
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 
 	"github.com/E3CNC/e3cnc/cli/go/internal/instance"
+	"github.com/E3CNC/e3cnc/cli/go/internal/rootrun"
 )
 
 // ── detect-mcu ────────────────────────────────────────────────────
@@ -169,22 +169,26 @@ func cmdRestart(jsonOut bool, args []string) bool {
 		return true
 	}
 
-	// Try systemctl first, fall back to supervisorctl
-	cmds := []string{
-		fmt.Sprintf("systemctl restart %s", inst.MoonrakerService),
-		fmt.Sprintf("supervisorctl restart %s", inst.MoonrakerService),
+	// Try supervisorctl restart first (via the non-interactive root boundary).
+	// Fall back to systemctl restart if supervisorctl is unavailable.
+	didRestart := false
+	if _, err := rootrun.RunAsRoot("supervisorctl", "restart", inst.MoonrakerService); err == nil {
+		didRestart = true
+	} else if _, err := rootrun.RunAsRoot("systemctl", "restart", inst.MoonrakerService); err != nil {
+		fmt.Fprintf(os.Stderr, "  Error restarting %s: %v\n", inst.MoonrakerService, err)
 	}
-	// Also try nginx restart
-	cmds = append(cmds, "systemctl reload nginx 2>/dev/null || nginx -s reload 2>/dev/null || true")
 
-	for _, c := range cmds {
-		exec.Command("bash", "-c", c).Run()
-	}
+	// Also try nginx reload, non-fatally.
+	rootrun.RunAsRoot("nginx", "-s", "reload")
 
 	if jsonOut {
 		printJSON(map[string]string{"status": "restarted", "instance": inst.Name})
 	} else {
-		fmt.Println("  Services restarted")
+		if didRestart {
+			fmt.Println("  Services restarted")
+		} else {
+			fmt.Println("  Restart initiated (could not verify)")
+		}
 	}
 	return true
 }

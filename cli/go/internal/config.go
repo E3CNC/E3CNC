@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/E3CNC/e3cnc/cli/go/internal/instance"
 )
 
 // State represents the persistent state for e3cnc-tui.
@@ -29,16 +31,14 @@ type InstallJournal struct {
 
 // statePath returns the path to the state file.
 func statePath() string {
-	home, _ := os.UserHomeDir()
-	dir := filepath.Join(home, ".e3cnc-tui")
+	dir := filepath.Join(instance.UserHomeDir(), ".e3cnc-tui")
 	os.MkdirAll(dir, 0755)
 	return filepath.Join(dir, "state.json")
 }
 
 // InstallJournalPath returns the path to the install journal.
 func InstallJournalPath() string {
-	home, _ := os.UserHomeDir()
-	dir := filepath.Join(home, ".e3cnc-tui")
+	dir := filepath.Join(instance.UserHomeDir(), ".e3cnc-tui")
 	os.MkdirAll(dir, 0755)
 	return filepath.Join(dir, "install-journal.json")
 }
@@ -86,7 +86,7 @@ func ReadInstallJournal() InstallJournal {
 
 // DefaultPaths returns standard E3CNC paths relative to the user's home.
 func DefaultPaths() map[string]string {
-	home, _ := os.UserHomeDir()
+	home := instance.UserHomeDir()
 	return map[string]string{
 		"e3cnc_root":    filepath.Join(home, "E3CNC"),
 		"instances_dir": filepath.Join(home, "E3CNC", "instances"),

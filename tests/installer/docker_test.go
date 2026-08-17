@@ -23,6 +23,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 // ── Build-time constants ───────────────────────────────────────────
@@ -476,7 +477,7 @@ func TestPackageInstall(t *testing.T) {
 	defer stopContainer(containerID)
 
 	// Verify each required binary is on PATH and executable
-	for _, bin := range []string{"git", "curl", "python3"} {
+	for _, bin := range []string{"git", "curl", "python3", "supervisorctl", "nginx"} {
 		containerExecOK(t, containerID, "which "+bin)
 		version := containerExecOK(t, containerID, bin+" --version 2>&1 | head -1")
 		t.Logf("  %s: %s", bin, strings.TrimSpace(version))
@@ -636,6 +637,104 @@ func TestIsolation(t *testing.T) {
 	t.Log("Test isolation: state reset and fresh creation both work correctly")
 }
 
+// ── Test 5.11: End-to-End Service Provisioning ────────────────────
+
+// stageServiceRelease creates a fake release under ~/E3CNC/releases with
+// vendored Moonraker + Klipper markers, symlinks `current` to it, and stages
+// stub venv/bin/python executables so the supervised programs can start and
+// report RUNNING in the container.
+func stageServiceRelease(t *testing.T, containerID string) {
+	t.Helper()
+	containerExecOK(t, containerID, `
+		set -e
+		REL=~/E3CNC/releases/v-service-test
+		mkdir -p $REL/vendor/moonraker/moonraker
+		mkdir -p $REL/vendor/klipper/klippy
+		echo "stub moonraker" > $REL/vendor/moonraker/moonraker/moonraker.py
+		echo "stub klipper" > $REL/vendor/klipper/klippy/klippy.py
+		mkdir -p ~/E3CNC
+		ln -sfn releases/v-service-test ~/E3CNC/current
+		# Stub venv/bin/python so supervisor programs stay RUNNING (long-running shell).
+		mkdir -p ~/moonraker/venv/bin
+		mkdir -p ~/klipper/venv/bin
+		printf '#!/bin/sh\nwhile true; do sleep 1; done\n' > ~/moonraker/venv/bin/python
+		printf '#!/bin/sh\nwhile true; do sleep 1; done\n' > ~/klipper/venv/bin/python
+		chmod +x ~/moonraker/venv/bin/python ~/klipper/venv/bin/python
+	`)
+	// Ensure ~/E3CNC exists before symlinking (the ln may have created it already).
+	containerExecOK(t, containerID, "test -d ~/E3CNC")
+	// Verify current points at the staged release.
+	containerExecOK(t, containerID, "readlink ~/E3CNC/current")
+}
+
+// waitSupervisorRunning polls `supervisorctl status` until both programs
+// report RUNNING (up to timeout), returning the final status output.
+func waitSupervisorRunning(t *testing.T, containerID string, timeoutSec int) string {
+	t.Helper()
+	deadline := time.Now().Add(time.Duration(timeoutSec) * time.Second)
+	var last string
+	for time.Now().Before(deadline) {
+		out, _ := containerExec(t, containerID, "sudo supervisorctl status 2>&1")
+		last = out
+		if strings.Contains(out, "e3cnc-default-moonraker") &&
+			strings.Contains(out, "RUNNING") &&
+			strings.Contains(out, "e3cnc-default-klipper") &&
+			strings.Count(out, "RUNNING") >= 2 {
+			return out
+		}
+		time.Sleep(2 * time.Second)
+	}
+	return last
+}
+
+// TestServicesEndToEnd runs a full install (not --no-start) and verifies the
+// service-provisioning steps produced runnable supervisor + nginx services.
+func TestServicesEndToEnd(t *testing.T) {
+	containerID := startContainer(t)
+	defer stopContainer(containerID)
+	resetContainerState(t, containerID)
+
+	// Stage an offline release + stub venvs so the install needs no network
+	// and the supervised programs can actually run in the container.
+	stageServiceRelease(t, containerID)
+
+	// Run a full install (service start enabled). The container has no systemd,
+	// so startBootstrapServices must fall back to starting supervisord directly.
+	// Set USER so the generated supervisor configs run as the container's
+	// testuser (docker exec doesn't populate USER, and installServices would
+	// otherwise fall back to "biqu").
+	out, installErr := containerExec(t, containerID, "USER=testuser e3cnc-tui install --name default 2>&1")
+	t.Logf("Install output (tail 40):\n%s", truncateTail(out, 40))
+
+	// 1. Supervisor configs were written.
+	for _, want := range []string{
+		"/etc/supervisor/conf.d/e3cnc-default-moonraker.conf",
+		"/etc/supervisor/conf.d/e3cnc-default-klipper.conf",
+	} {
+		containerExecOK(t, containerID, "test -f "+want)
+	}
+	t.Log("supervisor configs present")
+
+	// 2. Nginx site config exists and passes nginx -t.
+	containerExecOK(t, containerID, "test -f /etc/nginx/sites-available/e3cnc-default")
+	t.Logf("nginx -t:\n%s", containerExecOK(t, containerID, "sudo nginx -t 2>&1"))
+
+	// 3. Services came up. The install may report errors on non-blocking steps
+	// (e.g. avahi) but still start services; verify via supervisorctl status.
+	status := waitSupervisorRunning(t, containerID, 60)
+	t.Logf("supervisorctl status:\n%s", status)
+	if !strings.Contains(status, "e3cnc-default-moonraker") ||
+		!strings.Contains(status, "e3cnc-default-klipper") {
+		t.Errorf("expected moonraker+klipper in supervisor status, got:\n%s", status)
+	}
+	if strings.Count(status, "RUNNING") < 2 {
+		t.Errorf("expected both services RUNNING, got:\n%s", status)
+	}
+	if installErr != nil {
+		t.Logf("note: install exited non-zero (likely non-blocking step); %v", installErr)
+	}
+}
+
 // ── Helpers ────────────────────────────────────────────────────────
 
 // truncate returns the first `n` lines of s.
@@ -644,6 +743,15 @@ func truncate(s string, n int) string {
 	if len(lines) > n {
 		lines = lines[:n]
 		lines = append(lines, "...")
+	}
+	return strings.Join(lines, "\n")
+}
+
+// truncateTail returns the last `n` lines of s.
+func truncateTail(s string, n int) string {
+	lines := strings.Split(strings.TrimSuffix(s, "\n"), "\n")
+	if len(lines) > n {
+		lines = lines[len(lines)-n:]
 	}
 	return strings.Join(lines, "\n")
 }
