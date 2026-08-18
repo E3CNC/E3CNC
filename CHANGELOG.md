@@ -4,6 +4,27 @@ All notable changes to E3CNC are documented here.
 
 ## [Unreleased]
 
+## [0.10.3] - 2026-08-18
+
+### 📖 Documentation
+
+- **What's New section** — Added "What's New in v0.10.2" to wiki Home page highlighting recent installer reliability and operational improvements
+- **Troubleshooting FAQ** — Comprehensive FAQ with 12 common issues (installation, runtime, debugging) including diagnostic commands and solutions
+- **Installation prerequisites clarified** — Removed misleading "Klipper/Moonraker must be pre-installed" text; clarified they are bundled with E3CNC
+- **Advanced installer options documented** — Added `--artifact` (air-gapped install) and `--no-start` (service control) flags to Installation wiki
+- **Wiki sync script documented** — Added usage instructions to Contributing.md
+- **Version references updated** — All docs now show v0.10.2 consistently
+- **CHANGELOG fixed** — Removed duplicate headers and formatting corruption from previous versions
+- **README image paths fixed** — Changed to absolute GitHub URLs for portability across platforms
+
+### 🧪 Tests
+
+- All Go unit tests pass (8 packages)
+- All Docker integration tests pass (5 tests including TestServicesEndToEnd)
+- Frontend build succeeds
+
+## [0.10.2] - 2026-08-17
+
 ### 🐛 Bug Fixes
 
 - *(sudo)* Introduced a shared, non-interactive root-execution boundary (`rootrun.RunAsRoot`) used by all privileged operations across install, package management, health checks, and service restart. It runs directly as root, or via `sudo -n` (fail-fast, never prompts).
