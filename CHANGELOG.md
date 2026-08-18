@@ -2,19 +2,6 @@
 
 All notable changes to E3CNC are documented here.
 
-## [unreleased]
-
-### 📦 Chores
-
-- Update CHANGELOG for v0.10.2
-## [0.10.2] - 2026-08-17
-# Changelog
-## v0.10.2 (2026-08-17)
-- _No changelog entry yet. Describe changes here before releasing._
-
-
-All notable changes to E3CNC are documented here.
-
 ## [Unreleased]
 
 ### 🐛 Bug Fixes
@@ -31,9 +18,17 @@ All notable changes to E3CNC are documented here.
 - *(install)* The "Start services" step now starts the supervisor daemon directly (`supervisord`) in containers without systemd, while keeping the `systemctl` path on real hardware — enabling the full install/service-start flow to run inside the Docker integration tests.
 - *(tests)* Installer integration test container now installs `supervisor` and `nginx`, and a new end-to-end test (`TestServicesEndToEnd`) verifies supervisor configs, nginx config (`nginx -t`), and both services report `RUNNING` after a full install.
 
+## [0.10.2] - 2026-08-17
+
+### 🐛 Bug Fixes
+
+- *(install)* Complete install process gap fixes: rollback on blocking step failure, stale vendored components after update, air-gapped install support, distro compatibility pre-check, --no-start TUI toggle, GitHub rate-limit retry, health check timing improvements, deploy scripts/macros copying, printer.cfg MCU detection
+- *(install)* setupNginx now starts nginx if not running (not just reload)
+- *(install)* startBootstrapServices polls for RUNNING state with 16s timeout
+- *(tests)* Test stubs use testuser's home directory (not root's)
+- *(tests)* All Docker integration tests pass including TestServicesEndToEnd
+
 ## [0.10.1] - 2026-08-05
-# Changelog
-## v0.10.1 (2026-08-05)
 
 ### 🐛 Bug Fixes
 

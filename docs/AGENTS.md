@@ -2,7 +2,7 @@
 
 This file documents the current state and capabilities of this project.
 
-## Current Architecture (v0.10.0)
+## Current Architecture (v0.10.2)
 
 E3CNC is a CNC machine management platform with three layers:
 

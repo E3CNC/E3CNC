@@ -1,10 +1,10 @@
 # Installation
 
-E3CNC UI is a maintained fork of Mainsail extended with CNC-native dashboard panels, CAM metadata support, and a Moonraker CNC agent.
+E3CNC is a CNC-focused control stack built around Klipper, Moonraker, and a maintained Mainsail fork.
 
 ## Prerequisites
 
-**Klipper** and **Moonraker** must already be installed and running on a Linux host.
+A Linux host running one of the supported distributions. **Klipper and Moonraker are bundled with E3CNC** — you don't need to install them separately. The installer vendors both from the `vendor/` directory and sets everything up automatically.
 
 Supported distributions and their package managers:
 
@@ -64,6 +64,33 @@ sudo ./install.sh --help                 # show all options
 | `--unattended`  | Run without prompts (passes `--yes` to the Go wizard) |
 | `--dir <path>`  | Accepted by the script, but the Go wizard currently installs to `~/E3CNC` regardless |
 | `--test-ports`  | Quick check: are ports 8081, 7125, 7126 free? Exits after test |
+
+### Advanced installer options (v0.10.2+)
+
+The TUI install wizard (`e3cnc-tui install`) supports additional flags:
+
+```bash
+e3cnc-tui install --yes                  # unattended mode
+e3cnc-tui install --name cnc_2           # specify instance name
+e3cnc-tui install --artifact path/to/release.tar.zst  # air-gapped install from local file
+e3cnc-tui install --no-start             # skip starting services after install
+e3cnc-tui install --check                # dry-run validation only
+```
+
+| Flag               | Description                                                                 |
+| ------------------ | --------------------------------------------------------------------------- |
+| `--yes`            | Non-interactive mode, accepts all defaults                                  |
+| `--name <name>`    | Set instance name (default: "default")                                      |
+| `--artifact <path>`| Install from a local `.tar.zst` release file (air-gapped/offline install)   |
+| `--no-start`       | Don't start Moonraker/Klipper services after install (toggle with 's' in TUI)|
+| `--check`          | Validate prerequisites without installing                                   |
+
+**Air-gapped install:** Download the release artifact on another machine, transfer it via USB/network, then run:
+```bash
+sudo ./install.sh --artifact e3cnc-stack-v0.10.2.tar.zst
+```
+
+**Service control:** Use `--no-start` or press 's' in the TUI instance config screen to prevent automatic service startup. Useful for pre-configuring instances before first boot.
 
 ### Environment variables
 

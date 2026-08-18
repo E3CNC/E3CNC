@@ -57,5 +57,5 @@ Run `./e3cnc-tui --help` for all available commands.
 
 ```bash
 ./e3cnc-tui --version
-e3cnc-tui v0.10.0
+e3cnc-tui v0.10.2
 ```

@@ -55,3 +55,13 @@ CGO_ENABLED=0 go build -o e3cnc-tui ./cmd/e3cnc-tui/
 - Include tests for new functionality
 - Update documentation if behaviour changes
 - Link related issues
+
+## Syncing Wiki to GitHub
+
+After updating wiki pages in `docs/wiki/`, sync them to the GitHub wiki:
+
+```bash
+./scripts/sync-wiki.sh
+```
+
+This script pushes the local `docs/wiki/` directory to the GitHub wiki repository. Run it after making significant documentation updates to keep the live wiki in sync with the repo.
