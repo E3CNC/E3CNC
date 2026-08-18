@@ -1,4 +1,7 @@
 # Changelog
+## v0.10.3 (2026-08-18)
+- _No changelog entry yet. Describe changes here before releasing._
+
 
 All notable changes to E3CNC are documented here.
 
