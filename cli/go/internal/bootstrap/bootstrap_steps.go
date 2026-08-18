@@ -441,9 +441,17 @@ func startBootstrapServices(cfg BootstrapConfig) error {
 			time.Sleep(2 * time.Second)
 		}
 		out, err := runCommand("sudo", "supervisorctl", "status")
-		// supervisorctl status returns non-zero if ANY program is not RUNNING,
-		// but we only care about our specific programs. Parse the output anyway.
 		statusStr := string(out)
+
+		// If supervisorctl itself failed and produced no recognizable program
+		// lines, report it as a query failure rather than "not running".
+		if err != nil && !strings.Contains(statusStr, "RUNNING") &&
+			!strings.Contains(statusStr, "FATAL") && !strings.Contains(statusStr, "STARTING") &&
+			!strings.Contains(statusStr, "STOPPED") {
+			return fmt.Errorf("start services: query supervisor status: %w", err)
+		}
+
+		// Parse the output to check our specific programs.
 		var notRunning []string
 		for _, p := range progs {
 			if !supervisorRunning(statusStr, p) {
@@ -457,12 +465,7 @@ func startBootstrapServices(cfg BootstrapConfig) error {
 			continue // Retry
 		}
 		// Final attempt failed — report which services are still not RUNNING.
-		// Include the full status output for debugging.
-		errMsg := fmt.Errorf("start services: not running: %s", strings.Join(notRunning, ", "))
-		if err != nil {
-			return fmt.Errorf("%w\nsupervisorctl status: %v\n%s", errMsg, err, strings.TrimSpace(statusStr))
-		}
-		return fmt.Errorf("%w\n%s", errMsg, strings.TrimSpace(statusStr))
+		return fmt.Errorf("start services: not running: %s", strings.Join(notRunning, ", "))
 	}
 
 	return nil
