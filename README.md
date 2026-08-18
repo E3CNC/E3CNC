@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="docs/assets/e3c_logo.svg" alt="E3CNC UI" width="200">
+  <img src="https://raw.githubusercontent.com/E3CNC/E3CNC/main/docs/assets/e3c_logo.svg" alt="E3CNC UI" width="200">
 </div>
 
 # E3CNC

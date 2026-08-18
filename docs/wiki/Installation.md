@@ -228,3 +228,109 @@ If you have an existing install under the old `~/e3cnc` (lowercase) directory, t
 | View logs          | `e3cnc-tui logs`                                          |
 | Admin page         | `e3cnc-tui admin-page`                                    |
 | Port test          | `sudo ./install.sh --test-ports`                            |
+
+## Troubleshooting FAQ
+
+### Installation Issues
+
+**Q: The installer says "run via: sudo ./install.sh"**
+
+A: The install command requires root privileges. Run it with `sudo`:
+```bash
+sudo ./install.sh
+```
+
+**Q: Install fails at "Vendor Moonraker and Klipper" step**
+
+A: This usually means the release download failed. Check:
+- Internet connectivity
+- GitHub API rate limits (wait a few minutes and retry)
+- For air-gapped installs, use `--artifact` flag with a local `.tar.zst` file
+
+**Q: Services won't start after install**
+
+A: Check the supervisor status and logs:
+```bash
+sudo supervisorctl status
+sudo tail -f /var/log/supervisor/e3cnc-default-moonraker.err.log
+sudo tail -f /var/log/supervisor/e3cnc-default-klipper.err.log
+```
+
+Common causes:
+- Wrong MCU path in `printer.cfg`
+- Missing Python dependencies in virtualenv
+- Permission issues on instance directories
+
+**Q: Nginx config test fails**
+
+A: Verify nginx is installed and the config syntax:
+```bash
+sudo nginx -t
+sudo systemctl status nginx
+```
+
+If nginx isn't running, the installer now starts it automatically (v0.10.2+).
+
+### Runtime Issues
+
+**Q: Moonraker API not responding**
+
+A: Check if the service is running and the port is correct:
+```bash
+sudo supervisorctl status e3cnc-default-moonraker
+curl http://localhost:7125/server/info
+e3cnc-tui diagnose
+```
+
+**Q: Can't connect to web UI**
+
+A: Verify the frontend is served and nginx is configured:
+```bash
+ls ~/E3CNC/instances/default/frontend/index.html
+sudo nginx -t
+sudo supervisorctl status
+```
+
+Check which port the web UI is on:
+```bash
+grep "listen" /etc/nginx/sites-available/e3cnc-default
+```
+
+**Q: Klipper won't connect to MCU**
+
+A: Common fixes:
+1. Verify the serial device exists: `ls -l /dev/serial/by-id/`
+2. Check permissions: `ls -l /dev/ttyACM0` (should be readable by the service user)
+3. Verify `printer.cfg` has the correct `[mcu]` section:
+   ```ini
+   [mcu]
+   serial: /dev/serial/by-id/usb-Klipper_...  # Use full path from ls
+   ```
+4. Check Klippy logs: `tail -f ~/E3CNC/instances/default/data/logs/klippy.log`
+
+**Q: Port already in use**
+
+A: The installer auto-detects free ports, but you can check manually:
+```bash
+sudo ./install.sh --test-ports
+ss -tlnp | grep -E '8081|7125|7126'
+```
+
+To change ports, edit the instance config or create a new instance with different ports.
+
+### Log Locations
+
+| Log Type | Location |
+|----------|----------|
+| Install log | `~/E3CNC/logs/install.log` |
+| Install journal | `~/.e3cnc-tui/install-journal.json` |
+| Moonraker log | `~/E3CNC/instances/{name}/data/logs/moonraker.log` |
+| Klippy log | `~/E3CNC/instances/{name}/data/logs/klippy.log` |
+| Supervisor error | `/var/log/supervisor/e3cnc-{name}-moonraker.err.log` |
+| Supervisor output | `/var/log/supervisor/e3cnc-{name}-moonraker.out.log` |
+| Nginx error | `/var/log/nginx/error.log` |
+
+**When reporting issues**, always include:
+1. The install log: `~/E3CNC/logs/install.log`
+2. Output of `e3cnc-tui diagnose`
+3. Relevant service logs from the table above
