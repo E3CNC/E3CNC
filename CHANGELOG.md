@@ -2,6 +2,11 @@
 
 All notable changes to E3CNC are documented here.
 
+## [unreleased]
+
+### 📦 Chores
+
+- Bump v0.10.2 → v0.10.3
 ## [Unreleased]
 
 ## [0.10.3] - 2026-08-18
