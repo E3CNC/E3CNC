@@ -68,6 +68,25 @@ func commandExists(name string) bool {
 	return err == nil
 }
 
+// ── Compatibility check ────────────────────────────────────────────
+
+// CheckDistroCompatibility runs an early detection of the package manager
+// and returns a user-friendly error if the distro is not supported.
+// Call this before installSystemPackages to fail fast with a clear message.
+func CheckDistroCompatibility() error {
+	label, _, err := DetectPackageManager()
+	if err != nil {
+		return fmt.Errorf("unsupported distribution: %w\n\n"+
+			"  E3CNC currently supports Debian, Ubuntu, Fedora, RHEL/CentOS, Arch Linux,\n"+
+			"  openSUSE, and Alpine Linux. If your distribution uses a different package\n"+
+			"  manager, you may need to install the required packages manually:\n"+
+			"    python3, python3-venv, python3-dev, git, curl, unzip, zstd, supervisor,\n"+
+			"    nginx, build-essential, libssl-dev, libffi-dev", err)
+	}
+	fmt.Printf("  Detected package manager: %s\n", label)
+	return nil
+}
+
 // ── Common helpers ──────────────────────────────────────────────────
 
 // runSudo executes a command as root, non-interactively, writing output to the

@@ -28,8 +28,8 @@ const (
 	GitHubReleases      = "https://github.com/" + GitHubRepo + "/releases"
 	DefaultKeepReleases = 3
 	DefaultKeepBackups  = 5
-	HealthCheckRetries  = 6
-	HealthCheckBackoff  = 5
+	HealthCheckRetries  = 12
+	HealthCheckBackoff  = 10
 )
 
 // ── Release ───────────────────────────────────────────────────────

@@ -79,6 +79,17 @@ func cmdUpdate(jsonOut bool, args []string) bool {
 		return true
 	}
 
+	// Re-vendor Moonraker and Klipper from the updated release into the
+	// active runtime directories (~/moonraker, ~/klipper) so the running
+	// services pick up the latest vendored code without a separate bootstrap.
+	fmt.Println("  Updating vendored components...")
+	cfg := bootstrap.BootstrapConfig{InstanceName: "default"}
+	if err := bootstrap.CopyVendoredComponents(cfg); err != nil {
+		fmt.Fprintf(os.Stderr, "  Warning: vendor update failed: %v\n", err)
+	} else {
+		fmt.Println("  ✓ Vendored components updated")
+	}
+
 	fmt.Printf("  ✅ Updated to v%s\n", version)
 
 	// Health checks
@@ -121,6 +132,7 @@ func cmdInstall(jsonOut bool, args []string) bool {
 	portDetectOnly := false
 	migrateOnly := false
 	backupOnly := false
+	artifactPath := ""
 
 	for i, arg := range args {
 		switch arg {
@@ -142,6 +154,10 @@ func cmdInstall(jsonOut bool, args []string) bool {
 			}
 		case "--no-start":
 			cfg.StartServices = false
+		case "--artifact":
+			if i+1 < len(args) {
+				artifactPath = args[i+1]
+			}
 		case "--port-detect", "--port-detect-only":
 			portDetectOnly = true
 		case "--migrate-only":
@@ -189,6 +205,32 @@ func cmdInstall(jsonOut bool, args []string) bool {
 	// Full install flow
 	if jsonOut {
 		fmt.Println(`{"status":"starting","phase":"bootstrap"}`)
+	}
+
+	// If a local artifact path was provided, extract and activate it now.
+	// Bootstrap's ensureCurrentRelease will see the existing current symlink
+	// and skip the GitHub download, enabling fully air-gapped installs.
+	if artifactPath != "" {
+		if _, err := os.Stat(artifactPath); os.IsNotExist(err) {
+			fmt.Fprintf(os.Stderr, "  ❌ Artifact not found: %s\n", artifactPath)
+			bootstrap.CloseInstallLog()
+			return true
+		}
+		version := filepath.Base(artifactPath)
+		version = strings.TrimPrefix(version, "e3cnc-stack-")
+		version = strings.TrimSuffix(version, ".tar.zst")
+		fmt.Printf("  Using local artifact: %s (v%s)\n", filepath.Base(artifactPath), version)
+		if _, err := deploy.ExtractArtifact(artifactPath, instance.ReleasesDir(), version); err != nil {
+			fmt.Fprintf(os.Stderr, "  ❌ Failed to extract artifact: %v\n", err)
+			bootstrap.CloseInstallLog()
+			return true
+		}
+		if err := deploy.ActivateRelease(version); err != nil {
+			fmt.Fprintf(os.Stderr, "  ❌ Failed to activate release: %v\n", err)
+			bootstrap.CloseInstallLog()
+			return true
+		}
+		fmt.Println("  ✓ Local artifact activated")
 	}
 
 	// Consolidated install log — captures the CLI install output too.
@@ -267,6 +309,28 @@ func cmdDeploy(jsonOut bool, args []string) bool {
 	if err := cmd.Run(); err != nil {
 		fmt.Fprintf(os.Stderr, "  Deploy failed: %v\n", err)
 		return true
+	}
+
+	// Deploy scripts from release to instance scripts directory
+	scriptsSrc := filepath.Join(currentTarget, "scripts")
+	if _, err := os.Stat(scriptsSrc); err == nil {
+		os.MkdirAll(inst.ScriptsDir, 0755)
+		cpScripts := exec.Command("cp", "-r", scriptsSrc+"/.", inst.ScriptsDir+"/")
+		cpScripts.Stderr = os.Stderr
+		if err := cpScripts.Run(); err != nil {
+			fmt.Fprintf(os.Stderr, "  Warning: scripts deploy failed: %v\n", err)
+		}
+	}
+
+	// Deploy macros from release to instance macros directory
+	macrosSrc := filepath.Join(currentTarget, "config", "macros")
+	if _, err := os.Stat(macrosSrc); err == nil {
+		os.MkdirAll(inst.MacrosDir, 0755)
+		cpMacros := exec.Command("cp", "-r", macrosSrc+"/.", inst.MacrosDir+"/")
+		cpMacros.Stderr = os.Stderr
+		if err := cpMacros.Run(); err != nil {
+			fmt.Fprintf(os.Stderr, "  Warning: macros deploy failed: %v\n", err)
+		}
 	}
 
 	if jsonOut {

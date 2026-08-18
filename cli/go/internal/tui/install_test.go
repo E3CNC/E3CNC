@@ -70,6 +70,11 @@ func TestInstallDecisionImportNoDetectedKlipperStaysOnDecision(t *testing.T) {
 	m.screen = ScreenDecision
 	m.modeCursor = 0
 	m.klipperInstalls = nil
+	// Override HOME to a temp dir so DetectAllKlipperInstalls won't find
+	// any Klipper installations that may exist on the dev machine.
+	origHome := os.Getenv("HOME")
+	t.Cleanup(func() { os.Setenv("HOME", origHome) })
+	os.Setenv("HOME", t.TempDir())
 
 	mod, _ := m.Update(tea.KeyMsg{Type: tea.KeyEnter})
 	m2 := mod.(InstallModel)

@@ -237,7 +237,20 @@ func (m InstallModel) viewDecision() string {
 	}
 
 	b.WriteString("\n")
-	b.WriteString(HelpStyle.Render("↑/↓: mode  ·  Enter: install  ·  r: rescan  ·  q: back to menu"))
+
+	// Start services toggle
+	startIcon := "●"
+	startStyle := OkStyle
+	if !m.startServices {
+		startIcon = "○"
+		startStyle = DimStyle
+	}
+	b.WriteString(fmt.Sprintf("  %s ", startStyle.Render(startIcon)))
+	b.WriteString(DimStyle.Render(" Start services after install"))
+	b.WriteString("\n")
+
+	b.WriteString("\n")
+	b.WriteString(HelpStyle.Render("↑/↓: mode  ·  Enter: install  ·  s: toggle services  ·  r: rescan  ·  q: back to menu"))
 	return b.String()
 }
 

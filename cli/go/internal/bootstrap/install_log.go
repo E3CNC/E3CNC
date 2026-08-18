@@ -17,7 +17,9 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/user"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/E3CNC/e3cnc/cli/go/internal/instance"
@@ -71,9 +73,41 @@ func InstallLogWriter() io.Writer {
 }
 
 // CloseInstallLog flushes and closes the consolidated install log.
+// After closing, it also fixes ownership of the log directory and file
+// so the real user can read them without sudo.
 func CloseInstallLog() {
 	if installLog != nil {
 		installLog.Close()
 		installLog = nil
 	}
+	FixInstallLogOwnership()
+}
+
+// FixInstallLogOwnership chowns the install log directory and file to the
+// original user (SUDO_USER) so they can read it without sudo after install.
+// Best-effort — errors are silently ignored.
+func FixInstallLogOwnership() {
+	uid, gid := sudoUserUIDGID()
+	if uid < 0 || gid < 0 {
+		return
+	}
+	path := InstallLogPath()
+	os.Chown(path, uid, gid)
+	os.Chown(filepath.Dir(path), uid, gid)
+}
+
+// sudoUserUIDGID returns the UID and GID of the SUDO_USER, or (-1, -1)
+// if SUDO_USER is not set or the lookup fails.
+func sudoUserUIDGID() (int, int) {
+	sudoUser := os.Getenv("SUDO_USER")
+	if sudoUser == "" {
+		return -1, -1
+	}
+	u, err := user.Lookup(sudoUser)
+	if err != nil {
+		return -1, -1
+	}
+	uid, _ := strconv.Atoi(u.Uid)
+	gid, _ := strconv.Atoi(u.Gid)
+	return uid, gid
 }

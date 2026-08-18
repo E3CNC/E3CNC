@@ -63,7 +63,7 @@ func withTempHome(t *testing.T) string {
 func TestCopyVendoredComponentsNoCurrentRelease(t *testing.T) {
 	withTempHome(t)
 
-	err := copyVendoredComponents(BootstrapConfig{InstanceName: "default"})
+	err := CopyVendoredComponents(BootstrapConfig{InstanceName: "default"})
 	if err == nil {
 		t.Fatalf("expected an error when %s does not exist", instance.CurrentLink())
 	}
@@ -121,7 +121,7 @@ func TestEnsureCurrentReleaseDownloadsWhenMissing(t *testing.T) {
 		t.Errorf("current should point at the staged release, got %q", target)
 	}
 	// The vendoring step must now work (the user's failure is gone).
-	if err := copyVendoredComponents(BootstrapConfig{InstanceName: "default"}); err != nil {
+	if err := CopyVendoredComponents(BootstrapConfig{InstanceName: "default"}); err != nil {
 		t.Fatalf("vendoring must succeed with an active release: %v", err)
 	}
 	if _, err := os.Stat(filepath.Join(home, "moonraker", "moonraker", "moonraker.py")); err != nil {
@@ -149,14 +149,14 @@ func TestEnsureCurrentReleaseSurfacesFetchError(t *testing.T) {
 	}
 }
 
-// ── copyVendoredComponents ─────────────────────────────────────────
+// ── CopyVendoredComponents ─────────────────────────────────────────
 
 func TestCopyVendoredComponentsCopiesBothMoonrakerAndKlipper(t *testing.T) {
 	home := withTempHome(t)
 	stageRelease(t, "1.0.0-test")
 
-	if err := copyVendoredComponents(BootstrapConfig{InstanceName: "default"}); err != nil {
-		t.Fatalf("copyVendoredComponents failed: %v", err)
+	if err := CopyVendoredComponents(BootstrapConfig{InstanceName: "default"}); err != nil {
+		t.Fatalf("CopyVendoredComponents failed: %v", err)
 	}
 
 	for _, want := range []string{

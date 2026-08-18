@@ -499,7 +499,7 @@ func TestDirectoryCreation(t *testing.T) {
 
 	// Run the full install. It will fail on systemd steps (expected in Docker)
 	// but we check that directory creation succeeded before that.
-	out, _ := containerExec(t, containerID, "e3cnc-tui install --name default --no-start 2>&1")
+	out, _ := containerExec(t, containerID, "sudo e3cnc-tui install --name default --no-start 2>&1")
 	t.Logf("Install output (first 50 lines):\n%s", truncate(out, 50))
 
 	// Verify the E3CNC home directory exists
@@ -533,7 +533,7 @@ func TestConfigGeneration(t *testing.T) {
 
 	// Run the full install (will fail on systemd steps, but config gen
 	// should succeed before that).
-	out, _ := containerExec(t, containerID, "e3cnc-tui install --name default --no-start 2>&1")
+	out, _ := containerExec(t, containerID, "sudo e3cnc-tui install --name default --no-start 2>&1")
 	t.Logf("Install output (first 50 lines):\n%s", truncate(out, 50))
 
 	// Verify moonraker.conf exists
@@ -647,19 +647,21 @@ func stageServiceRelease(t *testing.T, containerID string) {
 	t.Helper()
 	containerExecOK(t, containerID, `
 		set -e
-		REL=~/E3CNC/releases/v-service-test
+		HOME=/home/testuser
+		REL=$HOME/E3CNC/releases/v-service-test
 		mkdir -p $REL/vendor/moonraker/moonraker
 		mkdir -p $REL/vendor/klipper/klippy
 		echo "stub moonraker" > $REL/vendor/moonraker/moonraker/moonraker.py
 		echo "stub klipper" > $REL/vendor/klipper/klippy/klippy.py
-		mkdir -p ~/E3CNC
-		ln -sfn releases/v-service-test ~/E3CNC/current
+		mkdir -p $HOME/E3CNC
+		ln -sfn releases/v-service-test $HOME/E3CNC/current
 		# Stub venv/bin/python so supervisor programs stay RUNNING (long-running shell).
-		mkdir -p ~/moonraker/venv/bin
-		mkdir -p ~/klipper/venv/bin
-		printf '#!/bin/sh\nwhile true; do sleep 1; done\n' > ~/moonraker/venv/bin/python
-		printf '#!/bin/sh\nwhile true; do sleep 1; done\n' > ~/klipper/venv/bin/python
-		chmod +x ~/moonraker/venv/bin/python ~/klipper/venv/bin/python
+		mkdir -p $HOME/moonraker/venv/bin
+		mkdir -p $HOME/klipper/venv/bin
+		printf '#!/bin/sh\nwhile true; do sleep 1; done\n' > $HOME/moonraker/venv/bin/python
+		printf '#!/bin/sh\nwhile true; do sleep 1; done\n' > $HOME/klipper/venv/bin/python
+		chmod +x $HOME/moonraker/venv/bin/python $HOME/klipper/venv/bin/python
+		chown -R testuser:testuser $HOME/moonraker $HOME/klipper
 	`)
 	// Ensure ~/E3CNC exists before symlinking (the ln may have created it already).
 	containerExecOK(t, containerID, "test -d ~/E3CNC")
@@ -703,7 +705,7 @@ func TestServicesEndToEnd(t *testing.T) {
 	// Set USER so the generated supervisor configs run as the container's
 	// testuser (docker exec doesn't populate USER, and installServices would
 	// otherwise fall back to "biqu").
-	out, installErr := containerExec(t, containerID, "USER=testuser e3cnc-tui install --name default 2>&1")
+	out, installErr := containerExec(t, containerID, "sudo USER=testuser e3cnc-tui install --name default 2>&1")
 	t.Logf("Install output (tail 40):\n%s", truncateTail(out, 40))
 
 	// 1. Supervisor configs were written.

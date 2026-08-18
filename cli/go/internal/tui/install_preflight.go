@@ -9,6 +9,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
+	"github.com/E3CNC/e3cnc/cli/go/internal/bootstrap"
 	"github.com/E3CNC/e3cnc/cli/go/internal/instance"
 )
 
@@ -74,6 +75,29 @@ func checkDiskSpace() (string, string) {
 		return "passed", fmt.Sprintf("%.1f GB free", availableGB)
 	}
 	return "failed", fmt.Sprintf("only %.1f GB free, need >0.5 GB", availableGB)
+}
+
+func checkDistro() (string, string) {
+	if err := bootstrap.CheckDistroCompatibility(); err != nil {
+		return "failed", err.Error()
+	}
+	_, pm, _ := bootstrap.DetectPackageManager()
+	switch pm.(type) {
+	case *bootstrap.AptManager:
+		return "passed", "Debian/Ubuntu (apt)"
+	case *bootstrap.DnfManager:
+		return "passed", "Fedora/RHEL (dnf)"
+	case *bootstrap.YumManager:
+		return "passed", "RHEL/CentOS (yum)"
+	case *bootstrap.PacmanManager:
+		return "passed", "Arch Linux (pacman)"
+	case *bootstrap.ZypperManager:
+		return "passed", "openSUSE (zypper)"
+	case *bootstrap.ApkManager:
+		return "passed", "Alpine Linux (apk)"
+	default:
+		return "passed", "supported"
+	}
 }
 
 func checkSudo() (string, string) {

@@ -104,6 +104,9 @@ type InstallModel struct {
 	installMode int // 1 = import existing, 2 = new instance
 	modeCursor  int
 
+	// Focus: 0=mode selector, 1=start services toggle
+	focusPane int
+
 	// Detection results
 	detectionResults []DetectionResult
 	detectionCh      chan tea.Msg
@@ -244,6 +247,7 @@ var defaultPreFlightLabels = []struct {
 }{
 	{"System is Linux", checkOS},
 	{"Python 3.8+", checkPython},
+	{"Package manager (apt/dnf/pacman/zypper/apk)", checkDistro},
 	{"git installed", checkBinary("git")},
 	{"curl installed", checkBinary("curl")},
 	{"unzip installed", checkBinary("unzip")},
@@ -450,6 +454,9 @@ func (m InstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m.installMode = 2 // new instance
 				return m.startInstall(0)
+			case "s":
+				m.startServices = !m.startServices
+				return m, nil
 			case "r":
 				m.screen = ScreenDetection
 				m.detectionResults = nil
@@ -883,6 +890,7 @@ func (m InstallModel) runDetection() tea.Cmd {
 	}{
 		{"System is Linux", checkOS},
 		{"Python 3.8+", checkPython},
+		{"Package manager (apt/dnf/pacman/zypper/apk)", checkDistro},
 		{"git installed", checkBinary("git")},
 		{"curl installed", checkBinary("curl")},
 		{"unzip installed", checkBinary("unzip")},

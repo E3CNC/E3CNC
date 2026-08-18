@@ -141,7 +141,7 @@ func Bootstrap(cfg BootstrapConfig) error {
 		{"Install system packages", true, func(cfg BootstrapConfig) error { return installSystemPackages() }},
 		{"Configure sudoers", false, func(cfg BootstrapConfig) error { return setupSudoers() }},
 		{"Create directories", true, func(cfg BootstrapConfig) error { return createDirectories(cfg) }},
-		{"Vendor Moonraker and Klipper", true, func(cfg BootstrapConfig) error { return copyVendoredComponents(cfg) }},
+		{"Vendor Moonraker and Klipper", true, func(cfg BootstrapConfig) error { return CopyVendoredComponents(cfg) }},
 		{"Create virtualenvs", true, func(cfg BootstrapConfig) error { return createVirtualenvs(cfg) }},
 		{"Generate config files", true, func(cfg BootstrapConfig) error { return generateConfigs(cfg) }},
 		{"Install system services", true, func(cfg BootstrapConfig) error { return installServices(cfg) }},
@@ -155,6 +155,9 @@ func Bootstrap(cfg BootstrapConfig) error {
 	}
 
 	var stepErrors []error
+	var lastBlockingStep int
+	var lastBlockingErr error
+	hadBlockingFailure := false
 	for i, step := range stepFns {
 		if i < cfg.StartFrom {
 			continue
@@ -167,7 +170,10 @@ func Bootstrap(cfg BootstrapConfig) error {
 			errMsg := fmt.Errorf("step %d (%s): %w", i+1, step.name, err)
 			InstallLogf("✗ step %d (%s) FAILED: %v", i+1, step.name, err)
 			if step.blocking {
-				return errMsg
+				hadBlockingFailure = true
+				lastBlockingStep = i
+				lastBlockingErr = errMsg
+				break
 			}
 			stepErrors = append(stepErrors, errMsg)
 			continue
@@ -175,6 +181,18 @@ func Bootstrap(cfg BootstrapConfig) error {
 		report(i, "completed", nil)
 		fmt.Printf("  ✓ %s\n", step.name)
 		InstallLogf("✓ %s", step.name)
+	}
+
+	// On blocking failure, roll back partial state before returning error.
+	// The rollback stops services, removes supervisor/nginx configs, and
+	// deletes the instance directory — best-effort, never halts on errors.
+	if hadBlockingFailure {
+		fmt.Fprintf(os.Stderr, "\n  ⚠ Cleaning up partial state from failed step %d...\n", lastBlockingStep+1)
+		InstallLogf("Rolling back after failure at step %d...", lastBlockingStep+1)
+		Rollback(cfg)
+		fmt.Fprintf(os.Stderr, "  ✓ Partial state cleaned up.\n")
+		InstallLogf("Rollback complete")
+		return lastBlockingErr
 	}
 
 	if len(stepErrors) > 0 {

@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/E3CNC/e3cnc/cli/go/internal/instance"
 	"github.com/E3CNC/e3cnc/cli/go/internal/rootrun"
@@ -40,6 +41,11 @@ var runCommand = func(name string, args ...string) ([]byte, error) {
 //   • openSUSE/SLES     → zypper (opensuse)
 //   • Alpine Linux      → apk    (alpine)
 func installSystemPackages() error {
+	// Early compatibility check before any system modifications.
+	if err := CheckDistroCompatibility(); err != nil {
+		return err
+	}
+
 	label, pm, err := DetectPackageManager()
 	if err != nil {
 		return fmt.Errorf("detect package manager: %w", err)
@@ -57,11 +63,29 @@ func installSystemPackages() error {
 	return nil
 }
 
-func setupSudoers() error {
-	user := os.Getenv("USER")
-	if user == "" {
-		user = "biqu"
+// detectTargetUser returns the non-root username that should own the E3CNC
+// runtime files and services. It prefers SUDO_USER (the user who invoked sudo),
+// then $USER, then scans /home for the first real user, falling back to "pi".
+func detectTargetUser() string {
+	if u := os.Getenv("SUDO_USER"); u != "" {
+		return u
 	}
+	if u := os.Getenv("USER"); u != "" && u != "root" {
+		return u
+	}
+	// Scan /home for the first non-root user directory
+	if entries, err := os.ReadDir("/home"); err == nil {
+		for _, e := range entries {
+			if e.IsDir() && e.Name() != "root" {
+				return e.Name()
+			}
+		}
+	}
+	return "pi"
+}
+
+func setupSudoers() error {
+	user := detectTargetUser()
 	content := fmt.Sprintf(`# E3CNC — passwordless sudo for process management
 %s ALL=(root) NOPASSWD: /usr/bin/supervisorctl *
 %s ALL=(root) NOPASSWD: /usr/bin/tee /etc/supervisor/conf.d/e3cnc-*.conf
@@ -128,7 +152,7 @@ func createDirectories(cfg BootstrapConfig) error {
 	return nil
 }
 
-func copyVendoredComponents(cfg BootstrapConfig) error {
+func CopyVendoredComponents(cfg BootstrapConfig) error {
 	home := effectiveHome()
 	currentTarget, err := os.Readlink(instance.CurrentLink())
 	if err != nil {
@@ -213,7 +237,15 @@ extractor_path: %s/data/scripts/cnc_metadata_extractor.py
 
 	printerCfg := filepath.Join(configDir, "printer.cfg")
 	if _, err := os.Stat(printerCfg); os.IsNotExist(err) {
-		content := `# E3CNC bootstrap placeholder printer.cfg
+		// Auto-detect MCU serial path — prefer /dev/serial/by-id/ for
+		// persistent naming that survives USB port changes.
+		mcuPath := detectMCUPath()
+		serialLine := "serial: " + mcuPath
+		if mcuPath == "" {
+			serialLine = "# serial: /dev/serial/by-id/<your-mcu>  # <-- ADJUST THIS"
+		}
+
+		content := fmt.Sprintf(`# E3CNC bootstrap placeholder printer.cfg
 # Replace this file with your real machine configuration.
 
 [printer]
@@ -222,11 +254,11 @@ max_velocity: 100
 max_accel: 100
 
 [mcu]
-serial: /dev/ttyACM0
+%s
 
 [force_move]
 enable_force_move: True
-`
+`, serialLine)
 		if err := os.WriteFile(printerCfg, []byte(content), 0644); err != nil {
 			return err
 		}
@@ -240,10 +272,7 @@ func installServices(cfg BootstrapConfig) error {
 	inst := filepath.Join(instance.InstancesDir(), cfg.InstanceName)
 	printerCfg := filepath.Join(inst, "data", "config", "printer.cfg")
 
-	user := os.Getenv("USER")
-	if user == "" {
-		user = "biqu"
-	}
+	user := detectTargetUser()
 	moonrakerName := fmt.Sprintf("e3cnc-%s-moonraker", cfg.InstanceName)
 	klipperName := fmt.Sprintf("e3cnc-%s-klipper", cfg.InstanceName)
 
@@ -334,9 +363,20 @@ func setupNginx(cfg BootstrapConfig) error {
 		return fmt.Errorf("nginx config test: %w (output: %s)",
 			err, strings.TrimSpace(string(out)))
 	}
-	if out, err := runCommand("sudo", "nginx", "-s", "reload"); err != nil {
-		return fmt.Errorf("nginx reload: %w (output: %s)",
-			err, strings.TrimSpace(string(out)))
+
+	// Start nginx if not already running, then reload to pick up new config.
+	if _, err := runCommand("sudo", "pgrep", "-x", "nginx"); err != nil {
+		// nginx not running — start it.
+		if out, err := runCommand("sudo", "nginx"); err != nil {
+			return fmt.Errorf("nginx start: %w (output: %s)",
+				err, strings.TrimSpace(string(out)))
+		}
+	} else {
+		// nginx is running — reload to pick up new site.
+		if out, err := runCommand("sudo", "nginx", "-s", "reload"); err != nil {
+			return fmt.Errorf("nginx reload: %w (output: %s)",
+				err, strings.TrimSpace(string(out)))
+		}
 	}
 	return nil
 }
@@ -390,22 +430,39 @@ func startBootstrapServices(cfg BootstrapConfig) error {
 	}
 
 	// Verify the instance's Moonraker and Klipper services actually started.
+	// Programs may take a few seconds to transition from STARTING → RUNNING,
+	// so poll up to 15 seconds with 2-second intervals.
 	progName := "e3cnc-" + cfg.InstanceName
 	progs := []string{progName + "-moonraker", progName + "-klipper"}
-	out, err := runCommand("sudo", "supervisorctl", "status")
-	if err != nil {
-		return fmt.Errorf("start services: query supervisor status: %w (output: %s)",
-			err, strings.TrimSpace(string(out)))
-	}
-	statusStr := string(out)
-	var notRunning []string
-	for _, p := range progs {
-		if !supervisorRunning(statusStr, p) {
-			notRunning = append(notRunning, p)
+
+	const maxAttempts = 8 // 8 × 2s = 16s total
+	for attempt := 1; attempt <= maxAttempts; attempt++ {
+		if attempt > 1 {
+			time.Sleep(2 * time.Second)
 		}
-	}
-	if len(notRunning) > 0 {
-		return fmt.Errorf("start services: not running: %s", strings.Join(notRunning, ", "))
+		out, err := runCommand("sudo", "supervisorctl", "status")
+		// supervisorctl status returns non-zero if ANY program is not RUNNING,
+		// but we only care about our specific programs. Parse the output anyway.
+		statusStr := string(out)
+		var notRunning []string
+		for _, p := range progs {
+			if !supervisorRunning(statusStr, p) {
+				notRunning = append(notRunning, p)
+			}
+		}
+		if len(notRunning) == 0 {
+			return nil // All services RUNNING
+		}
+		if attempt < maxAttempts {
+			continue // Retry
+		}
+		// Final attempt failed — report which services are still not RUNNING.
+		// Include the full status output for debugging.
+		errMsg := fmt.Errorf("start services: not running: %s", strings.Join(notRunning, ", "))
+		if err != nil {
+			return fmt.Errorf("%w\nsupervisorctl status: %v\n%s", errMsg, err, strings.TrimSpace(statusStr))
+		}
+		return fmt.Errorf("%w\n%s", errMsg, strings.TrimSpace(statusStr))
 	}
 
 	return nil
@@ -471,4 +528,34 @@ func writeFileSudoImpl(path, content string, mode os.FileMode) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
+}
+
+// detectMCUPath scans common MCU device paths and returns the first one
+// found. Prefers /dev/serial/by-id/ for persistent naming. Returns empty
+// string if no MCU is detected.
+func detectMCUPath() string {
+	// Prefer persistent symlinks (survives USB port changes)
+	byID := "/dev/serial/by-id"
+	if entries, err := os.ReadDir(byID); err == nil && len(entries) > 0 {
+		// Prefer USB devices over platform devices
+		for _, e := range entries {
+			if strings.Contains(e.Name(), "usb") || strings.Contains(e.Name(), "USB") {
+				return filepath.Join(byID, e.Name())
+			}
+		}
+		return filepath.Join(byID, entries[0].Name())
+	}
+
+	// Fallback: check common tty paths
+	for _, path := range []string{
+		"/dev/ttyACM0",
+		"/dev/ttyUSB0",
+		"/dev/ttyAMA0",
+	} {
+		if _, err := os.Stat(path); err == nil {
+			return path
+		}
+	}
+
+	return ""
 }

@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/E3CNC/e3cnc/cli/go/internal/deploy"
 	"github.com/E3CNC/e3cnc/cli/go/internal/instance"
@@ -48,27 +49,48 @@ func ensureCurrentRelease() error {
 
 // fetchAndActivateLatestRelease downloads the latest e3cnc-stack artifact
 // from GitHub Releases, extracts it into ~/E3CNC/releases/<version>, and
-// activates it via the `current` symlink.
+// activates it via the `current` symlink. Retries up to 3 times on GitHub
+// API rate-limit errors with exponential backoff.
 func fetchAndActivateLatestRelease() error {
-	asset, err := deploy.FindStackArtifact()
-	if err != nil {
-		return fmt.Errorf("find stack artifact: %w", err)
-	}
+	var lastErr error
+	for attempt := 1; attempt <= 3; attempt++ {
+		if attempt > 1 {
+			backoff := time.Duration(attempt*attempt) * 5 * time.Second
+			fmt.Printf("  Retrying in %v (attempt %d/3)...\n", backoff, attempt)
+			time.Sleep(backoff)
+		}
 
-	assetPath, err := deploy.DownloadArtifact(asset, filepath.Join(os.TempDir(), "e3cnc-download"))
-	if err != nil {
-		return fmt.Errorf("download stack artifact: %w", err)
-	}
+		asset, err := deploy.FindStackArtifact()
+		if err != nil {
+			lastErr = fmt.Errorf("find stack artifact: %w", err)
+			if strings.Contains(err.Error(), "GITHUB_RATE_LIMIT") {
+				fmt.Println("  ⚠ GitHub API rate limited, retrying...")
+				continue
+			}
+			return lastErr
+		}
 
-	version := strings.TrimPrefix(asset.Name, "e3cnc-stack-")
-	version = strings.TrimSuffix(version, ".tar.zst")
+		assetPath, err := deploy.DownloadArtifact(asset, filepath.Join(os.TempDir(), "e3cnc-download"))
+		if err != nil {
+			lastErr = fmt.Errorf("download stack artifact: %w", err)
+			if strings.Contains(err.Error(), "429") || strings.Contains(err.Error(), "503") {
+				fmt.Println("  ⚠ Download failed (transient), retrying...")
+				continue
+			}
+			return lastErr
+		}
 
-	if _, err := deploy.ExtractArtifact(assetPath, instance.ReleasesDir(), version); err != nil {
-		return fmt.Errorf("extract stack artifact: %w", err)
+		version := strings.TrimPrefix(asset.Name, "e3cnc-stack-")
+		version = strings.TrimSuffix(version, ".tar.zst")
+
+		if _, err := deploy.ExtractArtifact(assetPath, instance.ReleasesDir(), version); err != nil {
+			return fmt.Errorf("extract stack artifact: %w", err)
+		}
+		if err := deploy.ActivateRelease(version); err != nil {
+			return fmt.Errorf("activate release %s: %w", version, err)
+		}
+		InstallLogf("Activated release %s", version)
+		return nil
 	}
-	if err := deploy.ActivateRelease(version); err != nil {
-		return fmt.Errorf("activate release %s: %w", version, err)
-	}
-	InstallLogf("Activated release %s", version)
-	return nil
+	return fmt.Errorf("obtain E3CNC release (3 attempts): %w", lastErr)
 }
