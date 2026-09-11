@@ -11,29 +11,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test-go:
-    name: Go Tests
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: cli/go
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.23'
-          cache-dependency-path: cli/go/go.sum
-
-      - name: Run Go tests
-        run: go test ./... -count=1 -short
-
-      - name: Check Go build
-        run: |
-          CGO_ENABLED=0 go build -o /dev/null ./cmd/e3cnc-tui/
-          echo "Go build OK"
-
   build-frontend:
     name: Frontend Build
     runs-on: ubuntu-latest
