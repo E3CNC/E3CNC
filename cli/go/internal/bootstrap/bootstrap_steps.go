@@ -65,9 +65,13 @@ func installSystemPackages() error {
 	return nil
 }
 
+// usersHomeDir is the directory scanned for a fallback user when neither
+// SUDO_USER nor USER identifies a non-root account. Overridable in tests.
+var usersHomeDir = "/home"
+
 // detectTargetUser returns the non-root username that should own the E3CNC
 // runtime files and services. It prefers SUDO_USER (the user who invoked sudo),
-// then $USER, then scans /home for the first real user, falling back to "pi".
+// then $USER, then scans usersHomeDir for the first real user, falling back to "pi".
 func detectTargetUser() string {
 	if u := os.Getenv("SUDO_USER"); u != "" {
 		return u
@@ -75,8 +79,8 @@ func detectTargetUser() string {
 	if u := os.Getenv("USER"); u != "" && u != "root" {
 		return u
 	}
-	// Scan /home for the first non-root user directory
-	if entries, err := os.ReadDir("/home"); err == nil {
+	// Scan usersHomeDir for the first non-root user directory
+	if entries, err := os.ReadDir(usersHomeDir); err == nil {
 		for _, e := range entries {
 			if e.IsDir() && e.Name() != "root" {
 				return e.Name()

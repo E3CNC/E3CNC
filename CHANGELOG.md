@@ -20,9 +20,9 @@ All notable changes to E3CNC are documented here.
 
 ### 🧪 Tests
 
-- **Permission fix tests** — `TestFixFilePermissionsAllDirectories`, `TestFixFilePermissionsNonExistent`, `TestFixFilePermissionsPartialMissing`, `TestFixFilePermissionsSymlinkNotFollowed`, `TestFixFilePermissionsLchownError`, `TestFixFilePermissionsDetectTargetUserViaUserEnv`, plus `TestDetectTargetUser_FallbackPi` / `TestFixFilePermissions_UserLookupFailureIsNonBlocking`
+- **Permission & user detection tests** — `TestDetectTargetUser_FallbackPi`, `TestFixFilePermissions_UserLookupFailureIsNonBlocking`, `TestBootstrap_StepBlocking_FixFilePermissionsIsNonBlocking`
 - **Offline & deps tests** — `TestHasWheels_*` (5), `TestKlippyRequirements_Jinja2MarkersPresent`, `TestResolve_LibjpegDev_AllDistros`, `TestResolve_ZlibDev_AllDistros`, `TestAllPackages_ContainsLibjpegAndZlib`
-- **Safety tests** — `TestRemoveSupervisorConfigs_GlobSafe`, `TestRemoveSupervisorConfigs_GlobNoMatchIsNoop`, `TestSetupNginxPropagatesWriteError`, `TestBootstrap_StepBlocking_FixFilePermissionsIsNonBlocking`
+- **Safety tests** — `TestRemoveSupervisorConfigs_GlobSafe`, `TestRemoveSupervisorConfigs_GlobNoMatchIsNoop`, `TestSetupNginxPropagatesWriteError`
 
 ## [0.10.3] - 2026-08-18
 

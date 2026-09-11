@@ -176,6 +176,9 @@ func TestDetectTargetUser_FallbackPi(t *testing.T) {
 	origHome := os.Getenv("HOME")
 	os.Setenv("HOME", t.TempDir())
 	defer os.Setenv("HOME", origHome)
+	origUsersHome := usersHomeDir
+	usersHomeDir = t.TempDir()
+	defer func() { usersHomeDir = origUsersHome }()
 	got := detectTargetUser()
 	if got != "pi" {
 		t.Errorf("expected fallback pi, got %q", got)
