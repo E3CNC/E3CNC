@@ -15,13 +15,15 @@ A modern, responsive CNC controller interface for Klipper-based machines — for
 # Clone the repo
 git clone https://github.com/E3CNC/E3CNC.git ~/E3CNC && cd ~/E3CNC
 
-# Run the installer (sudo required)
+# Run the installer (sudo required) - offline wheels are bundled, no network needed for Python deps
 sudo ./install.sh
 
 # Or with custom options:
 sudo ./install.sh --unattended          # no prompts, uses defaults (instance: default)
 sudo ./install.sh --dir /opt/e3cnc      # custom installation directory
 sudo ./install.sh --test-ports          # check if ports are free without installing
+# Fully offline (air-gapped) from a local stack:
+sudo ./install.sh --artifact e3cnc-stack-*.tar.zst
 ```
 
 ## What's New — Go BubbleTea TUI

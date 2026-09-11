@@ -34,8 +34,8 @@ The macros in `wcs_macros.cfg` provide dashboard-friendly aliases:
 
 ## Installation
 
-1. The WCS Klipper plugin is deployed automatically by the Ansible install
-   playbook or the bash `install_to_moonraker.sh` script.
+1. The WCS Klipper plugin is deployed automatically by the Go installer
+   (`sudo ./install.sh`) or the bash `install_to_moonraker.sh` script.
 
 2. Add to `printer.cfg`:
 

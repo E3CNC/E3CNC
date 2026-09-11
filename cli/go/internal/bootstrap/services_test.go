@@ -442,3 +442,23 @@ func TestValidateRuntimeSudoers_MissingRule(t *testing.T) {
 		t.Fatal("expected an error when nginx reload rule is missing")
 	}
 }
+
+func TestSetupNginxPropagatesWriteError(t *testing.T) {
+	boom := errors.New("disk full")
+	withFakeWriteFileSudo(t, func(path, content string, mode os.FileMode) error {
+		if strings.Contains(path, "sites-available") {
+			return boom
+		}
+		return nil
+	})
+	err := setupNginx(BootstrapConfig{InstanceName: "default"})
+	if err == nil {
+		t.Fatal("expected error when nginx avail write fails")
+	}
+	if !strings.Contains(err.Error(), "write nginx config") {
+		t.Errorf("error should mention write nginx config, got: %v", err)
+	}
+	if !errors.Is(err, boom) {
+		t.Errorf("error should wrap underlying cause, got: %v", err)
+	}
+}

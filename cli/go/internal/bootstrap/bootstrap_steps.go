@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -188,18 +190,72 @@ func CopyVendoredComponents(cfg BootstrapConfig) error {
 
 func createVirtualenvs(cfg BootstrapConfig) error {
 	home := effectiveHome()
-	for _, dir := range []string{home + "/moonraker", home + "/klipper"} {
-		venvPython := filepath.Join(dir, "venv", "bin", "python")
-		if _, err := os.Stat(venvPython); err == nil {
-			continue
+	type component struct {
+		dir       string   // source directory
+		reqs      []string // arguments to pip install (requirements file, package dir)
+	}
+	components := []component{
+		{home + "/moonraker", []string{"-r", "scripts/moonraker-requirements.txt"}},
+		{home + "/klipper", []string{"-r", "scripts/klippy-requirements.txt"}},
+	}
+
+	// Offline wheels are now the default: if the current release bundles
+	// wheels/ with .whl files, use --no-index --find-links for a fully
+	// offline pip install (no network, no compile fallback).
+	wheelsDir := ""
+	if target, err := os.Readlink(instance.CurrentLink()); err == nil {
+		candidate := filepath.Join(target, "wheels")
+		if fi, err := os.Stat(candidate); err == nil && fi.IsDir() && hasWheels(candidate) {
+			wheelsDir = candidate
+			fmt.Printf("  Using offline wheels: %s\n", wheelsDir)
+			InstallLogf("Using offline wheels: %s", wheelsDir)
 		}
-		cmd := exec.Command("python3", "-m", "venv", filepath.Join(dir, "venv"))
+	}
+
+	for _, c := range components {
+		venvDir := filepath.Join(c.dir, "venv")
+		venvPip := filepath.Join(venvDir, "bin", "pip")
+		venvPython := filepath.Join(venvDir, "bin", "python")
+
+		// Create the virtualenv if it doesn't exist yet.
+		if _, err := os.Stat(venvPython); err != nil {
+			cmd := exec.Command("python3", "-m", "venv", venvDir)
+			cmd.Stderr = os.Stderr
+			if err := cmd.Run(); err != nil {
+				return fmt.Errorf("venv %s: %w", c.dir, err)
+			}
+		}
+
+		// Install from requirements files (avoids pdm-backend SCM .git detection).
+		var args []string
+		if wheelsDir != "" {
+			args = append([]string{"install", "--disable-pip-version-check", "--no-index", "--find-links", wheelsDir}, c.reqs...)
+		} else {
+			args = append([]string{"install", "--disable-pip-version-check"}, c.reqs...)
+		}
+		cmd := exec.Command(venvPip, args...)
+		cmd.Dir = c.dir
 		cmd.Stderr = os.Stderr
+		cmd.Stdout = os.Stdout
 		if err := cmd.Run(); err != nil {
-			return fmt.Errorf("venv %s: %w", dir, err)
+			return fmt.Errorf("pip install deps in %s: %w", c.dir, err)
 		}
 	}
 	return nil
+}
+
+// hasWheels reports whether dir contains at least one .whl or .tar.gz.
+func hasWheels(dir string) bool {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return false
+	}
+	for _, e := range entries {
+		if !e.IsDir() && (strings.HasSuffix(e.Name(), ".whl") || strings.HasSuffix(e.Name(), ".tar.gz")) {
+			return true
+		}
+	}
+	return false
 }
 
 func generateConfigs(cfg BootstrapConfig) error {
@@ -355,7 +411,9 @@ func setupNginx(cfg BootstrapConfig) error {
 	avail := fmt.Sprintf("/etc/nginx/sites-available/%s", nginxName)
 	enabled := fmt.Sprintf("/etc/nginx/sites-enabled/%s", nginxName)
 
-	writeFileSudo(avail, config, 0644)
+	if err := writeFileSudo(avail, config, 0644); err != nil {
+		return fmt.Errorf("write nginx config %s: %w", avail, err)
+	}
 	runCommand("sudo", "rm", "-f", enabled)
 	runCommand("sudo", "ln", "-sf", avail, enabled)
 
@@ -399,7 +457,7 @@ stdout_logfile=/var/log/supervisor/%%(program_name)s.out.log
 
 func startBootstrapServices(cfg BootstrapConfig) error {
 	if !cfg.StartServices {
-		fmt.Println("  [9/9] Skipping service start (--no-start)")
+		fmt.Println("  Skipping service start (--no-start)")
 		return nil
 	}
 
@@ -561,4 +619,80 @@ func detectMCUPath() string {
 	}
 
 	return ""
+}
+
+// fixFilePermissions walks all user-space directories created by the bootstrap
+// and chowns them to the target user (who invoked sudo). This fixes the root
+// ownership problem described in E3CNC Issue #35: files under the user's home
+// dir are created as root when the installer runs via sudo, but should be
+// owned by the actual user.
+//
+// Directories covered:
+//   - ~/E3CNC (E3CNCHome) — releases, instances, admin, backups
+//   - ~/moonraker           — vendored Moonraker + virtualenv
+//   - ~/klipper             — vendored Klipper + virtualenv
+//
+// System-level files (/etc/supervisor, /etc/nginx, /etc/sudoers.d) are
+// intentionally left root-owned — only user-space paths are fixed.
+// lchownFn is the function used by fixFilePermissions to change file ownership.
+// Exposed as a package var so tests can replace it with a recording/test double.
+// The default implementation calls os.Lchown (does not follow symlinks).
+var lchownFn = os.Lchown
+
+func fixFilePermissions(cfg BootstrapConfig) error {
+	targetUser := detectTargetUser()
+	if targetUser == "" {
+		return fmt.Errorf("could not determine target user")
+	}
+
+	u, err := user.Lookup(targetUser)
+	if err != nil {
+		// Non-blocking: log warning and continue (e.g. no "pi" user on custom images)
+		fmt.Fprintf(os.Stderr, "  Warning: lookup user %q: %v (skipping chown)\n", targetUser, err)
+		InstallLogf("Warning: lookup user %q: %v", targetUser, err)
+		return nil
+	}
+	uid, err := strconv.Atoi(u.Uid)
+	if err != nil {
+		return fmt.Errorf("parse uid %q: %w", u.Uid, err)
+	}
+	gid, err := strconv.Atoi(u.Gid)
+	if err != nil {
+		return fmt.Errorf("parse gid %q: %w", u.Gid, err)
+	}
+
+	home := effectiveHome()
+	dirs := []string{
+		instance.E3CNCHome(),           // ~/E3CNC
+		filepath.Join(home, "moonraker"), // ~/moonraker
+		filepath.Join(home, "klipper"),   // ~/klipper
+	}
+
+	for _, dir := range dirs {
+		if _, statErr := os.Lstat(dir); os.IsNotExist(statErr) {
+			continue
+		}
+		walkErr := filepath.WalkDir(dir, func(p string, d os.DirEntry, walkErr error) error {
+			if walkErr != nil {
+				return walkErr
+			}
+			// os.Lchown does not follow symlinks — important for the
+			// ~/E3CNC/current symlink so we don't follow it into releases/
+			// (which is already covered by walking E3CNCHome).
+			if lchownErr := lchownFn(p, uid, gid); lchownErr != nil {
+				// Log as a warning and continue the walk — one failed
+				// lchown should not abort the entire permissions fix.
+				fmt.Fprintf(os.Stderr, "  Warning: chown %s: %v\n", p, lchownErr)
+				InstallLogf("Warning: chown %s: %v", p, lchownErr)
+			}
+			return nil
+		})
+		if walkErr != nil {
+			fmt.Fprintf(os.Stderr, "  Warning: fix permissions for %s: %v\n", dir, walkErr)
+			InstallLogf("Warning: fix permissions for %s: %v", dir, walkErr)
+		}
+	}
+
+	InstallLogf("✓ Fixed file permissions for user %q (uid=%d gid=%d)", targetUser, uid, gid)
+	return nil
 }

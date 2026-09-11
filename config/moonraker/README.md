@@ -227,11 +227,11 @@ Once connected, an AI agent can use the tools. Some examples:
 
 ## Installing the CNC Agent on a Printer
 
-### Ansible playbook (recommended)
+### Go installer (recommended)
 
 ```sh
-cd ~/E3CNC
-ansible-playbook ansible/playbooks/install.yml
+sudo ./install.sh
+# or: sudo e3cnc-tui install
 ```
 
 This vendors the CNC agent into Moonraker, configures `[cnc_agent]` and `[cnc_metadata]` sections, deploys the WCS plugin and macros, builds the frontend, and restarts services.

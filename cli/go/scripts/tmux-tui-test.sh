@@ -7,7 +7,7 @@
 set -euo pipefail
 
 PANE="${TUI_PANE:-main:1.0}"
-BINARY="${TUI_BINARY:-~/e3cnc/current/bin/e3cnc-tui}"
+BINARY="${TUI_BINARY:-/usr/local/bin/e3cnc-tui}"
 PASS=0
 FAIL=0
 FAILURES=""

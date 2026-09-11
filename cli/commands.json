@@ -14,7 +14,7 @@
                     "short": null,
                     "help": "Remote SSH target (e.g., pi@192.168.1.100)"
                 },
-                { "name": "check", "type": "bool", "short": "n", "help": "Dry-run mode (Ansible check mode)" },
+                { "name": "check", "type": "bool", "short": "n", "help": "Dry-run mode" },
                 { "name": "yes", "type": "bool", "short": "y", "help": "Skip confirmation prompts" },
                 {
                     "name": "instance",
@@ -26,7 +26,7 @@
                     "name": "name",
                     "type": "string",
                     "short": null,
-                    "help": "Instance name for bootstrap (creates ~/e3cnc/instances/{NAME})"
+                    "help": "Instance name for bootstrap (creates ~/E3CNC/instances/{NAME})"
                 }
             ]
         },

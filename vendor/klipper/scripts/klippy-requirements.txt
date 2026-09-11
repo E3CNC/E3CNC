@@ -10,8 +10,12 @@ greenlet==3.1.1 ; python_version >= '3.12'
 cffi==1.14.6 ; python_version < '3.12'
 cffi==1.17.1 ; python_version >= '3.12'
 # Jinja2 is used by gcode_macro.py
-Jinja2==2.11.3
-markupsafe==1.1.1       # Needed by Jinja2
+# 2.11.3 uses collections.Mapping removed in 3.11; 3.x is required for Python >=3.11
+# Keep dual marker for compatibility with older upstreams / tests on Python 3.10
+Jinja2==2.11.3 ; python_version < '3.11'
+Jinja2==3.1.6 ; python_version >= '3.11'
+markupsafe==1.1.1 ; python_version < '3.11'  # Needed by Jinja2 2.11.3
+markupsafe==3.0.3 ; python_version >= '3.11'  # Needed by Jinja2 3.x
 # pyserial is used by serialhdl.py (for USB and UART mcu connections)
 pyserial==3.4
 # python-can is used by serialhdl.py (for canbus mcu connections)

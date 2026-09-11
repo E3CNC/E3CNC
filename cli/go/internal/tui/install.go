@@ -182,7 +182,8 @@ var freshInstallSteps = []InstallStep{
 	{Number: 6, Label: "Generate config files"},
 	{Number: 7, Label: "Install system services"},
 	{Number: 8, Label: "Configure nginx and mDNS"},
-	{Number: 9, Label: "Start services"},
+	{Number: 9, Label: "Fix file permissions"},
+	{Number: 10, Label: "Start services"},
 }
 
 // importSteps defines the step list when importing an existing Klipper installation.

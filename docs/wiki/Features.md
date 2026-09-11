@@ -38,7 +38,7 @@
 
 | Feature                  | Description                                                                                                |
 | ------------------------ | ---------------------------------------------------------------------------------------------------------- |
-| **Bootstrap in Go**      | Fresh-install provisioning replaces Ansible with Go functions (multi-distro package manager: apt/dnf/yum/pacman/zypper/apk, pip, venv, supervisor, git clone) |
+| **Bootstrap in Go**      | Fresh-install provisioning in Go (multi-distro: apt/dnf/yum/pacman/zypper/apk, pip --no-index from bundled wheels, venv, supervisor). Fat offline stack - no network required |
 | **Single-Deploy Layout** | `~/E3CNC/releases/<version>/` with `current` symlink. Atomic activation via `current.new` → rename         |
 | **Health Checks**        | 7 checks after every install/update: Moonraker API, service, Klippy, CNC agent, frontend, journal, Klipper |
 | **Auto-Rollback**        | If critical health checks fail after update, automatically reverts to previous release                     |
@@ -70,5 +70,5 @@
 | Feature                  | Description                                                                                               |
 | ------------------------ | --------------------------------------------------------------------------------------------------------- |
 | **Semver Releases**      | Version tags on `main` trigger GitHub releases                                       |
-| **Stack Artifact**       | `e3cnc-stack-v<ver>.tar.zst` containing frontend, Moonraker, Klipper extras, macros, TUI binary, manifest |
+| **Stack Artifact**       | `e3cnc-stack-v<ver>.tar.zst` containing frontend, Moonraker, Klipper extras, macros, TUI binary, wheels (offline), manifest |
 | **CI**                   | Go tests (~200) + frontend build on every push/PR                                                                       |

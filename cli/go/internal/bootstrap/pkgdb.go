@@ -92,6 +92,22 @@ var Packages = map[string]PackageAlias{
 		"alpine":   {"openssl-dev"},
 		"opensuse": {"openssl-devel"},
 	},
+	"libjpeg-dev": {
+		"deb":      {"libjpeg-dev"},
+		"fedora":   {"libjpeg-turbo-devel"},
+		"rhel8+":   {"libjpeg-turbo-devel"},
+		"arch":     {"libjpeg-turbo"},
+		"alpine":   {"libjpeg-turbo-dev"},
+		"opensuse": {"libjpeg-devel"},
+	},
+	"zlib-dev": {
+		"deb":      {"zlib1g-dev"},
+		"fedora":   {"zlib-devel"},
+		"rhel8+":   {"zlib-devel"},
+		"arch":     {"zlib"},
+		"alpine":   {"zlib-dev"},
+		"opensuse": {"zlib-devel"},
+	},
 }
 
 // AllPackages returns the canonical list of all managed generic package names
@@ -100,6 +116,6 @@ func AllPackages() []string {
 	return []string{
 		"git", "curl", "unzip", "zstd", "nginx", "supervisor",
 		"python3", "python3-pip", "python3-venv", "python3-dev",
-		"build-essential", "libffi-dev", "libssl-dev", "avahi-utils",
+		"build-essential", "libffi-dev", "libssl-dev", "libjpeg-dev", "zlib-dev", "avahi-utils",
 	}
 }

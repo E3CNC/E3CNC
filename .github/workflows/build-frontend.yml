@@ -146,6 +146,33 @@ jobs:
       - name: Install zstd
         run: sudo apt-get update -qq && sudo apt-get install -y -qq zstd
 
+      - name: Vendor Python wheels (offline)
+        run: |
+          set -euo pipefail
+          python3 -m pip install --upgrade pip
+          mkdir -p /tmp/wheels
+          # Download for both host (x86_64) and target (aarch64) so --no-index works on Pi.
+          # Use --only-binary=:all: where possible, but keep sdists as fallback for compilation.
+          python3 -m pip download --dest /tmp/wheels \
+            -r vendor/moonraker/scripts/moonraker-requirements.txt \
+            -r vendor/klipper/scripts/klippy-requirements.txt || exit 1
+          # Also fetch aarch64 wheels explicitly for greenlet/cffi/pillow where available
+          python3 -m pip download --dest /tmp/wheels \
+            --platform manylinux2014_aarch64 --platform manylinux_2_28_aarch64 --platform any \
+            --python-version 3.11 --only-binary=:all: \
+            -r vendor/moonraker/scripts/moonraker-requirements.txt \
+            -r vendor/klipper/scripts/klippy-requirements.txt 2>&1 | tail -n 5 || true
+          # Validate: must have at least 20 wheels/tarballs and critical packages
+          count=$(ls /tmp/wheels 2>/dev/null | wc -l)
+          echo "Wheels vendored: $count files ($(du -h /tmp/wheels | cut -f1))"
+          ls /tmp/wheels | head -n 20
+          if [ "$count" -lt 20 ]; then echo "ERROR: too few wheels ($count)"; exit 1; fi
+          for pkg in greenlet pillow Jinja2 importlib_metadata; do
+            if ! ls /tmp/wheels/*"$pkg"* >/dev/null 2>&1 && ! ls /tmp/wheels/*"$(echo $pkg | tr '[:upper:]' '[:lower:]')"* >/dev/null 2>&1; then
+              echo "ERROR: missing wheel/sdist for $pkg"; exit 1
+            fi
+          done
+
       - name: Build stack artifact
         shell: bash
         run: |
@@ -192,8 +219,28 @@ jobs:
           # Theme
           cp config/theme.json "${STACK_DIR}/"
 
+          # Wheels for offline pip install (--no-index)
+          shopt -s nullglob
+          if [ -d /tmp/wheels ]; then
+            whls=(/tmp/wheels/*.whl /tmp/wheels/*.tar.gz)
+            if [ ${#whls[@]} -gt 0 ]; then
+              mkdir -p "${STACK_DIR}/wheels"
+              cp /tmp/wheels/*.whl "${STACK_DIR}/wheels/" 2>/dev/null || true
+              cp /tmp/wheels/*.tar.gz "${STACK_DIR}/wheels/" 2>/dev/null || true
+              echo "  Bundled $(ls "${STACK_DIR}/wheels" 2>/dev/null | wc -l) wheels for offline install"
+            else
+              echo "ERROR: no wheels to bundle"; exit 1
+            fi
+          fi
+
           # Write manifest.json
-          echo "{\"e3cnc_version\": \"${VERSION}\", \"moonraker_component_version\": \"${VERSION}\", \"klipper_extras_version\": \"1\", \"config_schema\": 1, \"klipper_requires\": \">=0.12.0\", \"python_requires\": \">=3.9\"}" > "${STACK_DIR}/manifest.json"
+          HAS_OFFLINE="false"
+          shopt -s nullglob
+          if [ -d "${STACK_DIR}/wheels" ]; then
+            offline_files=("${STACK_DIR}/wheels"/*.whl "${STACK_DIR}/wheels"/*.tar.gz)
+            if [ ${#offline_files[@]} -gt 0 ]; then HAS_OFFLINE="true"; fi
+          fi
+          echo "{\"e3cnc_version\": \"${VERSION}\", \"moonraker_component_version\": \"${VERSION}\", \"klipper_extras_version\": \"1\", \"config_schema\": 1, \"klipper_requires\": \">=0.12.0\", \"python_requires\": \">=3.9\", \"offline\": ${HAS_OFFLINE}}" > "${STACK_DIR}/manifest.json"
 
           # Create compressed archive
           tar --zstd -cf "e3cnc-stack-${VERSION}.tar.zst" "${STACK_DIR}"
