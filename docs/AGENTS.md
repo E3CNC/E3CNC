@@ -36,7 +36,7 @@ Single static binary — no runtime dependencies. Two entry points:
 - **Ansible retired** — replaced by `bootstrap.Bootstrap()` in Go
 - **Python CLI removed** — archived; all operations run in-process
 - **Single static binary** — CGO_ENABLED=0, ships as `e3cnc-tui`
-- **Stack artifact** — release `.tar.zst` bundles frontend + vendor + binary
+- **Stack artifact** — fat offline `e3cnc-stack-*.tar.zst` bundles frontend + vendor + binary + wheels (pip --no-index, no network)
 
 ### Vue 3 Migration Status
 

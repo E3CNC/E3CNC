@@ -32,7 +32,7 @@ The progress and verification screens SHALL be merged into a single screen. Heal
 
 #### Scenario: Progress shows mode-specific steps
 - **WHEN** the fresh install pipeline runs
-- **THEN** the progress screen SHALL show 9 steps: system packages, sudoers, directories, vendor Moonraker+Klipper, virtualenvs, config files, system services, nginx+mDNS, start services
+- **THEN** the progress screen SHALL show 10 steps: system packages, sudoers, directories, vendor Moonraker+Klipper, virtualenvs, config files, system services, nginx+mDNS, fix file permissions, start services
 - **WHEN** the import pipeline runs
 - **THEN** the progress screen SHALL show 7 steps: system packages, sudoers, detect existing Klipper, create E3CNC dirs, config Moonraker, nginx+mDNS, start services+integrate
 

@@ -17,7 +17,9 @@ Supported distributions and their package managers:
 | openSUSE / SLES           | `zypper`        |                                              |
 | Alpine Linux              | `apk`           | Tested on musl via static binary             |
 
-The installer auto-detects the package manager at runtime — no manual selection needed. Core system packages (`git`, `curl`, `unzip`, `zstd`, `nginx`, `supervisor`, `python3`, `python3-pip`, `python3-venv`, build tools, `avahi-utils`) are installed with distro-native names and flags. Packages that are already present are skipped.
+The installer auto-detects the package manager at runtime — no manual selection needed. Core system packages (`git`, `curl`, `unzip`, `zstd`, `nginx`, `supervisor`, `python3`, `python3-pip`, `python3-venv`, build tools, `libjpeg-dev`, `zlib1g-dev`, `avahi-utils`) are installed with distro-native names and flags. Packages that are already present are skipped.
+
+Releases are **fat offline stacks**: `e3cnc-stack-*.tar.zst` bundles `frontend`, vendored `Moonraker`/`Klipper`, the `e3cnc-tui` binary, **and all Python wheels** (`wheels/*.whl`). The installer uses `pip install --no-index --find-links wheels/` by default - no pip download, no compile, no GitHub rate limit. Older thin stacks fall back to online pip automatically.
 
 The installer is a bash bootstrap script that downloads a single Go static binary — the only things needed on the target machine are:
 
@@ -81,14 +83,16 @@ e3cnc-tui install --check                # dry-run validation only
 | ------------------ | --------------------------------------------------------------------------- |
 | `--yes`            | Non-interactive mode, accepts all defaults                                  |
 | `--name <name>`    | Set instance name (default: "default")                                      |
-| `--artifact <path>`| Install from a local `.tar.zst` release file (air-gapped/offline install)   |
+| `--artifact <path>`| Install from a local `.tar.zst` release file (fully offline - wheels are bundled) |
 | `--no-start`       | Don't start Moonraker/Klipper services after install (toggle with 's' in TUI)|
 | `--check`          | Validate prerequisites without installing                                   |
 
-**Air-gapped install:** Download the release artifact on another machine, transfer it via USB/network, then run:
+**Offline / air-gapped install:** Every release is offline-ready. For a fully offline host, download `e3cnc-stack-*.tar.zst` elsewhere, transfer via USB, then run:
 ```bash
 sudo ./install.sh --artifact e3cnc-stack-v0.10.2.tar.zst
+# or: sudo e3cnc-tui install --artifact e3cnc-stack-v0.10.2.tar.zst
 ```
+No network is needed - Python deps are installed from `wheels/` inside the stack.
 
 **Service control:** Use `--no-start` or press 's' in the TUI instance config screen to prevent automatic service startup. Useful for pre-configuring instances before first boot.
 
@@ -240,12 +244,12 @@ A: The install command requires root privileges. Run it with `sudo`:
 sudo ./install.sh
 ```
 
-**Q: Install fails at "Vendor Moonraker and Klipper" step**
+**Q: Install fails at "Vendor Moonraker and Klipper" or "Create virtualenvs" step**
 
-A: This usually means the release download failed. Check:
+A: Since v0.10.4 the stack bundles all Python wheels (`wheels/`) and installs with `pip --no-index` - this step no longer needs network. If it still fails, check `~/E3CNC/logs/install.log`. For older thin releases or if `wheels/` is missing it falls back to online `pip download` - check:
 - Internet connectivity
-- GitHub API rate limits (wait a few minutes and retry)
-- For air-gapped installs, use `--artifact` flag with a local `.tar.zst` file
+- GitHub API rate limits (wait and retry, or re-download the latest fat stack)
+- For fully offline hosts, use `--artifact` with the fat `e3cnc-stack-*.tar.zst`
 
 **Q: Services won't start after install**
 

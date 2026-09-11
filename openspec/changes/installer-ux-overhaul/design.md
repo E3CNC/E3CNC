@@ -2,7 +2,7 @@
 
 The current install flow has 8 TUI screens (ModeSelect → PreFlight → MCUSelect → Config → FirmwareCheck → ExecDashboard → Verification → ErrorRecovery). The update flow has no TUI — it runs a CLI command inside a raw scrollable text viewport. The `install.sh` bootstrap is a minimal 116-line script with no color, no progress bar, and terse error messages.
 
-The existing bootstrap pipeline is monolithic — a single `Bootstrap()` function with 9 steps. There is no mode branching; the "import existing Klipper" concept exists in the TUI (Screen 0: Mode Select) but the pipeline treats both modes identically.
+The existing bootstrap pipeline is monolithic — a single `Bootstrap()` function with 10 steps. There is no mode branching; the "import existing Klipper" concept exists in the TUI (Screen 0: Mode Select) but the pipeline treats both modes identically.
 
 ## Goals / Non-Goals
 

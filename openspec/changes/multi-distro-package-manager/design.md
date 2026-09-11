@@ -9,10 +9,10 @@ The current `installSystemPackages()` in `cli/go/internal/bootstrap/bootstrap_st
 │  install.sh   │ ──────────────▶  │ e3cnc-tui install        │
 │ (bash shim)   │                  │ (Go BubbleTea TUI)       │
 │               │                  │                          │
-│ ✅ arch detect │                  │ Step [0/9]: apt-get      │ ← HARDCODED
-│ ✅ download    │                  │ Step [1/9]: sudoers      │
-│ ✅ verify sha  │                  │ Step [2/9]: directories  │
-│ ✅ install bin │                  │ Step [3/9]: vendor       │
+│ ✅ arch detect │                  │ Step [0/10]: apt-get      │
+│ ✅ download    │                  │ Step [1/10]: sudoers      │
+│ ✅ verify sha  │                  │ Step [2/10]: directories  │
+│ ✅ install bin │                  │ Step [3/10]: vendor       │
 │                │                  │ ...                      │
 └───────────────┘                  └──────────────────────────┘
 ```

@@ -40,7 +40,7 @@ Single static Go binary with two modes:
 | `cli/go/internal/commands/`    | All 25 command handlers in Go                                  |
 | `cli/go/internal/deploy/`      | Release management, health checks, backup/restore              |
 | `cli/go/internal/instance/`    | Instance model, detection, path resolution                     |
-| `cli/go/internal/bootstrap/`   | Fresh-install provisioning (replaces Ansible)                  |
+| `cli/go/internal/bootstrap/`   | Fresh-install provisioning (multi-distro pkg mgr, pip --no-index from bundled wheels) |
 | `cli/go/internal/tui/`         | BubbleTea models: menu, install wizard, instance manager       |
 | `cli/go/Makefile`              | `CGO_ENABLED=0`, cross-compile targets                         |
 
@@ -107,4 +107,4 @@ Deploy operations are forwarded to `e3cnc-tui` via subprocess with `--json` outp
 - `e3cnc-tui` applies its own lipgloss styling in TUI mode; plain text in CLI mode
 - `cli/commands.json` is the single source of truth for all command definitions
 - Version is baked into the Go binary at build time via `-ldflags` (package.json for tagged releases, `git describe` for CI builds)
-- The Go binary is a single static artifact — no runtime dependencies, no Python, no Ansible
+- The Go binary is a single static artifact — no runtime dependencies, no Python. Releases are fat offline stacks with `wheels/` bundled.

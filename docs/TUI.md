@@ -169,15 +169,15 @@ installs (common paths, systemd services, printer.cfg scan) for selection.
 
 ### Screen 5 — Execution Dashboard
 
-Shows real-time progress across all 9 installation phases via goroutine-streamed
+Shows real-time progress across all 10 installation phases via goroutine-streamed
 progress from `bootstrap.Bootstrap()`:
 
 ```
-[1/9]  Install system packages ............. ✓ 8s
-[2/9]  Create directories ................... ✓ 1s
-[3/9]  Vendor Moonraker and Klipper ......... ✓ 14s
-[4/9]  Create virtualenvs ................... ✓ 34s
-[5/9]  Generate config files ................ ✓ 3s
+[1/10] Install system packages ............. ✓ 8s
+[2/10] Create directories ................... ✓ 1s
+[3/10] Vendor Moonraker and Klipper ......... ✓ 14s
+[4/10] Create virtualenvs ................... ✓ 34s
+[5/10] Generate config files ................ ✓ 3s
 ...
 ```
 

@@ -4,6 +4,24 @@ All notable changes to E3CNC are documented here.
 
 ## [Unreleased]
 
+### ✨ Features
+
+- **Offline stack** — Release `e3cnc-stack-*.tar.zst` now bundles `wheels/` (pip `--no-index --find-links`) so fresh installs need no network for Python deps. Workflow vendors wheels for both x86_64 and aarch64, validates critical packages, and sets `offline:true` in `manifest.json`. Installer falls back to online pip when wheels are absent. (`build-frontend.yml`, `bootstrap_steps.go`)
+- **Pillow system deps** — `libjpeg-dev` and `zlib-dev` added to every distro map in `pkgdb.go` so Pillow compiles from sdist when wheels are unavailable.
+
+### 🔧 Bug Fixes
+
+- **Install permissions** — Added non-blocking "Fix file permissions" step (step 9/10, before "Start services") to `Bootstrap()` that `lchown`s `~/E3CNC`, `~/moonraker`, and `~/klipper` back to the target user. Fixes root-owned files after `sudo ./install.sh` and `start services: not running` on fresh installs. Also fixes the admin page ownership without re-walking all trees. (GitHub #35, #34)
+- **Supervisor glob safety** — `Uninstall`/`Rollback` now expand `/etc/supervisor/conf.d/e3cnc-*.conf` with `filepath.Glob` and remove each match with `RunAsRoot("rm","-f",path)` instead of shelling `rm -f` with a glob literal. Prevents injection via instance name.
+- **Nginx config write** — `setupNginx` now propagates `writeFileSudo` errors for `sites-available` instead of silently ignoring them.
+- **Jinja2 on Python 3.11+** — `klippy-requirements.txt` uses environment markers so Python 3.11+ gets `Jinja2==3.1.6`/`markupsafe==3.0.3` instead of the 2.11.3/1.1.1 pair that imports `collections.Mapping` removed in 3.11.
+
+### 🧪 Tests
+
+- **Permission fix tests** — `TestFixFilePermissionsAllDirectories`, `TestFixFilePermissionsNonExistent`, `TestFixFilePermissionsPartialMissing`, `TestFixFilePermissionsSymlinkNotFollowed`, `TestFixFilePermissionsLchownError`, `TestFixFilePermissionsDetectTargetUserViaUserEnv`, plus `TestDetectTargetUser_FallbackPi` / `TestFixFilePermissions_UserLookupFailureIsNonBlocking`
+- **Offline & deps tests** — `TestHasWheels_*` (5), `TestKlippyRequirements_Jinja2MarkersPresent`, `TestResolve_LibjpegDev_AllDistros`, `TestResolve_ZlibDev_AllDistros`, `TestAllPackages_ContainsLibjpegAndZlib`
+- **Safety tests** — `TestRemoveSupervisorConfigs_GlobSafe`, `TestRemoveSupervisorConfigs_GlobNoMatchIsNoop`, `TestSetupNginxPropagatesWriteError`, `TestBootstrap_StepBlocking_FixFilePermissionsIsNonBlocking`
+
 ## [0.10.3] - 2026-08-18
 
 ### 📖 Documentation
