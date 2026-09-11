@@ -4,8 +4,6 @@ All notable changes to E3CNC are documented here.
 
 ## [Unreleased]
 
-## [0.10.4] - 2026-09-11
-
 ### ✨ Features
 
 - **Offline stack** — Release `e3cnc-stack-*.tar.zst` now bundles `wheels/` (pip `--no-index --find-links`) so fresh installs need no network for Python deps. Workflow vendors wheels for both x86_64 and aarch64, validates critical packages, and sets `offline:true` in `manifest.json`. Installer falls back to online pip when wheels are absent. (`build-frontend.yml`, `bootstrap_steps.go`)

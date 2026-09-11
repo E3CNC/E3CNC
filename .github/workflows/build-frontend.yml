@@ -310,6 +310,9 @@ jobs:
         run: |
           # Checkout main branch (workflow checks out tag ref, detached HEAD)
           git checkout main
+          # Fast-forward local main to origin so concurrent pushes don't
+          # race the auto-update (fixes #race-after-tag-push).
+          git pull --ff-only origin main
           # Install git-cliff — prefer cargo, fall back to pre-built binary
           cargo install git-cliff -q 2>/dev/null || \
             (curl -fsSL https://github.com/orhun/git-cliff/releases/latest/download/git-cliff-x86_64-unknown-linux-gnu.tar.gz | tar xz && chmod +x git-cliff)
@@ -317,7 +320,7 @@ jobs:
           git config user.name "E3CNC CI"
           git config user.email "ci@e3cnc.local"
           # Prepend unreleased commits as new version section
-          $CLIFF --unreleased --tag "$(git describe --tags --exact-match HEAD)" --prepend CHANGELOG.md 2>/dev/null || \
+          $CLIFF --unreleased --tag "${{ steps.version.outputs.VERSION }}" --prepend CHANGELOG.md 2>/dev/null || \
             echo "No new changelog entries to add (may have been seeded already)."
           # Stage first, then check the staged diff. git-cliff --prepend only
           # touches the working tree, so checking `git diff --cached` before
@@ -327,7 +330,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changelog changes to commit."
           else
-            git commit -m "chore: update CHANGELOG for $(git describe --tags --exact-match HEAD)"
+            git commit -m "chore: update CHANGELOG for ${{ steps.version.outputs.VERSION }}"
             git push origin main
           fi
 
