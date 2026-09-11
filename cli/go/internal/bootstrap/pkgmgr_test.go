@@ -219,6 +219,61 @@ func TestAllPackages_notEmpty(t *testing.T) {
 	}
 }
 
+// ── Test: AllPackages includes libjpeg/zlib (pillow) ─────────────────
+
+func TestAllPackages_ContainsLibjpegAndZlib(t *testing.T) {
+	pkgs := AllPackages()
+	m := map[string]bool{}
+	for _, p := range pkgs {
+		m[p] = true
+	}
+	for _, want := range []string{"libjpeg-dev", "zlib-dev", "avahi-utils"} {
+		if !m[want] {
+			t.Errorf("AllPackages missing %q, got %v", want, pkgs)
+		}
+	}
+}
+
+func TestResolve_LibjpegDev_AllDistros(t *testing.T) {
+	cases := []struct {
+		pm   PackageManager
+		want []string
+	}{
+		{&AptManager{}, []string{"libjpeg-dev"}},
+		{&DnfManager{}, []string{"libjpeg-turbo-devel"}},
+		{&YumManager{}, []string{"libjpeg-turbo-devel"}},
+		{&PacmanManager{}, []string{"libjpeg-turbo"}},
+		{&ApkManager{}, []string{"libjpeg-turbo-dev"}},
+		{&ZypperManager{}, []string{"libjpeg-devel"}},
+	}
+	for _, c := range cases {
+		got := c.pm.Resolve([]string{"libjpeg-dev"})["libjpeg-dev"]
+		if len(got) != len(c.want) || (len(got) > 0 && got[0] != c.want[0]) {
+			t.Errorf("%T libjpeg-dev: want %v got %v", c.pm, c.want, got)
+		}
+	}
+}
+
+func TestResolve_ZlibDev_AllDistros(t *testing.T) {
+	cases := []struct {
+		pm   PackageManager
+		want []string
+	}{
+		{&AptManager{}, []string{"zlib1g-dev"}},
+		{&DnfManager{}, []string{"zlib-devel"}},
+		{&YumManager{}, []string{"zlib-devel"}},
+		{&PacmanManager{}, []string{"zlib"}},
+		{&ApkManager{}, []string{"zlib-dev"}},
+		{&ZypperManager{}, []string{"zlib-devel"}},
+	}
+	for _, c := range cases {
+		got := c.pm.Resolve([]string{"zlib-dev"})["zlib-dev"]
+		if len(got) != len(c.want) || (len(got) > 0 && got[0] != c.want[0]) {
+			t.Errorf("%T zlib-dev: want %v got %v", c.pm, c.want, got)
+		}
+	}
+}
+
 // ── Helper ────────────────────────────────────────────────────────
 
 func assertEqualStrings(t *testing.T, label string, want, got []string) {

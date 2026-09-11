@@ -7,7 +7,9 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
+	"strconv"
 
 	"github.com/E3CNC/e3cnc/cli/go/internal/instance"
 	"github.com/E3CNC/e3cnc/cli/go/internal/rootrun"
@@ -52,11 +54,11 @@ var stepNames = []string{
 	"Generate config files",
 	"Install system services",
 	"Configure nginx and mDNS",
+	"Fix file permissions",
 	"Start services",
 }
 
 // Bootstrap lays down a complete fresh E3CNC installation.
-// This is the Go equivalent of the Ansible bootstrap-stack + install playbooks.
 func Bootstrap(cfg BootstrapConfig) error {
 	if cfg.InstanceName == "" {
 		cfg.InstanceName = "default"
@@ -151,6 +153,7 @@ func Bootstrap(cfg BootstrapConfig) error {
 			}
 			return setupAvahi(cfg)
 		}},
+		{"Fix file permissions", false, func(cfg BootstrapConfig) error { return fixFilePermissions(cfg) }},
 		{"Start services", true, func(cfg BootstrapConfig) error { return startBootstrapServices(cfg) }},
 	}
 
@@ -202,6 +205,20 @@ func Bootstrap(cfg BootstrapConfig) error {
 	// Generate admin page after successful install
 	generateAdminPage(cfg)
 
+	// Fix permissions on the admin page only (avoid re-walking all three trees)
+	adminFile := filepath.Join(instance.E3CNCHome(), "admin", "index.html")
+	if fi, err := os.Stat(adminFile); err == nil && !fi.IsDir() {
+		if targetUser := detectTargetUser(); targetUser != "" {
+			if u, err := user.Lookup(targetUser); err == nil {
+				if uid, err := strconv.Atoi(u.Uid); err == nil {
+					if gid, err := strconv.Atoi(u.Gid); err == nil {
+						_ = lchownFn(adminFile, uid, gid)
+					}
+				}
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -236,13 +253,26 @@ func getHostname() string {
 	return h
 }
 
+// removeSupervisorConfigs removes supervisor configs matching the glob pattern.
+// It expands the glob via filepath.Glob and removes each match with RunAsRoot,
+// avoiding shell injection (InstanceName comes from CLI args).
+func removeSupervisorConfigs(pattern string) {
+	matches, err := filepath.Glob(pattern)
+	if err != nil || len(matches) == 0 {
+		return
+	}
+	for _, m := range matches {
+		rootrun.RunAsRoot("rm", "-f", m)
+	}
+}
+
 // Uninstall removes all E3CNC components.
 func Uninstall(inst *instance.Instance) error {
 	fmt.Println("  Uninstalling E3CNC...")
 
 	// Stop E3CNC services via supervisor
 	rootrun.RunAsRoot("supervisorctl", "stop", fmt.Sprintf("e3cnc-%s-*", inst.Name))
-	rootrun.RunAsRoot("rm", "-f", fmt.Sprintf("/etc/supervisor/conf.d/e3cnc-%s-*.conf", inst.Name))
+	removeSupervisorConfigs(fmt.Sprintf("/etc/supervisor/conf.d/e3cnc-%s-*.conf", inst.Name))
 	rootrun.RunAsRoot("supervisorctl", "reread")
 	rootrun.RunAsRoot("supervisorctl", "update")
 
@@ -272,7 +302,7 @@ func Rollback(cfg BootstrapConfig) {
 	rootrun.RunAsRoot("supervisorctl", "stop", fmt.Sprintf("e3cnc-%s-*", cfg.InstanceName))
 
 	// Remove supervisor configs
-	rootrun.RunAsRoot("rm", "-f", fmt.Sprintf("/etc/supervisor/conf.d/e3cnc-%s-*.conf", cfg.InstanceName))
+	removeSupervisorConfigs(fmt.Sprintf("/etc/supervisor/conf.d/e3cnc-%s-*.conf", cfg.InstanceName))
 	rootrun.RunAsRoot("supervisorctl", "reread")
 	rootrun.RunAsRoot("supervisorctl", "update")
 

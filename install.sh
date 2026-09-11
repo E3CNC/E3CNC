@@ -90,6 +90,7 @@ main() {
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --unattended) UNATTENDED=true; shift ;;
+            --offline) shift ;; # deprecated: offline wheels are now the default when bundled
             --dir) CUSTOM_DIR="${2:-}"; [[ -z "$CUSTOM_DIR" ]] && { log_error "--dir requires a path"; exit 1; }; shift 2 ;;
             --test-ports) TEST_PORTS=true; shift ;;
             --version|-v) echo "e3cnc-installer v${SCRIPT_VERSION}"; exit 0 ;;

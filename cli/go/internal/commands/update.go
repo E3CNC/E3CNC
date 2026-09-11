@@ -154,6 +154,9 @@ func cmdInstall(jsonOut bool, args []string) bool {
 			}
 		case "--no-start":
 			cfg.StartServices = false
+		case "--offline":
+			// Deprecated: offline wheels are now the default when the release bundles wheels/
+			// Kept for backward compat, no-op.
 		case "--artifact":
 			if i+1 < len(args) {
 				artifactPath = args[i+1]
