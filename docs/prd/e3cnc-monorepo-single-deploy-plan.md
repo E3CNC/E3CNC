@@ -1336,3 +1336,36 @@ Best first vertical slice:
 8. Retire `ansible/roles/agent/`
 
 That slice starts the real architecture shift without forcing an immediate config migration, health check implementation, or Klipper redesign. Subsequent slices add migration, health checks, GC, and legacy role retirement in phases 4–9.
+
+---
+
+## 19. Implementation log (updated 2026-10-01)
+
+Status: **implementing** — §18 first slice done, frontend split to its own repo (§19.1), installer tracer bullets live (§19.3). Remaining: config migration, health checks, GC, legacy role retirement (§18 phases 4–9).
+
+### 19.1 Frontend split — the plan's biggest deviation
+
+The §3.3/§4.1 assumption that the frontend ships from this repo's `src/` is obsolete. On 2026-09-17 (`c35a95b9`) the fork replaced its Vue 2 frontend with the E3CNC Vue 3.5 + Vuetify 3 + Vite 7 codebase, and **E3CNC/mainsail became the only shipping frontend**. This repo's `src/` is a frozen pre-swap copy (last touched 2026-08-08); no fixes land there.
+
+Artifact chain instead (ADR-0001: never build the frontend on target):
+
+1. E3CNC/mainsail `E3CNC Release` workflow (workflow_dispatch, creates the tag) builds `mainsail.zip` and attaches it to the GitHub Release. Tag scheme `e3cnc-mainsail-vX.Y.Z`.
+2. `E3CNC/e3cnc-installer` `stack.manifest` pins `MAINSAIL_REF` to a tag; the installer downloads `{MAINSAIL_REPO}/releases/download/{MAINSAIL_REF}/mainsail.zip`.
+3. `manifest_unresolved` / `manifest_require_resolved` (lib/manifest.sh) turns un-pinnable refs into clear errors rather than 404s.
+
+Resolved 2026-10-01 (installer PR #17, closes #3): `MAINSAIL_REF=e3cnc-mainsail-v0.10.7` — first pinned release after the full verification pass. All stack components are now resolved.
+
+### 19.2 Frontend hygiene landed with the split (E3CNC/mainsail)
+
+| Milestone                                                                                                                             | Commit     | Outcome                                                                        |
+| ------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------ |
+| ESLint 458-error backlog eliminated; code-style CI gate reinstated                                                                    | `a39efe0a` | `eslint .` + `prettier --check .` + `vue-tsc` enforced on every push to master |
+| `no-explicit-any` ratchet list shrunk 89 → 7 files (346 sites re-typed)                                                               | `96be0a80` | typing-only; vue-tsc 0 errors; 44/44 vitest; boot-soak vs mock Moonraker clean |
+| Root CONTRIBUTING.md dropped; direct-push-to-master workflow documented                                                               | `6599395b` | fork lands changes on master, no PR flow                                       |
+| Release e3cnc-mainsail-v0.10.7 cut (17 commits: tier-1/2 upstream ports incl. console XSS fix, macros, go2rtc, timelapse, thumbnails) | tag        | mainsail.zip verified downloadable; stack-pinnable                             |
+
+### 19.3 Installer (E3CNC/e3cnc-installer) status
+
+`install.sh` stands up Klipper host (#5) + Moonraker (#6) end-to-end, validated in the WSL2 rig. Open: config layer (#7), existing-install detection (#8), Mainsail nginx step (#9 — now unblocked by the resolved ref), status summary (#10), real-hardware validation (#11), FLASHING.md (#4).
+
+Stack releases (`e3cnc-stack-*.tar.zst` + sha256, §4.1) are published from this repo through v0.10.4; the stack build still bundles the frozen `src/` frontend — folding the fork's `mainsail.zip` into the stack artifact (or dropping `frontend/` in favor of the installer's direct download) is an open decision under §19.1.

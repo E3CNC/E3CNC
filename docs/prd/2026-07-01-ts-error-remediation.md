@@ -1,9 +1,16 @@
 # PRD: TypeScript Error Remediation — E3CNC
 
-> **Status:** Active — tracked and updated as fixes land
+> **Status:** Superseded for this repo's copy — the work moved to `E3CNC/mainsail` and reached zero there (see §7)
 > **Author:** Hermes
 > **Started:** 2026-07-01
 > **Target:** Zero `vue-tsc --noEmit` errors
+
+> **2026-10-01 update:** The active frontend is now the **E3CNC/mainsail fork** (the swap
+> happened 2026-09-17, `c35a95b9`). The remediation continued there and the _target is met
+> in the fork_: `vue-tsc --noEmit` = **0 errors** and the ESLint `no-explicit-any` ratchet
+> backlog shrunk from 407 warnings to 61. The `src/` tree in this repo is the frozen
+> pre-swap copy (last touched 2026-08-08) and still shows ~180 errors — kept only for
+> history; no further fixes will land here.
 
 ---
 
@@ -172,7 +179,34 @@ _Update this table each time fixes are committed._
 ## 6. Running `vue-tsc`
 
 ```bash
-cd /Users/isaaceliape/repos/e3cnc && npx vue-tsc --noEmit 2>&1 | grep -c "error TS"
+cd ~/repos/mainsail && npx vue-tsc --noEmit 2>&1 | grep -c "error TS"  # shipping fork: 0
 ```
 
-Expected output after each fix pass: a decreasing number. Current: **180**.
+Expected output after each fix pass: a decreasing number. Last measured on this repo's
+frozen copy (2026-07-01): **180** — not re-measured after the frontend swap.
+
+---
+
+## 7. Continuation & closure (2026-09-29 → 2026-10-01) — in E3CNC/mainsail
+
+The swap (`c35a95b9`, 2026-09-17) made the fork the only shipping frontend. Its `src/`
+descended from the frozen copy above, so the same class of work continued there and is
+now closed out:
+
+| Step                                                                                      | Commit / PR      | Result                                                                                                                                                |
+| ----------------------------------------------------------------------------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ESLint error backlog (458 errors) eliminated; code-style CI gate reinstated               | a39efe0a (PR #8) | `eslint .` 0 errors on master; CI enforces `eslint` + `prettier --check` + `vue-tsc` on every push                                                    |
+| `no-explicit-any` ratchet list shrunk 89 → 7 files (346 sites re-typed from actual usage) | 96be0a80         | typing-only change; vue-tsc 0 errors; 44/44 unit tests; soak-verified against mock Moonraker (real socket payloads through the retyped callbacks)     |
+| Remaining `any` backlog                                                                   | —                | 61 warnings in 7 files (farm/printer + printer/tempHistory) — heterogeneous Klipper status payloads held for a store-model pass, not a mechanical one |
+
+**Key correction to §4 of this PRD:** the "Vuex `ActionContext` does not propagate to
+destructured bindings" finding did **not** reproduce in the fork — under `strict: true`,
+annotating `({ commit, dispatch, state }: ActionContext<S, RootState>, payload: T)` types
+the bindings correctly; `vue-tsc` exits 0 across 80 retyped files. The remediation path
+chosen was therefore Option 2 applied mechanically — explicit `ActionContext`
+annotations plus payload interfaces — not the `noImplicitAny: false` compromise. The fork's ratchet
+pattern (payload interfaces derived from usage; `unknown` only when nothing is read) is
+documented in the mainsail `agent_docs/` and the `e3cnc-mainsail-upstream-ports` skill.
+
+The original `vue-tsc` target — **zero errors** — is met on the shipping frontend.
+This PRD is closed for the E3CNC repo copy; reopen only if the frozen `src/` is revived.
